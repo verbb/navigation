@@ -1,0 +1,72 @@
+{% import '_includes/forms' as forms %}
+
+{{ forms.textField({
+    label: 'Title' | t('navigation'),
+    instructions: 'The title for this navigation item.' | t('navigation'),
+    id: 'title',
+    name: 'title',
+    value: node.title,
+}) }}
+
+{% if node.elementId %}
+    {#{{ forms.lightswitchField({
+        label: 'Custom title' | t('navigation'),
+        instructions: 'Whether to set a custom title for this navigation item.' | t('navigation'),
+        id: 'customTitleSwitch',
+        name: 'customTitle',
+        on: node.customTitle,
+    }) }}
+
+    {{ forms.textField({
+        id: 'customTitleTitle',
+        name: 'title',
+        value: node.title,
+        class: not node.customTitle ? 'disabled',
+        readonly: not node.customTitle ? true,
+    }) }}#}
+
+    <div class="field">
+        <div class="heading">
+            <label>{{ 'Linked to' | t('navigation') }} {{ node.getElement().displayName }}</label>
+
+            <div class="instructions">
+                <p>
+                    <a class="go" href="{{ node.getElement().cpEditUrl }}" target="_blank">{{ node.getElement().title }}</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    {{ forms.textField({
+        label: 'URL' | t('navigation'),
+        instructions: 'The URL for this navigation item.' | t('navigation'),
+        id: 'url',
+        name: 'url',
+        value: node.url,
+    }) }}
+{% endif %}
+
+{{ forms.lightswitchField({
+    label: 'Enabled' | t('navigation'),
+    instructions: 'Show or hide in navigation.' | t('navigation'),
+    id: 'enabled',
+    name: 'enabled',
+    on: node.enabled,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Open in new window.' | t('navigation'),
+    instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
+    id: 'newWindow',
+    name: 'newWindow',
+    on: node.newWindow,
+}) }}
+
+{{ forms.textField({
+    label: 'Classes' | t('navigation'),
+    instructions: "Additional CSS classes for this navigation item." | t('navigation'),
+    id: 'lasses',
+    name: 'classes',
+    value: node.classes,
+}) }}

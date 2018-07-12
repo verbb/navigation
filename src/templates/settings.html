@@ -1,0 +1,28 @@
+{% extends 'navigation/_layouts' %}
+{% import '_includes/forms' as forms %}
+
+{% set crumbs = [
+    { label: craft.navigation.getPluginName(), url: url('navigation/settings') },
+    { label: 'Settings' | t('navigation'), url: url('navigation/settings') }
+] %}
+
+{% set fullPageForm = true %}
+
+{% block content %}
+
+<input type="hidden" name="action" value="plugins/save-plugin-settings">
+<input type="hidden" name="pluginHandle" value="navigation">
+
+{% namespace 'settings' %}
+    {{ forms.textField({
+        id: 'pluginName',
+        name: 'pluginName',
+        label: 'Plugin Name' | t('navigation'),
+        value: settings.pluginName,
+        first: true,
+        autofocus: true,
+        instructions: 'Plugin name for the end user.' | t('navigation'),
+    }) }}
+{% endnamespace %}
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'navigation/_layouts' %}
+{% import '_includes/forms' as forms %}
+
+{% set crumbs = [
+    { label: craft.navigation.getPluginName(), url: url('navigation') },
+    { label: 'Navigations' | t('navigation'), url: url('navigation/navs') },
+] %}
+
+{% set fullPageForm = true %}
+
+{% set isNewNav = (nav is not defined or not nav.id) %}
+
+{% if isNewNav %}
+    {% set title = "Create a new navigation" | t('navigation') %}
+{% else %}
+    {% set title = nav.name %}
+{% endif %}
+
+{% block content %}
+    <input type="hidden" name="action" value="navigation/navs/save-nav">
+    {% if not isNewNav %}<input type="hidden" name="navId" value="{{ nav.id }}">{% endif %}
+    {{ redirectInput('navigation/navs') }}
+
+    <div id="settings">
+        {{ forms.textField({
+            first: true,
+            label: 'Name' | t('app'),
+            instructions: 'Name of this navigation in the CP.' | t('navigation'),
+            id: 'name',
+            name: 'name',
+            value: (nav is defined ? nav.name : null),
+            errors: (nav is defined ? nav.getErrors('name') : null),
+            autofocus: true,
+            required: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Handle' | t('app'),
+            instructions: 'Name of this navigation in the templates.' | t('navigation'),
+            id: 'handle',
+            name: 'handle',
+            class: 'code',
+            value: (nav is defined ? nav.handle : null),
+            errors: (nav is defined ? nav.getErrors('handle') : null),
+            required: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Max Levels' | t('app'),
+            instructions: 'The maximum number of levels this navigation can have. Leave blank if you don’t care.' | t('navigation'),
+            id: 'maxLevels',
+            name: 'maxLevels',
+            size: 5,
+            value: (nav is defined ? nav.maxLevels : null),
+            errors: (nav is defined ? nav.getErrors('maxLevels') : null),
+        }) }}
+    </div>
+{% endblock %}
+
+{% if nav is not defined or not nav.handle %}
+    {% js %}
+        new Craft.HandleGenerator('#name', '#handle');
+    {% endjs %}
+{% endif %}
