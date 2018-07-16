@@ -94,11 +94,11 @@ For more fine-grained control over the navigation output, you can call nodes dir
 </ul>
 ```
 
-### Node attributes
+## Node attributes
 
 You have access to the following attributes on navigation nodes. These are also available when querying node elements.
 
-### Parameters
+#### Parameters
 
 | Parameter | Explanation |
 | --------- | ----------- |
@@ -114,7 +114,21 @@ You have access to the following attributes on navigation nodes. These are also 
 | newWindow | Whether this node should open in a new window. |
 | active | Whether the URL matches the current URL. |
 | nav | The navigation model this node belongs to. |
+| status | The current status of the node. |
+| children | A collection of child nodes (if any). |
 
+## Node queries
+
+As nodes are just elements, you can query nodes as per your needs. See [Element Queries](https://docs.craftcms.com/v3/dev/element-queries/#creating-element-queries) and [Entry Queries](https://docs.craftcms.com/v3/dev/element-queries/entry-queries.html).
+
+Some common query parameters:
+ 
+ #### Parameters
+| Parameter | Explanation |
+| --------- | ----------- |
+| hasDescendants | Whether the current node has any children |
+| level | The level in the navigation structure this node belongs to. |
+| status | The current status of the node. |
 
 ## Developers
 
