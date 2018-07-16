@@ -75,7 +75,7 @@ class NodeQuery extends ElementQuery
     protected function beforePrepare(): bool
     {
         $this->joinElementTable('navigation_nodes');
-        $this->subQuery->innerJoin('{{%navigation_navs}}', '[[navigation_nodes.navId]] = [[navigation_navs.id]]');
+        $this->subQuery->innerJoin('{{%navigation_navs}} navigation_navs', '[[navigation_nodes.navId]] = [[navigation_navs.id]]');
 
         $this->query->select([
             'navigation_nodes.*',
