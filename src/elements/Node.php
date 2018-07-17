@@ -198,6 +198,11 @@ class Node extends Element
         $record->classes = $this->classes;
         $record->newWindow = $this->newWindow;
 
+        // Don't store the URL if its an element. We should rely on its element URL.
+        if ($this->type) {
+            $record->url = null;
+        }
+
         $record->save(false);
 
         $this->id = $record->id;

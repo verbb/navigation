@@ -124,7 +124,7 @@ class NodesController extends Controller
             $node = Navigation::$plugin->nodes->getNodeById($nodeId, $siteId);
 
             if (!$node) {
-                throw new Exception(Craft::t('commerce', 'No node with the ID “{id}”', ['id' => $nodeId]));
+                throw new Exception(Craft::t('navigation', 'No node with the ID “{id}”', ['id' => $nodeId]));
             }
         } else {
             $node = new NodeElement();
@@ -142,11 +142,6 @@ class NodesController extends Controller
         $node->newWindow = (bool)$request->getBodyParam('newWindow', $node->newWindow);
 
         $node->newParentId = $request->getBodyParam('parentId', null);
-
-        // Don't store the URL if its an element (not an issue, just save confusion)
-        if ($node->type) {
-            $node->url = null;
-        }
 
         return $node;
     }
