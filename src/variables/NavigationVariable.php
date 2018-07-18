@@ -47,5 +47,7 @@ class NavigationVariable
             'nodes' => $nodes,
             'options' => $options,
         ]);
+        
+        Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_SITE);
     }
 }
