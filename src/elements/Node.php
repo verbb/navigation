@@ -111,7 +111,19 @@ class Node extends Element
 
     public function getActive()
     {
-        return (bool)(UrlHelper::siteUrl(Craft::$app->getRequest()->url) === $this->getUrl());
+        $activeChild = false;
+        $isActive = (bool)(UrlHelper::siteUrl(Craft::$app->getRequest()->url) === $this->getUrl());
+
+        // Also check if any children are active
+        if ($this->children) {
+            foreach ($this->children as $child) {
+                if ($child->active) {
+                    $activeChild = $child->active;
+                }
+            }
+        }
+
+        return $isActive || $activeChild;
     }
 
     public function getUrl()
