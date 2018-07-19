@@ -114,6 +114,7 @@ class Node extends Element
         $activeChild = false;
         $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl());
         $currentUrl = implode('/', Craft::$app->getRequest()->getSegments());
+        $isHomepage = (bool)($this->getUrl() === UrlHelper::siteUrl());
 
         $isActive = (bool)($currentUrl === $relativeUrl);
 
@@ -129,7 +130,9 @@ class Node extends Element
         // Then, provide a helper based purely on the URL structure.
         // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
         if (substr($currentUrl, 0, strlen($relativeUrl)) === $relativeUrl) {
-            $isActive = true;
+            if (!$isHomepage) {
+                $isActive = true;
+            }
         }
         
         return $isActive || $activeChild;
