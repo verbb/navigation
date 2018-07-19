@@ -120,7 +120,7 @@ class Node extends Element
 
         // Also check if any children are active
         if ($this->children) {
-            foreach ($this->children as $child) {
+            foreach ($this->children->all() as $child) {
                 if ($child->active) {
                     $activeChild = $child->active;
                 }
