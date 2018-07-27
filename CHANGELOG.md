@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.3 - 2018-07-27
+
+### Fixed
+- Fix being unable to fetch elements that are only in a non-primary site
+- Fix homepage being set to active on child page.
+- Fix deprecated notice.
+
 ## 1.0.2 - 2018-07-18
 
 ### Changed
