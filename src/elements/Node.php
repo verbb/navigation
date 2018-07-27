@@ -100,7 +100,7 @@ class Node extends Element
     public function getElement()
     {
         if ($this->elementId) {
-            $this->element = Craft::$app->getElements()->getElementById($this->elementId);
+            $this->element = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
             $this->elementDisplayName = $this->element->displayName();
 
             return $this->element;
