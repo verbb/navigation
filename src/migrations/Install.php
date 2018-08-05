@@ -38,7 +38,7 @@ class Install extends Migration
             'url' => $this->string(255),
             'type' => $this->string(255),
             'classes' => $this->string(255),
-            'newWindow' => $this->boolean()->defaultValue(0),
+            'newWindow' => $this->boolean()->defaultValue(false),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
