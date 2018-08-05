@@ -140,6 +140,16 @@
 		"oAP": "\/src\/events\/RegisterElementEvent.php",
 		"oF": 0
 		},
+	"\/src\/icon-mask.svg": {
+		"ft": 2097152,
+		"miP": 0,
+		"oA": 2,
+		"oAP": "\/src\/icon-mask.svg",
+		"oF": 0,
+		"opt": 0,
+		"plM": 3758088159,
+		"prP": 0
+		},
 	"\/src\/icon.svg": {
 		"ft": 2097152,
 		"miP": 0,
@@ -242,7 +252,7 @@
 	},
 "projectAttributes": {
 	"creationDate": 528723773,
-	"displayValue": "navigation2",
+	"displayValue": "navigation",
 	"displayValueWasSetByUser": 0,
 	"iconImageName": "meme-ariel",
 	"iconImageWasSetByUser": 0

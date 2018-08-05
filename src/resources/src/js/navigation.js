@@ -168,7 +168,7 @@ Craft.Navigation = Garnish.Base.extend({
 
                 this.$emptyContainer.addClass('hidden');
 
-                generateSelect($('select[name="parent"]'), response.parentOptions);
+                generateSelect(response.parentOptions);
 
                 Craft.cp.displayNotice(Craft.t('navigation', 'Node added.'));
             } else {
@@ -219,7 +219,7 @@ Craft.Navigation.StructureElement = Garnish.Base.extend({
         setTimeout(function() {
             Craft.postActionRequest('navigation/nodes/move', data, $.proxy(function(response, textStatus) {
                 if (response.success) {
-                    generateSelect($('select[name="parent"]'), response.parentOptions);
+                    generateSelect(response.parentOptions);
                 }
             }, this));
         }, 500);
@@ -245,7 +245,7 @@ Craft.Navigation.StructureElement = Garnish.Base.extend({
                 if (response.success) {
                     Craft.cp.displayNotice(Craft.t('navigation', 'Node deleted.'));
 
-                    generateSelect($('select[name="parent"]'), response.parentOptions);
+                    generateSelect(response.parentOptions);
 
                     // Remove from structure and container (again, we're deleting multiples)
                     $nodes.each($.proxy(function(index, element) {
@@ -346,7 +346,7 @@ Craft.Navigation.Editor = Garnish.Base.extend({
             if (response.success) {
                 Craft.cp.displayNotice(Craft.t('navigation', 'Node updated.'));
 
-                generateSelect($('select[name="parent"]'), response.parentOptions);
+                generateSelect(response.parentOptions);
 
                 this.$node.parent().data('label', response.node.title);
                 this.$node.parent().find('.title').text(response.node.title);
@@ -374,18 +374,20 @@ Craft.Navigation.Editor = Garnish.Base.extend({
 
 });
 
-function generateSelect($element, options) {
+function generateSelect(options) {
     var html = '';
-
-    var selected = $element.val();
 
     $.each(options, function(index, value) {
         html += '<option value="' + value.value + '">' + value.label + '</option>';
     });
 
-    $element.html(html);
+    $('select[name="parent"]').each(function(index, element) {
+        var selected = $(element).val();
 
-    $element.val(selected);
+        $(element).html(html);
+        $(element).val(selected);
+    });
+    
 }
 
 
