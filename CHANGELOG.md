@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.4 - 2018-08-06
+
+### Fixed
+- Fix parent select not always keeping value after adding a new node.
+- Remove leftover test values in manual node settings.
+- Fixed an error which could prevent the plugin from installing on PostgreSQL.
+
 ## 1.0.3 - 2018-07-27
 
 ### Fixed
