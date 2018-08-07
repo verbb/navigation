@@ -3,7 +3,7 @@
 
 {% set crumbs = [
     { label: craft.navigation.getPluginName(), url: url('navigation/settings') },
-    { label: 'Settings' | t('navigation'), url: url('navigation/settings') }
+    { label: 'Settings' | t('app'), url: url('navigation/settings') }
 ] %}
 
 {% set fullPageForm = true %}
@@ -17,7 +17,7 @@
     {{ forms.textField({
         id: 'pluginName',
         name: 'pluginName',
-        label: 'Plugin Name' | t('navigation'),
+        label: 'Plugin Name' | t('app'),
         value: settings.pluginName,
         first: true,
         autofocus: true,
