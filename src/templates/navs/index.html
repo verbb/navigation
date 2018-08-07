@@ -26,22 +26,22 @@
 
         <table id="navigations" class="data fullwidth collapsible">
             <thead>
-                <th scope="col">{{ "Name" | t('site') }}</th>
-                <th scope="col">{{ "Handle" | t('site') }}</th>
+                <th scope="col">{{ "Name" | t('app') }}</th>
+                <th scope="col">{{ "Handle" | t('app') }}</th>
                 {% if sortable %}<td class="thin"></td>{% endif %}
                 <td class="thin"></td>
             </thead>
             <tbody>
                 {% for navigation in navigations %}
                     <tr data-id="{{ navigation.id }}" data-name="{{ navigation.name | t('site') }}">
-                        <th scope="row" data-title="{{ 'Name' | t('navigation') }}"><a href="{{ url('navigation/navs/build/' ~ navigation.id) }}">{{ navigation.name | t('site') }}</a></th>
+                        <th scope="row" data-title="{{ 'Name' | t('app') }}"><a href="{{ url('navigation/navs/build/' ~ navigation.id) }}">{{ navigation.name | t('app') }}</a></th>
 
-                        <td scope="row" data-title="{{ 'Handle' | t('navigation') }}" class="code">{{ navigation.handle }}</td>
+                        <td scope="row" data-title="{{ 'Handle' | t('app') }}" class="code">{{ navigation.handle }}</td>
 
                         {% if sortable %}<td class="thin"><a class="move icon" title="{{ 'Reorder' | t('navigation') }}" role="button"></a></td>{% endif %}
 
-                        <td class="thin"><a href="{{ url('navigation/navs/edit/' ~ navigation.id) }}" class="settings icon" title="{{ 'Settings' | t('navigation') }}" role="button"></a></td>
-                        <td class="thin"><a class="delete icon" title="{{ 'Delete' | t('navigation') }}" role="button"></a></td>
+                        <td class="thin"><a href="{{ url('navigation/navs/edit/' ~ navigation.id) }}" class="settings icon" title="{{ 'Settings' | t('app') }}" role="button"></a></td>
+                        <td class="thin"><a class="delete icon" title="{{ 'Delete' | t('app') }}" role="button"></a></td>
                     </tr>
                 {% endfor %}
             </tbody>

@@ -67,7 +67,9 @@
             {% endfor %}
 
             <li class="tab-list-item">
-                <a id="tab-url" class="tab" href="#custom-url" title="Custom URL">Custom URL</a>
+                <a id="tab-url" class="tab" href="#custom-url" title="{{ 'Custom URL' | t('navigation') }}">
+                    {{ 'Custom URL' | t('navigation') }}
+                </a>
 
                 <div id="custom-url" class="tab-list-pane hidden">
                     <form id="manual-form" method="post" accept-charset="UTF-8">
