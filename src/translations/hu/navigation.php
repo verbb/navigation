@@ -62,4 +62,10 @@ return [
 
     // Crumbs label - global
     'Navigations' => 'Menük',
+
+    // vendor/verbb/navigation/src/resources/src/js/navigation.js
+    'Node added.' => 'Menüpont hozzáadva.',
+    'Node deleted.' => 'Menüpont törölve.',
+    'Node updated.' => 'Menüpont frissítve',
+    'Are you sure you want to delete “{title}” and its descendants?' => 'Biztosan törölni szeretnéd “{title}” menüpontot és minden gyermekét?'
 ];
