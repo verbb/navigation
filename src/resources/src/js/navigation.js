@@ -311,8 +311,8 @@ Craft.Navigation.Editor = Garnish.Base.extend({
             var $footer = $('<div class="hud-footer"/>').appendTo(this.$form),
                 $buttonsContainer = $('<div class="buttons right"/>').appendTo($footer);
 
-            this.$cancelBtn = $('<div class="btn">' + Craft.t('navigation', 'Cancel') + '</div>').appendTo($buttonsContainer);
-            this.$saveBtn = $('<input class="btn submit" type="submit" value="' + Craft.t('navigation', 'Save') + '"/>').appendTo($buttonsContainer);
+            this.$cancelBtn = $('<div class="btn">' + Craft.t('app', 'Cancel') + '</div>').appendTo($buttonsContainer);
+            this.$saveBtn = $('<input class="btn submit" type="submit" value="' + Craft.t('app', 'Save') + '"/>').appendTo($buttonsContainer);
             this.$spinner = $('<div class="spinner left hidden"/>').appendTo($buttonsContainer);
 
             $hudContents = $hudContents.add(this.$form);
