@@ -100,7 +100,7 @@ If you'd rather not use the `{% nav %}` functionality, you can create your own r
 {% import _self as macros %}
 
 <ul>
-    {% for node in craft.navigation.nodes({ handle: 'mainMenuDemo', level: 1 }).all() %}
+    {% for node in craft.navigation.nodes({ handle: 'mainMenu', level: 1 }).all() %}
         {{ macros.navigationNodes(node) }}
     {% endfor %}
 </ul>
