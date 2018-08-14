@@ -14,6 +14,7 @@ Navigation is a Craft CMS plugin to help manage navigation menus for you site. S
 - Support for third-party elements with hooks
 - Support for multi-site navigations
 - Simple `render()` Twig function, or roll your own
+- Generate breadcrumbs easily based on your URL segments
 
 ## Requirements
 
@@ -120,6 +121,16 @@ If you'd rather not use the `{% nav %}` functionality, you can create your own r
         {% endif %}
     </li>
 {% endmacro %}
+```
+
+### craft.navigation.breadcrumbs
+
+You can retrieve a list of elements to be used as breadcrumbs. They are not based on your navigation items, and instead use the current URL segments.
+
+```twig
+{% for crumb in craft.navigation.breadcrumbs() %}
+    {{ crumb.link }}
+{% endfor %}
 ```
 
 ## Node attributes
