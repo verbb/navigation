@@ -94,6 +94,34 @@ For more fine-grained control over the navigation output, you can call nodes dir
 </ul>
 ```
 
+If you'd rather not use the `{% nav %}` functionality, you can create your own recursive macro to loop through nodes. In addition, you'll also only want to initially output the first level of nodes using the `level: 1` parameter.
+
+```twig
+{% import _self as macros %}
+
+<ul>
+    {% for node in craft.navigation.nodes({ handle: 'mainMenuDemo', level: 1 }).all() %}
+        {{ macros.navigationNodes(node) }}
+    {% endfor %}
+</ul>
+
+{% macro navigationNodes(node) %}
+    {% import _self as macros %}
+
+    <li>
+        {{ node.link }}
+
+        {% if node.hasDescendants %}
+            <ul>
+                {% for subnode in node.children %}
+                    {{ macros.navigationNodes(subnode) }}
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </li>
+{% endmacro %}
+```
+
 ## Node attributes
 
 You have access to the following attributes on navigation nodes. These are also available when querying node elements.
