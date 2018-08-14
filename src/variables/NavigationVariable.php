@@ -50,4 +50,9 @@ class NavigationVariable
         
         Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_SITE);
     }
+
+    public function breadcrumbs()
+    {
+        return Navigation::$plugin->getBreadcrumbs()->getBreadcrumbs();
+    }
 }

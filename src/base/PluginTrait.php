@@ -2,6 +2,7 @@
 namespace verbb\navigation\base;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\services\Breadcrumbs;
 use verbb\navigation\services\Elements;
 use verbb\navigation\services\Navs;
 use verbb\navigation\services\Nodes;
@@ -18,6 +19,11 @@ trait PluginTrait
 
     // Public Methods
     // =========================================================================
+
+    public function getBreadcrumbs()
+    {
+        return $this->get('breadcrumbs');
+    }
 
     public function getElements()
     {
@@ -37,6 +43,7 @@ trait PluginTrait
     private function _setPluginComponents()
     {
         $this->setComponents([
+            'breadcrumbs' => Breadcrumbs::class,
             'elements' => Elements::class,
             'navs' => Navs::class,
             'nodes' => Nodes::class,
