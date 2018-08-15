@@ -116,6 +116,11 @@ class Node extends Element
         $currentUrl = implode('/', Craft::$app->getRequest()->getSegments());
         $isHomepage = (bool)($this->getUrl() === UrlHelper::siteUrl());
 
+        // If manual URL, make sure to remove a leading '/' for comparison
+        if ($this->isManual()) {
+            $relativeUrl = ltrim($relativeUrl, '/');
+        }
+
         $isActive = (bool)($currentUrl === $relativeUrl);
 
         // Also check if any children are active
@@ -177,6 +182,11 @@ class Node extends Element
         }
 
         return $nav;
+    }
+
+    public function isManual()
+    {
+        return (bool)!$this->type;
     }
 
     // Events
