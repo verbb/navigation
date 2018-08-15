@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.5 - 2018-08-15
+
+### Added
+- Added `breadcrumbs()` functionality.
+- Hungarian translations added (thanks to @Saboteur777).
+
+### Fixed
+- Fix manual links and active state.
+
 ## 1.0.4 - 2018-08-06
 
 ### Fixed
