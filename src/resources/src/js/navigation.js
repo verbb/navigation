@@ -378,7 +378,8 @@ function generateSelect(options) {
     var html = '';
 
     $.each(options, function(index, value) {
-        html += '<option value="' + value.value + '">' + value.label + '</option>';
+        var disabled = value.disabled ? 'disabled' : '';
+        html += '<option value="' + value.value + '" ' + disabled + '>' + value.label + '</option>';
     });
 
     $('select[name="parent"]').each(function(index, element) {
