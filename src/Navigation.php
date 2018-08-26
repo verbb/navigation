@@ -2,11 +2,13 @@
 namespace verbb\navigation;
 
 use verbb\navigation\base\PluginTrait;
+use verbb\navigation\elements\Node;
 use verbb\navigation\models\Settings;
 use verbb\navigation\variables\NavigationVariable;
 
 use Craft;
 use craft\base\Plugin;
+use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
@@ -33,6 +35,11 @@ class Navigation extends Plugin
         self::$plugin = $this;
 
         $this->_setPluginComponents();
+
+        // Register elements
+        Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, function(RegisterComponentTypesEvent $event) {
+            $event->types[] = Node::class;
+        });
 
         // Register our CP routes
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, [$this, 'registerCpUrlRules']);
