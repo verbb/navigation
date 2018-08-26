@@ -114,7 +114,16 @@ class Node extends Element
         $activeChild = false;
         $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl());
         $currentUrl = implode('/', Craft::$app->getRequest()->getSegments());
-        $isHomepage = (bool)($this->getUrl() === UrlHelper::siteUrl());
+
+        // Stop straight away if this is potentially the homepage
+        if ($currentUrl === '') {
+            // Check if we have the homepage entry in the nav, and mark that as active
+            if ($this->element && $this->element->uri === '__home__') {
+                return true;
+            }
+
+            return false;
+        }
 
         // If manual URL, make sure to remove a leading '/' for comparison
         if ($this->isManual()) {
@@ -135,7 +144,7 @@ class Node extends Element
         // Then, provide a helper based purely on the URL structure.
         // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
         if (substr($currentUrl, 0, strlen($relativeUrl)) === $relativeUrl) {
-            if (!$isHomepage) {
+            if ($relativeUrl !== '') {
                 $isActive = true;
             }
         }
