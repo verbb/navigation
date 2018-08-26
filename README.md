@@ -65,6 +65,7 @@ The easy option - let Navigation output the list items for you. This will genera
     ulClass: 'nav-items',
     liClass: 'nav-item',
     aClass: 'nav-link',
+    activeClass: 'nav-active',
 }) }}
 ```
 

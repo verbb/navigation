@@ -3,7 +3,7 @@
 <ul{% if options.ulClass is defined %} class="{{ options.ulClass }}"{% endif %}>
     {% nav node in nodes %}
         <li class="{% if node.classes | length %}{{ node.classes }}{% endif %}{% if options.liClass is defined %} {{ options.liClass }}{% endif %}">
-            <a href="{{ node.url }}" class="{% if node.active %}active{% endif %}{% if options.aClass is defined %} {{ options.aClass }}{% endif %}"{% if node.newWindow %} target="_blank" rel="noopener"{% endif %}>
+            <a href="{{ node.url }}" class="{% if node.active %}{{ options.activeClass ?: 'active' }}{% endif %}{% if options.aClass is defined %} {{ options.aClass }}{% endif %}"{% if node.newWindow %} target="_blank" rel="noopener"{% endif %}>
                 {{- node.title -}}
             </a>
 
