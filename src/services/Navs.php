@@ -49,10 +49,20 @@ class Navs extends Component
         return $models;
     }
 
-    public function getNavById(int $menuId)
+    public function getNavById(int $navId)
     {
         $record = NavRecord::find()
-            ->where(['id' => $menuId])
+            ->where(['id' => $navId])
+            ->with('structure')
+            ->one();
+
+        return $this->_createNavFromRecord($record);
+    }
+
+    public function getNavByHandle($handle)
+    {
+        $record = NavRecord::find()
+            ->where(['handle' => $handle])
             ->with('structure')
             ->one();
 
