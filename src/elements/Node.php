@@ -109,7 +109,7 @@ class Node extends Element
         return null;
     }
 
-    public function getActive()
+    public function getActive($includeChildren = true)
     {
         $activeChild = false;
         $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl());
@@ -133,19 +133,21 @@ class Node extends Element
         $isActive = (bool)($currentUrl === $relativeUrl);
 
         // Also check if any children are active
-        if ($this->children) {
-            foreach ($this->children->all() as $child) {
-                if ($child->active) {
-                    $activeChild = $child->active;
+        if ($includeChildren) {
+            if ($this->children) {
+                foreach ($this->children->all() as $child) {
+                    if ($child->active) {
+                        $activeChild = $child->active;
+                    }
                 }
             }
-        }
 
-        // Then, provide a helper based purely on the URL structure.
-        // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
-        if (substr($currentUrl, 0, strlen($relativeUrl)) === $relativeUrl) {
-            if ($relativeUrl !== '') {
-                $isActive = true;
+            // Then, provide a helper based purely on the URL structure.
+            // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
+            if (substr($currentUrl, 0, strlen($relativeUrl)) === $relativeUrl) {
+                if ($relativeUrl !== '') {
+                    $isActive = true;
+                }
             }
         }
         
