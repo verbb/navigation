@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.6 - 2018-08-26
+
+### Added
+- Added `propagateNodes` nav setting.
+- Added `getNavByHandle()`.
+- Added `activeClass` to `render()` function.
+- Added `getActiveNode()`.
+
+### Changed
+- Remove required URL for manual node.
+
+### Fixed
+- Fix lack of element registration.
+- Fix navigation’s maxLevels not working after changing or adding elements to the nav.
+- Improve active state on homepage.
+
 ## 1.0.5 - 2018-08-15
 
 ### Added
