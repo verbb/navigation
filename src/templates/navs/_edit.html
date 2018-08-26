@@ -54,6 +54,14 @@
             value: (nav is defined ? nav.maxLevels : null),
             errors: (nav is defined ? nav.getErrors('maxLevels') : null),
         }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Propagate nodes across all enabled sites?' | t('navigation'),
+            instructions: 'Whether nodes in this navigation should be propagated across all the sites the available is enabled in. If this is disabled, each node will only belong to the site it was created in.' | t('navigation'),
+            id: 'propagateNodes',
+            name: 'propagateNodes',
+            on: nav.propagateNodes,
+        }) }}
     </div>
 {% endblock %}
 

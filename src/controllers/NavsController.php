@@ -93,6 +93,7 @@ class NavsController extends Controller
         $nav->name = $request->getBodyParam('name');
         $nav->handle = $request->getBodyParam('handle');
         $nav->maxLevels = $request->getBodyParam('maxLevels');
+        $nav->propagateNodes = $request->getBodyParam('propagateNodes');
 
         $success = Navigation::$plugin->navs->saveNav($nav);
 

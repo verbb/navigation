@@ -13,8 +13,10 @@ class Nav extends Model
     public $name;
     public $handle;
     public $sortOrder;
+    public $propagateNodes = false;
     public $maxLevels;
     public $structureId;
+
 
     // Public Methods
     // =========================================================================

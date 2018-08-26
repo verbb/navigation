@@ -102,6 +102,7 @@ class Navs extends Component
 
         $navRecord->name = $nav->name;
         $navRecord->handle = $nav->handle;
+        $navRecord->propagateNodes = $nav->propagateNodes;
 
         $db = Craft::$app->getDb();
         $transaction = $db->beginTransaction();
@@ -220,6 +221,7 @@ class Navs extends Component
             'name',
             'handle',
             'sortOrder',
+            'propagateNodes',
         ]));
 
         if ($record->structure) {

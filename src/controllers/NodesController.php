@@ -23,7 +23,9 @@ class NodesController extends Controller
 
         $node = $this->_setNodeFromPost();
 
-        if (!Craft::$app->getElements()->saveElement($node, true, false)) {
+        $propagateNodes = $node->nav->propagateNodes;
+
+        if (!Craft::$app->getElements()->saveElement($node, true, $propagateNodes)) {
             return $this->asJson([
                 'success' => false,
                 'errors' => $node->getErrors(),
