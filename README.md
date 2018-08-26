@@ -54,7 +54,7 @@ When linking to an existing element, the Title and Enabled settings will always 
 
 You have two options for outputting your menu:
 
-### craft.navigation.render
+### craft.navigation.render()
 
 The easy option - let Navigation output the list items for you. This will generate a nested `<ul>` list of navigation items. You can also pass in additional classes for each element.
 
@@ -69,7 +69,7 @@ The easy option - let Navigation output the list items for you. This will genera
 }) }}
 ```
 
-### craft.navigation.nodes
+### craft.navigation.nodes()
 
 For more fine-grained control over the navigation output, you can call nodes directly. As nodes are elements, output is a breeze using Craft's `{% nav %}` tag, so you don't have to deal with recursive macros.
 
@@ -124,7 +124,7 @@ If you'd rather not use the `{% nav %}` functionality, you can create your own r
 {% endmacro %}
 ```
 
-### craft.navigation.breadcrumbs
+### craft.navigation.breadcrumbs()
 
 You can retrieve a list of elements to be used as breadcrumbs. They are not based on your navigation items, and instead use the current URL segments.
 
@@ -132,6 +132,31 @@ You can retrieve a list of elements to be used as breadcrumbs. They are not base
 {% for crumb in craft.navigation.breadcrumbs() %}
     {{ crumb.link }}
 {% endfor %}
+```
+
+### craft.navigation.getActiveNode()
+
+You can get the active node of any navigation through this tag. Often useful if you want to output an additional navigation area on your site that's contextual to the current node you're on.
+
+```twig
+{# Represents a Node element #}
+{% set activeNode = craft.navigation.getActiveNode() %}
+
+<ul>
+    {# Start looping through any nested nodes, starting a the currently active one #}
+    {% nav node in craft.navigation.nodes({ descendantOf: activeNode }).all() %}
+        <li>
+            {{ node.title }}<br>
+            {{ node.active }}<br>
+
+            {% ifchildren %}
+                <ul>
+                    {% children %}
+                </ul>
+            {% endifchildren %}
+        </li>
+    {% endnav %}
+</ul>
 ```
 
 ## Node attributes
