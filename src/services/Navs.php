@@ -114,6 +114,10 @@ class Navs extends Component
         $navRecord->handle = $nav->handle;
         $navRecord->propagateNodes = $nav->propagateNodes;
 
+        if (!$nav->propagateNodes) {
+            $navRecord->propagateNodes = false;
+        }
+
         $db = Craft::$app->getDb();
         $transaction = $db->beginTransaction();
 
