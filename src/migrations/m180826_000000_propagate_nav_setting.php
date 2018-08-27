@@ -7,7 +7,9 @@ class m180826_000000_propagate_nav_setting extends Migration
 {
     public function safeUp()
     {
-        $this->addColumn('{{%navigation_navs}}', 'propagateNodes', $this->boolean()->after('sortOrder')->defaultValue(false)->notNull());
+        $this->addColumn('{{%navigation_navs}}', 'propagateNodes', $this->boolean()->after('sortOrder')->notNull()->defaultValue(false));
+
+        return true;
     }
 
     public function safeDown()
