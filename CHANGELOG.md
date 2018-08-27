@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.7 - 2018-08-27
+
+### Fixed
+- Fix error thrown when not setting 'Propagate nodes'.
+
 ## 1.0.6 - 2018-08-26
 
 ### Added
