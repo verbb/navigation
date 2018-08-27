@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.8 - 2018-08-27
+
+### Fixed
+- Fix migration potentially not firing for propagateNodes.
+
 ## 1.0.7 - 2018-08-27
 
 ### Fixed
