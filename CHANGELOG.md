@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.9 - 2018-08-28
+
+### Fixed
+- Fix missing column for propagateNodes in install (whoops).
+
 ## 1.0.8 - 2018-08-27
 
 ### Fixed
