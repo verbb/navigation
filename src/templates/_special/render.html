@@ -1,14 +1,19 @@
 {% spaceless %}
 
-<ul{% if options.ulClass is defined %} class="{{ options.ulClass }}"{% endif %}>
+{% set ulClass = options.ulClass ?? '' %}
+{% set liClass = options.liClass ?? '' %}
+{% set aClass = options.aClass ?? '' %}
+{% set activeClass = options.activeClass ?? 'active' %}
+
+<ul class="{{ ulClass }}">
     {% nav node in nodes %}
-        <li class="{% if node.classes | length %}{{ node.classes }}{% endif %}{% if options.liClass is defined %} {{ options.liClass }}{% endif %}">
-            <a href="{{ node.url }}" class="{% if node.active %}{{ options.activeClass ?: 'active' }}{% endif %}{% if options.aClass is defined %} {{ options.aClass }}{% endif %}"{% if node.newWindow %} target="_blank" rel="noopener"{% endif %}>
+        <li class="{% if node.classes | length %}{{ node.classes }}{% endif %} {{ liClass }}">
+            <a href="{{ node.url }}" class="{% if node.active %}{{ activeClass }}{% endif %} {{ aClass }}"{% if node.newWindow %} target="_blank" rel="noopener"{% endif %}>
                 {{- node.title -}}
             </a>
 
             {% ifchildren %}
-                <ul{% if options.ulClass is defined %} class="{{ options.ulClass }}"{% endif %}>
+                <ul class="{{ ulClass }}">
                     {% children %}
                 </ul>
             {% endifchildren %}
