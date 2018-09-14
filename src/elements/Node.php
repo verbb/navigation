@@ -176,8 +176,13 @@ class Node extends Element
     public function getLink()
     {
         $url = $this->getUrl();
+        $newWindow = '';
 
-        return Template::raw('<a href="' . $url . '">' . Html::encode($this->__toString()) . '</a>');
+        if ($this->newWindow) {
+            $newWindow = 'target="_blank" rel="noopener"';
+        }
+
+        return Template::raw('<a href="' . $url . '" ' . $newWindow . '>' . Html::encode($this->__toString()) . '</a>');
     }
 
     public function getNav()
