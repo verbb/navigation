@@ -55,6 +55,16 @@
     on: node.enabled,
 }) }}
 
+{% if craft.app.getIsMultiSite() %}
+    {{ forms.lightswitchField({
+        label: "Enabled for site" | t('app'),
+        instructions: 'Whether this node should be hidden on just this site.' | t('navigation'),
+        id: 'enabledForSite',
+        name: 'enabledForSite',
+        on: node.enabledForSite,
+    }) }}
+{% endif %}
+
 {{ forms.lightswitchField({
     label: 'Open in new window' | t('navigation'),
     instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
