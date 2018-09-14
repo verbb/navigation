@@ -128,6 +128,11 @@ class Node extends Element
             return false;
         }
 
+        // If addTrailingSlashesToUrls, remove trailing '/' for comparison
+        if (Craft::$app->config->general->addTrailingSlashesToUrls) {
+            $relativeUrl = rtrim($relativeUrl, '/');
+        }
+
         // If manual URL, make sure to remove a leading '/' for comparison
         if ($this->isManual()) {
             $relativeUrl = ltrim($relativeUrl, '/');
