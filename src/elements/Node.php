@@ -101,9 +101,12 @@ class Node extends Element
     {
         if ($this->elementId) {
             $this->element = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
-            $this->elementDisplayName = $this->element->displayName();
 
-            return $this->element;
+            if ($this->element) {
+                $this->elementDisplayName = $this->element->displayName();
+
+                return $this->element;
+            }
         }
 
         return null;
