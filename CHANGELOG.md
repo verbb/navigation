@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.11 - 2018-09-18
+
+### Fixed
+- Ensure nodes are propagated to newly-created sites (if set to propogate nodes in nav settings).
+
 ## 1.0.10 - 2018-09-17
 
 ### Fixed
