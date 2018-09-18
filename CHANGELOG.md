@@ -2,6 +2,13 @@
 
 ## 1.0.10 - 2018-09-17
 
+### Fixed
+- Trim trailing slash in getActive method when addTrailingSlashesToUrls.
+- Add `enabledForSite` functionality to allow nodes to be enabled/disabled per site.
+- Fix error that could occur when trying to add a new node on a multi site setup.
+- Refactor `render()` variables to be cleaner and prevent `activeClass` error.
+- Fix `node.link` not working with the newWindow option set.
+
 ## 1.0.9 - 2018-08-28
 
 ### Fixed
