@@ -12,6 +12,7 @@ use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
+use craft\services\Sites;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
 
@@ -53,6 +54,9 @@ class Navigation extends Plugin
         // Allow elements to update our nodes
         Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT, [ $this->nodes, 'onSaveElement' ]);
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [ $this->nodes, 'onDeleteElement' ]);
+
+        // When a site is updated, propagate nodes
+        Event::on(Sites::class, Sites::EVENT_AFTER_SAVE_SITE, [$this->nodes, 'afterSaveSiteHandler']);
     }
 
     public function getPluginName()
