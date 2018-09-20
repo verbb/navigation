@@ -47,11 +47,17 @@ class NavsController extends Controller
 
     public function actionBuildNav(int $navId = null, string $siteHandle = null)
     {
+        $storedSiteId = Craft::$app->getRequest()->getParam('storedSiteId');
         if ($siteHandle === null) {
             $siteHandle = Craft::$app->getSites()->getCurrentSite()->handle;
         }
 
-        $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+        // Undefined localstorage will be submitted as null in string variant.
+        if ($storedSiteId && $storedSiteId !== 'null') {
+            $site = Craft::$app->getSites()->getSiteById($storedSiteId);
+        } else {
+            $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+        }
 
         if (!$site) {
             throw new NotFoundHttpException('Invalid site handle: ' . $siteHandle);
