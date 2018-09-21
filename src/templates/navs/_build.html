@@ -168,7 +168,11 @@
 </script>
 
 {% js %}
-    new Craft.Navigation({{ nav | json_encode | raw }}, {
+
+// Update the local storage.
+localStorage.setItem('Craft-'+ Craft.systemUid +'.BaseElementIndex.siteId', {{ site.id }});
+
+new Craft.Navigation({{ nav | json_encode | raw }}, {
         siteId: {{ site.id }},
     });
 {% endjs %}
