@@ -17,6 +17,7 @@
 {% endblock %}
 
 {% block content %}
+
     <p id="nonavigations"{% if navigations | length %} class="hidden"{% endif %}>
         {{ "No navigations exist yet." | t('navigation') }}
     </p>
@@ -34,7 +35,7 @@
             <tbody>
                 {% for navigation in navigations %}
                     <tr data-id="{{ navigation.id }}" data-name="{{ navigation.name | t('site') }}">
-                        <th scope="row" data-title="{{ 'Name' | t('app') }}"><a href="{{ url('navigation/navs/build/' ~ navigation.id) }}">{{ navigation.name | t('app') }}</a></th>
+                        <th scope="row" data-title="{{ 'Name' | t('app') }}"><a class="navanchor" href="{{ url('navigation/navs/build/' ~ navigation.id) }}">{{ navigation.name | t('app') }}</a></th>
 
                         <td scope="row" data-title="{{ 'Handle' | t('app') }}" class="code">{{ navigation.handle }}</td>
 
@@ -50,6 +51,17 @@
 {% endblock %}
 
 {% js %}
+    // Get the local storage and add the storedSiteid param to the URL's.
+    $(".navanchor").each(function() {
+        var $this = $(this);
+        var _href = $this.attr("href");
+        var localKey = localStorage.getItem('Craft-'+ Craft.systemUid +'.BaseElementIndex.siteId');
+        if (localKey !== null) {
+            $this.attr("href", _href + '&storedSiteId='+ localKey +'');
+        }
+    });
+
+
     var adminTable = new Craft.AdminTable({
         tableSelector: '#navigations',
         noItemsSelector: '#nonavigations',
