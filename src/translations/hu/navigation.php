@@ -46,6 +46,7 @@ return [
     'The URL for this navigation item.' => 'A menüpont URL-je',
     'Enabled' => 'Engedélyezve',
     'Show or hide in navigation.' => 'A menüpont megjelenítése/elrejtése.',
+    'Whether this node should be hidden on just this site.' => 'A menüpont megjelenítése/elrejtése csak ezen az oldalon.',
     'Classes' => 'Osztályok',
     'Additional CSS classes for this navigation item.' => 'További CSS osztályok ehhez a menüponthoz.',
 
