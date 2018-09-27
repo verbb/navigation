@@ -66,6 +66,15 @@ The easy option - let Navigation output the list items for you. This will genera
     liClass: 'nav-item',
     aClass: 'nav-link',
     activeClass: 'nav-active',
+    ulAttributes: {
+        'data-attr': 'Some value',
+    },
+    liAttributes: {
+        'data-attr': 'Some value',
+    },
+    aAttributes: {
+        'data-attr': 'Some value',
+    },
 }) }}
 ```
 

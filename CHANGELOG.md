@@ -1,9 +1,14 @@
 # Changelog
 
-## 1.0.11 - 2018-09-18
+## 1.0.11 - 2018-09-27
+
+### Added
+- Add attributes item to object for `render()` tag.
+- Add translation for `enabledForSite` (thanks @Saboteur777).
 
 ### Fixed
 - Ensure nodes are propagated to newly-created sites (if set to propogate nodes in nav settings).
+- Adds support for detecting and updating the site id based on changes made when editing entries. (thanks @lemiwinkz).
 
 ## 1.0.10 - 2018-09-17
 
