@@ -34,7 +34,9 @@
             <tbody>
                 {% for navigation in navigations %}
                     <tr data-id="{{ navigation.id }}" data-name="{{ navigation.name | t('site') }}">
-                        <th scope="row" data-title="{{ 'Name' | t('app') }}"><a href="{{ url('navigation/navs/build/' ~ navigation.id) }}">{{ navigation.name | t('app') }}</a></th>
+                        <th scope="row" data-title="{{ 'Name' | t('app') }}">
+                            <a class="nav-anchor" href="{{ url('navigation/navs/build/' ~ navigation.id) }}">{{ navigation.name | t('app') }}</a>
+                        </th>
 
                         <td scope="row" data-title="{{ 'Handle' | t('app') }}" class="code">{{ navigation.handle }}</td>
 
@@ -50,6 +52,22 @@
 {% endblock %}
 
 {% js %}
+    var sites = {{ siteHandles | json_encode | raw }};
+
+    // Get the local storage and add the storedSiteid param to the URL's.
+    $('.nav-anchor').each(function() {
+        var $this = $(this);
+        var _href = $this.attr('href');
+
+        var siteId = localStorage.getItem('Craft-' + Craft.systemUid + '.BaseElementIndex.siteId');
+        
+        if (siteId !== null && sites[siteId]) {
+            $this.attr('href', _href + '/' + sites[siteId]);
+        }
+    });
+
+    console.log(sites)
+
     var adminTable = new Craft.AdminTable({
         tableSelector: '#navigations',
         noItemsSelector: '#nonavigations',

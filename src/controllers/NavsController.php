@@ -20,8 +20,15 @@ class NavsController extends Controller
     {
         $navigations = Navigation::$plugin->navs->getAllNavs();
 
+        $siteHandles = [];
+
+        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            $siteHandles[$site->id] = $site->handle;
+        }
+
         return $this->renderTemplate('navigation/navs/index', [
             'navigations' => $navigations,
+            'siteHandles' => $siteHandles,
         ]);
     }
 
