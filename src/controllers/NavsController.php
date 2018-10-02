@@ -22,7 +22,7 @@ class NavsController extends Controller
 
         $siteHandles = [];
 
-        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+        foreach (Craft::$app->getSites()->getEditableSites() as $site) {
             $siteHandles[$site->id] = $site->handle;
         }
 
@@ -55,7 +55,9 @@ class NavsController extends Controller
     public function actionBuildNav(int $navId = null, string $siteHandle = null)
     {
         if ($siteHandle === null) {
-            $siteHandle = Craft::$app->getSites()->getCurrentSite()->handle;
+            $editableSites = Craft::$app->getSites()->getEditableSites();
+
+            $siteHandle = $editableSites[0]->handle ?? Craft::$app->getSites()->getCurrentSite()->handle;
         }
 
         $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);

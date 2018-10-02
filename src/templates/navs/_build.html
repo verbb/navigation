@@ -9,12 +9,14 @@
 {% set title = nav.name %}
 
 {% block contextMenu %}
-    {% if craft.app.sites.getEditableSites() | length > 1 %}
+    {% set sites = craft.app.sites.getEditableSites() %}
+
+    {% if sites | length %}
         <div id="revision-btn" class="btn menubtn" data-icon="world">{{ site.name }}</div>
 
         <div class="menu">
             <ul class="padded">
-                {% for s in craft.app.sites.getAllSites() %}
+                {% for s in sites %}
                     <li>
                         <a href="{{ url('navigation/navs/build/' ~ nav.id ~ '/' ~ s.handle) }}" {% if s.handle == site.handle %}class="sel"{% endif %}>
                             {{ s.name }}
