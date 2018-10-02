@@ -350,7 +350,7 @@ Craft.Navigation.Editor = Garnish.Base.extend({
 
                 this.$node.parent().data('label', response.node.title);
                 this.$node.parent().find('.title').text(response.node.title);
-
+                
                 if (response.node.enabled && response.node.enabledForSite) {
                     $status.addClass('enabled');
                     $status.removeClass('disabled');
@@ -388,7 +388,7 @@ function generateSelect(options) {
         $(element).html(html);
         $(element).val(selected);
     });
-
+    
 }
 
 
