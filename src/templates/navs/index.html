@@ -57,7 +57,7 @@
         var _href = $this.attr("href");
         var localKey = localStorage.getItem('Craft-'+ Craft.systemUid +'.BaseElementIndex.siteId');
         if (localKey !== null) {
-            $this.attr("href", _href + '&storedSiteId='+ localKey +'');
+            $this.attr("href", _href + '?storedSiteId='+ localKey +'');
         }
     });
 
