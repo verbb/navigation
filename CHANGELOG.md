@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.12 - 2018-10-03
+
+### Fixed
+- Fixed a 404 issue due to incorrect URL when editing a nav's nodes.
+- Fixed a multi-site issue where the primary site's nodes were being shown, even if the user didn't have permission to edit those nodes.
+- Improved handling of pre-selecting localStorage siteId's (when already selecting a site from an element index).
+
 ## 1.0.11 - 2018-09-27
 
 ### Added
