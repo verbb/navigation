@@ -8,6 +8,9 @@ use verbb\navigation\services\Navs;
 use verbb\navigation\services\Nodes;
 
 use Craft;
+use craft\log\FileTarget;
+
+use yii\log\Logger;
 
 trait PluginTrait
 {
@@ -48,6 +51,24 @@ trait PluginTrait
             'navs' => Navs::class,
             'nodes' => Nodes::class,
         ]);
+    }
+
+    private function _setLogging()
+    {
+        Craft::getLogger()->dispatcher->targets[] = new FileTarget([
+            'logFile' => Craft::getAlias('@storage/logs/navigation.log'),
+            'categories' => ['navigation'],
+        ]);
+    }
+
+    public static function log($message)
+    {
+        Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'navigation');
+    }
+
+    public static function error($message)
+    {
+        Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'navigation');
     }
 
 }

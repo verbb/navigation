@@ -36,47 +36,16 @@ class Navigation extends Plugin
         self::$plugin = $this;
 
         $this->_setPluginComponents();
-
-        // Register elements
-        Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, function(RegisterComponentTypesEvent $event) {
-            $event->types[] = Node::class;
-        });
-
-        // Register our CP routes
-        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, [$this, 'registerCpUrlRules']);
-
-        // Setup Variables class (for backwards compatibility)
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
-            $variable = $event->sender;
-            $variable->set('navigation', NavigationVariable::class);
-        });
-
-        // Allow elements to update our nodes
-        Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT, [ $this->nodes, 'onSaveElement' ]);
-        Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [ $this->nodes, 'onDeleteElement' ]);
-
-        // When a site is updated, propagate nodes
-        Event::on(Sites::class, Sites::EVENT_AFTER_SAVE_SITE, [$this->nodes, 'afterSaveSiteHandler']);
+        $this->_setLogging();
+        $this->_registerCpRoutes();
+        $this->_registerVariables();
+        $this->_registerCraftEventListeners();
+        $this->_registerElementTypes();
     }
 
     public function getPluginName()
     {
         return Craft::t('navigation', $this->getSettings()->pluginName);
-    }
-
-    public function registerCpUrlRules(RegisterUrlRulesEvent $event)
-    {
-        $rules = [
-            'navigation' => 'navigation/navs/index',
-            'navigation/navs' => 'navigation/navs/index',
-            'navigation/navs/new' => 'navigation/navs/edit-nav',
-            'navigation/navs/edit/<navId:\d+>' => 'navigation/navs/edit-nav',
-            'navigation/navs/build/<navId:\d+>' => 'navigation/navs/build-nav',
-            'navigation/navs/build/<navId:\d+>/<siteHandle:{handle}>' => 'navigation/navs/build-nav',
-            'navigation/settings' => 'navigation/base/settings',
-        ];
-
-        $event->rules = array_merge($event->rules, $rules);
     }
 
     public function getSettingsResponse()
@@ -99,5 +68,48 @@ class Navigation extends Plugin
     protected function createSettingsModel(): Settings
     {
         return new Settings();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _registerCpRoutes()
+    {
+        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
+            $event->rules = array_merge($event->rules, [
+                'navigation' => 'navigation/navs/index',
+                'navigation/navs' => 'navigation/navs/index',
+                'navigation/navs/new' => 'navigation/navs/edit-nav',
+                'navigation/navs/edit/<navId:\d+>' => 'navigation/navs/edit-nav',
+                'navigation/navs/build/<navId:\d+>' => 'navigation/navs/build-nav',
+                'navigation/navs/build/<navId:\d+>/<siteHandle:{handle}>' => 'navigation/navs/build-nav',
+                'navigation/settings' => 'navigation/base/settings',
+            ]);
+        });
+    }
+
+    private function _registerVariables()
+    {
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
+            $event->sender->set('navigation', NavigationVariable::class);
+        });
+    }
+
+    private function _registerCraftEventListeners()
+    {
+        // Allow elements to update our nodes
+        Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT, [$this->getNodes(), 'onSaveElement']);
+        Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [$this->getNodes(), 'onDeleteElement']);
+
+        // When a site is updated, propagate nodes
+        Event::on(Sites::class, Sites::EVENT_AFTER_SAVE_SITE, [$this->getNodes(), 'afterSaveSiteHandler']);
+    }
+
+    private function _registerElementTypes()
+    {
+        Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, function(RegisterComponentTypesEvent $event) {
+            $event->types[] = Node::class;
+        });
     }
 }
