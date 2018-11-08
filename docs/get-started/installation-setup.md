@@ -18,6 +18,6 @@ composer require verbb/navigation
 3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Navigation.
 
 ## Licensing
-You can try Navigation in a development environment for as long as you like. Once your site goes live, you are required to purchase a license for this plugin.
+You can try Navigation in a development environment for as long as you like. Once your site goes live, you are required to purchase a license for the plugin.
 
 For more information, see [Craft's Commercial Plugin Licensing](https://docs.craftcms.com/v3/plugins.html#commercial-plugin-licensing).
