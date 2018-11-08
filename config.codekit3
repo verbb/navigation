@@ -164,6 +164,17 @@
 		"rFN": 0,
 		"uCM": 0
 		},
+	"/docs/screenshots/navigation-nodes.png": {
+		"ft": 32768,
+		"iS": 253160,
+		"oA": 0,
+		"oAP": "/docs/screenshots/navigation-nodes.png",
+		"oF": 0,
+		"oIPL": 0,
+		"opt": 0,
+		"oT": 1,
+		"q": 100
+		},
 	"/docs/support/credit-thanks.md": {
 		"cB": 0,
 		"cS": 0,
@@ -235,17 +246,6 @@
 		"pME": 1,
 		"rFN": 0,
 		"uCM": 0
-		},
-	"/screenshots/navigation-nodes.png": {
-		"ft": 32768,
-		"iS": 253160,
-		"oA": 0,
-		"oAP": "/screenshots/navigation-nodes.png",
-		"oF": 0,
-		"oIPL": 0,
-		"opt": 0,
-		"oT": 1,
-		"q": 100
 		},
 	"/src/assetbundles": {
 		"ft": 65536,

@@ -4,7 +4,7 @@ You'll first want to create a navigation - this contains your navigation nodes w
 
 Once saved, click on the navigation title to start adding your nodes.
 
-![Navigation Overview](/uploads/plugins/navigation/navigation-nodes.png)
+![Navigation Overview](/docs/screenshots/navigation-nodes.png)
 
 Using the right-hand side menu, add either elements or custom URLs. Once added, they'll appear on the left-hand side in a structure. Hover over any navigation node to see some actions - move, edit and delete. Any changes you make to this structure will reflect the changes on your live site.
 
