@@ -4,8 +4,6 @@
 
 Navigation is a Craft CMS plugin to help manage navigation menus for you site. Supports linking to existing elements like entries, categories and products, as well as custom URLs.
 
-![](https://verbb.io/uploads/plugins/navigation/navigation-nodes.png)
-
 ## Features
 
 - Create multiple navigations
@@ -18,6 +16,8 @@ Navigation is a Craft CMS plugin to help manage navigation menus for you site. S
 - Support for multi-site navigations
 - Simple `render()` Twig function, or roll your own
 - Generate breadcrumbs easily based on your URL segments
+
+<img src="https://verbb.io/uploads/plugins/navigation/navigation-nodes.png" style="box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-radius: 4px; border: 1px solid rgba(0,0,0,0.12);">
 
 ## Documentation
 
