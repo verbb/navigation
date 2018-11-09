@@ -65,7 +65,7 @@ Event::on(Navs::class, Navs::EVENT_AFTER_DELETE_NAV, function(NavEvent $e) {
 
 ### The `beforeSaveNode` event
 
-Plugins can get notified before a node is saved. Event handlers can prevent the submission from getting sent by setting `$event->isValid` to false.
+Plugins can get notified before a node is saved. Event handlers can prevent the node from getting sent by setting `$event->isValid` to false.
 
 ```php
 use verbb\navigation\elements\Node;
