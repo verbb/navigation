@@ -1,4 +1,4 @@
-# Extending Elements
+# Extensibility
 
 You can add your own custom elements to be compatible with Navigation by using the provided events. The below shows an example of how entries are setup.
 
