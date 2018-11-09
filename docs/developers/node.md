@@ -19,4 +19,4 @@ Attribute | Description
 `active` | Whether the URL matches the current URL.
 `nav` | The navigation model this node belongs to.
 `status` | The current status of the node.
-`children `| A collection of child nodes (if any).
+`children ` | A collection of child nodes (if any).

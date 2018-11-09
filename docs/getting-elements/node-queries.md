@@ -1,4 +1,4 @@
-## Node queries
+# Node queries
 
 You can fetch nodes in your templates or PHP code using **node queries**.
 

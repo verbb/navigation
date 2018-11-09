@@ -8,12 +8,12 @@ See [Node Queries](docs:getting-elements/node-queries)
 
 ### `craft.navigation.render()`
 
-See [Rendering Nodes](docs:template-guide/rendering-nodes)
+See [Rendering Nodes](docs:template-guides/rendering-nodes)
 
 ### `craft.navigation.breadcrumbs()`
 
-See [Breadcrumbs](docs:template-guide/breadcrumbs)
+See [Breadcrumbs](docs:template-guides/breadcrumbs)
 
 ### `craft.navigation.getActiveNode()`
 
-See [Rendering Nodes](docs:template-guide/rendering-nodes)
+See [Rendering Nodes](docs:template-guides/rendering-nodes)
