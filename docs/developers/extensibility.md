@@ -5,7 +5,6 @@ You can add your own custom elements to be compatible with Navigation by using t
 ```php
 use verbb\navigation\services\Elements;
 use verbb\navigation\events\RegisterElementEvent;
-
 use yii\base\Event;
 
 Event::on(Elements::class, Elements::EVENT_REGISTER_NAVIGATION_ELEMENT, function(RegisterElementEvent $event) {

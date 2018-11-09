@@ -13,13 +13,30 @@
         "collapsable": false,
         "children": [
             "feature-tour/overview",
-            "feature-tour/templating"
+        ]
+    },
+    {
+        "title": "Template Guides",
+        "collapsable": false,
+        "children": [
+            "template-guides/available-variables",
+            "template-guides/rendering-nodes",
+            "template-guides/breadcrumbs"
+        ]
+    },
+    {
+        "title": "Getting Elements",
+        "collapsable": false,
+        "children": [
+            "getting-elements/node-queries"
         ]
     },
     {
         "title": "Developers",
         "collapsable": false,
         "children": [
+            "developers/node",
+            "developers/events",
             "developers/extensibility"
         ]
     },
