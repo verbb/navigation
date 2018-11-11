@@ -21,10 +21,19 @@ use yii\web\User;
 
 class Navigation extends Plugin
 {
+    // Public Properties
+    // =========================================================================
+
+    public $schemaVersion = '1.0.3';
+    public $hasCpSettings = true;
+    public $hasCpSection = true;
+
+
     // Traits
     // =========================================================================
 
     use PluginTrait;
+
 
     // Public Methods
     // =========================================================================

@@ -36,10 +36,7 @@
     "extra": {
         "name": "Navigation",
         "handle": "navigation",
-        "schemaVersion": "1.0.3",
-        "hasCpSettings": true,
-        "hasCpSection": true,
-        "changelogUrl": "https://raw.githubusercontent.com/verbb/navigation/master/CHANGELOG.md",
+        "changelogUrl": "https://raw.githubusercontent.com/verbb/navigation/craft-3/CHANGELOG.md",
         "class": "verbb\\navigation\\Navigation"
     }
 }
