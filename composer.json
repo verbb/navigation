@@ -2,7 +2,7 @@
     "name": "verbb/navigation",
     "description": "A Craft CMS plugin to create navigation menus for your site.",
     "type": "craft-plugin",
-    "version": "1.0.12",
+    "version": "1.0.13",
     "keywords": [
         "craft",
         "cms",
@@ -36,7 +36,7 @@
     "extra": {
         "name": "Navigation",
         "handle": "navigation",
-        "schemaVersion": "1.0.2",
+        "schemaVersion": "1.0.3",
         "hasCpSettings": true,
         "hasCpSection": true,
         "changelogUrl": "https://raw.githubusercontent.com/verbb/navigation/master/CHANGELOG.md",

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.13 - 2018-11-11
+
+Changed
+- Massive performance improvements, lowering database queries by 98% and rendering in a two-thirds the time.
+
 ## 1.0.12 - 2018-10-03
 
 ### Fixed
