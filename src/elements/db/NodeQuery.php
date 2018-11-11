@@ -17,6 +17,7 @@ class NodeQuery extends ElementQuery
 
     public $id;
     public $elementId;
+    public $elementSiteId;
     public $siteId;
     public $navId;
     public $enabled = true;
@@ -41,6 +42,12 @@ class NodeQuery extends ElementQuery
     public function elementId($value)
     {
         $this->elementId = $value;
+        return $this;
+    }
+
+    public function elementSiteId($value)
+    {
+        $this->elementSiteId = $value;
         return $this;
     }
 
@@ -76,9 +83,19 @@ class NodeQuery extends ElementQuery
     {
         $this->joinElementTable('navigation_nodes');
         $this->subQuery->innerJoin('{{%navigation_navs}} navigation_navs', '[[navigation_nodes.navId]] = [[navigation_navs.id]]');
+        
+        $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.id]]');
 
         $this->query->select([
-            'navigation_nodes.*',
+            'navigation_nodes.id',
+            'navigation_nodes.elementId',
+            'navigation_nodes.elementSiteId',
+            'navigation_nodes.navId',
+            'navigation_nodes.url',
+            'navigation_nodes.type',
+            'navigation_nodes.classes',
+            'navigation_nodes.newWindow',
+            'element_item_sites.uri AS elementUrl',
         ]);
 
         if ($this->id) {
@@ -87,6 +104,10 @@ class NodeQuery extends ElementQuery
 
         if ($this->elementId) {
             $this->subQuery->andWhere(Db::parseParam('navigation_nodes.elementId', $this->elementId));
+        }
+
+        if ($this->elementSiteId) {
+            $this->subQuery->andWhere(Db::parseParam('navigation_nodes.elementSiteId', $this->elementSiteId));
         }
 
         if ($this->navId) {

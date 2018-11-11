@@ -42,17 +42,26 @@ class Nodes extends Component
             return;
         }
 
+        // This triggers for every element - including a Node!
+        if (get_class($element) === NodeElement::class) {
+            return;
+        }
+
         $nodes = NodeElement::find()
             ->elementId($element->id)
+            ->elementSiteId($element->siteId)
             ->status(null)
             ->type(get_class($element))
-            ->siteId($element->siteId)
             ->all();
 
         foreach ($nodes as $node) {
-            $currentElement = Craft::$app->getElements()->getElementById($element->id, null, $element->siteId);
+            $currentElement = Craft::$app->getElements()->getElementById($element->id, get_class($element), $element->siteId);
 
             $node->enabled = (int)$element->enabled;
+
+            if ($element->uri) {
+                $node->url = $element->uri;
+            }
 
             // Only update the node name if they were the same before the element was saved
             if ($currentElement && $currentElement->title === $node->title) {

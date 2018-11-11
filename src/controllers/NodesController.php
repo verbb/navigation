@@ -137,6 +137,7 @@ class NodesController extends Controller
         $node->enabledForSite = (bool)$request->getBodyParam('enabledForSite', $node->enabledForSite);
 
         $node->elementId = $request->getBodyParam('elementId', $node->elementId);
+        $node->elementSiteId = $request->getBodyParam('elementSiteId', $node->elementSiteId);
         $node->siteId = $request->getBodyParam('siteId', $node->siteId);
         $node->navId = $request->getBodyParam('navId', $node->navId);
         $node->url = $request->getBodyParam('url', $node->url);

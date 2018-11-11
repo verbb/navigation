@@ -17,6 +17,7 @@ use craft\elements\actions\NewChild;
 use craft\elements\actions\SetStatus;
 use craft\elements\actions\View;
 use craft\elements\db\ElementQueryInterface;
+use Craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
@@ -74,6 +75,7 @@ class Node extends Element
 
     public $id;
     public $elementId;
+    public $elementSiteId;
     public $siteId;
     public $navId;
     public $enabled = true;
@@ -81,35 +83,34 @@ class Node extends Element
     public $classes;
     public $newWindow = false;
 
-    public $_url;
-    public $element;
-    public $elementDisplayName;
     public $newParentId;
+
+    private $_url;
+    private $_element;
+    private $_elementUrl;
     private $_hasNewParent;
+    private $_activeChild;
+
 
     // Public Methods
     // =========================================================================
 
-    public function init()
-    {
-        $element = $this->getElement();
-
-        parent::init();
-    }
-
     public function getElement()
     {
-        if ($this->elementId) {
-            $this->element = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
-
-            if ($this->element) {
-                $this->elementDisplayName = $this->element->displayName();
-
-                return $this->element;
-            }
+        if ($this->_element !== null) {
+            return $this->_element;
         }
 
-        return null;
+        if ($this->elementId === null) {
+            return null;
+        }
+
+        return $this->_element = Craft::$app->getElements()->getElementById($this->elementId, $this->type, $this->elementSiteId);
+    }
+
+    public function setElement($element = null)
+    {
+        $this->_element = $element;
     }
 
     public function getActive($includeChildren = true)
@@ -120,13 +121,19 @@ class Node extends Element
 
         // Stop straight away if this is potentially the homepage
         if ($currentUrl === '') {
+            $element = $this->getElement();
+
             // Check if we have the homepage entry in the nav, and mark that as active
-            if ($this->element && $this->element->uri === '__home__') {
+            if ($element && $element->uri === '__home__') {
                 return true;
             }
 
             return false;
         }
+
+        // if ($this->_activeChild) {
+        //     return true;
+        // }
 
         // If addTrailingSlashesToUrls, remove trailing '/' for comparison
         if (Craft::$app->config->general->addTrailingSlashesToUrls) {
@@ -213,6 +220,7 @@ class Node extends Element
         return (bool)!$this->type;
     }
 
+
     // Events
     // -------------------------------------------------------------------------
 
@@ -250,22 +258,16 @@ class Node extends Element
         }
 
         $record->elementId = $this->elementId;
+        $record->elementSiteId = $this->elementSiteId;
         $record->navId = $this->navId;
         $record->url = $this->url;
         $record->type = $this->type;
         $record->classes = $this->classes;
         $record->newWindow = $this->newWindow;
 
-        // Don't store the URL if its an element. We should rely on its element URL.
-        if ($this->type) {
-            $record->url = null;
-        }
-
         $record->save(false);
 
         $this->id = $record->id;
-
-        $this->element = $this->getElement();
 
         $nav = $this->getNav();
 
@@ -280,6 +282,7 @@ class Node extends Element
 
         parent::afterSave($isNew);
     }
+
 
     // Private Methods
     // =========================================================================

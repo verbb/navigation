@@ -25,13 +25,27 @@
         readonly: not node.customTitle ? true,
     }) }}#}
 
+    {% set element = node.getElement() %}
+
+    {{ forms.hidden({
+        id: 'url',
+        name: 'url',
+        value: element.uri,
+    }) }}
+
+    {{ forms.hidden({
+        id: 'elementSiteId',
+        name: 'elementSiteId',
+        value: element.siteId,
+    }) }}
+
     <div class="field">
         <div class="heading">
-            <label>{{ 'Linked to' | t('navigation') }} {{ node.getElement().displayName }}</label>
+            <label>{{ 'Linked to' | t('navigation') }} {{ element.displayName }}</label>
 
             <div class="instructions">
                 <p>
-                    <a class="go" href="{{ node.getElement().cpEditUrl }}" target="_blank">{{ node.getElement().title }}</a>
+                    <a class="go" href="{{ element.cpEditUrl }}" target="_blank">{{ element.title }}</a>
                 </p>
             </div>
         </div>

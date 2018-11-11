@@ -115,13 +115,20 @@ Craft.Navigation = Garnish.Base.extend({
     },
 
     addNode: function(data) {
+        var type = 'manual';
+
+        if (data.type) {
+            var classNameParts = data.type.split('\\');
+            type = classNameParts.pop();
+        }
+
         var nodeHtml = this.$template
             .replace(/__siteId__/ig, data.siteId ? data.siteId : "")
             .replace(/__status__/ig, data.enabled ? 'enabled' : 'disabled')
             .replace(/__title__/ig, data.title)
             .replace(/__id__/ig, data.id)
             .replace(/__url__/ig, data.url)
-            .replace(/__type__/ig, data.elementDisplayName ? data.elementDisplayName : 'manual')
+            .replace(/__type__/ig, type)
 
         var $node = $(nodeHtml);
 
