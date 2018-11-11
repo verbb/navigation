@@ -89,7 +89,7 @@ class Node extends Element
     private $_element;
     private $_elementUrl;
     private $_hasNewParent;
-    private $_activeChild;
+    private $_isActive;
 
 
     // Public Methods
@@ -115,25 +115,22 @@ class Node extends Element
 
     public function getActive($includeChildren = true)
     {
-        $activeChild = false;
+        if ($this->_isActive) {
+            return true;
+        }
+
         $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl());
         $currentUrl = implode('/', Craft::$app->getRequest()->getSegments());
 
         // Stop straight away if this is potentially the homepage
         if ($currentUrl === '') {
-            $element = $this->getElement();
-
             // Check if we have the homepage entry in the nav, and mark that as active
-            if ($element && $element->uri === '__home__') {
+            if ($this->_elementUrl && $this->_elementUrl->uri === '__home__') {
                 return true;
             }
 
             return false;
         }
-
-        // if ($this->_activeChild) {
-        //     return true;
-        // }
 
         // If addTrailingSlashesToUrls, remove trailing '/' for comparison
         if (Craft::$app->config->general->addTrailingSlashesToUrls) {
@@ -149,14 +146,6 @@ class Node extends Element
 
         // Also check if any children are active
         if ($includeChildren) {
-            if ($this->children) {
-                foreach ($this->children->all() as $child) {
-                    if ($child->active) {
-                        $activeChild = $child->active;
-                    }
-                }
-            }
-
             // Then, provide a helper based purely on the URL structure.
             // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
             if (substr($currentUrl, 0, strlen($relativeUrl)) === $relativeUrl) {
@@ -166,38 +155,49 @@ class Node extends Element
             }
         }
         
-        return $isActive || $activeChild;
+        return $isActive;
+    }
+
+    public function setIsActive($value)
+    {
+        $this->_isActive = $value;
     }
 
     public function getUrl()
     {
-        $url = $this->_url;
-
-        if (!$url) {
-            if ($this->element) {
-                $url = $this->element->url;
-            }
-        }
-
-        return $url;
+        return $this->getElementUrl() ?? $this->_url;
     }
 
     public function setUrl($value)
     {
         $this->_url = $value;
-        return $this;
+    }
+
+    public function getElementUrl()
+    {
+        if ($this->_elementUrl !== null) {
+            $path = ($this->_elementUrl === '__home__') ? '' : $this->_elementUrl;
+
+            return UrlHelper::siteUrl($path, null, null, $this->elementSiteId);
+        }
+
+        return null;
+    }
+
+    public function setElementUrl($value)
+    {
+        $this->_elementUrl = $value;
     }
 
     public function getLink()
     {
-        $url = $this->getUrl();
         $newWindow = '';
 
         if ($this->newWindow) {
             $newWindow = 'target="_blank" rel="noopener"';
         }
 
-        return Template::raw('<a href="' . $url . '" ' . $newWindow . '>' . Html::encode($this->__toString()) . '</a>');
+        return Template::raw('<a href="' . $this->getUrl() . '" ' . $newWindow . '>' . Html::encode($this->__toString()) . '</a>');
     }
 
     public function getNav()
@@ -264,6 +264,11 @@ class Node extends Element
         $record->type = $this->type;
         $record->classes = $this->classes;
         $record->newWindow = $this->newWindow;
+
+        // Don't store the URL if its an element. We should rely on its element URL.
+        if ($this->type) {
+            $record->url = null;
+        }
 
         $record->save(false);
 

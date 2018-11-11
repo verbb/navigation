@@ -62,7 +62,7 @@ Craft.Navigation = Garnish.Base.extend({
         return Craft.createElementSelectorModal(elementType, {
             criteria: {
                 enabledForSite: null,
-                siteId: this.siteId,
+                // siteId: this.siteId,
             },
             sources: '*',
             multiSelect: true,
@@ -85,6 +85,7 @@ Craft.Navigation = Garnish.Base.extend({
                 navId: this.nav.id,
                 siteId: this.siteId,
                 elementId: element.id,
+                elementSiteId: element.siteId,
                 title: element.label,
                 url: element.url,
                 type: this.elementType,
