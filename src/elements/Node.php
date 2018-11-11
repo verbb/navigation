@@ -125,7 +125,7 @@ class Node extends Element
         // Stop straight away if this is potentially the homepage
         if ($currentUrl === '') {
             // Check if we have the homepage entry in the nav, and mark that as active
-            if ($this->_elementUrl && $this->_elementUrl->uri === '__home__') {
+            if ($this->_elementUrl && $this->_elementUrl === '__home__') {
                 return true;
             }
 
