@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.15 - 2018-11-13
+
+### Fixed
+- Fix SQL errors thrown for new installs.
+
 ## 1.0.14 - 2018-11-12
 
 ### Fixed
