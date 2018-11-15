@@ -123,7 +123,7 @@ class Node extends Element
 
         // Don't run the for console requests. This is called when populating the Node element
         if ($request->getIsConsoleRequest()) {
-            // return;
+            return;
         }
 
         $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl());
