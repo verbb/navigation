@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.16 - 2018-11-15
+
+### Fixed
+- Fix error thrown from console or queue requests when updating elements.
+
 ## 1.0.15 - 2018-11-13
 
 ### Fixed
