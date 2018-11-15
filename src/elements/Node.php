@@ -119,8 +119,15 @@ class Node extends Element
             return true;
         }
 
+        $request = Craft::$app->getRequest();
+
+        // Don't run the for console requests. This is called when populating the Node element
+        if ($request->getIsConsoleRequest()) {
+            // return;
+        }
+
         $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl());
-        $currentUrl = implode('/', Craft::$app->getRequest()->getSegments());
+        $currentUrl = implode('/', $request->getSegments());
 
         // Stop straight away if this is potentially the homepage
         if ($currentUrl === '') {
