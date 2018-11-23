@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.17.1 - 2018-11-24
+
+### Fixed
+- Fix migration from 1.0.17 in multi-site.
+
 ## 1.0.17 - 2018-11-23
 
 ### Fixed
