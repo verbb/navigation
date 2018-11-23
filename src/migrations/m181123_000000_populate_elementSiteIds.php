@@ -12,18 +12,22 @@ class m181123_000000_populate_elementSiteIds extends Migration
     public function safeUp()
     {
         // Populate it
-        $nodes = (new Query())
-            ->select(['nodes.id AS nodeId', 'siteId'])
-            ->from('{{%navigation_nodes}} nodes')
-            ->leftJoin('{{%elements_sites}} elements_sites', '[[elements_sites.elementId]] = [[nodes.elementId]]')
-            ->where(['is', 'nodes.elementSiteId', null])
-            ->all();
+        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            $nodes = Node::find()->siteId($site->id)->status(null)->all();
 
-        foreach ($nodes as $node) {
-            $record = Node::findOne($node['nodeId']);
+            foreach ($nodes as $node) {
+                $record = NodeRecord::findOne($node->id);
 
-            if ($record) {
-                $record->elementSiteId = $node['siteId'];
+                if (!$record) {
+                    continue;
+                }
+
+                if ($node->siteId) {
+                    $record->elementSiteId = $node->siteId;
+                } else {
+                    $record->elementSiteId = Craft::$app->getSites()->getPrimarySite()->id;
+                }
+
                 $record->save(false);
             }
         }
