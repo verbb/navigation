@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.17 - 2018-11-23
+
+### Fixed
+- Fix some elements not having their elementSiteId set, causing multi-site navs to have no URLs.
+
 ## 1.0.16.1 - 2018-11-15
 
 ### Fixed
