@@ -1,7 +1,8 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\records\Node;
+use verbb\navigation\elements\Node;
+use verbb\navigation\records\Node as NodeRecord;
 
 use Craft;
 use craft\db\Migration;
