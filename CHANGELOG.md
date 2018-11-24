@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.17.2 - 2018-11-25
+
+### Fixed
+- Fixed error in migration.
+
 ## 1.0.17.1 - 2018-11-24
 
 ### Fixed
