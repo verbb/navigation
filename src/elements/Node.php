@@ -170,6 +170,21 @@ class Node extends Element
         $this->_isActive = $value;
     }
 
+    public function hasActiveChild()
+    {
+        if ($this->hasDescendants) {
+            $descendants = $this->descendants->all();
+
+            foreach ($descendants as $key => $descendant) {
+                if ($descendant->getActive()) {
+                    $this->setIsActive(true);
+
+                    return $this->getActive();
+                }
+            }
+        }
+    }
+
     public function getUrl()
     {
         return $this->getElementUrl() ?? $this->_url;

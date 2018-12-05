@@ -17,6 +17,7 @@ Attribute | Description
 `classes` | Any additional CSS classes added to the node.
 `newWindow` | Whether this node should open in a new window.
 `active` | Whether the URL matches the current URL.
+`hasActiveChild` | Whether the node has an active child.
 `nav` | The navigation model this node belongs to.
 `status` | The current status of the node.
 `children ` | A collection of child nodes (if any).
