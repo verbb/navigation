@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.18 - 2018-12-06
+
+### Added
+- Added `hasActiveChild` to node, for use when not using the `{% nav %}` twig tag.
+
+### Fixed
+- Fix migration issue from 1.0.16.1 to 1.0.17.2.
+
 ## 1.0.17.2 - 2018-11-25
 
 ### Fixed
