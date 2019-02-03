@@ -6,6 +6,7 @@
     id: 'title',
     name: 'title',
     value: node.title,
+    translatable: craft.app.getIsMultiSite() ? true : false,
 }) }}
 
 {% if node.elementId %}
@@ -23,6 +24,7 @@
         value: node.title,
         class: not node.customTitle ? 'disabled',
         readonly: not node.customTitle ? true,
+        translatable: craft.app.getIsMultiSite() ? true : false,
     }) }}#}
 
     {% set element = node.getElement() %}
