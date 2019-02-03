@@ -8,7 +8,7 @@
 
 {% set fullPageForm = true %}
 
-{% block content %}
+{% block blockContent %}
 
 <input type="hidden" name="action" value="plugins/save-plugin-settings">
 <input type="hidden" name="pluginHandle" value="navigation">
@@ -24,5 +24,13 @@
         instructions: 'Plugin name for the end user.' | t('navigation'),
     }) }}
 {% endnamespace %}
+
+<hr>
+
+<h2>{{ 'Migrate A&M Nav plugin' | t('navigation') }}</h2>
+
+<p>{{ 'If you\'re migrating from a Craft 2 site that used the [A&M Nav](https://github.com/am-impact/amnav) plugin, you can use this utility to convert those menus and navigation items to the Navigation plugin.' | t('navigation') | md }}</p>
+
+<a class="btn submit" href="{{ actionUrl('navigation/base/migrate') }}">{{ 'Migrate' | t('navigation') }}</a>
 
 {% endblock %}

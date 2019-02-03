@@ -1,16 +1,10 @@
 <?php
 namespace verbb\navigation\migrations;
 
+use verbb\navigation\Navigation;
+
 use Craft;
 use craft\db\Migration;
-use craft\elements\Asset;
-use craft\elements\User;
-use craft\helpers\StringHelper;
-use craft\mail\transportadapters\Sendmail;
-use craft\models\FieldGroup;
-use craft\models\Info;
-use craft\models\Site;
-use craft\models\SiteGroup;
 
 class Install extends Migration
 {
@@ -22,6 +16,9 @@ class Install extends Migration
         $this->createTables();
         $this->createIndexes();
         $this->addForeignKeys();
+
+        // See if we should migrate from A&M Nav
+        Navigation::getInstance()->getMigrator()->migrateUp('AmNavPlugin');
     }
 
     public function safeDown()
