@@ -18,7 +18,8 @@ class Install extends Migration
         $this->addForeignKeys();
 
         // See if we should migrate from A&M Nav
-        Navigation::getInstance()->getMigrator()->migrateUp('AmNavPlugin');
+        $migration = new AmNavPlugin();
+        $migration->safeUp();
     }
 
     public function safeDown()

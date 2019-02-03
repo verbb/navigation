@@ -45,6 +45,16 @@
             required: true,
         }) }}
 
+        {{ forms.textareaField({
+            label: 'Instructions' | t('app'),
+            instructions: 'Helper text to guide the author.' | t('app'),
+            id: 'instructions',
+            class: 'nicetext',
+            name: 'instructions',
+            value: (nav is defined ? nav.instructions : null),
+            errors: (nav is defined ? nav.getErrors('instructions') : null),
+        }) }}
+
         {{ forms.textField({
             label: 'Max Levels' | t('app'),
             instructions: 'The maximum number of levels this navigation can have. Leave blank if you don’t care.' | t('navigation'),

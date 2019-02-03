@@ -101,6 +101,7 @@ class NavsController extends Controller
         $nav->id = $request->getBodyParam('navId');
         $nav->name = $request->getBodyParam('name');
         $nav->handle = $request->getBodyParam('handle');
+        $nav->instructions = $request->getBodyParam('instructions');
         $nav->maxLevels = $request->getBodyParam('maxLevels');
         $nav->propagateNodes = $request->getBodyParam('propagateNodes');
 

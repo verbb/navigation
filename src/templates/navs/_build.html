@@ -129,6 +129,16 @@
 {% set sortable = true %}
 
 <div class="nav-builder js-nav-builder">
+    {% if nav.instructions %}
+        <div class="field">
+            <div class="heading">
+                <div class="instructions">
+                    <p>{{ nav.instructions }}</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     {% embed '_elements/structure' %}
         {% block element %}
             {% include '_elements/element' %}

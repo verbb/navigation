@@ -112,6 +112,7 @@ class Navs extends Component
 
         $navRecord->name = $nav->name;
         $navRecord->handle = $nav->handle;
+        $navRecord->instructions = $nav->instructions;
         $navRecord->propagateNodes = $nav->propagateNodes;
 
         if (!$nav->propagateNodes) {
@@ -234,6 +235,7 @@ class Navs extends Component
             'structureId',
             'name',
             'handle',
+            'instructions',
             'sortOrder',
             'propagateNodes',
         ]));
