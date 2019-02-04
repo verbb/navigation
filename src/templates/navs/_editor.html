@@ -10,23 +10,6 @@
 }) }}
 
 {% if node.elementId %}
-    {#{{ forms.lightswitchField({
-        label: 'Custom title' | t('navigation'),
-        instructions: 'Whether to set a custom title for this navigation item.' | t('navigation'),
-        id: 'customTitleSwitch',
-        name: 'customTitle',
-        on: node.customTitle,
-    }) }}
-
-    {{ forms.textField({
-        id: 'customTitleTitle',
-        name: 'title',
-        value: node.title,
-        class: not node.customTitle ? 'disabled',
-        readonly: not node.customTitle ? true,
-        translatable: craft.app.getIsMultiSite() ? true : false,
-    }) }}#}
-
     {% set element = node.getElement() %}
 
     {{ forms.hidden({

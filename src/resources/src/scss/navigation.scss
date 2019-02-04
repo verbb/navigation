@@ -129,19 +129,24 @@
     border-bottom: 1px dotted rgba(115, 127, 140, 0.15);
 }
 
-.nav-builder .icon {
-    margin: 5px 5px 0 0;
+.nav-builder .icon.move,
+.nav-builder .icon.settings,
+.nav-builder .icon.delete {
     opacity: 0;
     transition: opacity linear 100ms;
 }
 
-.nav-builder .icon.settings {
+.nav-builder .icon {
+    margin: 5px 5px 0 0;
     display: inline-block;
 
+    &:hover:before,
     &:before {
         color: rgba(0, 0, 0, 0.2);
     }
+}
 
+.nav-builder a.icon {
     &:hover:before {
         color: #0d78f2;
     }

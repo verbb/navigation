@@ -242,6 +242,19 @@ class Node extends Element
         return (bool)!$this->type;
     }
 
+    public function hasOverriddenTitle()
+    {
+        $element = $this->getElement();
+
+        if ($element) {
+            if ($element->title !== $this->title) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     // Events
     // -------------------------------------------------------------------------

@@ -149,6 +149,10 @@
                 <span class="node-type-{{ type }}">{{ type }}</span>
             </div>
 
+            {% if element.hasOverriddenTitle %}
+                <span class="edit icon" title="{{ 'Custom Title' | t('navigation') }}"></span>
+            {% endif %}
+
             <a class="move icon" title="{{ 'Move' | t('app') }}"></a>
             <a class="settings icon" title="{{ 'Settings' | t('app') }}"></a>
             <a class="delete icon" title="{{ 'Delete' | t('app') }}"></a>
