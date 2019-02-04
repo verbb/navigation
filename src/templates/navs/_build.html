@@ -153,6 +153,14 @@
                 <span class="edit icon" title="{{ 'Custom Title' | t('navigation') }}"></span>
             {% endif %}
 
+            {% if element.newWindow %}
+                <span class="fa fa-external-link" title="{{ 'New Window' | t('navigation') }}"></span>
+            {% endif %}
+
+            {% if element.classes | length %}
+                <span class="classes">.{{ element.classes }}</span>
+            {% endif %}
+
             <a class="move icon" title="{{ 'Move' | t('app') }}"></a>
             <a class="settings icon" title="{{ 'Settings' | t('app') }}"></a>
             <a class="delete icon" title="{{ 'Delete' | t('app') }}"></a>

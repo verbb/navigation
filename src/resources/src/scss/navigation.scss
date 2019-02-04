@@ -7,6 +7,12 @@
 
 @import "base";
 
+// ==========================================================================
+// Third Party
+// ==========================================================================
+
+@import "font-awesome";
+
 
 //
 // Accordion Tabs
@@ -136,6 +142,11 @@
     transition: opacity linear 100ms;
 }
 
+.nav-builder .fa {
+    font-size: 11px;
+}
+
+.nav-builder .fa,
 .nav-builder .icon {
     margin: 5px 5px 0 0;
     display: inline-block;
@@ -144,6 +155,12 @@
     &:before {
         color: rgba(0, 0, 0, 0.2);
     }
+}
+
+.nav-builder .classes {
+    color: #8f98a3;
+    margin: 5px 5px 0 0;
+    display: inline-block;
 }
 
 .nav-builder a.icon {
