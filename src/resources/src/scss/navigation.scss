@@ -213,7 +213,8 @@
     background-color: #D0021B;
 }
 
-.structure .draghelper .icon {
+.structure .draghelper .icon,
+.structure .draghelper .node-type {
     display: none;
 }
 
