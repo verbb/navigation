@@ -201,6 +201,12 @@ class Node extends Element
             $path = ($this->_elementUrl === '__home__') ? '' : $this->_elementUrl;
 
             return UrlHelper::siteUrl($path, null, null, $this->elementSiteId);
+        } else {
+            $element = $this->getElement();
+
+            if ($element) {
+                return $element->url;
+            }
         }
 
         return null;
