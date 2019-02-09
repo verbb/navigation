@@ -214,12 +214,17 @@ class Node extends Element
     public function getLink()
     {
         $newWindow = '';
+        $classes = '';
 
         if ($this->newWindow) {
             $newWindow = 'target="_blank" rel="noopener"';
         }
 
-        return Template::raw('<a href="' . $this->getUrl() . '" ' . $newWindow . '>' . Html::encode($this->__toString()) . '</a>');
+        if ($this->classes) {
+            $classes = 'class="' . $this->classes . '"';
+        }
+
+        return Template::raw('<a href="' . $this->getUrl() . '" ' . $newWindow . ' ' . $classes . '>' . Html::encode($this->__toString()) . '</a>');
     }
 
     public function getNav()
