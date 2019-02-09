@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.2 - 2019-02-10
+
+### Fixed
+- Fix node level not being applied on new nodes.
+- Fix not being able to see new nodes after all have been removed in the CP.
+- Fix sortOrder not being set for new navs.
+
 ## 1.1.1 - 2019-02-09
 
 ### Fixed
