@@ -22,9 +22,9 @@ class NavigationVariable
         return Navigation::$plugin->elements->getRegisteredElements();
     }
 
-    public function getActiveNode()
+    public function getActiveNode($criteria = null)
     {
-        $nodes = $this->nodes()->all();
+        $nodes = $this->nodes($criteria)->all();
 
         foreach ($nodes as $node) {
             if ($node->getActive(false)) {
