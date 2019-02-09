@@ -5,15 +5,18 @@ use verbb\navigation\base\PluginTrait;
 use verbb\navigation\elements\Node;
 use verbb\navigation\fields\NavigationField;
 use verbb\navigation\models\Settings;
+use verbb\navigation\services\Navs;
 use verbb\navigation\variables\NavigationVariable;
 
 use Craft;
 use craft\base\Plugin;
+use craft\events\ConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\services\Fields;
+use craft\services\ProjectConfig;
 use craft\services\Sites;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
@@ -26,7 +29,7 @@ class Navigation extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.0.6';
+    public $schemaVersion = '1.0.7';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 
@@ -51,6 +54,7 @@ class Navigation extends Plugin
         $this->_registerCpRoutes();
         $this->_registerVariables();
         $this->_registerCraftEventListeners();
+        $this->_registerProjectConfigEventListeners();
         $this->_registerFieldTypes();
         $this->_registerElementTypes();
     }
@@ -116,6 +120,13 @@ class Navigation extends Plugin
 
         // When a site is updated, propagate nodes
         Event::on(Sites::class, Sites::EVENT_AFTER_SAVE_SITE, [$this->getNodes(), 'afterSaveSiteHandler']);
+    }
+
+    private function _registerProjectConfigEventListeners()
+    {
+        Craft::$app->getProjectConfig()->onAdd(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleChangedNav'])
+            ->onUpdate(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleChangedNav'])
+            ->onRemove(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleDeletedNav']);
     }
 
     private function _registerFieldTypes()

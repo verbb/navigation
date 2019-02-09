@@ -51,6 +51,8 @@ class Install extends Migration
             'handle' => $this->string()->notNull(),
             'sortOrder' => $this->smallInteger()->unsigned(),
             'propagateNodes' => $this->boolean()->defaultValue(false),
+            // 'isArchived' => $this->boolean()->notNull()->defaultValue(false),
+            // 'dateArchived' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -63,6 +65,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%navigation_nodes}}', ['navId'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['handle'], true);
         $this->createIndex(null, '{{%navigation_navs}}', ['structureId'], false);
+        // $this->createIndex(null, '{{%navigation_navs}}', ['isArchived'], false);
     }
 
     public function addForeignKeys()
