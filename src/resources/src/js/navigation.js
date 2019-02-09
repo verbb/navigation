@@ -240,6 +240,8 @@ Craft.Navigation.StructureElement = Garnish.Base.extend({
     removeNode: function() {
         var nodeIds = [];
         var $nodes = this.$node.find('.element');
+        var siteId = this.$element.data('site-id');
+        var navId = this.container.nav.id;
 
         // Create an array of element (node) ids to delete - we want to not have leftover nodes
         for (var i = 0; i < $nodes.length; i++) {
@@ -249,7 +251,13 @@ Craft.Navigation.StructureElement = Garnish.Base.extend({
         var confirmation = confirm(Craft.t('navigation', 'Are you sure you want to delete “{title}” and its descendants?', { title: this.$element.data('label') }));
 
         if (confirmation) {
-            Craft.postActionRequest('navigation/nodes/delete', { nodeIds: nodeIds }, $.proxy(function(response, textStatus) {
+            var data = {
+                nodeIds: nodeIds,
+                navId: navId,
+                siteId: siteId,
+            };
+
+            Craft.postActionRequest('navigation/nodes/delete', data, $.proxy(function(response, textStatus) {
                 if (response.success) {
                     Craft.cp.displayNotice(Craft.t('navigation', 'Node deleted.'));
 

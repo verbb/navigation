@@ -23,12 +23,10 @@ class NodesController extends Controller
 
         $node = $this->_setNodeFromPost();
 
-        $propagateNodes = $node->nav->propagateNodes;
-
-        if (!Craft::$app->getElements()->saveElement($node, true, $propagateNodes)) {
+        if ($errors = $nodesService->saveNode($node)) {
             return $this->asJson([
                 'success' => false,
-                'errors' => $node->getErrors(),
+                'errors' => $errors,
             ]);
         }
 
@@ -48,20 +46,23 @@ class NodesController extends Controller
 
         $request = Craft::$app->getRequest();
         $nodesService = Navigation::$plugin->getNodes();
+        $navsService = Navigation::$plugin->getNavs();
 
         $nodeIds = $request->getRequiredBodyParam('nodeIds');
-        $node = Navigation::$plugin->nodes->getNodeById($nodeIds[0]);
+        $navId = $request->getRequiredBodyParam('navId');
+        $siteId = $request->getRequiredBodyParam('siteId');
 
-        // We need to go against `deleteElement()` which will kick up any child elements in the structure
-        // to be attached to the parent - not what we want in this case, it'd be pandemonium.
-        foreach ($nodeIds as $nodeId) {
-            if (!Craft::$app->getElements()->deleteElementById($nodeId)) {
-                return $this->asJson(['success' => false]);
-            }
+        $nav = $navsService->getNavById($navId);
+
+        if ($errors = $nodesService->deleteNodes($nav, $nodeIds)) {
+            return $this->asJson([
+                'success' => false,
+                'errors' => $errors,
+            ]);
         }
 
-        $nodes = $nodesService->getNodesForNav($node->nav->id, $node->siteId);
-        $parentOptions = $nodesService->getParentOptions($nodes, $node->nav);
+        $nodes = $nodesService->getNodesForNav($nav->id, $siteId);
+        $parentOptions = $nodesService->getParentOptions($nodes, $nav);
 
         return $this->asJson([
             'success' => true,

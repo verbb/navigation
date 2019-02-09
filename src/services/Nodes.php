@@ -17,12 +17,12 @@ class Nodes extends Component
     // Public Methods
     // =========================================================================
 
-    public function getNodeById(int $id, $siteId = null)
+    public function getNodeById($id, $siteId = null)
     {
         return Craft::$app->getElements()->getElementById($id, NodeElement::class, $siteId);
     }
 
-    public function getNodesForNav(int $navId, $siteId = null)
+    public function getNodesForNav($navId, $siteId = null)
     {
         return NodeElement::find()
             ->navId($navId)
@@ -30,6 +30,98 @@ class Nodes extends Component
             ->siteId($siteId)
             ->enabledForSite(false)
             ->all();
+    }
+
+    public function saveNode($node)
+    {
+        $errors = [];
+
+        $propagateNodes = $node->nav->propagateNodes;
+        $isNew = !$node->id;
+
+        // Whilst there is an easier way to just have node elements propagated by passing it into the saveElement
+        // service, we can't rely on that because of the complexities with the linked element and multi-site.
+        // Instead, let's just create each as a new element, in turn, a new node record as well.
+        if ($propagateNodes && $isNew) {
+            $errors = [];
+            $siteIds = Craft::$app->getSites()->getAllSiteIds();
+
+            // Create new entries for each site, localised as required
+            foreach ($siteIds as $siteId) {
+                $canCreateNode = true;
+
+                $clonedNode = clone $node;
+                $clonedNode->siteId = $siteId;
+
+                if ($clonedNode->elementId) {
+                    $clonedNode->elementSiteId = $siteId;
+                    $element = $clonedNode->getElement();
+
+                    if ($element) {
+                        $clonedNode->title = $element->title;
+                    } else {
+                        // In this instance, we've got an element ID for an element, but it doesn't
+                        // exist for this site, so we don't want to add it, otherwise it'd be a manual link
+                        // This can often happen if a new site was added, but the element hasn't been resaved
+                        $canCreateNode = false;
+                    }
+                }
+
+                if ($canCreateNode) {
+                    if (!Craft::$app->getElements()->saveElement($clonedNode, true, false)) {
+                        $errors[] = $clonedNode->getErrors();
+                    }
+                }
+            }
+        } else {
+            if (!Craft::$app->getElements()->saveElement($node, true, false)) {
+                $errors[] = $node->getErrors();
+            }
+        }
+
+        return $errors;
+    }
+
+    public function deleteNodes($nav, $nodeIds)
+    {
+        $errors = [];
+        $nodesToDelete = [];
+
+        $siteIds = Craft::$app->getSites()->getAllSiteIds();
+        $propagateNodes = $nav->propagateNodes;
+
+        // We need to go against `deleteElement()` which will kick up any child elements in the structure
+        // to be attached to the parent - not what we want in this case, it'd be pandemonium.
+        foreach ($nodeIds as $nodeId) {
+            // If we've set our nodes to propagate, we should also delete any propagated ones
+            if ($propagateNodes) {
+                $node = Navigation::$plugin->nodes->getNodeById($nodeId);
+
+                foreach ($siteIds as $siteId) {
+                    if ($node) {
+                        $propagatedNode = NodeElement::find()
+                            ->navId($node->navId)
+                            ->elementId($node->elementId)
+                            ->siteId($siteId)
+                            ->one();
+
+                        if ($propagatedNode) {
+                            $nodesToDelete[] = $propagatedNode->id;
+                        }
+                    }
+                }
+            } else {
+                $nodesToDelete[] = $nodeId;
+            }
+        }
+
+        foreach ($nodesToDelete as $nodeToDelete) {
+            if (!Craft::$app->getElements()->deleteElementById($nodeToDelete)) {
+                $errors[] = true;
+            }
+        }
+
+        return $errors;
     }
 
     public function onSaveElement(ElementEvent $event)
