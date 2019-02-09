@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 - 2019-02-09
+
+### Fixed
+- Fix migration issue for new installs.
+
 ## 1.1.0 - 2019-02-09
 
 ### Added
