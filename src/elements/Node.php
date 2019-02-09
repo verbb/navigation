@@ -155,7 +155,7 @@ class Node extends Element
         if ($includeChildren) {
             // Then, provide a helper based purely on the URL structure.
             // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
-            if (substr($currentUrl, 0, strlen($relativeUrl)) === $relativeUrl) {
+            if (substr($currentUrl, 0, strlen($relativeUrl . '/')) === $relativeUrl . '/') {
                 if ($relativeUrl !== '') {
                     $isActive = true;
                 }
