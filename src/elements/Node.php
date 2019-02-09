@@ -115,7 +115,7 @@ class Node extends Element
 
     public function getActive($includeChildren = true)
     {
-        if ($this->_isActive) {
+        if ($this->_isActive && $includeChildren) {
             return true;
         }
 
