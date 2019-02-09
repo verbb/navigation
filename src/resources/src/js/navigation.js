@@ -134,6 +134,15 @@ Craft.Navigation = Garnish.Base.extend({
 
         var $node = $(nodeHtml);
 
+        // When we delete all nodes, it'll actually remove the outer structure UL element, so we should check for that
+        // otherwise nodes won't appear as they've been added
+        var structureId = $(this.structure.$container).attr('id');
+
+        // Re-add the element if it doesn't exist
+        if (!$('#' + structureId).length) {
+            $(this.structure.$container).appendTo(this.$builderContainer);
+        }
+
         var $appendTo = this.structure.$container;
 
         if (data.newParentId > 0) {
