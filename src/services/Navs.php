@@ -3,6 +3,7 @@ namespace verbb\navigation\services;
 
 use Craft;
 use craft\base\Component;
+use craft\db\Query;
 use craft\models\Structure;
 
 use verbb\navigation\Navigation;
@@ -117,6 +118,14 @@ class Navs extends Component
 
         if (!$nav->propagateNodes) {
             $navRecord->propagateNodes = false;
+        }
+
+        if ($isNewNav) {
+            $maxSortOrder = (new Query())
+                ->from(['{{%navigation_navs}}'])
+                ->max('[[sortOrder]]');
+
+            $navRecord->sortOrder = $maxSortOrder ? $maxSortOrder + 1 : 1;
         }
 
         $db = Craft::$app->getDb();
