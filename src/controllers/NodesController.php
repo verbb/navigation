@@ -36,6 +36,7 @@ class NodesController extends Controller
         return $this->asJson([
             'success' => true,
             'node' => $node,
+            'level' => $node->level,
             'parentOptions' => $parentOptions,
         ]);
     }
