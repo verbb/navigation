@@ -16,6 +16,7 @@
 - Fix node’s being active when they shouldn’t be (matching URLs too early).
 - Refactor multi-site propagation of nodes.
 - Fix node-type display issues when dragging node in CP.
+- Fix not fetching URL for elements that aren’t localised (assets).
 
 ## 1.0.18 - 2018-12-06
 
