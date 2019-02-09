@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.1.0 - 2019-02-09
+
+### Added
+- Add navigation field.
+- Added classes to `node.link`.
+- Add new window and class indicators to nodes in CP.
+- Add indicator of custom title for nodes in the CP.
+- Add instructions to nav.
+- Add A&M Nav migration.
+- Added translatable icon to title.
+
+### Fixed
+- Fix error when deleting elements in a multi-site.
+- Fix node’s being active when they shouldn’t be (matching URLs too early).
+- Refactor multi-site propagation of nodes.
+- Fix node-type display issues when dragging node in CP.
+
 ## 1.0.18 - 2018-12-06
 
 ### Added
