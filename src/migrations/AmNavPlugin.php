@@ -19,6 +19,10 @@ class AmNavPlugin extends Migration
 
     public function safeUp()
     {
+        if (!$this->db->tableExists('{{%amnav_navs}}')) {
+            return true;
+        }
+
         $AmNavs = (new Query())
             ->select(['*'])
             ->from(['{{%amnav_navs}}'])
