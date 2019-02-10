@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.3 - 2019-02-11
+
+### Fixed
+- Fix error thrown on new installs (missing db column).
+
 ## 1.1.2 - 2019-02-10
 
 ### Fixed
