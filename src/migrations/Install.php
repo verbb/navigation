@@ -49,6 +49,7 @@ class Install extends Migration
             'structureId' => $this->integer()->notNull(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string()->notNull(),
+            'instructions' => $this->text(),
             'sortOrder' => $this->smallInteger()->unsigned(),
             'propagateNodes' => $this->boolean()->defaultValue(false),
             'dateCreated' => $this->dateTime()->notNull(),
