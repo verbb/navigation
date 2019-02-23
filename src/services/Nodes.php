@@ -51,6 +51,7 @@ class Nodes extends Component
                 $canCreateNode = true;
 
                 $clonedNode = clone $node;
+                $clonedNode->setElement(null);
                 $clonedNode->siteId = $siteId;
 
                 if ($clonedNode->elementId) {
