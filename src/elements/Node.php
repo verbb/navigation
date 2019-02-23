@@ -187,7 +187,11 @@ class Node extends Element
 
     public function getUrl()
     {
-        return $this->getElementUrl() ?? $this->_url;
+        $url = $this->getElementUrl() ?? $this->_url;
+
+        $url = Craft::getAlias($url);
+
+        return $url;
     }
 
     public function setUrl($value)
