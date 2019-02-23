@@ -247,6 +247,7 @@ class Navs extends Component
             'instructions',
             'sortOrder',
             'propagateNodes',
+            'uid',
         ]));
 
         if ($record->structure) {

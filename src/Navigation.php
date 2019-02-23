@@ -11,10 +11,12 @@ use Craft;
 use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\events\RegisterUserPermissionsEvent;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Sites;
+use craft\services\UserPermissions;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
 
@@ -26,7 +28,7 @@ class Navigation extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.0.6';
+    public $schemaVersion = '1.0.7';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 
@@ -53,6 +55,7 @@ class Navigation extends Plugin
         $this->_registerCraftEventListeners();
         $this->_registerFieldTypes();
         $this->_registerElementTypes();
+        $this->_registerPermissions();
     }
 
     public function getPluginName()
@@ -129,6 +132,21 @@ class Navigation extends Plugin
     {
         Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, function(RegisterComponentTypesEvent $event) {
             $event->types[] = Node::class;
+        });
+    }
+
+    private function _registerPermissions()
+    {
+        Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
+            $navs = $this->getNavs()->getAllNavs();
+
+            $navPermissions = [];
+
+            foreach ($navs as $nav) {
+                $navPermissions['navigation-manageNav:' . $nav->uid] = ['label' => Craft::t('navigation', 'Manage “{type}”', ['type' => $nav->name])];
+            }
+
+            $event->permissions[Craft::t('navigation', 'Navigation')] = $navPermissions;
         });
     }
 }
