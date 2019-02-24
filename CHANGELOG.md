@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.4 - 2019-02-24
+
+### Fixed
+- Add permissions for navs.
+- Support aliases in custom URL.
+- Fix node titles’s not propagating correctly for nodes.
+
 ## 1.1.3 - 2019-02-11
 
 ### Fixed
