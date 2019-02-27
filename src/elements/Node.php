@@ -237,6 +237,11 @@ class Node extends Element
         return Template::raw('<a href="' . $this->getUrl() . '" ' . $newWindow . ' ' . $classes . '>' . Html::encode($this->__toString()) . '</a>');
     }
 
+    public function getTarget()
+    {
+        return $this->newWindow ? '_blank' : '';
+    }
+
     public function getNav()
     {
         if ($this->navId === null) {
