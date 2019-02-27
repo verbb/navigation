@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.5 - 2019-02-27
+
+### Added
+- Add `node.target` to return either `_blank` or an empty string if the node should open in a new window.
+
 ## 1.1.4 - 2019-02-24
 
 ### Added
