@@ -18,8 +18,8 @@ class Install extends Migration
         $this->addForeignKeys();
 
         // See if we should migrate from A&M Nav
-        $migration = new AmNavPlugin();
-        $migration->safeUp();
+        // $migration = new AmNavPlugin();
+        // $migration->safeUp();
     }
 
     public function safeDown()
