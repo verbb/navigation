@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.6 - 2019-03-23
+
+### Fixed
+- Remove A&M Nav migration from install, where it can produce an error in some circumstances.
+
 ## 1.1.5 - 2019-02-27
 
 ### Added
