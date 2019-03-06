@@ -21,7 +21,8 @@
         "children": [
             "template-guides/available-variables",
             "template-guides/rendering-nodes",
-            "template-guides/breadcrumbs"
+            "template-guides/breadcrumbs",
+            "template-guides/navigation-field"
         ]
     },
     {
