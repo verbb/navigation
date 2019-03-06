@@ -23,6 +23,11 @@ class Nav extends Model
     // Public Methods
     // =========================================================================
 
+    public function __toString()
+    {
+        return $this->handle;
+    }
+
     public function rules()
     {
         return [

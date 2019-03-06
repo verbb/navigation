@@ -68,4 +68,17 @@ class NavigationField extends Field
 
         ]);
     }
+
+    public function normalizeValue($value, ElementInterface $element = null)
+    {
+        if ($value) {
+            $nav = Navigation::$plugin->navs->getNavById($value);
+
+            if ($nav) {
+                return $nav;
+            }
+        }
+
+        return $value;
+    }
 }
