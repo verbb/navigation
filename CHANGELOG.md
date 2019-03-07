@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.7.3 - 2019-03-07
+
+### Fixed
+- Fix migration a little more.
+
 ## 1.1.7.2 - 2019-03-07
 
 ### Fixed
