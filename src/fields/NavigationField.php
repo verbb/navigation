@@ -48,7 +48,7 @@ class NavigationField extends Field
         ];
 
         foreach ($navs as $nav) {
-            $options[$nav->id] = $nav->name;
+            $options[$nav->handle] = $nav->name;
         }
 
         $id = Craft::$app->getView()->formatInputId($this->handle);
@@ -67,18 +67,5 @@ class NavigationField extends Field
         return Craft::$app->getView()->renderTemplate('navigation/_field/settings', [
 
         ]);
-    }
-
-    public function normalizeValue($value, ElementInterface $element = null)
-    {
-        if ($value) {
-            $nav = Navigation::$plugin->navs->getNavById($value);
-
-            if ($nav) {
-                return $nav;
-            }
-        }
-
-        return $value;
     }
 }
