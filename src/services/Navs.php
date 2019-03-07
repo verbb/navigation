@@ -50,7 +50,7 @@ class Navs extends Component
         return $models;
     }
 
-    public function getNavById(int $navId)
+    public function getNavById($navId)
     {
         $record = NavRecord::find()
             ->where(['id' => $navId])
