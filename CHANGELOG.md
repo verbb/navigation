@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.7.2 - 2019-03-07
+
+### Fixed
+- Fix navigation field to use handle.
+- Add migration for IDs or Nav models saved for content.
+
 ## 1.1.7.1 - 2019-03-07
 
 ### Fixed
