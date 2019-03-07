@@ -24,6 +24,10 @@ class m190307_000000_update_field_content extends Migration
         foreach ($navFields as $navField) {
             $column = 'field_' . $navField['handle'];
 
+            if (!$this->db->columnExists('{{%content}}', $column)) {
+                continue;
+            }
+
             $navContents = (new Query())
                 ->select(['id', $column])
                 ->from(['{{%content}}'])
