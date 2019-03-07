@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.7.1 - 2019-03-07
+
+### Fixed
+- Fix string being passed to `getNavById()`, no need to be that strict.
+
 ## 1.1.7 - 2019-03-07
 
 ### Changed
