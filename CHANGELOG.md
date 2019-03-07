@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.7 - 2019-03-07
+
+### Changed
+- Improved the field to return the navigation model.
+
 ## 1.1.6 - 2019-03-03
 
 ### Fixed
