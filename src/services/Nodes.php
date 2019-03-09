@@ -32,12 +32,15 @@ class Nodes extends Component
             ->all();
     }
 
-    public function saveNode($node)
+    public function saveNode(&$node)
     {
         $errors = [];
 
         $propagateNodes = $node->nav->propagateNodes;
         $isNew = !$node->id;
+
+        $clonedNodes = [];
+        $currentSite = Craft::$app->getSites()->getCurrentSite();
 
         // Whilst there is an easier way to just have node elements propagated by passing it into the saveElement
         // service, we can't rely on that because of the complexities with the linked element and multi-site.
@@ -71,12 +74,21 @@ class Nodes extends Component
                 if ($canCreateNode) {
                     if (!Craft::$app->getElements()->saveElement($clonedNode, true, false)) {
                         $errors[] = $clonedNode->getErrors();
+                    } else {
+                        $clonedNodes[$siteId] = $clonedNode;
                     }
                 }
             }
         } else {
             if (!Craft::$app->getElements()->saveElement($node, true, false)) {
                 $errors[] = $node->getErrors();
+            }
+        }
+
+        // Make sure to send back the correct, updated node to the controller
+        if (!$errors && $clonedNodes) {
+            if (isset($clonedNodes[$currentSite->id])) {
+                $node = $clonedNodes[$currentSite->id];
             }
         }
 
