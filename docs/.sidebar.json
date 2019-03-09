@@ -12,7 +12,8 @@
         "title": "Feature Tour",
         "collapsable": false,
         "children": [
-            "feature-tour/overview"
+            "feature-tour/overview",
+            "feature-tour/am-nav-migration"
         ]
     },
     {
