@@ -17,3 +17,7 @@ See [Breadcrumbs](docs:template-guides/breadcrumbs)
 ### `craft.navigation.getActiveNode()`
 
 See [Rendering Nodes](docs:template-guides/rendering-nodes)
+
+### `craft.navigation.tree()`
+
+Returns a full tree structure of nodes as a nested array.

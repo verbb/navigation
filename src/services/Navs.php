@@ -229,6 +229,17 @@ class Navs extends Component
         return true;
     }
 
+    public function buildNavTree($nodes, &$nodeTree)
+    {
+        foreach ($nodes as $key => $node) {
+            $nodeTree[$key] = $node->toArray();
+
+            if ($node->hasDescendants) {
+                $this->buildNavTree($node->children, $nodeTree[$key]['children']);
+            }
+        }
+    }
+
 
     // Private Methods
     // =========================================================================

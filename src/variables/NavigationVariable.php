@@ -68,4 +68,16 @@ class NavigationVariable
     {
         return Navigation::$plugin->getBreadcrumbs()->getBreadcrumbs();
     }
+
+    public function tree($criteria = null)
+    {
+        $nodes = $this->nodes($criteria)->level(1)->all();
+
+        $nodeTree = [];
+
+        Navigation::$plugin->getNavs()->buildNavTree($nodes, $nodeTree);
+
+        return $nodeTree;
+    }
+
 }
