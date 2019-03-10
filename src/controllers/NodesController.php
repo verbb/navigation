@@ -22,11 +22,12 @@ class NodesController extends Controller
         $nodesService = Navigation::$plugin->getNodes();
 
         $node = $this->_setNodeFromPost();
+        $propagateNodes = (bool)$node->nav->propagateNodes;
 
-        if ($errors = $nodesService->saveNode($node)) {
+        if (!Craft::$app->getElements()->saveElement($node, true, $propagateNodes)) {
             return $this->asJson([
                 'success' => false,
-                'errors' => $errors,
+                'errors' => $node->getErrors(),
             ]);
         }
 
@@ -44,27 +45,24 @@ class NodesController extends Controller
     public function actionDelete() {
         $this->requireAcceptsJson();
         $this->requirePostRequest();
-
+       
         $request = Craft::$app->getRequest();
         $nodesService = Navigation::$plugin->getNodes();
-        $navsService = Navigation::$plugin->getNavs();
-
+        
         $nodeIds = $request->getRequiredBodyParam('nodeIds');
-        $navId = $request->getRequiredBodyParam('navId');
-        $siteId = $request->getRequiredBodyParam('siteId');
-
-        $nav = $navsService->getNavById($navId);
-
-        if ($errors = $nodesService->deleteNodes($nav, $nodeIds)) {
-            return $this->asJson([
-                'success' => false,
-                'errors' => $errors,
-            ]);
+        $node = Navigation::$plugin->nodes->getNodeById($nodeIds[0]);
+        
+        // We need to go against `deleteElement()` which will kick up any child elements in the structure
+        // to be attached to the parent - not what we want in this case, it'd be pandemonium.
+        foreach ($nodeIds as $nodeId) {
+            if (!Craft::$app->getElements()->deleteElementById($nodeId)) {
+                return $this->asJson(['success' => false]);
+            }
         }
-
-        $nodes = $nodesService->getNodesForNav($nav->id, $siteId);
-        $parentOptions = $nodesService->getParentOptions($nodes, $nav);
-
+        
+        $nodes = $nodesService->getNodesForNav($node->nav->id, $node->siteId);
+        $parentOptions = $nodesService->getParentOptions($nodes, $node->nav);
+        
         return $this->asJson([
             'success' => true,
             'parentOptions' => $parentOptions,
