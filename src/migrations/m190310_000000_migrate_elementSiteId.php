@@ -10,6 +10,7 @@ use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Json;
+use craft\helpers\MigrationHelper;
 
 class m190310_000000_migrate_elementSiteId extends Migration
 {
@@ -25,6 +26,9 @@ class m190310_000000_migrate_elementSiteId extends Migration
             foreach ($rows as $row) {
                 $this->update('{{%elements_sites}}', ['slug' => $row['elementSiteId']], ['id' => $row['id']], [], false);
             }
+
+            MigrationHelper::dropForeignKeyIfExists('{{%navigation_nodes}}', ['elementSiteId'], $this);
+            MigrationHelper::dropIndexIfExists('{{%navigation_nodes}}', ['elementSiteId'], true, $this);
 
             $this->dropColumn('{{%navigation_nodes}}', 'elementSiteId');
         }
