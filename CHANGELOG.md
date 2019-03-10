@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.8 - 2019-03-10
+
+### Added
+- Add `craft.navigation.tree()`.
+
+### Changed
+- Remove `elementSiteId` and refactor linked element’s siteId handling.
+- Removes the need to create individual elements for each node when propagating is true.
+- Better way to store the linked element’s siteId, via the node’s slug.
+
+### Fixed
+- Fix errors when adding multiple site-enabled nodes to a nav.
+- Better validation when trying to create a nav with a duplicate handle.
+
 ## 1.1.7.3 - 2019-03-07
 
 ### Fixed
