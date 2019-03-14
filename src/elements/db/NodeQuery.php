@@ -18,7 +18,6 @@ class NodeQuery extends ElementQuery
 
     public $id;
     public $elementId;
-    public $elementSiteId;
     public $siteId;
     public $navId;
     public $enabled = true;
@@ -48,7 +47,7 @@ class NodeQuery extends ElementQuery
 
     public function elementSiteId($value)
     {
-        $this->elementSiteId = $value;
+        $this->slug = $value;
         return $this;
     }
 
@@ -111,14 +110,10 @@ class NodeQuery extends ElementQuery
     {
         $this->joinElementTable('navigation_nodes');
         $this->subQuery->innerJoin('{{%navigation_navs}} navigation_navs', '[[navigation_nodes.navId]] = [[navigation_navs.id]]');
-            
-        // Join the element sites table (again) for the linked element
-        $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND [[navigation_nodes.elementSiteId]] = [[element_item_sites.siteId]]');
 
         $this->query->select([
             'navigation_nodes.id',
             'navigation_nodes.elementId',
-            'navigation_nodes.elementSiteId',
             'navigation_nodes.navId',
             'navigation_nodes.url',
             'navigation_nodes.type',
@@ -135,10 +130,6 @@ class NodeQuery extends ElementQuery
 
         if ($this->elementId) {
             $this->subQuery->andWhere(Db::parseParam('navigation_nodes.elementId', $this->elementId));
-        }
-
-        if ($this->elementSiteId) {
-            $this->subQuery->andWhere(Db::parseParam('navigation_nodes.elementSiteId', $this->elementSiteId));
         }
 
         if ($this->navId) {
@@ -162,5 +153,13 @@ class NodeQuery extends ElementQuery
         }
 
         return parent::beforePrepare();
+    }
+
+    protected function afterPrepare(): bool
+    {
+        // Join the element sites table (again) for the linked element
+        $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND CAST([[elements_sites.slug]] AS UNSIGNED) = [[element_item_sites.siteId]]');
+        
+        return parent::afterPrepare();
     }
 }

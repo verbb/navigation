@@ -48,7 +48,7 @@ class NavigationField extends Field
         ];
 
         foreach ($navs as $nav) {
-            $options[$nav->id] = $nav->name;
+            $options[$nav->handle] = $nav->name;
         }
 
         $id = Craft::$app->getView()->formatInputId($this->handle);

@@ -75,7 +75,6 @@ class Node extends Element
 
     public $id;
     public $elementId;
-    public $elementSiteId;
     public $siteId;
     public $navId;
     public $enabled = true;
@@ -113,9 +112,23 @@ class Node extends Element
         $this->_element = $element;
     }
 
+    public function getElementSiteId()
+    {
+        if ($this->slug) {
+            return (int)$this->slug;
+        }
+
+        return Craft::$app->getSites()->getCurrentSite()->id;
+    }
+
+    public function setElementSiteId($value)
+    {
+        $this->slug = $value;
+    }
+
     public function getActive($includeChildren = true)
     {
-        if ($this->_isActive) {
+        if ($this->_isActive && $includeChildren) {
             return true;
         }
 
@@ -187,7 +200,11 @@ class Node extends Element
 
     public function getUrl()
     {
-        return $this->getElementUrl() ?? $this->_url;
+        $url = $this->getElementUrl() ?? $this->_url;
+
+        $url = Craft::getAlias($url);
+
+        return $url;
     }
 
     public function setUrl($value)
@@ -201,6 +218,12 @@ class Node extends Element
             $path = ($this->_elementUrl === '__home__') ? '' : $this->_elementUrl;
 
             return UrlHelper::siteUrl($path, null, null, $this->elementSiteId);
+        } else {
+            $element = $this->getElement();
+
+            if ($element) {
+                return $element->url;
+            }
         }
 
         return null;
@@ -225,6 +248,11 @@ class Node extends Element
         }
 
         return Template::raw('<a href="' . $this->getUrl() . '" ' . $newWindow . ' ' . $classes . '>' . Html::encode($this->__toString()) . '</a>');
+    }
+
+    public function getTarget()
+    {
+        return $this->newWindow ? '_blank' : '';
     }
 
     public function getNav()
@@ -280,6 +308,20 @@ class Node extends Element
             $this->setParent($parentNode);
         }
 
+        // If this is propagating, we want to fetch the information for that site's linked element
+        if ($this->propagating) {
+            $localeElement = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
+
+            if ($localeElement) {
+                $this->elementSiteId = $localeElement->siteId;
+
+                // Only update the title if we haven't overridden it
+                if (!$this->hasOverriddenTitle()) {
+                    $this->title = $localeElement->title;
+                }
+            }
+        }
+
         return parent::beforeSave($isNew);
     }
 
@@ -298,7 +340,6 @@ class Node extends Element
         }
 
         $record->elementId = $this->elementId;
-        $record->elementSiteId = $this->elementSiteId;
         $record->navId = $this->navId;
         $record->url = $this->url;
         $record->type = $this->type;

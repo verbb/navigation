@@ -115,7 +115,7 @@ Craft.Navigation = Garnish.Base.extend({
         this.saveNode(data);
     },
 
-    addNode: function(data) {
+    addNode: function(data, level) {
         var type = 'manual';
 
         if (data.type) {
@@ -130,8 +130,18 @@ Craft.Navigation = Garnish.Base.extend({
             .replace(/__id__/ig, data.id)
             .replace(/__url__/ig, data.url)
             .replace(/__type__/ig, type)
+            .replace(/__level__/ig, level)
 
         var $node = $(nodeHtml);
+
+        // When we delete all nodes, it'll actually remove the outer structure UL element, so we should check for that
+        // otherwise nodes won't appear as they've been added
+        var structureId = $(this.structure.$container).attr('id');
+
+        // Re-add the element if it doesn't exist
+        if (!$('#' + structureId).length) {
+            $(this.structure.$container).appendTo(this.$builderContainer);
+        }
 
         var $appendTo = this.structure.$container;
 
@@ -170,7 +180,7 @@ Craft.Navigation = Garnish.Base.extend({
                 this.$manualForm.find('#url').val('');
 
                 var id = response.node.id;
-                var $structureElement = this.addNode(response.node);
+                var $structureElement = this.addNode(response.node, response.level);
 
                 this.structureElements[id] = new Craft.Navigation.StructureElement(this, $structureElement);
 

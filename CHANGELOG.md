@@ -1,5 +1,78 @@
 # Changelog
 
+## 1.1.8 - 2019-03-10
+
+### Added
+- Add `craft.navigation.tree()`.
+
+### Changed
+- Remove `elementSiteId` and refactor linked element’s siteId handling.
+- Removes the need to create individual elements for each node when propagating is true.
+- Better way to store the linked element’s siteId, via the node’s slug.
+
+### Fixed
+- Fix errors when adding multiple site-enabled nodes to a nav.
+- Better validation when trying to create a nav with a duplicate handle.
+
+## 1.1.7.3 - 2019-03-07
+
+### Fixed
+- Fix migration a little more.
+
+## 1.1.7.2 - 2019-03-07
+
+### Fixed
+- Fix navigation field to use handle.
+- Add migration for IDs or Nav models saved for content.
+
+## 1.1.7.1 - 2019-03-07
+
+### Fixed
+- Fix string being passed to `getNavById()`, no need to be that strict.
+
+## 1.1.7 - 2019-03-07
+
+### Changed
+- Improved the field to return the navigation model.
+
+## 1.1.6 - 2019-03-03
+
+### Fixed
+- Remove A&M Nav migration from install, where it can produce an error in some circumstances.
+
+## 1.1.5 - 2019-02-27
+
+### Added
+- Add `node.target` to return either `_blank` or an empty string if the node should open in a new window.
+
+## 1.1.4 - 2019-02-24
+
+### Added
+- Add permissions for navs.
+- Support aliases in custom URL.
+
+### Fixed
+- Fix node titles’s not propagating correctly for nodes.
+
+## 1.1.3 - 2019-02-11
+
+### Fixed
+- Fix error thrown on new installs (missing db column).
+
+## 1.1.2 - 2019-02-10
+
+### Fixed
+- Fix node level not being applied on new nodes.
+- Fix not being able to see new nodes after all have been removed in the CP.
+- Fix sortOrder not being set for new navs.
+- Fix `getActiveNode()` reporting back parent as active.
+- Allow `getActiveNode` to use query criteria.
+
+## 1.1.1 - 2019-02-09
+
+### Fixed
+- Fix migration issue for new installs.
+
 ## 1.1.0 - 2019-02-09
 
 ### Added
@@ -16,6 +89,7 @@
 - Fix node’s being active when they shouldn’t be (matching URLs too early).
 - Refactor multi-site propagation of nodes.
 - Fix node-type display issues when dragging node in CP.
+- Fix not fetching URL for elements that aren’t localised (assets).
 
 ## 1.0.18 - 2018-12-06
 

@@ -22,11 +22,6 @@ class Node extends ActiveRecord
         return $this->hasOne(Element::class, ['id' => 'id']);
     }
 
-    public function getElementSite(): ActiveQueryInterface
-    {
-        return $this->hasOne(Site::class, ['id' => 'elementSiteId']);
-    }
-
     public function getNav(): ActiveQueryInterface
     {
         return $this->hasOne(Nav::class, ['id' => 'navId']);

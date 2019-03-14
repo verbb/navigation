@@ -15,6 +15,7 @@ Attribute | Description
 `link` | Full HTML link (combined url and title).
 `type` | The element type. If custom, will be `null`.
 `classes` | Any additional CSS classes added to the node.
+`target` | Returns either `_blank` or an empty string, should this node open in a new window.
 `newWindow` | Whether this node should open in a new window.
 `active` | Whether the URL matches the current URL.
 `hasActiveChild` | Whether the node has an active child.

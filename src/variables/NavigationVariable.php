@@ -22,9 +22,9 @@ class NavigationVariable
         return Navigation::$plugin->elements->getRegisteredElements();
     }
 
-    public function getActiveNode()
+    public function getActiveNode($criteria = null)
     {
-        $nodes = $this->nodes()->all();
+        $nodes = $this->nodes($criteria)->all();
 
         foreach ($nodes as $node) {
             if ($node->getActive(false)) {
@@ -68,4 +68,16 @@ class NavigationVariable
     {
         return Navigation::$plugin->getBreadcrumbs()->getBreadcrumbs();
     }
+
+    public function tree($criteria = null)
+    {
+        $nodes = $this->nodes($criteria)->level(1)->all();
+
+        $nodeTree = [];
+
+        Navigation::$plugin->getNavs()->buildNavTree($nodes, $nodeTree);
+
+        return $nodeTree;
+    }
+
 }

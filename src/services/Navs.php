@@ -1,20 +1,16 @@
 <?php
 namespace verbb\navigation\services;
 
+use Craft;
+use craft\base\Component;
+use craft\db\Query;
+use craft\models\Structure;
+
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 use verbb\navigation\events\NavEvent;
 use verbb\navigation\models\Nav as NavModel;
 use verbb\navigation\records\Nav as NavRecord;
-
-use Craft;
-use craft\base\Component;
-use craft\db\Query;
-use craft\events\ConfigEvent;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Db;
-use craft\helpers\StringHelper;
-use craft\models\Structure;
 
 use yii\web\UserEvent;
 
@@ -26,53 +22,52 @@ class Navs extends Component
     const EVENT_BEFORE_SAVE_NAV = 'beforeSaveNav';
     const EVENT_AFTER_SAVE_NAV = 'afterSaveNav';
     const EVENT_BEFORE_DELETE_NAV = 'beforeDeleteNav';
-    const EVENT_BEFORE_APPLY_NAV_DELETE = 'beforeApplyNavDelete';
     const EVENT_AFTER_DELETE_NAV = 'afterDeleteNav';
-
-    const CONFIG_NAV_KEY = 'navigation.navs';
 
 
     // Properties
     // =========================================================================
 
-    private $_navs;
+    private $_navsById;
 
 
     // Public Methods
     // =========================================================================
 
-    public function getAllNavs(): array
+    public function getAllNavs($indexBy = null)
     {
-        if ($this->_navs !== null) {
-            return $this->_navs;
-        }
-
-        $this->_navs = [];
-
-        $navRecords = NavRecord::find()
-            ->with('structure')
+        $records = NavRecord::find()
+            ->indexBy($indexBy)
+            ->orderBy('sortOrder asc')
             ->all();
+        
+        $models = [];
 
-        foreach ($navRecords as $navRecord) {
-            $this->_navs[] = $this->_createNavFromRecord($navRecord);
+        foreach ($records as $record) {
+            $models[] = $this->_createNavFromRecord($record);
         }
 
-        return $this->_navs;
+        return $models;
     }
 
-    public function getNavByHandle(string $handle)
+    public function getNavById($navId)
     {
-        return ArrayHelper::firstWhere($this->getAllNavs(), 'handle', $handle, true);
+        $record = NavRecord::find()
+            ->where(['id' => $navId])
+            ->with('structure')
+            ->one();
+
+        return $this->_createNavFromRecord($record);
     }
 
-    public function getNavById(int $id)
+    public function getNavByHandle($handle)
     {
-        return ArrayHelper::firstWhere($this->getAllNavs(), 'id', $id);
-    }
+        $record = NavRecord::find()
+            ->where(['handle' => $handle])
+            ->with('structure')
+            ->one();
 
-    public function getNavByUid(string $uid)
-    {
-        return ArrayHelper::firstWhere($this->getAllNavs(), 'uid', $uid, true);
+        return $this->_createNavFromRecord($record);
     }
 
     public function saveNav(NavModel $nav, bool $runValidation = true): bool
@@ -92,10 +87,23 @@ class Navs extends Component
             return false;
         }
 
-        if ($isNewNav) {
-            $nav->uid = StringHelper::UUID();
-        } else if (!$nav->uid) {
-            $nav->uid = Db::uidById('{{%navigation_navs}}', $nav->id);
+        if (!$isNewNav) {
+            $navRecord = NavRecord::find()
+                ->where(['id' => $nav->id])
+                ->one();
+
+            if (!$navRecord) {
+                throw new NavNotFoundException("No navigation exists with the ID '{$nav->id}'");
+            }
+
+            $oldNav = new NavModel($navRecord->toArray([
+                'id',
+                'structureId',
+                'name',
+                'handle',
+            ]));
+        } else {
+            $navRecord = new NavRecord();
         }
 
         // If they've set maxLevels to 0 (don't ask why), then pretend like there are none.
@@ -103,90 +111,72 @@ class Navs extends Component
             $nav->maxLevels = null;
         }
 
-        $projectConfig = Craft::$app->getProjectConfig();
-
-        $configData = [
-            'name' => $nav->name,
-            'handle' => $nav->handle,
-            'instructions' => $nav->instructions,
-            'propagateNodes' => $nav->propagateNodes,
-        ];
+        $navRecord->name = $nav->name;
+        $navRecord->handle = $nav->handle;
+        $navRecord->instructions = $nav->instructions;
+        $navRecord->propagateNodes = $nav->propagateNodes;
 
         if (!$nav->propagateNodes) {
-            $configData['propagateNodes'] = false;
+            $navRecord->propagateNodes = false;
         }
-
-        $configPath = self::CONFIG_NAV_KEY . '.' . $nav->uid;
-        $projectConfig->set($configPath, $configData);
 
         if ($isNewNav) {
-            $nav->id = Db::idByUid('{{%navigation_navs}}', $nav->uid);
+            $maxSortOrder = (new Query())
+                ->from(['{{%navigation_navs}}'])
+                ->max('[[sortOrder]]');
+
+            $navRecord->sortOrder = $maxSortOrder ? $maxSortOrder + 1 : 1;
         }
 
-        return true;
-    }
-
-    public function handleChangedNav(ConfigEvent $event)
-    {
-        $navUid = $event->tokenMatches[0];
-        $data = $event->newValue;
-
-        $transaction = Craft::$app->getDb()->beginTransaction();
+        $db = Craft::$app->getDb();
+        $transaction = $db->beginTransaction();
 
         try {
-            $structureData = $data['structure'];
-            $siteData = $data['siteSettings'];
-            $structureUid = $structureData['uid'];
+            // Create/update the structure
+            if ($isNewNav) {
+                $structure = new Structure();
+            } else {
+                $structure = Craft::$app->getStructures()->getStructureById($oldNav->structureId);
+            }
 
-            $navRecord = $this->_getNavRecord($navUid);
-            $isNewNav = $navRecord->getIsNewRecord();
-
-            $navRecord->name = $data['name'];
-            $navRecord->handle = $data['handle'];
-            $navRecord->instructions = $data['instructions'];
-            $navRecord->propagateNodes = $data['propagateNodes'];
-            // $navRecord->isArchived = false;
-            // $navRecord->dateArchived = null;
-            $navRecord->uid = $navUid;
-
-            // Structure
-            $structuresService = Craft::$app->getStructures();
-            $structure = $structuresService->getStructureByUid($structureUid, true) ?? new Structure(['uid' => $structureUid]);
-            $structure->maxLevels = $structureData['maxLevels'];
-            $structuresService->saveStructure($structure);
-
+            $structure->maxLevels = $nav->maxLevels;
+            Craft::$app->getStructures()->saveStructure($structure);
             $navRecord->structureId = $structure->id;
+            $nav->structureId = $structure->id;
 
+            // Save the nav
             $navRecord->save(false);
+
+            // Now that we have a nav ID, save it on the model
+            if (!$nav->id) {
+                $nav->id = $navRecord->id;
+            }
+
+            // Might as well update our cache of the nav while we have it.
+            $this->_navsById[$nav->id] = $nav;
 
             $transaction->commit();
         } catch (\Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
         // Fire an 'afterSaveNav' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_NAV)) {
             $this->trigger(self::EVENT_AFTER_SAVE_NAV, new NavEvent([
-                'nav' => $this->getNavById($navRecord->id),
+                'nav' => $nav,
                 'isNew' => $isNewNav,
             ]));
         }
+
+        return true;
     }
 
     public function deleteNavById(int $navId): bool
     {
         $nav = $this->getNavById($navId);
 
-        if (!$nav) {
-            return false;
-        }
-
-        return $this->deleteNav($nav);
-    }
-
-    public function deleteNav($navId): bool
-    {
         // Fire a 'beforeDeleteNav' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_NAV)) {
             $this->trigger(self::EVENT_BEFORE_DELETE_NAV, new NavEvent([
@@ -194,113 +184,61 @@ class Navs extends Component
             ]));
         }
 
-        Craft::$app->getProjectConfig()->remove(self::CONFIG_NAV_KEY . '.' . $nav->uid);
-        
-        return true;
-    }
-
-    public function handleDeletedNav(ConfigEvent $event)
-    {
-        $uid = $event->tokenMatches[0];
-        $navRecord = $this->_getNavRecord($uid);
-
-        if (!$navRecord->id) {
-            return;
-        }
-
-        $nav = $this->getNavById($navRecord->id);
-
-        // Fire a 'beforeApplyNavDelete' event
-        if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_NAV_DELETE)) {
-            $this->trigger(self::EVENT_BEFORE_APPLY_NAV_DELETE, new NavEvent([
-                'nav' => $nav,
-            ]));
-        }
-
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
-            // Delete the nodes
-            $nodes = Nodes::find()
-                ->anyStatus()
-                ->navId($navRecord->id)
-                ->all();
-
-            $elementsService = Craft::$app->getElements();
-
-            foreach ($nodes as $node) {
-                $elementsService->deleteElement($node);
-            }
-
-            // Delete the structure
-            Craft::$app->getStructures()->deleteStructureById($navRecord->structureId);
-
-            // Delete the navigation
             Craft::$app->getDb()->createCommand()
-                ->softDelete('{{%navigation_navs}}', ['id' => $navRecord->id])
+                ->delete('{{%navigation_navs}}', ['id' => $navId])
                 ->execute();
 
             $transaction->commit();
         } catch (\Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
-        // Craft::$app->getDb()->createCommand()
-        //     ->delete('{{%navigation_navs}}', ['uid' => $navUid])
-        //     ->execute();
-
-        // Clear caches
-        $this->_navs = null;
-
-        // Fire an 'afterDeleteNav' event
+        // Fire an 'afterDeleteAssetTransform' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_NAV)) {
             $this->trigger(self::EVENT_AFTER_DELETE_NAV, new NavEvent([
                 'nav' => $nav
             ]));
         }
+
+        return true;
     }
 
     public function reorderNavs(array $navIds): bool
     {
-        $projectConfig = Craft::$app->getProjectConfig();
+        $transaction = Craft::$app->getDb()->beginTransaction();
 
-        $uidsByIds = Db::uidsByIds('{{%navigation_navs}}', $navIds);
-
-        foreach ($navIds as $navOrder => $navId) {
-            if (!empty($uidsByIds[$navId])) {
-                $navUid = $uidsByIds[$navId];
-                $projectConfig->set(self::CONFIG_NAV_KEY . '.' . $navUid . '.sortOrder', $navOrder + 1);
+        try {
+            foreach ($navIds as $navOrder => $navId) {
+                $navRecord = $this->_getNavRecordById($navId);
+                $navRecord->sortOrder = $navOrder + 1;
+                $navRecord->save();
             }
+
+            $transaction->commit();
+        } catch (\Throwable $e) {
+            $transaction->rollBack();
+
+            throw $e;
         }
 
         return true;
     }
 
+    public function buildNavTree($nodes, &$nodeTree)
+    {
+        foreach ($nodes as $key => $node) {
+            $nodeTree[$key] = $node->toArray();
 
-
-
-
-    // public function reorderNavs(array $navIds): bool
-    // {
-    //     $transaction = Craft::$app->getDb()->beginTransaction();
-
-    //     try {
-    //         foreach ($navIds as $navOrder => $navId) {
-    //             $navRecord = $this->_getNavRecordById($navId);
-    //             $navRecord->sortOrder = $navOrder + 1;
-    //             $navRecord->save();
-    //         }
-
-    //         $transaction->commit();
-    //     } catch (\Throwable $e) {
-    //         $transaction->rollBack();
-
-    //         throw $e;
-    //     }
-
-    //     return true;
-    // }
+            if ($node->hasDescendants) {
+                $this->buildNavTree($node->children, $nodeTree[$key]['children']);
+            }
+        }
+    }
 
 
     // Private Methods
@@ -330,9 +268,19 @@ class Navs extends Component
         return $nav;
     }
 
-    private function _getNavRecord(string $uid): NavRecord
+    private function _getNavRecordById(int $navId = null): NavRecord
     {
-        return NavRecord::findOne(['uid' => $uid]) ?? new NavRecord();
+        if ($navId !== null) {
+            $navRecord = NavRecord::findOne(['id' => $navId]);
+
+            if (!$navRecord) {
+                throw new NavException(Craft::t('navigation', 'No navigation exists with the ID “{id}”.', ['id' => $navId]));
+            }
+        } else {
+            $navRecord = new NavRecord();
+        }
+
+        return $navRecord;
     }
     
 }

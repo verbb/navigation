@@ -18,8 +18,8 @@ class Install extends Migration
         $this->addForeignKeys();
 
         // See if we should migrate from A&M Nav
-        $migration = new AmNavPlugin();
-        $migration->safeUp();
+        // $migration = new AmNavPlugin();
+        // $migration->safeUp();
     }
 
     public function safeDown()
@@ -32,7 +32,6 @@ class Install extends Migration
         $this->createTable('{{%navigation_nodes}}', [
             'id' => $this->integer()->notNull(),
             'elementId' => $this->integer(),
-            'elementSiteId' => $this->integer(),
             'navId' => $this->integer()->notNull(),
             'url' => $this->string(255),
             'type' => $this->string(255),
@@ -49,6 +48,7 @@ class Install extends Migration
             'structureId' => $this->integer()->notNull(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string()->notNull(),
+            'instructions' => $this->text(),
             'sortOrder' => $this->smallInteger()->unsigned(),
             'propagateNodes' => $this->boolean()->defaultValue(false),
             // 'isArchived' => $this->boolean()->notNull()->defaultValue(false),
@@ -61,7 +61,6 @@ class Install extends Migration
 
     public function createIndexes()
     {
-        $this->createIndex(null, '{{%navigation_nodes}}', ['elementSiteId'], false);
         $this->createIndex(null, '{{%navigation_nodes}}', ['navId'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['handle'], true);
         $this->createIndex(null, '{{%navigation_navs}}', ['structureId'], false);
@@ -72,7 +71,6 @@ class Install extends Migration
     {
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['navId'], '{{%navigation_navs}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['elementId'], '{{%elements}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%navigation_nodes}}', ['elementSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%navigation_navs}}', ['structureId'], '{{%structures}}', ['id'], 'CASCADE', null);
     }

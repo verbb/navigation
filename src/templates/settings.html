@@ -1,5 +1,6 @@
 {% extends 'navigation/_layouts' %}
 {% import '_includes/forms' as forms %}
+{% import 'navigation/_macros' as macros %}
 
 {% set crumbs = [
     { label: craft.navigation.getPluginName(), url: url('navigation/settings') },
@@ -22,6 +23,7 @@
         first: true,
         autofocus: true,
         instructions: 'Plugin name for the end user.' | t('navigation'),
+        warning: macros.configWarning('pluginName', 'navigation'),
     }) }}
 {% endnamespace %}
 
