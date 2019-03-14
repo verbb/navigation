@@ -157,8 +157,14 @@ class NodeQuery extends ElementQuery
 
     protected function afterPrepare(): bool
     {
+        if (Craft::$app->getDb()->getIsMysql()) {
+            $sql = 'CAST([[elements_sites.slug]] AS UNSIGNED)';
+        } else {
+            $sql = 'CAST([[elements_sites.slug]] AS INTEGER)';
+        }
+
         // Join the element sites table (again) for the linked element
-        $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND CAST([[elements_sites.slug]] AS UNSIGNED) = [[element_item_sites.siteId]]');
+        $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND ' . $sql . ' = [[element_item_sites.siteId]]');
         
         return parent::afterPrepare();
     }
