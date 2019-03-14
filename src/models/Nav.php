@@ -31,6 +31,14 @@ class Nav extends Model
         return $this->handle;
     }
 
+    public function attributeLabels()
+    {
+        return [
+            'handle' => Craft::t('app', 'Handle'),
+            'name' => Craft::t('app', 'Name'),
+        ];
+    }
+
     public function rules()
     {
         return [

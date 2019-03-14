@@ -83,6 +83,7 @@ class Node extends Element
     public $newWindow = false;
 
     public $newParentId;
+    public $deletedWithNav = false;
 
     private $_url;
     private $_element;
@@ -294,6 +295,9 @@ class Node extends Element
 
     public function beforeSave(bool $isNew): bool
     {
+        // Set the structure ID for Element::attributes() and afterSave()
+        $this->structureId = $this->getNav()->structureId;
+
         if ($this->_hasNewParent()) {
             if ($this->newParentId) {
                 $parentNode = Navigation::$plugin->nodes->getNodeById($this->newParentId, $this->siteId);
@@ -369,6 +373,57 @@ class Node extends Element
         parent::afterSave($isNew);
     }
 
+    public function beforeDelete(): bool
+    {
+        if (!parent::beforeDelete()) {
+            return false;
+        }
+
+        // Update the node record
+        $data = [
+            'deletedWithNav' => $this->deletedWithNav,
+            'parentId' => null,
+        ];
+
+        if ($this->structureId) {
+            // Remember the parent ID, in case the entry needs to be restored later
+            $parentId = $this->getAncestors(1)
+                ->anyStatus()
+                ->select(['elements.id'])
+                ->scalar();
+
+            if ($parentId) {
+                $data['parentId'] = $parentId;
+            }
+        }
+
+        Craft::$app->getDb()->createCommand()
+            ->update('{{%navigation_nodes}}', $data, ['id' => $this->id], [], false)
+            ->execute();
+
+        return true;
+    }
+
+    public function afterRestore()
+    {
+        $structureId = $this->getNav()->structureId;
+
+        // Add the node back into its structure
+        $parent = self::find()
+            ->structureId($structureId)
+            ->innerJoin('{{%navigation_nodes}} j', '[[j.parentId]] = [[elements.id]]')
+            ->andWhere(['j.id' => $this->id])
+            ->one();
+
+        if (!$parent) {
+            Craft::$app->getStructures()->appendToRoot($structureId, $this);
+        } else {
+            Craft::$app->getStructures()->append($structureId, $this, $parent);
+        }
+
+        parent::afterRestore();
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -408,9 +463,8 @@ class Node extends Element
         $oldParentQuery = self::find();
         $oldParentQuery->ancestorOf($this);
         $oldParentQuery->ancestorDist(1);
-        $oldParentQuery->status(null);
         $oldParentQuery->siteId($this->siteId);
-        $oldParentQuery->enabledForSite(false);
+        $oldParentQuery->anyStatus();
         $oldParentQuery->select('elements.id');
         $oldParentId = $oldParentQuery->scalar();
 

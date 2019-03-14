@@ -33,10 +33,12 @@ class Install extends Migration
             'id' => $this->integer()->notNull(),
             'elementId' => $this->integer(),
             'navId' => $this->integer()->notNull(),
+            'parentId' => $this->integer(),
             'url' => $this->string(255),
             'type' => $this->string(255),
             'classes' => $this->string(255),
             'newWindow' => $this->boolean()->defaultValue(false),
+            'deletedWithNav' => $this->boolean()->null(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -51,10 +53,9 @@ class Install extends Migration
             'instructions' => $this->text(),
             'sortOrder' => $this->smallInteger()->unsigned(),
             'propagateNodes' => $this->boolean()->defaultValue(false),
-            // 'isArchived' => $this->boolean()->notNull()->defaultValue(false),
-            // 'dateArchived' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
+            'dateDeleted' => $this->dateTime()->null(),
             'uid' => $this->uid(),
         ]);
     }
@@ -64,7 +65,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%navigation_nodes}}', ['navId'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['handle'], true);
         $this->createIndex(null, '{{%navigation_navs}}', ['structureId'], false);
-        // $this->createIndex(null, '{{%navigation_navs}}', ['isArchived'], false);
+        $this->createIndex(null, '{{%navigation_navs}}', ['dateDeleted'], false);
     }
 
     public function addForeignKeys()

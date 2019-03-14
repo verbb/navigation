@@ -2,12 +2,19 @@
 namespace verbb\navigation\records;
 
 use craft\db\ActiveRecord;
+use craft\db\SoftDeleteTrait;
 use craft\records\Structure;
 
 use yii\db\ActiveQueryInterface;
 
 class Nav extends ActiveRecord
 {
+    // Traits
+    // =========================================================================
+
+    use SoftDeleteTrait;
+
+
     // Public Methods
     // =========================================================================
 
@@ -21,7 +28,7 @@ class Nav extends ActiveRecord
         return $this->hasOne(Structure::class, ['id' => 'structureId']);
     }
 
-    public function getNavItems(): ActiveQueryInterface
+    public function getNodes(): ActiveQueryInterface
     {
         return $this->hasMany(Node::class, ['navId' => 'id']);
     }
