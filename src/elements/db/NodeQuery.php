@@ -110,9 +110,6 @@ class NodeQuery extends ElementQuery
     {
         $this->joinElementTable('navigation_nodes');
         $this->subQuery->innerJoin('{{%navigation_navs}} navigation_navs', '[[navigation_nodes.navId]] = [[navigation_navs.id]]');
-            
-        // Join the element sites table (again) for the linked element
-        $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND CAST([[slug]] AS UNSIGNED) = [[element_item_sites.siteId]]');
 
         $this->query->select([
             'navigation_nodes.id',
@@ -156,5 +153,13 @@ class NodeQuery extends ElementQuery
         }
 
         return parent::beforePrepare();
+    }
+
+    protected function afterPrepare(): bool
+    {
+        // Join the element sites table (again) for the linked element
+        $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND CAST([[elements_sites.slug]] AS UNSIGNED) = [[element_item_sites.siteId]]');
+        
+        return parent::afterPrepare();
     }
 }
