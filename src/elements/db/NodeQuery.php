@@ -112,7 +112,7 @@ class NodeQuery extends ElementQuery
         $this->subQuery->innerJoin('{{%navigation_navs}} navigation_navs', '[[navigation_nodes.navId]] = [[navigation_navs.id]]');
             
         // Join the element sites table (again) for the linked element
-        $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND [[slug]] = [[element_item_sites.siteId]]');
+        $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND CAST([[slug]] AS UNSIGNED) = [[element_item_sites.siteId]]');
 
         $this->query->select([
             'navigation_nodes.id',
