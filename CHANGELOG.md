@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.9.1 - 2019-03-15
+
+### Fixed
+- Fix migration issue, caused in some instances.
+
 ## 1.1.9 - 2019-03-15
 
 ### Added
