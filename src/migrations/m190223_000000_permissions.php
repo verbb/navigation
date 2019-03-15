@@ -11,14 +11,17 @@ class m190223_000000_permissions extends Migration
 {
     public function safeUp()
     {
-        $navs = Navigation::$plugin->getNavs()->getAllNavs();
+        $navs = (new Query())
+            ->select(['*'])
+            ->from(['{{%navigation_navs}}'])
+            ->all();
 
         $navPermissions = [];
         $permissionIds = [];
 
         // Update permissions
         foreach ($navs as $nav) {
-            $this->insert('{{%userpermissions}}', ['name' => 'navigation-managenav:' . $nav->uid]);
+            $this->insert('{{%userpermissions}}', ['name' => 'navigation-managenav:' . $nav['uid']]);
             $permissionIds[] = $this->db->getLastInsertID('{{%userpermissions}}');
         }
 
