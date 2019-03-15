@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.9 - 2019-03-15
+
+### Added
+- Add override notice for settings fields.
+- Support for project config.
+
+### Fixed
+- Fix linked element URL query to afterPrepare().
+- Fix error when deleting nodes.
+- Fix Postgres error for querying linked element URLs.
+
 ## 1.1.8 - 2019-03-10
 
 ### Added
