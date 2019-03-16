@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.10 - 2019-03-17
+
+### Fixed
+- Fix schema version check in migration.
+- Ensure navs are read-only when `allowAdminChanges` is true.
+
 ## 1.1.9.1 - 2019-03-15
 
 ### Fixed
