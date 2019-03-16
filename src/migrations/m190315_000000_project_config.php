@@ -16,7 +16,13 @@ class m190315_000000_project_config extends Migration
 {
     public function safeUp()
     {
+        // Don't make the same config changes twice
         $projectConfig = Craft::$app->getProjectConfig();
+        $schemaVersion = $projectConfig->get('plugins.navigation.schemaVersion', true);
+        
+        if (version_compare($schemaVersion, '1.0.11', '>=')) {
+            return;
+        }
 
         $projectConfig->set('navigation.navs', $this->_getNavData());
 
