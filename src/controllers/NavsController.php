@@ -26,9 +26,12 @@ class NavsController extends Controller
             $siteHandles[$site->id] = $site->handle;
         }
 
+        $editable = Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+
         return $this->renderTemplate('navigation/navs/index', [
             'navigations' => $navigations,
             'siteHandles' => $siteHandles,
+            'editable' => $editable,
         ]);
     }
 
