@@ -313,7 +313,7 @@ class Node extends Element
         }
 
         // If this is propagating, we want to fetch the information for that site's linked element
-        if ($this->propagating) {
+        if ($this->propagating && !$this->isManual()) {
             $localeElement = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
 
             if ($localeElement) {
