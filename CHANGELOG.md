@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.11 - 2019-03-19
+
+### Fixed
+- Fix not being able to edit nodes with `allowAdminChanges` enabled.
+- Fix error when propagating a manual node in a multi-site setup.
+
 ## 1.1.10 - 2019-03-17
 
 ### Fixed
