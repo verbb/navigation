@@ -40,11 +40,7 @@
                 {% for navigation in navigations %}
                     <tr data-id="{{ navigation.id }}" data-name="{{ navigation.name | t('site') }}">
                         <th scope="row" data-title="{{ 'Name' | t('app') }}">
-                            {% if editable %}
-                                <a class="nav-anchor" href="{{ url('navigation/navs/build/' ~ navigation.id) }}">{{ navigation.name | t('app') }}</a>
-                            {% else %}
-                                {{ navigation.name | t('app') }}
-                            {% endif %}
+                            <a class="nav-anchor" href="{{ url('navigation/navs/build/' ~ navigation.id) }}">{{ navigation.name | t('app') }}</a>
                         </th>
 
                         <td scope="row" data-title="{{ 'Handle' | t('app') }}" class="code">{{ navigation.handle }}</td>
