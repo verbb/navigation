@@ -17,6 +17,8 @@ class BaseController extends Controller
         // Backup!
         Craft::$app->getDb()->backup();
 
+        $settings = Navigation::$plugin->getSettings();
+
         $migration = new AmNavPlugin();
 
         ob_start();
@@ -24,22 +26,23 @@ class BaseController extends Controller
         $output = ob_get_contents();
         ob_end_clean();
 
-        // echo "<pre>";
-        // print_r($output);
-        // echo "</pre>";
+        $output = nl2br($output);
 
         Craft::$app->getSession()->setNotice(Craft::t('navigation', 'A&M Nav migrated.'));
 
-        return $this->redirect('navigation/settings');
+        return $this->renderTemplate('navigation/settings', [
+            'output' => $output,
+            'settings' => $settings,
+        ]);
     }
 
     public function actionSettings()
     {
         $settings = Navigation::$plugin->getSettings();
 
-        $this->renderTemplate('navigation/settings', array(
+        $this->renderTemplate('navigation/settings', [
             'settings' => $settings,
-        ));
+        ]);
     }
 
 }
