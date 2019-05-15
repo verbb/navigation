@@ -24,6 +24,16 @@ class AmNavPlugin extends Migration
                 return true;
             }
 
+            $sitesByLanguage = [];
+
+            foreach (Craft::$app->getSites()->getAllSites() as $site) {
+                $languageHandle = strtolower(str_replace('-', '_', $site->language));
+
+                $sitesByLanguage[$languageHandle] = $site;
+            }
+
+            $defaultSite = Craft::$app->getSites()->getCurrentSite();
+
             $AmNavs = (new Query())
                 ->select(['*'])
                 ->from(['{{%amnav_navs}}'])
@@ -72,12 +82,8 @@ class AmNavPlugin extends Migration
                         $node->classes = $AmNode['listClass'];
                         $node->newWindow = $AmNode['blank'];
 
-                        $locale = $AmNode['locale'];
-                        $site = Craft::$app->getSites()->getSiteByHandle($locale);
-
-                        if ($site) {
-                            $node->siteId = $site->id;
-                        }
+                        $site = $sitesByLanguage[$AmNode['locale']] ?? $defaultSite;
+                        $node->siteId = $site->id;
 
                         if ($AmNode['elementType'] === 'Entry') {
                            $node->type = \craft\elements\Entry::class;
