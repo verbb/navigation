@@ -80,4 +80,14 @@ class NavigationVariable
         return $nodeTree;
     }
 
+    public function getNavById($id)
+    {
+        return Navigation::$plugin->getNavs()->getNavById($id);
+    }
+
+    public function getNavByHandle($handle)
+    {
+        return Navigation::$plugin->getNavs()->getNavByHandle($handle);
+    }
+
 }

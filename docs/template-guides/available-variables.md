@@ -21,3 +21,11 @@ See [Rendering Nodes](docs:template-guides/rendering-nodes)
 ### `craft.navigation.tree()`
 
 Returns a full tree structure of nodes as a nested array.
+
+### `craft.navigation.getNavById(id)`
+
+Returns the navigation for the provided id.
+
+### `craft.navigation.getNavByHandle(handle)`
+
+Returns the navigation for the provided handle.
