@@ -35,4 +35,12 @@
 
 <a class="btn submit" href="{{ actionUrl('navigation/base/migrate') }}">{{ 'Migrate' | t('navigation') }}</a>
 
+{% if output is defined %}
+
+    <hr>
+
+    <code>{{ output | raw }}</code>
+
+{% endif %}
+
 {% endblock %}
