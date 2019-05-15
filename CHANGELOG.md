@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.12 - 2019-05-15
+
+### Added
+- Add `craft.navigation.getNavById()`.
+- Add `craft.navigation.getNavByHandle()`.
+- Add feedback to A&M nav migration.
+
+### Changed
+- Min requirement to Craft 3.1.x.
+
+### Fixed
+- Fix A&M migration not using the sites’ language to match nodes on.
+
 ## 1.1.11 - 2019-03-19
 
 ### Fixed
