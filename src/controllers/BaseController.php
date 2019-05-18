@@ -18,8 +18,11 @@ class BaseController extends Controller
         Craft::$app->getDb()->backup();
 
         $settings = Navigation::$plugin->getSettings();
+        $request = Craft::$app->getRequest();
 
         $migration = new AmNavPlugin();
+        $migration->propagate = (bool)$request->getParam('propagate', true);
+        $migration->assignToDefaultSite = (bool)$request->getParam('assignToDefaultSite', false);
 
         ob_start();
         $migration->up();

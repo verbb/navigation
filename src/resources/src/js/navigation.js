@@ -5,6 +5,16 @@
 
 // ==========================================================================
 
+// When clicking migrate, change the form submission to our action endpoint
+$('.btn-migrate').on('click', function(e) {
+    e.preventDefault();
+
+    $('input[name="action"]').val($(this).data('action'));
+
+    $('#main-form').submit();
+});
+
+
 if (typeof Craft.Navigation === typeof undefined) {
     Craft.Navigation = {};
 }

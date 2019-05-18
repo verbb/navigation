@@ -12,6 +12,9 @@ use craft\helpers\Json;
 
 class AmNavPlugin extends Migration
 {
+    public $propagate = true;
+    public $assignToDefaultSite = false;
+
     private $processedNodes = [];
 
     // Public Methods
@@ -82,8 +85,13 @@ class AmNavPlugin extends Migration
                         $node->classes = $AmNode['listClass'];
                         $node->newWindow = $AmNode['blank'];
 
-                        $site = $sitesByLanguage[$AmNode['locale']] ?? $defaultSite;
-                        $node->siteId = $site->id;
+                        $site = $sitesByLanguage[$AmNode['locale']] ?? null;
+
+                        if ($site) {
+                            $node->siteId = $site->id;
+                        } else if (!$this->assignToDefaultSite) {
+                            continue;
+                        }
 
                         if ($AmNode['elementType'] === 'Entry') {
                            $node->type = \craft\elements\Entry::class;
@@ -93,10 +101,11 @@ class AmNavPlugin extends Migration
                            $node->type = \craft\elements\Asset::class;
                         }
 
-                        if (Craft::$app->getElements()->saveElement($node)) {
+                        if (Craft::$app->getElements()->saveElement($node, true, $this->propagate)) {
                             $this->processedNodes[$AmNode['id']] = [
                                 'oldParent' => $AmNode['parentId'],
                                 'newNode' => $node->id,
+                                'siteId' => $node->siteId,
                             ];
                         } else {
                             echo "    > ERROR: Unable to save node `{$AmNode['name']}` ...\n";
@@ -119,15 +128,18 @@ class AmNavPlugin extends Migration
                 $newParent = $this->processedNodes[$nodeInfo['oldParent']] ?? null;
 
                 if ($newParent) {
-                    $node = Navigation::$plugin->nodes->getNodeById($nodeInfo['newNode']);
-                    $node->newParentId = $newParent['newNode'];
+                    $node = Navigation::$plugin->nodes->getNodeById($nodeInfo['newNode'], $nodeInfo['siteId']);
 
-                    if (Craft::$app->getElements()->saveElement($node)) {
-                        echo "    > Migrated node `{$node['title']}` ...\n";
-                    } else {
-                        echo "    > ERROR: Unable to re-save node `{$node['title']}` ...\n";
+                    if ($node) {
+                        $node->newParentId = $newParent['newNode'];
 
-                        Craft::dump($node->getErrors());
+                        if (Craft::$app->getElements()->saveElement($node, true, $this->propagate)) {
+                            echo "    > Migrated node `{$node['title']}` ...\n";
+                        } else {
+                            echo "    > ERROR: Unable to re-save node `{$node['title']}` ...\n";
+
+                            Craft::dump($node->getErrors());
+                        }
                     }
                 }
             }
