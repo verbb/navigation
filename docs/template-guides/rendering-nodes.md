@@ -88,12 +88,14 @@ If you'd rather not use the `{% nav %}` functionality, you can create your own r
 
 You can get the active node of any navigation through this tag. Often useful if you want to output an additional navigation area on your site that's contextual to the current node you're on.
 
+You can also provide any of the normal query parameters you normally would with `craft.navigation.nodes()`.
+
 ```twig
 {# Represents a Node element #}
-{% set activeNode = craft.navigation.getActiveNode() %}
+{% set activeNode = craft.navigation.getActiveNode({ handle: 'mainMenu' }) %}
 
 <ul>
-    {# Start looping through any nested nodes, starting a the currently active one #}
+    {# Start looping through any nested nodes, starting at the currently active one #}
     {% set nodes = craft.navigation.nodes()
         .descendantOf(activeNode)
         .all() %}
