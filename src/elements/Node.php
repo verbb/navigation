@@ -289,6 +289,17 @@ class Node extends Element
         return false;
     }
 
+    public function getSupportedSites(): array
+    {
+        $nav = $this->getNav();
+
+        if (!$nav->propagateNodes) {
+            return [$this->siteId];
+        }
+
+        return Craft::$app->getSites()->getAllSiteIds();
+    }
+
 
     // Events
     // -------------------------------------------------------------------------
