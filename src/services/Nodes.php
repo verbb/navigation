@@ -50,7 +50,7 @@ class Nodes extends Component
         $nodes = NodeElement::find()
             ->elementId($element->id)
             ->siteId($element->siteId)
-            ->slug($element->siteId)
+            ->slug((string) $element->siteId)
             ->status(null)
             ->type(get_class($element))
             ->all();
