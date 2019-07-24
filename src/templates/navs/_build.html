@@ -42,14 +42,16 @@
                     <a id="tab-{{ tabId }}" class="tab{% if selected %} sel{% endif %}" href="#{{ tabId }}" title="{{ tab.label }}">{{ tab.label }}</a>
 
                     <div id="{{ tabId }}" class="tab-list-pane {% if not selected %}hidden{% endif %}">
-                        {{ forms.selectField({
-                            label: 'Parent' | t('navigation'),
-                            instructions: 'Select a navigation item as the parent.' | t('navigation'),
-                            id: 'parent',
-                            name: 'parent',
-                            options: parentOptions,
-                            class: 'fullwidth js-parent-node',
-                        }) }}
+                        {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
+                            {{ forms.selectField({
+                                label: 'Parent' | t('navigation'),
+                                instructions: 'Select a navigation item as the parent.' | t('navigation'),
+                                id: 'parent',
+                                name: 'parent',
+                                options: parentOptions,
+                                class: 'fullwidth js-parent-node',
+                            }) }}
+                        {% endif %}
 
                         {{ forms.lightswitchField({
                             label: 'Open in new window' | t('navigation'),
@@ -75,14 +77,16 @@
 
                 <div id="custom-url" class="tab-list-pane hidden">
                     <form id="manual-form" method="post" accept-charset="UTF-8">
-                        {{ forms.selectField({
-                            label: 'Parent' | t('navigation'),
-                            instructions: 'Select a navigation item as the parent.' | t('navigation'),
-                            id: 'parent',
-                            name: 'parent',
-                            options: parentOptions,
-                            class: 'fullwidth js-parent-node',
-                        }) }}
+                        {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
+                            {{ forms.selectField({
+                                label: 'Parent' | t('navigation'),
+                                instructions: 'Select a navigation item as the parent.' | t('navigation'),
+                                id: 'parent',
+                                name: 'parent',
+                                options: parentOptions,
+                                class: 'fullwidth js-parent-node',
+                            }) }}
+                        {% endif %}
 
                         {{ forms.lightswitchField({
                             label: 'Open in new window' | t('navigation'),
