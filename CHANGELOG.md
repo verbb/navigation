@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.13 - 2019-07-24
+
+### Added
+- Add better multi-site handling to A&M nav migration.
+
+### Changed
+- Hide the “Parent” select field when the nav’s max levels are 1.
+- Update node propagation to use `getSupportedSites()`.
+
+### Fixed
+- Fix error when saving a nav in some instances.
+- Fix lack of permission enforcement for navs.
+- Fix type mismatch error on PostgreSQL. (thanks @boboldehampsink).
+
 ## 1.1.12 - 2019-05-15
 
 ### Added
