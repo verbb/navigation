@@ -3,6 +3,7 @@ namespace verbb\navigation\models;
 
 use verbb\navigation\records\Nav as NavRecord;
 
+use Craft;
 use craft\base\Model;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
