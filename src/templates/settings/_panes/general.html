@@ -1,0 +1,13 @@
+{% import '_includes/forms' as forms %}
+{% import 'navigation/_macros' as macros %}
+
+{{ forms.textField({
+    id: 'pluginName',
+    name: 'pluginName',
+    label: 'Plugin Name' | t('app'),
+    value: settings.pluginName,
+    first: true,
+    autofocus: true,
+    instructions: 'Plugin name for the end user.' | t('navigation'),
+    warning: macros.configWarning('pluginName', 'navigation'),
+}) }}

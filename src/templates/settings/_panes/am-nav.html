@@ -1,35 +1,5 @@
-{% extends 'navigation/_layouts' %}
 {% import '_includes/forms' as forms %}
 {% import 'navigation/_macros' as macros %}
-
-{% set crumbs = [
-    { label: craft.navigation.getPluginName(), url: url('navigation/settings') },
-    { label: 'Settings' | t('app'), url: url('navigation/settings') }
-] %}
-
-{% set fullPageForm = true %}
-
-{% block blockContent %}
-
-<input type="hidden" name="action" value="plugins/save-plugin-settings">
-<input type="hidden" name="pluginHandle" value="navigation">
-
-{% namespace 'settings' %}
-    {{ forms.textField({
-        id: 'pluginName',
-        name: 'pluginName',
-        label: 'Plugin Name' | t('app'),
-        value: settings.pluginName,
-        first: true,
-        autofocus: true,
-        instructions: 'Plugin name for the end user.' | t('navigation'),
-        warning: macros.configWarning('pluginName', 'navigation'),
-    }) }}
-{% endnamespace %}
-
-<hr>
-
-<h2>{{ 'Migrate A&M Nav plugin' | t('navigation') }}</h2>
 
 <p>{{ 'If you\'re migrating from a Craft 2 site that used the [A&M Nav](https://github.com/am-impact/amnav) plugin, you can use this utility to convert those menus and navigation items to the Navigation plugin.' | t('navigation') | md }}</p>
 
@@ -57,7 +27,7 @@
     }) }}
 {% endif %}
 
-<a class="btn submit btn-migrate" href="#" data-action="navigation/base/migrate">{{ 'Migrate' | t('navigation') }}</a>
+<a class="btn submit btn-migrate" href="#" data-action="navigation/base/am-nav-migrate">{{ 'Migrate' | t('navigation') }}</a>
 
 {% if output is defined %}
 
@@ -66,5 +36,3 @@
     <code>{{ output | raw }}</code>
 
 {% endif %}
-
-{% endblock %}
