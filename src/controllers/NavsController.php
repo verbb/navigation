@@ -18,7 +18,7 @@ class NavsController extends Controller
 
     public function actionIndex()
     {
-        $navigations = Navigation::$plugin->navs->getAllNavs();
+        $navigations = Navigation::$plugin->navs->getAllEditableNavs();
 
         $siteHandles = [];
 
@@ -78,6 +78,8 @@ class NavsController extends Controller
         } else {
             $nav = new NavModel();
         }
+
+        $this->requirePermission('navigation-manageNav:' . $nav->uid);
 
         $nodes = Navigation::$plugin->nodes->getNodesForNav($nav->id, $site->id);
 

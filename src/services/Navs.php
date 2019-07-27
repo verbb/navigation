@@ -62,6 +62,15 @@ class Navs extends Component
         return $this->_navs;
     }
 
+    public function getAllEditableNavs(): array
+    {
+        $userSession = Craft::$app->getUser();
+
+        return ArrayHelper::where($this->getAllNavs(), function(NavModel $nav) use ($userSession) {
+            return $userSession->checkPermission('navigation-manageNav:' . $nav->uid);
+        });
+    }
+
     public function getNavByHandle(string $handle)
     {
         return ArrayHelper::firstWhere($this->getAllNavs(), 'handle', $handle, true);
