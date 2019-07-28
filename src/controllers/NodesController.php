@@ -42,18 +42,19 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionDelete() {
+    public function actionDelete()
+    {
         $this->requireAcceptsJson();
         $this->requirePostRequest();
        
         $request = Craft::$app->getRequest();
         $nodesService = Navigation::$plugin->getNodes();
 
+        $parentOptions = [];
         $siteId = $request->getBodyParam('siteId');
         $nodeIds = $request->getRequiredBodyParam('nodeIds');
 
         $node = Navigation::$plugin->nodes->getNodeById($nodeIds[0], $siteId);
-        $nav = $node->nav;
         
         // We need to go against `deleteElement()` which will kick up any child elements in the structure
         // to be attached to the parent - not what we want in this case, it'd be pandemonium.
@@ -62,10 +63,14 @@ class NodesController extends Controller
                 return $this->asJson(['success' => false]);
             }
         }
-        
-        $nodes = $nodesService->getNodesForNav($nav->id, $siteId);
-        $parentOptions = $nodesService->getParentOptions($nodes, $nav);
-        
+
+        if ($node) {
+            $nav = $node->nav;
+
+            $nodes = $nodesService->getNodesForNav($nav->id, $siteId);
+            $parentOptions = $nodesService->getParentOptions($nodes, $nav);
+        }
+                
         return $this->asJson([
             'success' => true,
             'parentOptions' => $parentOptions,
