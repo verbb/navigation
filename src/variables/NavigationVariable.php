@@ -89,5 +89,10 @@ class NavigationVariable
     {
         return Navigation::$plugin->getNavs()->getNavByHandle($handle);
     }
+    
+    public function getAllNavs()
+    {
+        return Navigation::$plugin->getNavs()->getAllNavs();
+    }
 
 }
