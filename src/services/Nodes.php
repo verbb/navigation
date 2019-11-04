@@ -37,8 +37,8 @@ class Nodes extends Component
         $element = $event->element;
         $isNew = $event->isNew;
 
-        // We only care about already-existing elements
-        if ($isNew) {
+        // We only care about already-existing elements and if they have a URL
+        if ($isNew || !$element->getUrl()) {
             return;
         }
 
