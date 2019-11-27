@@ -63,7 +63,7 @@ class Install extends Migration
     public function createIndexes()
     {
         $this->createIndex(null, '{{%navigation_nodes}}', ['navId'], false);
-        $this->createIndex(null, '{{%navigation_navs}}', ['handle'], true);
+        $this->createIndex(null, '{{%navigation_navs}}', ['handle'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['structureId'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['dateDeleted'], false);
     }
