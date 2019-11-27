@@ -146,8 +146,6 @@ class Node extends Element
         ]);
         Event::trigger(static::class, self::EVENT_NODE_ACTIVE, $event);
 
-        Craft::dd($event);
-
         return $event->isActive;
     }
 
