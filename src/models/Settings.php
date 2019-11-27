@@ -9,5 +9,6 @@ class Settings extends Model
     // =========================================================================
 
     public $pluginName = 'Navigation';
+    public $disabledElements = [];
 
 }

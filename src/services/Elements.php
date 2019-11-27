@@ -58,6 +58,15 @@ class Elements extends Component
             ];
         }
 
+        // Remove any defined in our config
+        $settings = Navigation::$plugin->getSettings();
+
+        foreach ($settings->disabledElements as $disabledElement) {
+            if (isset($elements[$disabledElement])) {
+                unset($elements[$disabledElement]);
+            }
+        }
+
         $event = new RegisterElementEvent([
             'elements' => $elements,
         ]);
