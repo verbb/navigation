@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.14.1 - 2019-11-27
+
+### Fixed
+- Fix pesky debug output!
+
 ## 1.1.14 - 2019-11-27
 
 ### Added
