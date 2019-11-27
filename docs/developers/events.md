@@ -72,8 +72,8 @@ use verbb\navigation\elements\Node;
 use yii\base\Event;
 
 Event::on(Node::class, Node::EVENT_BEFORE_SAVE, function(Event $e) {
-    $node = $event->sender;
-    $event->isValid = false;
+    $node = $e->sender;
+    $e->isValid = false;
 });
 ```
 
@@ -86,6 +86,20 @@ use verbb\navigation\elements\Node;
 use yii\base\Event;
 
 Event::on(Node::class, Node::EVENT_AFTER_SAVE, function(Event $e) {
-    $node = $event->sender;
+    $node = $e->sender;
+});
+```
+
+### The `modifyNodeActive` event
+
+Plugins can modify the active state of a node.
+
+```php
+use verbb\navigation\elements\Node;
+use yii\base\Event;
+
+Event::on(Node::class, Node::EVENT_NODE_ACTIVE, function(Event $e) {
+    $node = $e->node;
+    $e->isActive = true;
 });
 ```

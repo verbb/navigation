@@ -3,6 +3,7 @@ namespace verbb\navigation\elements;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\db\NodeQuery;
+use verbb\navigation\events\NodeActiveEvent;
 use verbb\navigation\models\Nav as NavModel;
 use verbb\navigation\records\Nav as NavRecord;
 use verbb\navigation\records\Node as NodeRecord;
@@ -22,11 +23,18 @@ use craft\helpers\Html;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 
+use yii\base\Event;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 
 class Node extends Element
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_NODE_ACTIVE = 'modifyNodeActive';
+
+
     // Static
     // =========================================================================
 
@@ -129,54 +137,18 @@ class Node extends Element
 
     public function getActive($includeChildren = true)
     {
-        if ($this->_isActive && $includeChildren) {
-            return true;
-        }
+        $isActive = $this->_getActive($includeChildren);
 
-        $request = Craft::$app->getRequest();
+        // Allow plugins to modify this value
+        $event = new NodeActiveEvent([
+            'node' => $this,
+            'isActive' => $isActive,
+        ]);
+        Event::trigger(static::class, self::EVENT_NODE_ACTIVE, $event);
 
-        // Don't run the for console requests. This is called when populating the Node element
-        if ($request->getIsConsoleRequest()) {
-            return;
-        }
+        Craft::dd($event);
 
-        $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl());
-        $currentUrl = implode('/', $request->getSegments());
-
-        // Stop straight away if this is potentially the homepage
-        if ($currentUrl === '') {
-            // Check if we have the homepage entry in the nav, and mark that as active
-            if ($this->_elementUrl && $this->_elementUrl === '__home__') {
-                return true;
-            }
-
-            return false;
-        }
-
-        // If addTrailingSlashesToUrls, remove trailing '/' for comparison
-        if (Craft::$app->config->general->addTrailingSlashesToUrls) {
-            $relativeUrl = rtrim($relativeUrl, '/');
-        }
-
-        // If manual URL, make sure to remove a leading '/' for comparison
-        if ($this->isManual()) {
-            $relativeUrl = ltrim($relativeUrl, '/');
-        }
-
-        $isActive = (bool)($currentUrl === $relativeUrl);
-
-        // Also check if any children are active
-        if ($includeChildren) {
-            // Then, provide a helper based purely on the URL structure.
-            // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
-            if (substr($currentUrl, 0, strlen($relativeUrl . '/')) === $relativeUrl . '/') {
-                if ($relativeUrl !== '') {
-                    $isActive = true;
-                }
-            }
-        }
-        
-        return $isActive;
+        return $event->isActive;
     }
 
     public function setIsActive($value)
@@ -438,6 +410,58 @@ class Node extends Element
 
     // Private Methods
     // =========================================================================
+
+    public function _getActive($includeChildren = true)
+    {
+        if ($this->_isActive && $includeChildren) {
+            return true;
+        }
+
+        $request = Craft::$app->getRequest();
+
+        // Don't run the for console requests. This is called when populating the Node element
+        if ($request->getIsConsoleRequest()) {
+            return;
+        }
+
+        $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl());
+        $currentUrl = implode('/', $request->getSegments());
+
+        // Stop straight away if this is potentially the homepage
+        if ($currentUrl === '') {
+            // Check if we have the homepage entry in the nav, and mark that as active
+            if ($this->_elementUrl && $this->_elementUrl === '__home__') {
+                return true;
+            }
+
+            return false;
+        }
+
+        // If addTrailingSlashesToUrls, remove trailing '/' for comparison
+        if (Craft::$app->config->general->addTrailingSlashesToUrls) {
+            $relativeUrl = rtrim($relativeUrl, '/');
+        }
+
+        // If manual URL, make sure to remove a leading '/' for comparison
+        if ($this->isManual()) {
+            $relativeUrl = ltrim($relativeUrl, '/');
+        }
+
+        $isActive = (bool)($currentUrl === $relativeUrl);
+
+        // Also check if any children are active
+        if ($includeChildren) {
+            // Then, provide a helper based purely on the URL structure.
+            // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
+            if (substr($currentUrl, 0, strlen($relativeUrl . '/')) === $relativeUrl . '/') {
+                if ($relativeUrl !== '') {
+                    $isActive = true;
+                }
+            }
+        }
+
+        return $isActive;
+    }
 
     private function _hasNewParent(): bool
     {
