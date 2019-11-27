@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.14 - 2019-11-27
+
+### Added
+- Add Navee migration + add panels to settings.
+- Add `EVENT_NODE_ACTIVE`.
+- Add `disabledElements` to disable certain element from being added to navs.
+- Add getAllNavs(). Thanks @lewisjenkins.
+
+### Fixed
+- Update permissions to act correctly.
+- Fix potential error when deleting nodes.
+- Improve save-element checks for elements that have a URL.
+- Fix being unable to create new nav with the same handle as a deleted one.
+
 ## 1.1.13 - 2019-07-24
 
 ### Added
