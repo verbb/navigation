@@ -8,6 +8,7 @@ Create an `navigation.php` file under your `/config` directory with the followin
 return [
     '*' => [
         'pluginName' => 'Navigation',
+        'disabledElements' => []
     ]
 ];
 ```
@@ -15,6 +16,8 @@ return [
 ### Configuration options
 
 - `pluginName` - Optionally change the name of the plugin.
+- `disabledElements` - An array of elements to disable, so they cannot be added to navs. Availble options are `assets`, `entries`, `categories`, `custom`.
+
 
 ## Control Panel
 
