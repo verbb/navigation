@@ -66,6 +66,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%navigation_nodes}}', ['navId'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['handle'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['structureId'], false);
+        $this->createIndex(null, '{{%navigation_navs}}', ['fieldLayoutId'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['dateDeleted'], false);
     }
 
@@ -75,6 +76,7 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['elementId'], '{{%elements}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%navigation_navs}}', ['structureId'], '{{%structures}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%navigation_navs}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'SET NULL', null);
     }
 
     public function removeTables()
