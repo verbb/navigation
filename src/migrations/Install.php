@@ -56,6 +56,7 @@ class Install extends Migration
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'dateDeleted' => $this->dateTime()->null(),
+            'fieldLayoutId' => $this->integer(),
             'uid' => $this->uid(),
         ]);
     }

@@ -341,8 +341,13 @@ Craft.Navigation.Editor = Garnish.Base.extend({
             $('<input type="hidden" name="siteId" value="' + this.siteId + '">').appendTo(this.$form);
             this.$fieldsContainer = $('<div class="fields"/>').appendTo(this.$form);
 
-            this.$fieldsContainer.html(response.html)
-            Craft.initUiElements(this.$fieldsContainer);
+            this.$fieldsContainer.html(response.html);
+
+            Garnish.requestAnimationFrame($.proxy(function() {
+                Craft.appendHeadHtml(response.headHtml);
+                Craft.appendFootHtml(response.footHtml);
+                Craft.initUiElements(this.$fieldsContainer);
+            }, this));
 
             var $footer = $('<div class="hud-footer"/>').appendTo(this.$form),
                 $buttonsContainer = $('<div class="buttons right"/>').appendTo($footer);
@@ -359,6 +364,10 @@ Craft.Navigation.Editor = Garnish.Base.extend({
             });
 
             this.hud.on('hide', $.proxy(function() {
+                // Fix issue when with UI elements not initialising when re-opening the editor.
+                this.hud.$body.remove();
+
+                // Delete the HUD instance.
                 delete this.hud;
             }, this));
 
@@ -386,7 +395,7 @@ Craft.Navigation.Editor = Garnish.Base.extend({
 
                 this.$node.parent().data('label', response.node.title);
                 this.$node.parent().find('.title').text(response.node.title);
-                
+
                 if (response.node.enabled && response.node.enabledForSite) {
                     $status.addClass('enabled');
                     $status.removeClass('disabled');
@@ -405,7 +414,6 @@ Craft.Navigation.Editor = Garnish.Base.extend({
 
     closeHud: function() {
         this.hud.hide();
-        delete this.hud;
     },
 
 });
@@ -424,7 +432,7 @@ function generateSelect(options) {
         $(element).html(html);
         $(element).val(selected);
     });
-    
+
 }
 
 

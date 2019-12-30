@@ -1,6 +1,8 @@
 <?php
 namespace verbb\navigation\services;
 
+use craft\models\FieldLayout;
+use verbb\navigation\models\Nav;
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 use verbb\navigation\events\NavEvent;
@@ -142,6 +144,22 @@ class Navs extends Component
             'sortOrder' => $nav->sortOrder,
         ];
 
+        $fieldLayout = $nav->getFieldLayout();
+        $fieldLayoutConfig = $fieldLayout->getConfig();
+
+        if ($fieldLayoutConfig) {
+            if (empty($fieldLayout->id)) {
+                $layoutUid = StringHelper::UUID();
+                $fieldLayout->uid = $layoutUid;
+            } else {
+                $layoutUid = Db::uidById('{{%fieldlayouts}}', $fieldLayout->id);
+            }
+
+            $configData['fieldLayouts'] = [
+                $layoutUid => $fieldLayoutConfig
+            ];
+        }
+
         $configPath = self::CONFIG_NAV_KEY . '.' . $nav->uid;
         $projectConfig->set($configPath, $configData);
 
@@ -171,6 +189,23 @@ class Navs extends Component
             $navRecord->propagateNodes = $data['propagateNodes'];
             $navRecord->sortOrder = $data['sortOrder'];
             $navRecord->uid = $navUid;
+
+            // Field layout
+            if (!empty($data['fieldLayouts'])) {
+                $fields = Craft::$app->getFields();
+
+                // Delete the field layout
+                $fields->deleteLayoutById($navRecord->fieldLayoutId);
+
+                //Create the new layout
+                $layout = FieldLayout::createFromConfig(reset($data['fieldLayouts']));
+                $layout->type = Node::class;
+                $layout->uid = key($data['fieldLayouts']);
+                $fields->saveLayout($layout);
+                $navRecord->fieldLayoutId = $layout->id;
+            } else {
+                $navRecord->fieldLayoutId = null;
+            }
 
             // Structure
             $structureData = $data['structure'];
@@ -244,7 +279,7 @@ class Navs extends Component
         }
 
         Craft::$app->getProjectConfig()->remove(self::CONFIG_NAV_KEY . '.' . $nav->uid);
-        
+
         return true;
     }
 
@@ -281,6 +316,9 @@ class Navs extends Component
                 $node->deletedWithNav = true;
                 $elementsService->deleteElement($node);
             }
+
+            // Delete the field layout.
+            Craft::$app->getFields()->deleteLayoutById($navRecord->fieldLayoutId);
 
             // Delete the structure
             Craft::$app->getStructures()->deleteStructureById($navRecord->structureId);
@@ -347,6 +385,7 @@ class Navs extends Component
         $nav = new NavModel($record->toArray([
             'id',
             'structureId',
+            'fieldLayoutId',
             'name',
             'handle',
             'instructions',
@@ -368,5 +407,5 @@ class Navs extends Component
         $query->andWhere(['uid' => $uid]);
         return $query->one() ?? new NavRecord();
     }
-    
+
 }

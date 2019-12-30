@@ -79,3 +79,12 @@
     name: 'classes',
     value: node.classes,
 }) }}
+
+{% for tab in node.nav.getFieldLayout().getTabs() %}
+    <div id="tab{{ loop.index }}">
+        {% include '_includes/fields' with {
+            fields: tab.getFields(),
+            element: node,
+        } only %}
+    </div>
+{% endfor %}

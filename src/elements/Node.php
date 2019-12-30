@@ -1,6 +1,7 @@
 <?php
 namespace verbb\navigation\elements;
 
+use craft\behaviors\FieldLayoutBehavior;
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\events\NodeActiveEvent;
@@ -403,6 +404,13 @@ class Node extends Element
         }
 
         parent::afterRestore();
+    }
+
+    public function getFieldLayout()
+    {
+        $nav = $this->navId === null ? null : $this->getNav();
+
+        return $nav ? $nav->getNavFieldLayout() : null;
     }
 
 

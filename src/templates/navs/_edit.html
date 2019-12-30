@@ -6,6 +6,11 @@
     { label: 'Navigations' | t('navigation'), url: url('navigation/navs') },
 ] %}
 
+{% set tabs = {
+    0: { label: 'Settings' | t('app'), url: '#settings' },
+    1: { label: 'Node Fields' | t('navigation'), url: '#node-fields' },
+} %}
+
 {% set fullPageForm = true %}
 
 {% set isNewNav = (nav is not defined or not nav.id) %}
@@ -72,6 +77,12 @@
             name: 'propagateNodes',
             on: nav.propagateNodes,
         }) }}
+    </div>
+
+    <div id="node-fields" class="hidden">
+        {% include '_includes/fieldlayoutdesigner' with {
+            fieldLayout: nav.getNavFieldLayout(),
+        } only %}
     </div>
 {% endblock %}
 

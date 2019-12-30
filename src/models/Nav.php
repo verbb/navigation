@@ -1,6 +1,8 @@
 <?php
 namespace verbb\navigation\models;
 
+use craft\behaviors\FieldLayoutBehavior;
+use verbb\navigation\elements\Node;
 use verbb\navigation\records\Nav as NavRecord;
 
 use Craft;
@@ -21,6 +23,7 @@ class Nav extends Model
     public $propagateNodes = false;
     public $maxLevels;
     public $structureId;
+    public $fieldLayoutId;
     public $uid;
 
 
@@ -48,6 +51,23 @@ class Nav extends Model
             [['handle'], UniqueValidator::class, 'targetClass' => NavRecord::class],
             [['name', 'handle'], 'required'],
             [['name', 'handle'], 'string', 'max' => 255],
+        ];
+    }
+
+    public function getNavFieldLayout()
+    {
+        $behavior = $this->getBehavior('navFieldLayout');
+        return $behavior->getFieldLayout();
+    }
+
+    public function behaviors(): array
+    {
+        return [
+            'navFieldLayout' => [
+                'class' => FieldLayoutBehavior::class,
+                'elementType' => Node::class,
+                'idAttribute' => 'fieldLayoutId'
+            ]
         ];
     }
 
