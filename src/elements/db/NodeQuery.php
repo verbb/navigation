@@ -1,6 +1,9 @@
 <?php
 namespace verbb\navigation\elements\db;
 
+use verbb\navigation\models\Nav as NavModel;
+use verbb\navigation\records\Nav as NavRecord;
+
 use Craft;
 use craft\db\Query;
 use craft\db\QueryAbortedException;
@@ -54,6 +57,29 @@ class NodeQuery extends ElementQuery
     public function navId($value)
     {
         $this->navId = $value;
+        return $this;
+    }
+
+    public function navHandle($value)
+    {
+        $this->handle = $value;
+        return $this;
+    }
+
+    public function nav($value)
+    {
+        if ($value instanceof NavModel) {
+            $this->structureId = ($value->structureId ?: false);
+            $this->navId = $value->id;
+        } else if ($value !== null) {
+            $this->navId = (new Query())
+                ->select(['id'])
+                ->from(NavRecord::tableName())
+                ->where(Db::parseParam('handle', $value))
+                ->column();
+        } else {
+            $this->navId = null;
+        }
         return $this;
     }
 

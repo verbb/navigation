@@ -39,7 +39,8 @@
         "children": [
             "developers/node",
             "developers/events",
-            "developers/extensibility"
+            "developers/extensibility",
+            "developers/graphql"
         ]
     },
     {

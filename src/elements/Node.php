@@ -413,6 +413,16 @@ class Node extends Element
         return $nav ? $nav->getNavFieldLayout() : null;
     }
 
+    public static function gqlTypeNameByContext($context): string
+    {
+        return 'Node';
+    }
+
+    public function getGqlTypeName(): string
+    {
+        return static::gqlTypeNameByContext($this);
+    }
+
 
     // Private Methods
     // =========================================================================

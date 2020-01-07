@@ -4,6 +4,8 @@ namespace verbb\navigation;
 use verbb\navigation\base\PluginTrait;
 use verbb\navigation\elements\Node;
 use verbb\navigation\fields\NavigationField;
+use verbb\navigation\gql\interfaces\NodeInterface;
+use verbb\navigation\gql\queries\NodeQuery;
 use verbb\navigation\models\Settings;
 use verbb\navigation\services\Navs;
 use verbb\navigation\variables\NavigationVariable;
@@ -12,11 +14,14 @@ use Craft;
 use craft\base\Plugin;
 use craft\events\ConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterGqlQueriesEvent;
+use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\services\Fields;
+use craft\services\Gql;
 use craft\services\ProjectConfig;
 use craft\services\Sites;
 use craft\services\UserPermissions;
@@ -60,6 +65,7 @@ class Navigation extends Plugin
         $this->_registerFieldTypes();
         $this->_registerElementTypes();
         $this->_registerPermissions();
+        $this->_registerGraphQl();
     }
 
     public function getPluginName()
@@ -158,6 +164,21 @@ class Navigation extends Plugin
             }
 
             $event->permissions[Craft::t('navigation', 'Navigation')] = $navPermissions;
+        });
+    }
+
+    private function _registerGraphQl()
+    {
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_TYPES, function(RegisterGqlTypesEvent $event) {
+            $event->types[] = NodeInterface::class;
+        });
+
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_QUERIES, function(RegisterGqlQueriesEvent $event) {
+            $queries = NodeQuery::getQueries();
+            
+            foreach ($queries as $key => $value) {
+                $event->queries[$key] = $value;
+            }
         });
     }
 }
