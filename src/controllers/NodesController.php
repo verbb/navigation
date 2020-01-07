@@ -88,10 +88,14 @@ class NodesController extends Controller
         $siteId = $request->getRequiredBodyParam('siteId');
         $node = Navigation::$plugin->nodes->getNodeById($nodeId, $siteId);
 
-        $html = Craft::$app->view->renderTemplate('navigation/navs/_editor', ['node' => $node]);
+        $view = Craft::$app->getView();
+
+        $html = $view->renderTemplate('navigation/navs/_editor', ['node' => $node]);
 
         return $this->asJson([
             'success' => true,
+            'headHtml' => $view->getHeadHtml(),
+            'footHtml' => $view->getBodyHtml(),
             'html' => $html,
         ]);
     }
@@ -154,6 +158,9 @@ class NodesController extends Controller
         $node->newWindow = (bool)$request->getBodyParam('newWindow', $node->newWindow);
 
         $node->newParentId = $request->getBodyParam('parentId', null);
+
+        // Set field values.
+        $node->setFieldValuesFromRequest('fields');
 
         return $node;
     }

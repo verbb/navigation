@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.15 - 2019-12-31
+
+### Added
+- Add field support for navigation nodes.
+
 ## 1.1.14.1 - 2019-11-27
 
 ### Fixed

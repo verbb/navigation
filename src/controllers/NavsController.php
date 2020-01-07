@@ -113,6 +113,11 @@ class NavsController extends Controller
         $nav->maxLevels = $request->getBodyParam('maxLevels');
         $nav->propagateNodes = $request->getBodyParam('propagateNodes');
 
+        // Set the nav field layout
+        $fieldLayout = Craft::$app->getFields()->assembleLayoutFromPost();
+        $fieldLayout->type = NodeElement::class;
+        $nav->setFieldLayout($fieldLayout);
+
         $success = Navigation::$plugin->navs->saveNav($nav);
 
         if (!$success) {

@@ -4,6 +4,7 @@ namespace verbb\navigation\records;
 use craft\db\ActiveRecord;
 use craft\db\SoftDeleteTrait;
 use craft\records\Structure;
+use craft\records\FieldLayout;
 
 use yii\db\ActiveQueryInterface;
 
@@ -31,5 +32,10 @@ class Nav extends ActiveRecord
     public function getNodes(): ActiveQueryInterface
     {
         return $this->hasMany(Node::class, ['navId' => 'id']);
+    }
+
+    public function getFieldLayout(): ActiveQueryInterface
+    {
+        return $this->hasOne(FieldLayout::class, ['id' => 'fieldLayoutId']);
     }
 }
