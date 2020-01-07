@@ -19,7 +19,12 @@ class NavigationVariable
 
     public function getRegisteredElements()
     {
-        return Navigation::$plugin->elements->getRegisteredElements();
+        return Navigation::$plugin->getElements()->getRegisteredElements();
+    }
+
+    public function getRegisteredNodeTypes()
+    {
+        return Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
     }
 
     public function getActiveNode($criteria = null)

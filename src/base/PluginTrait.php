@@ -6,6 +6,7 @@ use verbb\navigation\services\Breadcrumbs;
 use verbb\navigation\services\Elements;
 use verbb\navigation\services\Navs;
 use verbb\navigation\services\Nodes;
+use verbb\navigation\services\NodeTypes;
 
 use Craft;
 use craft\log\FileTarget;
@@ -33,14 +34,19 @@ trait PluginTrait
         return $this->get('elements');
     }
 
+    public function getNavs()
+    {
+        return $this->get('navs');
+    }
+
     public function getNodes()
     {
         return $this->get('nodes');
     }
 
-    public function getNavs()
+    public function getNodeTypes()
     {
-        return $this->get('navs');
+        return $this->get('nodeTypes');
     }
 
     private function _setPluginComponents()
@@ -50,6 +56,7 @@ trait PluginTrait
             'elements' => Elements::class,
             'navs' => Navs::class,
             'nodes' => Nodes::class,
+            'nodeTypes' => NodeTypes::class,
         ]);
     }
 

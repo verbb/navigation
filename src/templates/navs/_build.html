@@ -123,6 +123,67 @@
                     </div>
                 </li>
             {% endif %}
+
+            {% set nodeTypes = craft.navigation.getRegisteredNodeTypes() %}
+
+            {% for nodeType in nodeTypes %}
+                <li class="tab-list-item" data-node-type="{{ className(nodeType) }}">
+                    <a id="tab-url" class="tab" href="#{{ nodeType.displayName | kebab }}" title="{{ nodeType.displayName }}">
+                        {{ nodeType.displayName }}
+                    </a>
+
+                    <div id="{{ nodeType.displayName | kebab }}" class="tab-list-pane hidden">
+                        <form class="node-type-form" method="post" accept-charset="UTF-8">
+                            {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
+                                {{ forms.selectField({
+                                    label: 'Parent' | t('navigation'),
+                                    instructions: 'Select a navigation item as the parent.' | t('navigation'),
+                                    id: 'parent',
+                                    name: 'parent',
+                                    options: parentOptions,
+                                    class: 'fullwidth js-parent-node',
+                                }) }}
+                            {% endif %}
+
+                            {% if nodeType.hasNewWindow() %}
+                                {{ forms.lightswitchField({
+                                    label: 'Open in new window' | t('navigation'),
+                                    instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
+                                    id: 'newWindow',
+                                    name: 'newWindow',
+                                    on: false,
+                                    class: 'js-new-window-node',
+                                }) }}
+                            {% endif %}
+
+                            {% if nodeType.hasTitle() %}
+                                {{ forms.textField({
+                                    label: 'Title' | t('navigation'),
+                                    id: 'title',
+                                    name: 'title',
+                                    first: true,
+                                    required: true,
+                                    instructions: 'Name of this node in the navigation.' | t('navigation'),
+                                }) }}
+                            {% endif %}
+
+                            {% if nodeType.hasUrl() %}
+                                {{ forms.textField({
+                                    label: 'URL' | t('navigation'),
+                                    id: 'url',
+                                    name: 'url',
+                                    instructions: 'The URL of this node.' | t('navigation'),
+                                }) }}
+                            {% endif %}
+
+                            <div class="buttons">
+                                <input type="submit" class="btn submit" value="{{ 'Add' | t('navigation') }}">
+                                <div class="spinner hidden"></div>
+                            </div>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
         </ul>
     </nav>
 </div>

@@ -37,6 +37,8 @@ Craft.Navigation = Garnish.Base.extend({
     $addElementLoader: $('.nav-content-pane .buttons .spinner'),
     $manualForm: $('#manual-form'),
     $manualLoader: $('#manual-form .spinner'),
+    $nodeTypeForm: $('.node-type-form'),
+    $nodeTypeLoader: $('.node-type-form .spinner'),
     $template: $('#js-node-template').html(),
 
     init: function(nav, settings) {
@@ -56,6 +58,7 @@ Craft.Navigation = Garnish.Base.extend({
 
         this.addListener(this.$addElementButton, 'activate', 'showModal');
         this.addListener(this.$manualForm, 'submit', 'onManualSubmit');
+        this.addListener(this.$nodeTypeForm, 'submit', 'onNodeTypeSubmit');
     },
 
     showModal: function(e) {
@@ -120,6 +123,26 @@ Craft.Navigation = Garnish.Base.extend({
             url: this.$manualForm.find('#url').val(),
             newWindow: newWindow,
             parentId: parentId,
+        };
+
+        this.saveNode(data);
+    },
+
+    onNodeTypeSubmit: function(e) {
+        e.preventDefault();
+
+        var parentId = this.$nodeTypeForm.find('.js-parent-node select').val();
+        var newWindow = this.$nodeTypeForm.find('#newWindow-field input').val();
+        var type = this.$nodeTypeForm.parents('[data-node-type]').data('node-type');
+
+        var data = {
+            navId: this.nav.id,
+            siteId: this.siteId,
+            title: this.$nodeTypeForm.find('#title').val(),
+            url: this.$nodeTypeForm.find('#url').val(),
+            newWindow: newWindow,
+            parentId: parentId,
+            type: type,
         };
 
         this.saveNode(data);
