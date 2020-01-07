@@ -162,6 +162,11 @@ class NodesController extends Controller
         // Set field values.
         $node->setFieldValuesFromRequest('fields');
 
+        // Handle elementselect field
+        if (is_array($node->elementId)) {
+            $node->elementId = $node->elementId[0] ?? null;
+        }
+
         return $node;
     }
 

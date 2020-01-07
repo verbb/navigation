@@ -24,17 +24,17 @@
         value: element.siteId,
     }) }}
 
-    <div class="field">
-        <div class="heading">
-            <label>{{ 'Linked to' | t('navigation') }} {{ element.displayName }}</label>
-
-            <div class="instructions">
-                <p>
-                    <a class="go" href="{{ element.cpEditUrl }}" target="_blank">{{ element.title }}</a>
-                </p>
-            </div>
-        </div>
-    </div>
+    {{ forms.elementSelectField({
+        label: 'Linked to {element}' | t('navigation', { element: element.displayName }),
+        instruction: 'The element this node is linked to.' | t('navigation'),
+        id: 'elementId',
+        name: 'elementId',
+        elements: [element],
+        elementType: className(element),
+        sources: '*',
+        limit: 1,
+        modalStorageKey: 'navigation.elementId',
+    }) }}
 
 {% else %}
     {{ forms.textField({
