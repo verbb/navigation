@@ -36,7 +36,7 @@ class Navigation extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.0.15';
+    public $schemaVersion = '1.0.16';
     public $hasCpSettings = true;
     public $hasCpSection = true;
 

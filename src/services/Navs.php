@@ -141,6 +141,7 @@ class Navs extends Component
             ],
             'instructions' => $nav->instructions,
             'propagateNodes' => (bool)$nav->propagateNodes,
+            'maxNodes' => $nav->maxNodes,
             'sortOrder' => $nav->sortOrder,
         ];
 
@@ -187,6 +188,7 @@ class Navs extends Component
             $navRecord->handle = $data['handle'];
             $navRecord->instructions = $data['instructions'];
             $navRecord->propagateNodes = $data['propagateNodes'];
+            $navRecord->maxNodes =  $data['maxNodes'];
             $navRecord->sortOrder = $data['sortOrder'];
             $navRecord->uid = $navUid;
 
@@ -391,6 +393,7 @@ class Navs extends Component
             'instructions',
             'sortOrder',
             'propagateNodes',
+            'maxNodes',
             'uid',
         ]));
 

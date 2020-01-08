@@ -24,6 +24,20 @@ class NodesController extends Controller
         $node = $this->_setNodeFromPost();
         $propagateNodes = (bool)$node->nav->propagateNodes;
 
+        // Check for max nodes - if this is a new node
+        if ($node->nav->maxNodes && !$node->id) {
+            $nodes = $nodesService->getNodesForNav($node->nav->id, $node->siteId);
+
+            $totalNodes = count($nodes) + 1;
+
+            if ($totalNodes > $node->nav->maxNodes) {
+                return $this->asJson([
+                    'success' => false,
+                    'message' => Craft::t('navigation', 'Exceeded maximum allowed nodes ({number}) for this nav.', ['number' => $node->nav->maxNodes]),
+                ]);
+            }
+        }
+
         if (!Craft::$app->getElements()->saveElement($node, true, $propagateNodes)) {
             return $this->asJson([
                 'success' => false,

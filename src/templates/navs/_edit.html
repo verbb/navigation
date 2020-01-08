@@ -77,6 +77,16 @@
             name: 'propagateNodes',
             on: nav.propagateNodes,
         }) }}
+
+        {{ forms.textField({
+            label: 'Max Nodes' | t('app'),
+            instructions: 'The maximum number of nodes this navigation can have. Leave blank if you don’t care.' | t('navigation'),
+            id: 'maxNodes',
+            name: 'maxNodes',
+            size: 5,
+            value: (nav is defined ? nav.maxNodes : null),
+            errors: (nav is defined ? nav.getErrors('maxNodes') : null),
+        }) }}
     </div>
 
     <div id="node-fields" class="hidden">

@@ -21,6 +21,7 @@ class Nav extends Model
     public $instructions;
     public $sortOrder;
     public $propagateNodes = false;
+    public $maxNodes;
     public $maxLevels;
     public $structureId;
     public $fieldLayoutId;
