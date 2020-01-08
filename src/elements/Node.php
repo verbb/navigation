@@ -90,6 +90,7 @@ class Node extends Element
     public $enabled = true;
     public $type;
     public $classes;
+    public $urlSuffix;
     public $customAttributes = [];
     public $newWindow = false;
 
@@ -189,6 +190,10 @@ class Node extends Element
 
         if (is_string($url) && !UrlHelper::isFullUrl($url)) {
             $url = UrlHelper::rootRelativeUrl(UrlHelper::url($url));
+        }
+
+        if ($this->urlSuffix) {
+            $url = $url . $this->urlSuffix;
         }
 
         return $url;
@@ -358,6 +363,7 @@ class Node extends Element
         $record->url = $this->url;
         $record->type = $this->type;
         $record->classes = $this->classes;
+        $record->urlSuffix = $this->urlSuffix;
         $record->customAttributes = $this->customAttributes;
         $record->newWindow = $this->newWindow;
 

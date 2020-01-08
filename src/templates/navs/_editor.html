@@ -69,6 +69,14 @@
         modalStorageKey: 'navigation.elementId',
     }) }}
 
+    {{ forms.textField({
+        label: 'URL Suffix' | t('navigation'),
+        instructions: "Additional content appended to the element's URL." | t('navigation'),
+        id: 'urlSuffix',
+        name: 'urlSuffix',
+        value: node.urlSuffix,
+    }) }}
+
 {% else %}
     {{ forms.textField({
         label: 'URL' | t('navigation'),

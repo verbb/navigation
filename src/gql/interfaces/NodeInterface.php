@@ -84,6 +84,11 @@ class NodeInterface extends Structure
                 'type' => Type::string(),
                 'description' => 'Any additional classes for the node.'
             ],
+            'urlSuffix' => [
+                'name' => 'urlSuffix',
+                'type' => Type::string(),
+                'description' => 'The URL for this navigation item.'
+            ],
             'customAttributes' => [
                 'name' => 'customAttributes',
                 'type' => Type::string(),
