@@ -1,9 +1,20 @@
 # Changelog
 
-## 1.1.15 - 2019-12-31
+## 1.2.0 - 2020-01-08
 
 ### Added
-- Add field support for navigation nodes.
+- Add custom field support for navigation nodes. Add any additional fields to each node! (thanks @jaydensmith).
+- Allow swapping of an element in the HUD for a node, once the node has been created.
+- Add feature to switch node type for existing nodes. Makes it easy to switch from Entry to Custom URL.
+- Add GraphQL support. See [docs](https://verbb.io/craft-plugins/navigation/docs/developers/graphql).
+- Add custom node types. The ability to define your own custom type of nodes. See [docs](https://verbb.io/craft-plugins/navigation/docs/developers/extending-elements#node-types).
+- Add custom attributes for nodes. Define your own attributes (think `data-scroll`, etc) attached to the anchor tag for each node.
+- Add URL suffix for nodes - in case you want to add `#example` or `?some-query=value` to element URLs.
+- Add max nodes option for navs to limit the number of nodes in a nav.
+- Add separate user permissions for create/edit/delete navs.
+
+### Changed
+- Run non-full URLs through Craft's `url()` function. This will help defining relative URLs, so they don't always need to begin with a `/`.
 
 ## 1.1.14.1 - 2019-11-27
 
