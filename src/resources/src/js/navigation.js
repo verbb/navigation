@@ -394,9 +394,61 @@ Craft.Navigation.Editor = Garnish.Base.extend({
                 delete this.hud;
             }, this));
 
+            this.initEventListeners();
+
             this.addListener(this.$saveBtn, 'click', 'saveNode');
             this.addListener(this.$cancelBtn, 'click', 'closeHud');
         }
+    },
+
+    initEventListeners: function() {
+        // Make sure to watch when changing the element
+        Garnish.requestAnimationFrame($.proxy(function() {
+            var $elementSelect = this.$fieldsContainer.find('.elementselect');
+
+            if ($elementSelect) {
+                var elementSelect = $elementSelect.data('elementSelect');
+
+                // Attach an on-select and on-remove handler
+                elementSelect.settings.onSelectElements = $.proxy(this, 'onSelectElements');
+            }
+        }, this));
+
+        this.$typeSelect = this.$fieldsContainer.find('#type-field #type');
+        this.$typeSpinner = $('<div class="spinner hidden"></div>').appendTo(this.$typeSelect.parent().parent());
+
+        this.addListener(this.$typeSelect, 'change', 'onSelectType');
+    },
+
+    onSelectElements: function(elements) {
+        var siteId = elements[0].siteId;
+        var url = elements[0].url;
+
+        // Update the hidden fields
+        this.$fieldsContainer.find('input[name="elementSiteId"]').val(siteId);
+        this.$fieldsContainer.find('input[name="url"]').val(url);
+    },
+
+    onSelectType: function(e) {
+        e.preventDefault();
+
+        this.$typeSpinner.removeClass('hidden');
+
+        var data = this.$form.serialize();
+
+        Craft.postActionRequest('navigation/nodes/change-node-type', data, $.proxy(function(response, textStatus) {
+            this.$typeSpinner.addClass('hidden');
+
+            this.$fieldsContainer.html(response.html);
+
+            Garnish.requestAnimationFrame($.proxy(function() {
+                Craft.appendHeadHtml(response.headHtml);
+                Craft.appendFootHtml(response.footHtml);
+                Craft.initUiElements(this.$fieldsContainer);
+            }, this));
+
+            this.initEventListeners();
+        }, this));
     },
 
     saveNode: function(e) {

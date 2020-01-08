@@ -251,6 +251,19 @@ class Node extends Element
         return (bool)!$this->type;
     }
 
+    public function isElement()
+    {
+        $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements();
+
+        foreach ($registeredElements as $registeredElement) {
+            if ($this->type == $registeredElement['type']) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function hasOverriddenTitle()
     {
         $element = $this->getElement();

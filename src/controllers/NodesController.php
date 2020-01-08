@@ -100,6 +100,34 @@ class NodesController extends Controller
         ]);
     }
 
+    public function actionChangeNodeType()
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
+        $request = Craft::$app->getRequest();
+
+        $nodeId = $request->getRequiredBodyParam('nodeId');
+        $siteId = $request->getRequiredBodyParam('siteId');
+        $node = Navigation::$plugin->nodes->getNodeById($nodeId, $siteId);
+
+        // Override and reset
+        $node->type = $request->getParam('type');
+        $node->elementId = null;
+        $node->setElement(null);
+
+        $view = Craft::$app->getView();
+
+        $html = $view->renderTemplate('navigation/navs/_editor', ['node' => $node]);
+
+        return $this->asJson([
+            'success' => true,
+            'headHtml' => $view->getHeadHtml(),
+            'footHtml' => $view->getBodyHtml(),
+            'html' => $html,
+        ]);
+    }
+
     public function actionMove()
     {
         $this->requirePostRequest();

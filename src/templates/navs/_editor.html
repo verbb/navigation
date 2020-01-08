@@ -1,5 +1,38 @@
 {% import '_includes/forms' as forms %}
 
+{% set elements = craft.navigation.getRegisteredElements() %}
+{% set nodeTypes = craft.navigation.getRegisteredNodeTypes() %}
+
+{% set options = [] %}
+
+{% for element in elements %}
+    {% set options = options | merge([{
+        label: displayName(element.type),
+        value: element.type,
+    }]) %}
+{% endfor %}
+
+{% set options = options | merge([{
+    label: 'Custom URL' | t('navigation'),
+    value: '',
+}]) %}
+
+{% for nodeType in nodeTypes %}
+    {% set options = options | merge([{
+        label: nodeType.displayName,
+        value: className(nodeType),
+    }]) %}
+{% endfor %}
+
+{{ forms.selectField({
+    label: 'Type' | t('navigation'),
+    instructions: 'The type of node this is.' | t('navigation'),
+    id: 'type',
+    name: 'type',
+    value: node.type,
+    options: options,
+}) }}
+
 {{ forms.textField({
     label: 'Title' | t('navigation'),
     instructions: 'The title for this navigation item.' | t('navigation'),
@@ -9,28 +42,28 @@
     translatable: craft.app.getIsMultiSite() ? true : false,
 }) }}
 
-{% if node.elementId %}
+{% if node.isElement() %}
     {% set element = node.getElement() %}
 
     {{ forms.hidden({
         id: 'url',
         name: 'url',
-        value: element.uri,
+        value: element.uri ?? elementUri ?? '',
     }) }}
 
     {{ forms.hidden({
         id: 'elementSiteId',
         name: 'elementSiteId',
-        value: element.siteId,
+        value: element.siteId ?? elementSiteId ?? '',
     }) }}
 
     {{ forms.elementSelectField({
-        label: 'Linked to {element}' | t('navigation', { element: element.displayName }),
+        label: 'Linked to {element}' | t('navigation', { element: displayName(node.type) }),
         instruction: 'The element this node is linked to.' | t('navigation'),
         id: 'elementId',
         name: 'elementId',
         elements: [element],
-        elementType: className(element),
+        elementType: node.type,
         sources: '*',
         limit: 1,
         modalStorageKey: 'navigation.elementId',
