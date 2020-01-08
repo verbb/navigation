@@ -159,8 +159,22 @@ class Navigation extends Plugin
 
             $navPermissions = [];
 
+            $navPermissions['navigation-createNavs'] = [
+                'label' => Craft::t('navigation', 'Create navigations'),
+            ];
+
             foreach ($navs as $nav) {
-                $navPermissions['navigation-manageNav:' . $nav->uid] = ['label' => Craft::t('navigation', 'Manage “{type}”', ['type' => $nav->name])];
+                $navPermissions['navigation-manageNav:' . $nav->uid] = [
+                    'label' => Craft::t('navigation', 'Manage “{type}”', ['type' => $nav->name]),
+                    'nested' => [
+                        'navigation-editNav:' . $nav->uid => [
+                            'label' => Craft::t('navigation', 'Edit navigation settings'),
+                        ],
+                        'navigation-deleteNav:' . $nav->uid => [
+                            'label' => Craft::t('navigation', 'Delete navigation')
+                        ],
+                    ],
+                ];
             }
 
             $event->permissions[Craft::t('navigation', 'Navigation')] = $navPermissions;

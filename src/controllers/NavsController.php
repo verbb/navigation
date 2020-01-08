@@ -49,6 +49,12 @@ class NavsController extends Controller
             }
         }
 
+        if ($nav) {
+            $this->requirePermission('navigation-editNav:' . $nav->uid);
+        } else {
+            $this->requirePermission('navigation-createNavs');
+        }
+
         return $this->renderTemplate('navigation/navs/_edit', [
             'navId' => $navId,
             'nav' => $nav,
@@ -151,6 +157,9 @@ class NavsController extends Controller
         $this->requireAcceptsJson();
 
         $navId = Craft::$app->getRequest()->getRequiredBodyParam('id');
+        $nav = Navigation::$plugin->navs->getNavById($navId);
+
+        $this->requirePermission('navigation-deleteNav:' . $nav->uid);
 
         Navigation::$plugin->navs->deleteNavById($navId);
 
