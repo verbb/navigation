@@ -26,6 +26,7 @@ class NodeQuery extends ElementQuery
     public $enabled = true;
     public $type;
     public $classes;
+    public $customAttributes;
     public $newWindow = false;
 
     public $element;
@@ -144,6 +145,7 @@ class NodeQuery extends ElementQuery
             'navigation_nodes.url',
             'navigation_nodes.type',
             'navigation_nodes.classes',
+            'navigation_nodes.customAttributes',
             'navigation_nodes.newWindow',
 
             // Join the element's uri onto the same query
@@ -168,6 +170,10 @@ class NodeQuery extends ElementQuery
 
         if ($this->classes) {
             $this->subQuery->andWhere(Db::parseParam('navigation_nodes.classes', $this->classes));
+        }
+
+        if ($this->customAttributes) {
+            $this->subQuery->andWhere(Db::parseParam('navigation_nodes.customAttributes', $this->customAttributes));
         }
 
         if ($this->newWindow) {

@@ -84,6 +84,11 @@ class NodeInterface extends Structure
                 'type' => Type::string(),
                 'description' => 'Any additional classes for the node.'
             ],
+            'customAttributes' => [
+                'name' => 'customAttributes',
+                'type' => Type::string(),
+                'description' => 'Any additional custom attributes for the node.'
+            ],
             'newWindow' => [
                 'name' => 'newWindow',
                 'type' => Type::string(),

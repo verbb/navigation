@@ -21,6 +21,7 @@ use craft\elements\actions\View;
 use craft\elements\db\ElementQueryInterface;
 use Craft\helpers\ArrayHelper;
 use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 
@@ -89,6 +90,7 @@ class Node extends Element
     public $enabled = true;
     public $type;
     public $classes;
+    public $customAttributes = [];
     public $newWindow = false;
 
     public $newParentId;
@@ -103,6 +105,15 @@ class Node extends Element
 
     // Public Methods
     // =========================================================================
+
+    public function init()
+    {
+        parent::init();
+
+        if (!empty($this->customAttributes)) {
+            $this->customAttributes = Json::decode($this->customAttributes);
+        }
+    }
 
     public function getElement()
     {
@@ -347,6 +358,7 @@ class Node extends Element
         $record->url = $this->url;
         $record->type = $this->type;
         $record->classes = $this->classes;
+        $record->customAttributes = $this->customAttributes;
         $record->newWindow = $this->newWindow;
 
         // Don't store the URL if its an element. We should rely on its element URL.

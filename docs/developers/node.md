@@ -15,6 +15,8 @@ Attribute | Description
 `link` | Full HTML link (combined url and title).
 `type` | The element type. If custom, will be `null`.
 `classes` | Any additional CSS classes added to the node.
+`customAttributes` | A list of attributes as provided in the table. Use `attribute` and `value` for each row.
+`urlSuffix` | If provided, a suffix (think anchor or query string) added on to the URL.
 `target` | Returns either `_blank` or an empty string, should this node open in a new window.
 `newWindow` | Whether this node should open in a new window.
 `active` | Whether the URL matches the current URL.

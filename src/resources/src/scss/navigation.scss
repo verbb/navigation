@@ -117,8 +117,14 @@
     line-height: 1.2;
 }
 
-.nav-editor-hud .elementselect {
+.nav-editor-hud .elementselect,
+.nav-editor-hud table.editable + .btn.add {
     line-height: 1.5;
+}
+
+.nav-editor-hud th.thin,
+.nav-editor-hud td.thin {
+    width: 10px !important;
 }
 
 .nav-editor-hud .fields .field {

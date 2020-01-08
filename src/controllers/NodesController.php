@@ -183,6 +183,7 @@ class NodesController extends Controller
         $node->url = $request->getBodyParam('url', $node->url);
         $node->type = $request->getBodyParam('type', $node->type);
         $node->classes = $request->getBodyParam('classes', $node->classes);
+        $node->customAttributes = $request->getBodyParam('customAttributes', $node->customAttributes);
         $node->newWindow = (bool)$request->getBodyParam('newWindow', $node->newWindow);
 
         $node->newParentId = $request->getBodyParam('parentId', null);

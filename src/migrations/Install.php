@@ -37,6 +37,7 @@ class Install extends Migration
             'url' => $this->string(255),
             'type' => $this->string(255),
             'classes' => $this->string(255),
+            'customAttributes' => $this->text(),
             'newWindow' => $this->boolean()->defaultValue(false),
             'deletedWithNav' => $this->boolean()->null(),
             'dateCreated' => $this->dateTime()->notNull(),

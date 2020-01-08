@@ -113,6 +113,25 @@
     value: node.classes,
 }) }}
 
+{{ forms.editableTableField({
+    label: 'Attributes' | t('navigation'),
+    instructions: "Additional attributes for this node." | t('navigation'),
+    id: 'customAttributes',
+    name: 'customAttributes',
+    cols: {
+        attribute: {
+            type: 'singleline',
+            heading: 'Attribute' | t('navigation'),
+        },
+        value: {
+            type: 'singleline',
+            heading: 'Value' | t('navigation'),
+            code: true,
+        },
+    },
+    rows: node.customAttributes ?? [],
+}) }}
+
 {% for tab in node.nav.getFieldLayout().getTabs() %}
     <div id="tab{{ loop.index }}">
         {% include '_includes/fields' with {
