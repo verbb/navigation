@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1 - 2020-01-09
+
+### Fixed
+- Fix GraphQL issue when querying children.
+
 ## 1.2.0 - 2020-01-08
 
 ### Added
