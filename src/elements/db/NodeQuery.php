@@ -116,7 +116,7 @@ class NodeQuery extends ElementQuery
 
         foreach ($rows as $row) {
             // If the current node is active, and it has a parent, set its active state
-            if ($row->active) {
+            if (is_a($row, Node::class) && $row->active) {
                 $ancestors = $row->ancestors->all();
 
                 foreach ($ancestors as $ancestor) {
