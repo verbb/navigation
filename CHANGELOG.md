@@ -3,7 +3,7 @@
 ## 1.2.4 - 2020-01-09
 
 ### Fixed
-- Fix empty URL being overidden.
+- Fix empty URL being overridden.
 - Change url to use `siteUrl` instead of `url`.
 
 ## 1.2.3 - 2020-01-09
