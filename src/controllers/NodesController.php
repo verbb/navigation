@@ -190,7 +190,14 @@ class NodesController extends Controller
         $node->enabled = (bool)$request->getBodyParam('enabled', $node->enabled);
         $node->enabledForSite = (bool)$request->getBodyParam('enabledForSite', $node->enabledForSite);
 
-        $node->elementId = $request->getBodyParam('elementId', $node->elementId);
+        $elementId = $request->getBodyParam('elementId', $node->elementId);
+
+        // Handle elementselect field
+        if (is_array($elementId)) {
+            $elementId = $elementId[0] ?? null;
+        }
+
+        $node->elementId = $elementId;
         $node->elementSiteId = $request->getBodyParam('elementSiteId', $node->elementSiteId);
         $node->siteId = $request->getBodyParam('siteId', $node->siteId);
         $node->navId = $request->getBodyParam('navId', $node->navId);
@@ -205,11 +212,6 @@ class NodesController extends Controller
 
         // Set field values.
         $node->setFieldValuesFromRequest('fields');
-
-        // Handle elementselect field
-        if (is_array($node->elementId)) {
-            $node->elementId = $node->elementId[0] ?? null;
-        }
 
         return $node;
     }

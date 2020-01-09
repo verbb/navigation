@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.3 - 2020-01-09
+
+### Fixed
+- Fix error thrown when saving a node's element in some cases.
+
 ## 1.2.2 - 2020-01-09
 
 ### Fixed
