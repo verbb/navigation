@@ -8,6 +8,7 @@ use verbb\navigation\gql\interfaces\NodeInterface;
 use verbb\navigation\gql\queries\NodeQuery;
 use verbb\navigation\models\Settings;
 use verbb\navigation\services\Navs;
+use verbb\navigation\twigextensions\Extension;
 use verbb\navigation\variables\NavigationVariable;
 
 use Craft;
@@ -62,6 +63,7 @@ class Navigation extends Plugin
         $this->_registerVariables();
         $this->_registerCraftEventListeners();
         $this->_registerProjectConfigEventListeners();
+        $this->_registerTwigExtensions();
         $this->_registerFieldTypes();
         $this->_registerElementTypes();
         $this->_registerPermissions();
@@ -99,6 +101,11 @@ class Navigation extends Plugin
     // Private Methods
     // =========================================================================
 
+    private function _registerTwigExtensions()
+    {
+        Craft::$app->view->registerTwigExtension(new Extension);
+    }
+    
     private function _registerCpRoutes()
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
