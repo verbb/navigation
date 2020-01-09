@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.2 - 2020-01-09
+
+### Fixed
+- Fix missing `displayName` twig function.
+- Fix project config issue with `maxNodes`.
+
 ## 1.2.1 - 2020-01-09
 
 ### Fixed
