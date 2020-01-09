@@ -38,7 +38,6 @@ class m190315_000000_project_config extends Migration
                 'navs.instructions',
                 'navs.sortOrder',
                 'navs.propagateNodes',
-                'navs.maxNodes',
                 'navs.uid',
                 'structures.uid AS structure',
                 'structures.maxLevels AS structureMaxLevels',
