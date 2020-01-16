@@ -45,6 +45,8 @@ Craft.Navigation = Garnish.Base.extend({
         this.nav = nav;
         this.siteId = settings.siteId;
 
+        new Craft.Navigation.Accordion();
+
         this.structure = this.$structureContainer.data('structure');
 
         var $structureElements = this.$structureContainer.find('li');
@@ -84,7 +86,7 @@ Craft.Navigation = Garnish.Base.extend({
     },
 
     onModalSelect: function(elements) {
-        var $optionsContainer = $('.tab-list-item[data-element-type="' + this.elementType.replace(/\\/ig, '\\\\') + '"]');
+        var $optionsContainer = $('.accordion-list-item[data-element-type="' + this.elementType.replace(/\\/ig, '\\\\') + '"]');
         var parentId = $optionsContainer.find('.js-parent-node select').val();
         var newWindow = $optionsContainer.find('#newWindow-field input').val();
 
@@ -491,6 +493,130 @@ Craft.Navigation.Editor = Garnish.Base.extend({
         this.hud.hide();
     },
 
+});
+
+Craft.Navigation.Accordion = Garnish.Base.extend({
+    init: function() {
+        // Clear out all our old info in case the tabs were just replaced
+        this.$tabsList = this.$tabs = this.$selectedTab = this.selectedTabIndex = null;
+
+        this.$tabsContainer = $('#accordion');
+
+        if (!this.$tabsContainer.length) {
+            this.$tabsContainer = null;
+            return;
+        }
+
+        this.$tabsList = this.$tabsContainer.find('> ul');
+        this.$tabs = this.$tabsList.find('> li');
+
+        var i, $tab, $a, href;
+
+        for (i = 0; i < this.$tabs.length; i++) {
+            $tab = this.$tabs.eq(i);
+
+            // Does it link to an anchor?
+            $a = $tab.children('a');
+            href = $a.attr('href');
+
+            if (href && href.charAt(0) === '#') {
+                this.addListener($a, 'click', function(ev) {
+                    ev.preventDefault();
+                    this.selectTab(ev.currentTarget);
+                });
+
+                if (encodeURIComponent(href.substr(1)) === document.location.hash.substr(1)) {
+                    this.selectTab($a);
+                }
+            }
+
+            if (!this.$selectedTab && $a.hasClass('sel')) {
+                this._selectTab($a, i);
+            }
+        }
+    },
+
+    selectTab: function(tab) {
+        var $tab = $(tab);
+
+        if (this.$selectedTab) {
+            if (this.$selectedTab.get(0) === $tab.get(0)) {
+                return;
+            }
+
+            this.deselectTab();
+        }
+
+        $tab.addClass('sel');
+
+        var href = $tab.attr('href')
+        $(href).removeClass('hidden');
+
+        if (typeof history !== 'undefined') {
+            history.replaceState(undefined, undefined, href);
+        }
+
+        this._selectTab($tab, this.$tabs.index($tab.parent()));
+        this.updateTabs();
+
+        // Fixes Redactor fixed toolbars on previously hidden panes
+        Garnish.$doc.trigger('scroll');
+    },
+
+    _selectTab: function($tab, index) {
+        this.$selectedTab = $tab;
+        this.selectedTabIndex = index;
+    },
+
+    deselectTab: function() {
+        if (!this.$selectedTab) {
+            return;
+        }
+
+        this.$selectedTab.removeClass('sel');
+
+        if (this.$selectedTab.attr('href').charAt(0) === '#') {
+            $(this.$selectedTab.attr('href')).addClass('hidden');
+        }
+
+        this._selectTab(null, null);
+    },
+
+    handleWindowResize: function() {
+        this.updateTabs();
+    },
+
+    updateTabs: function() {
+        if (!this.$tabsContainer) {
+            return;
+        }
+
+        var maxWidth = Math.floor(this.$tabsContainer.width()) - 40;
+        var totalWidth = 0;
+        var tabMargin = Garnish.$bod.width() >= 768 ? -12 : -7;
+        var $tab;
+
+        // Start with the selected tab, because that needs to be visible
+        if (this.$selectedTab) {
+            this.$selectedTab.parent('li').appendTo(this.$tabsList);
+            totalWidth = Math.ceil(this.$selectedTab.parent('li').width());
+        }
+
+        for (var i = 0; i < this.$tabs.length; i++) {
+            $tab = this.$tabs.eq(i).appendTo(this.$tabsList);
+            if (i !== this.selectedTabIndex) {
+                totalWidth += Math.ceil($tab.width());
+                // account for the negative margin
+                if (i !== 0 || this.$selectedTab) {
+                    totalWidth += tabMargin;
+                }
+            }
+
+            if (i === this.selectedTabIndex || totalWidth <= maxWidth) {
+                $tab.find('> a').removeAttr('role');
+            }
+        }
+    },
 });
 
 function generateSelect(options) {

@@ -1,6 +1,8 @@
 {% extends 'navigation/_layouts' %}
 {% import '_includes/forms' as forms %}
 
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
+
 {% set crumbs = [
     { label: craft.navigation.getPluginName(), url: url('navigation') },
     { label: 'Navigations' | t('navigation'), url: url('navigation/navs') },
@@ -19,56 +21,48 @@
 {% endblock %}
 
 {% block content %}
-    <p id="nonavigations"{% if navigations | length %} class="hidden"{% endif %}>
-        {{ "No navigations exist yet." | t('navigation') }}
-    </p>
-
-    {% if navigations | length %}
-        {% set sortable  = (navigations | length > 1) %}
-
-        <table id="navigations" class="data fullwidth collapsible">
-            <thead>
-                <th scope="col">{{ "Name" | t('app') }}</th>
-                <th scope="col">{{ "Handle" | t('app') }}</th>
-
-                {% if editable %}
-                    {% if sortable %}
-                        <td class="thin"></td>
-                    {% endif %}
-
-                    <td class="thin"></td>
-                {% endif %}
-            </thead>
-            <tbody>
-                {% for navigation in navigations %}
-                    <tr data-id="{{ navigation.id }}" data-name="{{ navigation.name | t('site') }}">
-                        <th scope="row" data-title="{{ 'Name' | t('app') }}">
-                            <a class="nav-anchor" href="{{ url('navigation/navs/build/' ~ navigation.id) }}">{{ navigation.name | t('app') }}</a>
-                        </th>
-
-                        <td scope="row" data-title="{{ 'Handle' | t('app') }}" class="code">{{ navigation.handle }}</td>
-
-                        {% if editable %}
-                            {% if sortable %}
-                                <td class="thin"><a class="move icon" title="{{ 'Reorder' | t('navigation') }}" role="button"></a></td>
-                            {% endif %}
-
-                            {% if currentUser.can('navigation-editNav:' ~ navigation.uid) %}
-                                <td class="thin"><a href="{{ url('navigation/navs/edit/' ~ navigation.id) }}" class="settings icon" title="{{ 'Settings' | t('app') }}" role="button"></a></td>
-                            {% endif %}
-
-                            {% if currentUser.can('navigation-deleteNav:' ~ navigation.uid) %}
-                                <td class="thin"><a class="delete icon" title="{{ 'Delete' | t('app') }}" role="button"></a></td>
-                            {% endif %}
-                        {% endif %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+    <div id="navigations-vue-admin-table"></div>
 {% endblock %}
 
+{% set tableData = [] %}
+
+{% for navigation in navigations %}
+    {% set tableData = tableData | merge([{
+        id: navigation.id,
+        title: navigation.name | t('site') | e,
+        url: url('navigation/navs/build/' ~ navigation.id),
+        name: navigation.name | t('site') | e,
+        handle: navigation.handle,
+        settings: {
+            label: 'Edit Settings' | t('site') | e,
+            url: url('navigation/navs/edit/' ~ navigation.id),
+        },
+    }]) %}
+{% endfor %}
+
 {% js %}
+    var columns = [
+        { name: '__slot:title', title: Craft.t('app', 'Name') },
+        { name: '__slot:handle', title: Craft.t('app', 'Handle') },
+
+        {% if editable %}
+            { name: 'settings', title: Craft.t('site', 'Settings'),
+                callback: function(value) {
+                    return '<a href="' + value.url + '">' + value.label + '</a>';
+                }
+            },
+        {% endif %}
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#navigations-vue-admin-table',
+        deleteAction: '{{ editable ? 'navigation/navs/delete-nav' : '' }}',
+        emptyMessage: Craft.t('navigation', 'No navigations exist yet.'),
+        reorderAction: '{{ navigations | length > 1 and editable ? 'navigation/navs/reorder-nav' : '' }}',
+        tableData: {{ tableData | json_encode | raw }},
+    });
+
     var sites = {{ siteHandles | json_encode | raw }};
 
     // Get the local storage and add the storedSiteid param to the URL's.
@@ -83,12 +77,4 @@
         }
     });
 
-    var adminTable = new Craft.AdminTable({
-        tableSelector: '#navigations',
-        noItemsSelector: '#nonavigations',
-        sortable: true,
-        reorderAction: 'navigation/navs/reorder-nav',
-        deleteAction: 'navigation/navs/delete-nav',
-    });
 {% endjs %}
-
