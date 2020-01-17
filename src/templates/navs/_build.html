@@ -34,15 +34,15 @@
     {% set tabs = craft.navigation.getRegisteredElements() %}
     {% set disabledElements = settings.disabledElements %}
 
-    <nav id="accordion">
-        <ul class="accordion-list">
+    <nav id="accordion" data-vui-tabs>
+        <ul class="tab-list">
             {% for tabId, tab in tabs %}
                 {% set selected = loop.first %}
 
-                <li class="accordion-list-item" data-id="{{ tabId }}" data-element-type="{{ tab.type }}">
-                    <a id="accordion-{{ tabId }}" class="accordion{% if selected %} sel{% endif %}" href="#{{ tabId }}" title="{{ tab.label }}">{{ tab.label }}</a>
+                <li class="tab-list-item" data-id="{{ tabId }}" data-element-type="{{ tab.type }}">
+                    <a id="tab-{{ tabId }}" class="tab{% if selected %} sel{% endif %}" href="#{{ tabId }}" title="{{ tab.label }}">{{ tab.label }}</a>
 
-                    <div id="{{ tabId }}" class="accordion-list-pane {% if not selected %}hidden{% endif %}">
+                    <div id="{{ tabId }}" class="tab-list-pane {% if not selected %}hidden{% endif %}">
                         {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
                             {{ forms.selectField({
                                 label: 'Parent' | t('navigation'),
@@ -72,12 +72,12 @@
             {% endfor %}
 
             {% if 'custom' not in disabledElements %}
-                <li class="accordion-list-item">
-                    <a id="accordion-url" class="accordion" href="#custom-url" title="{{ 'Custom URL' | t('navigation') }}">
+                <li class="tab-list-item">
+                    <a id="tab-url" class="tab" href="#custom-url" title="{{ 'Custom URL' | t('navigation') }}">
                         {{ 'Custom URL' | t('navigation') }}
                     </a>
 
-                    <div id="custom-url" class="accordion-list-pane hidden">
+                    <div id="custom-url" class="tab-list-pane hidden">
                         <form id="manual-form" method="post" accept-charset="UTF-8">
                             {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
                                 {{ forms.selectField({
@@ -127,12 +127,12 @@
             {% set nodeTypes = craft.navigation.getRegisteredNodeTypes() %}
 
             {% for nodeType in nodeTypes %}
-                <li class="accordion-list-item" data-node-type="{{ className(nodeType) }}">
-                    <a id="accordion-url" class="accordion" href="#{{ nodeType.displayName | kebab }}" title="{{ nodeType.displayName }}">
+                <li class="tab-list-item" data-node-type="{{ className(nodeType) }}">
+                    <a id="tab-url" class="tab" href="#{{ nodeType.displayName | kebab }}" title="{{ nodeType.displayName }}">
                         {{ nodeType.displayName }}
                     </a>
 
-                    <div id="{{ nodeType.displayName | kebab }}" class="accordion-list-pane hidden">
+                    <div id="{{ nodeType.displayName | kebab }}" class="tab-list-pane hidden">
                         <form class="node-type-form" method="post" accept-charset="UTF-8">
                             {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
                                 {{ forms.selectField({

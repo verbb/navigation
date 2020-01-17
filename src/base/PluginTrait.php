@@ -13,6 +13,8 @@ use craft\log\FileTarget;
 
 use yii\log\Logger;
 
+use verbb\base\BaseHelper;
+
 trait PluginTrait
 {
     // Static Properties
@@ -58,6 +60,8 @@ trait PluginTrait
             'nodes' => Nodes::class,
             'nodeTypes' => NodeTypes::class,
         ]);
+
+        BaseHelper::registerModule();
     }
 
     private function _setLogging()

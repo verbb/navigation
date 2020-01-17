@@ -18,7 +18,7 @@
 {% set selectedItem = 'general' %}
 
 {% block sidebar %}
-    <nav class="navigation-settings-tabs" id="tabs">
+    <nav class="navigation-settings-tabs" data-vui-tabs>
         <ul>
             {% for id, item in navItems %}
                 {% if item.heading is defined %}

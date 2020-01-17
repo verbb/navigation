@@ -21,7 +21,7 @@
     {% set title = nav.name %}
 {% endif %}
 
-{% block content %}
+{% block blockContent %}
     <input type="hidden" name="action" value="navigation/navs/save-nav">
     {% if not isNewNav %}<input type="hidden" name="navId" value="{{ nav.id }}">{% endif %}
     {{ redirectInput('navigation/navs') }}
