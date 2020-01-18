@@ -96,6 +96,25 @@
 		"rFN": 0,
 		"uCM": 0
 		},
+	"/docs/developers/graphql.md": {
+		"cB": 0,
+		"cS": 0,
+		"eF": 1,
+		"eL": 1,
+		"ema": 1,
+		"eSQ": 1,
+		"ft": 4096,
+		"hM": 0,
+		"oA": 1,
+		"oAP": "/docs/developers/graphql.html",
+		"oF": 0,
+		"oFM": 0,
+		"oS": 0,
+		"pHT": 0,
+		"pME": 1,
+		"rFN": 0,
+		"uCM": 0
+		},
 	"/docs/developers/node.md": {
 		"cB": 0,
 		"cS": 0,
@@ -467,10 +486,66 @@
 		"oAP": "/src/events/RegisterElementEvent.php",
 		"oF": 0
 		},
+	"/src/events/RegisterNodeTypeEvent.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/events/RegisterNodeTypeEvent.php",
+		"oF": 0
+		},
 	"/src/fields": {
 		"ft": 65536,
 		"oA": 1,
 		"oAP": "/build/src/fields",
+		"oF": 0
+		},
+	"/src/gql/arguments/NodeArguments.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/gql/arguments/NodeArguments.php",
+		"oF": 0
+		},
+	"/src/gql/interfaces/NodeInterface.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/gql/interfaces/NodeInterface.php",
+		"oF": 0
+		},
+	"/src/gql/queries/NodeQuery.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/gql/queries/NodeQuery.php",
+		"oF": 0
+		},
+	"/src/gql/resolvers/NodeResolver.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/gql/resolvers/NodeResolver.php",
+		"oF": 0
+		},
+	"/src/gql/types/generators/NodeGenerator.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/gql/types/generators/NodeGenerator.php",
+		"oF": 0
+		},
+	"/src/gql/types/NodeType.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/gql/types/NodeType.php",
 		"oF": 0
 		},
 	"/src/icon-mask.svg": {
@@ -593,6 +668,14 @@
 		"hM": 0,
 		"oA": 2,
 		"oAP": "/src/translations/hu/navigation.php",
+		"oF": 0
+		},
+	"/src/twigextensions/Extension.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/twigextensions/Extension.php",
 		"oF": 0
 		},
 	"/src/variables": {

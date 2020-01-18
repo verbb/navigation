@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.5.1 - 2020-01-19
+
+### Fixed
+- Fix error when saving a nav.
+
 ## 1.2.5 - 2020-01-18
 
 ### Added
