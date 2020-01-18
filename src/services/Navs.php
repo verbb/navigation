@@ -161,6 +161,8 @@ class Navs extends Component
             ];
         }
 
+        $settings = Navigation::$plugin->getSettings();
+
         // There's some edge-cases where devs know what they're doing.
         // See https://github.com/verbb/navigation/issues/88
         if ($settings->bypassProjectConfig && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
