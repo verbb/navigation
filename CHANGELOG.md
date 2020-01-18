@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.5 - 2020-01-18
+
+### Added
+- Add `node.elementSlug`.
+- Add `bypassProjectConfig` setting.
+
+### Changed
+- Nodes without a URL (blank or empty) will not output a `href` attribute using the `render()` function.
+- Only change the status of a node when and element’s enabled status has changed.
+
+### Fixed
+- Fix making anchor URLs (urls with a `#`) relative to the root URL.
+
 ## 1.2.4 - 2020-01-09
 
 ### Fixed
