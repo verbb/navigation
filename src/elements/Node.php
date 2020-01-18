@@ -136,6 +136,9 @@ class Node extends Element
 
     public function getElementSiteId()
     {
+        // Hijack the slug of the node element, because that's a 'free' column in the `elements_sites` table for the
+        // node. Otherwise, we'd have to create a `node_sites` table, which I wasn't keen on at the time...
+        // Pretty hacky though...
         if ($this->slug) {
             return (int)$this->slug;
         }
@@ -146,6 +149,15 @@ class Node extends Element
     public function setElementSiteId($value)
     {
         $this->slug = $value;
+    }
+
+    public function getElementSlug()
+    {
+        if ($element = $this->getElement()) {
+            return $element->slug;
+        }
+
+        return '';
     }
 
     public function getActive($includeChildren = true)
@@ -188,7 +200,7 @@ class Node extends Element
 
         $url = Craft::getAlias($url);
 
-        if (is_string($url) && !UrlHelper::isFullUrl($url) && $url !== '') {
+        if (is_string($url) && !UrlHelper::isFullUrl($url) && $url !== '' && !strstr($url, '#')) {
             $url = UrlHelper::rootRelativeUrl(UrlHelper::siteUrl($url, null, null, $this->elementSiteId));
         }
 

@@ -58,8 +58,6 @@ class Nodes extends Component
         foreach ($nodes as $node) {
             $currentElement = Craft::$app->getElements()->getElementById($element->id, get_class($element), $element->siteId);
 
-            $node->enabled = (int)$element->enabled;
-
             if ($element->uri) {
                 $node->url = $element->uri;
             }
@@ -67,6 +65,11 @@ class Nodes extends Component
             // Only update the node name if they were the same before the element was saved
             if ($currentElement && $currentElement->title === $node->title) {
                 $node->title = $element->title;
+            }
+
+            // Only update URL if its changed
+            if ($currentElement && $currentElement->enabled === $node->enabled) {
+                $node->enabled = (bool)$element->enabled;
             }
 
             Craft::$app->getElements()->saveElement($node, true, false);
