@@ -161,8 +161,19 @@ class Navs extends Component
             ];
         }
 
-        $configPath = self::CONFIG_NAV_KEY . '.' . $nav->uid;
-        $projectConfig->set($configPath, $configData);
+        // There's some edge-cases where devs know what they're doing.
+        // See https://github.com/verbb/navigation/issues/88
+        if ($settings->bypassProjectConfig && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $event = new ConfigEvent([
+                'tokenMatches' => [$nav->uid],
+                'newValue' => $configData,
+            ]);
+
+            $this->handleChangedNav($event);
+        } else {
+            $configPath = self::CONFIG_NAV_KEY . '.' . $nav->uid;
+            $projectConfig->set($configPath, $configData);
+        }
 
         if ($isNewNav) {
             $nav->id = Db::idByUid('{{%navigation_navs}}', $nav->uid);
