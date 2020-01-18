@@ -13,7 +13,7 @@
 <ul class="{{ ulClass }}" {% for attr, val in ulAttributes %}{{ attr }}="{{ val }}"{% endfor %}>
     {% nav node in nodes %}
         <li class="{% if node.classes | length %}{{ node.classes }}{% endif %} {{ liClass }}" {% for attr, val in liAttributes %}{{ attr }}="{{ val }}"{% endfor %}>
-            <a href="{{ node.url }}" class="{% if node.active %}{{ activeClass }}{% endif %} {{ aClass }}"{% if node.newWindow %} target="_blank" rel="noopener"{% endif %} {% for attr, val in aAttributes %}{{ attr }}="{{ val }}"{% endfor %} {% for attribute in node.customAttributes %}{{ attribute.attribute }}="{{ attribute.value }}"{% endfor %}>
+            <a {% if node.url %}href="{{ node.url }}"{% endif %} class="{% if node.active %}{{ activeClass }}{% endif %} {{ aClass }}"{% if node.newWindow %} target="_blank" rel="noopener"{% endif %} {% for attr, val in aAttributes %}{{ attr }}="{{ val }}"{% endfor %} {% for attribute in node.customAttributes %}{{ attribute.attribute }}="{{ attribute.value }}"{% endfor %}>
                 {{- node.title -}}
             </a>
 
