@@ -7,6 +7,7 @@ use verbb\navigation\gql\arguments\NodeArguments;
 use verbb\navigation\gql\interfaces\NodeInterface as NodeInterfaceLocal;
 
 use craft\gql\base\InterfaceType as BaseInterfaceType;
+use craft\gql\interfaces\Element;
 use craft\gql\interfaces\Structure;
 use craft\gql\types\DateTime;
 use craft\gql\TypeLoader;
@@ -114,6 +115,11 @@ class NodeInterface extends Structure
                 'name' => 'parent',
                 'type' => NodeInterfaceLocal::getType(),
                 'description' => 'The node’s parent.'
+            ],
+            'element' => [
+                'name' => 'element',
+                'type' => Element::getType(),
+                'description' => 'The element the node links to.'
             ],
         ]);
     }
