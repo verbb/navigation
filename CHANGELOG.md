@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.7 - 2020-01-21
+
+### Fixed
+- Fix `node.link` not containing custom attributes.
+
 ## 1.2.6 - 2020-01-20
 
 ### Added
