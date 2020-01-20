@@ -242,6 +242,7 @@ class Node extends Element
     {
         $newWindow = '';
         $classes = '';
+        $attributes = '';
 
         if ($this->newWindow) {
             $newWindow = 'target="_blank" rel="noopener"';
@@ -251,7 +252,13 @@ class Node extends Element
             $classes = 'class="' . $this->classes . '"';
         }
 
-        return Template::raw('<a href="' . $this->getUrl() . '" ' . $newWindow . ' ' . $classes . '>' . Html::encode($this->__toString()) . '</a>');
+        if (is_array($this->customAttributes)) {
+            foreach ($this->customAttributes as $attribute) {
+                $attributes = $attribute['attribute'] . '="' . $attribute['value'] . '" ';
+            }
+        }
+
+        return Template::raw('<a href="' . $this->getUrl() . '" ' . $newWindow . ' ' . $classes . ' ' . $attributes . '>' . Html::encode($this->__toString()) . '</a>');
     }
 
     public function getTarget()
