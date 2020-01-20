@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.6 - 2020-01-20
+
+### Added
+- Add `element` param to GraphQL queries. 
+
 ## 1.2.5.1 - 2020-01-19
 
 ### Fixed
