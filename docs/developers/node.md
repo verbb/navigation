@@ -25,3 +25,4 @@ Attribute | Description
 `nav` | The navigation model this node belongs to.
 `status` | The current status of the node.
 `children ` | A collection of child nodes (if any).
+`level ` | The level this node resides in, if using nested nodes.
