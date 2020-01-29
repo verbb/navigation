@@ -9,7 +9,6 @@ Attribute | Description
 `id` | ID for the node.
 `elementId` | The linked element ID (if not custom).
 `element` | The linked element (if not custom).
-`elementSlug` | The linked element slug (if not custom).
 `navId` | The ID for the nav this node belongs to.
 `url` | URL for this node. Either the linked element or custom.
 `title` | Title for this node. Either the linked element or custom.

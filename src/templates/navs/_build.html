@@ -34,12 +34,12 @@
     {% set tabs = craft.navigation.getRegisteredElements() %}
     {% set disabledElements = settings.disabledElements %}
 
-    <nav id="tabs">
+    <nav id="accordion" data-vui-tabs>
         <ul class="tab-list">
             {% for tabId, tab in tabs %}
                 {% set selected = loop.first %}
 
-                <li class="tab-list-item" data-element-type="{{ tab.type }}">
+                <li class="tab-list-item" data-id="{{ tabId }}" data-element-type="{{ tab.type }}">
                     <a id="tab-{{ tabId }}" class="tab{% if selected %} sel{% endif %}" href="#{{ tabId }}" title="{{ tab.label }}">{{ tab.label }}</a>
 
                     <div id="{{ tabId }}" class="tab-list-pane {% if not selected %}hidden{% endif %}">

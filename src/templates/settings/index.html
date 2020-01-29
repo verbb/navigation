@@ -1,13 +1,11 @@
 {% extends 'navigation/_layouts' %}
 {% import '_includes/forms' as forms %}
-{% import 'navigation/_macros' as macros %}
+{% import 'verbb-base/_macros' as macros %}
 
 {% set crumbs = [
     { label: craft.navigation.getPluginName(), url: url('navigation/settings') },
     { label: 'Settings' | t('app'), url: url('navigation/settings') }
 ] %}
-
-{% set fullPageForm = true %}
 
 {% set navItems = {
     'general': { title: 'General Settings' | t('navigation') },
@@ -16,9 +14,10 @@
 } %}
 
 {% set selectedItem = 'general' %}
+{% set fullPageForm = true %}
 
 {% block sidebar %}
-    <nav class="navigation-settings-tabs" id="tabs">
+    <nav class="navigation-settings-tabs" data-vui-tabs>
         <ul>
             {% for id, item in navItems %}
                 {% if item.heading is defined %}

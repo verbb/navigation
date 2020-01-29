@@ -13,6 +13,8 @@ use craft\log\FileTarget;
 
 use yii\log\Logger;
 
+use verbb\base\BaseHelper;
+
 trait PluginTrait
 {
     // Static Properties
@@ -49,6 +51,20 @@ trait PluginTrait
         return $this->get('nodeTypes');
     }
 
+    public static function log($message)
+    {
+        Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'navigation');
+    }
+
+    public static function error($message)
+    {
+        Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'navigation');
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
     private function _setPluginComponents()
     {
         $this->setComponents([
@@ -58,6 +74,8 @@ trait PluginTrait
             'nodes' => Nodes::class,
             'nodeTypes' => NodeTypes::class,
         ]);
+
+        BaseHelper::registerModule();
     }
 
     private function _setLogging()
@@ -66,16 +84,6 @@ trait PluginTrait
             'logFile' => Craft::getAlias('@storage/logs/navigation.log'),
             'categories' => ['navigation'],
         ]);
-    }
-
-    public static function log($message)
-    {
-        Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'navigation');
-    }
-
-    public static function error($message)
-    {
-        Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'navigation');
     }
 
 }
