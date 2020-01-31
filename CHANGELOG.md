@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1 - 2020-02-01
+
+### Changed
+- Revert behaviour of URL generation. No longer enforce the use of Craft’s `url()` function when generating URLs for nodes.
+
 ## 1.3.0 - 2020-01-29
 
 ### Added
