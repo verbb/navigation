@@ -200,10 +200,6 @@ class Node extends Element
 
         $url = Craft::getAlias($url);
 
-        if (is_string($url) && !UrlHelper::isFullUrl($url) && $url !== '' && !strstr($url, '#')) {
-            $url = UrlHelper::rootRelativeUrl(UrlHelper::siteUrl($url, null, null, $this->elementSiteId));
-        }
-
         if ($this->urlSuffix) {
             $url = $url . $this->urlSuffix;
         }
