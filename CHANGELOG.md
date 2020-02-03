@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2 - 2020-02-03
+
+### Fixed
+- Fix migration issues when other migrations save elements.
+
 ## 1.3.1 - 2020-02-01
 
 ### Changed
