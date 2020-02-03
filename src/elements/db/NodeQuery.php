@@ -136,23 +136,37 @@ class NodeQuery extends ElementQuery
 
     protected function beforePrepare(): bool
     {
+        $projectConfig = Craft::$app->getProjectConfig();
+        $schemaVersion = $projectConfig->get('plugins.navigation.schemaVersion', true);
+
         $this->joinElementTable('navigation_nodes');
         $this->subQuery->innerJoin('{{%navigation_navs}} navigation_navs', '[[navigation_nodes.navId]] = [[navigation_navs.id]]');
 
-        $this->query->select([
+        $select = [
             'navigation_nodes.id',
             'navigation_nodes.elementId',
             'navigation_nodes.navId',
             'navigation_nodes.url',
             'navigation_nodes.type',
             'navigation_nodes.classes',
-            'navigation_nodes.urlSuffix',
-            'navigation_nodes.customAttributes',
             'navigation_nodes.newWindow',
 
             // Join the element's uri onto the same query
             'element_item_sites.uri AS elementUrl',
-        ]);
+        ];
+
+        // Any new columns we add should be wrapped in a conditional, otherwise migrations
+        // will likely fail. This is because a Node::find() query runs when elements are saved
+        // which can happen in a variety of migrations.
+        if (version_compare($schemaVersion, '1.0.14', '>')) {
+            $select[] = 'navigation_nodes.customAttributes';
+        }
+
+        if (version_compare($schemaVersion, '1.0.15', '>')) {
+            $select[] = 'navigation_nodes.urlSuffix';
+        }
+
+        $this->query->select($select);
 
         if ($this->id) {
             $this->subQuery->andWhere(Db::parseParam('navigation_nodes.id', $this->id));
