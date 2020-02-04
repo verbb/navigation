@@ -29,7 +29,7 @@ class NaveePlugin extends Migration
 
             $NaveeNavs = (new Query())
                 ->select(['*'])
-                ->from(['{{%navee_navigations}}'])
+                ->from(['{{%navee_navigations}} navigations'])
                 ->all();
 
             foreach ($NaveeNavs as $key => $NaveeNav) {
@@ -57,8 +57,8 @@ class NaveePlugin extends Migration
                 foreach (Craft::$app->getSites()->getAllSites() as $site) {
                     $NaveeNodes = (new Query())
                         ->select(['*'])
-                        ->from(['{{%navee_nodes}}'])
-                        ->leftJoin('{{%elements_sites}} elements_sites', '[[elements_sites.elementId]] = [[navee_nodes.id]]')
+                        ->from(['{{%navee_nodes}} nodes'])
+                        ->leftJoin('{{%elements_sites}} elements_sites', '[[elements_sites.elementId]] = [[nodes.id]]')
                         ->where(['navigationId' => $NaveeNav['id'], 'siteId' => $site['id']])
                         ->all();
 
@@ -68,7 +68,7 @@ class NaveePlugin extends Migration
 
                             $NaveeElement = (new Query())
                                 ->select(['*'])
-                                ->from(['{{%elements}}'])
+                                ->from(['{{%elements}} elements'])
                                 ->leftJoin('{{%content}} content', '[[content.elementId]] = [[elements.id]]')
                                 ->where(['elements.id' => $NaveeNode['elementId'], 'type' => 'Navee_Node', 'siteId' => $site['id']])
                                 ->one();

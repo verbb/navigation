@@ -68,7 +68,7 @@ class AmNavPlugin extends Migration
 
                 $AmNodes = (new Query())
                     ->select(['*'])
-                    ->from(['{{%amnav_nodes}}'])
+                    ->from(['{{%amnav_nodes}} nodes'])
                     ->where(['navId' => $AmNav['id']])
                     ->orderBy('parentId ASC, order ASC')
                     ->all();
