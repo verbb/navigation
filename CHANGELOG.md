@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.3 - 2020-02-05
+
+### Fixed
+- Fix disabled state incorrectly showing when saving a node.
+- Fix Navee migration.
+
 ## 1.3.2 - 2020-02-03
 
 ### Fixed
