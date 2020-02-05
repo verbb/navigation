@@ -2,8 +2,9 @@
 namespace verbb\navigation\services;
 
 use verbb\navigation\Navigation;
-use verbb\navigation\events\RegisterNodeTypeEvent;
 use verbb\navigation\base\NodeTypeInterface;
+use verbb\navigation\events\RegisterNodeTypeEvent;
+use verbb\navigation\nodetypes\SiteType;
 
 use Craft;
 use craft\base\Component;
@@ -29,10 +30,14 @@ class NodeTypes extends Component
 
     public function getRegisteredNodeTypes()
     {
-        $types = [];
+        $nodeTypes = [];
+
+        if (Craft::$app->getIsMultiSite()) {
+            $nodeTypes[] = SiteType::class;
+        }
 
         $event = new RegisterNodeTypeEvent([
-            'types' => $types,
+            'types' => $nodeTypes,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_NODE_TYPES, $event);
