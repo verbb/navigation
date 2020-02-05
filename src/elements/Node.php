@@ -92,13 +92,16 @@ class Node extends Element
     public $classes;
     public $urlSuffix;
     public $customAttributes = [];
+    public $data = [];
     public $newWindow = false;
 
     public $newParentId;
     public $deletedWithNav = false;
+    public $typeLabel = '';
 
     private $_url;
     private $_element;
+    private $_nodeType;
     private $_elementUrl;
     private $_hasNewParent;
     private $_isActive;
@@ -113,6 +116,15 @@ class Node extends Element
 
         if (!empty($this->customAttributes)) {
             $this->customAttributes = Json::decode($this->customAttributes);
+        }
+
+        if (!empty($this->data)) {
+            $this->data = Json::decode($this->data);
+        }
+
+        // If a custom node type, be sure to send through this element
+        if ($this->nodeType()) {
+            $this->nodeType()->node = $this;
         }
     }
 
@@ -198,6 +210,10 @@ class Node extends Element
     {
         $url = $this->getElementUrl() ?? $this->_url;
 
+        if ($this->nodeType()) {
+            return $this->nodeType()->getUrl();
+        }
+
         $url = Craft::getAlias($url);
 
         if ($this->urlSuffix) {
@@ -280,6 +296,40 @@ class Node extends Element
     public function isManual()
     {
         return (bool)!$this->type;
+    }
+
+    public function nodeType()
+    {
+        if ($this->_nodeType != null) {
+            return $this->_nodeType;
+        }
+
+        $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
+
+        foreach ($registeredNodeTypes as $registeredNodeType) {
+            if ($this->type === get_class($registeredNodeType)) {
+                return $this->_nodeType = $registeredNodeType;
+            }
+        }
+
+        return null;
+    }
+
+    public function getNodeTypeLabel()
+    {
+        if ($this->getElement()) {
+            return strtolower($this->getElement()->displayName());
+        }
+
+        if ($this->isManual()) {
+            return Craft::t('navigation', 'manual');
+        }
+
+        if ($this->nodeType()) {
+            return strtolower($this->nodeType()->displayName());
+        }
+
+        return '';
     }
 
     public function isElement()
@@ -380,6 +430,7 @@ class Node extends Element
         $record->classes = $this->classes;
         $record->urlSuffix = $this->urlSuffix;
         $record->customAttributes = $this->customAttributes;
+        $record->data = $this->data;
         $record->newWindow = $this->newWindow;
 
         // Don't store the URL if its an element. We should rely on its element URL.
@@ -390,6 +441,7 @@ class Node extends Element
         $record->save(false);
 
         $this->id = $record->id;
+        $this->typeLabel = $this->getNodeTypeLabel();
 
         $nav = $this->getNav();
 

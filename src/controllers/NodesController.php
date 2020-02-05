@@ -206,6 +206,7 @@ class NodesController extends Controller
         $node->classes = $request->getBodyParam('classes', $node->classes);
         $node->urlSuffix = $request->getBodyParam('urlSuffix', $node->urlSuffix);
         $node->customAttributes = $request->getBodyParam('customAttributes', $node->customAttributes);
+        $node->data = $request->getBodyParam('data', $node->data);
         $node->newWindow = (bool)$request->getBodyParam('newWindow', $node->newWindow);
 
         $node->newParentId = $request->getBodyParam('parentId', null);

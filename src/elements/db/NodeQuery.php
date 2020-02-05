@@ -27,6 +27,7 @@ class NodeQuery extends ElementQuery
     public $type;
     public $classes;
     public $customAttributes;
+    public $data;
     public $urlSuffix;
     public $newWindow = false;
 
@@ -166,6 +167,10 @@ class NodeQuery extends ElementQuery
             $select[] = 'navigation_nodes.urlSuffix';
         }
 
+        if (version_compare($schemaVersion, '1.0.16', '>')) {
+            $select[] = 'navigation_nodes.data';
+        }
+
         $this->query->select($select);
 
         if ($this->id) {
@@ -194,6 +199,10 @@ class NodeQuery extends ElementQuery
 
         if ($this->customAttributes) {
             $this->subQuery->andWhere(Db::parseParam('navigation_nodes.customAttributes', $this->customAttributes));
+        }
+
+        if ($this->data) {
+            $this->subQuery->andWhere(Db::parseParam('navigation_nodes.data', $this->data));
         }
 
         if ($this->newWindow) {

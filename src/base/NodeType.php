@@ -5,6 +5,12 @@ use craft\base\Component;
 
 abstract class NodeType extends Component implements NodeTypeInterface
 {
+    // Properties
+    // =========================================================================
+
+    public $node = null;
+
+
     // Static
     // =========================================================================
 
@@ -31,5 +37,19 @@ abstract class NodeType extends Component implements NodeTypeInterface
     public static function hasClasses(): bool
     {
         return false;
+    }
+
+
+    // Public Methods
+    // =========================================================================
+
+    public function getSettingsHtml()
+    {
+        return null;
+    }
+
+    public function getUrl()
+    {
+        return null;
     }
 }

@@ -5,6 +5,8 @@
 
 // ==========================================================================
 
+// @codekit-prepend "_jquery.serializejson.min.js"
+
 // When clicking migrate, change the form submission to our action endpoint
 $('.btn-migrate').on('click', function(e) {
     e.preventDefault();
@@ -134,6 +136,8 @@ Craft.Navigation = Garnish.Base.extend({
         var parentId = this.$nodeTypeForm.find('.js-parent-node select').val();
         var newWindow = this.$nodeTypeForm.find('#newWindow-field input').val();
         var type = this.$nodeTypeForm.parents('[data-node-type]').data('node-type');
+        var $typeForm = this.$nodeTypeForm.find('.node-type-data select, .node-type-data textarea, .node-type-data input');
+        var typeData = $typeForm.serializeJSON();
 
         var data = {
             navId: this.nav.id,
@@ -143,26 +147,20 @@ Craft.Navigation = Garnish.Base.extend({
             newWindow: newWindow,
             parentId: parentId,
             type: type,
+            data: typeData.data,
         };
 
         this.saveNode(data);
     },
 
     addNode: function(data, level) {
-        var type = 'manual';
-
-        if (data.type) {
-            var classNameParts = data.type.split('\\');
-            type = classNameParts.pop();
-        }
-
         var nodeHtml = this.$template
             .replace(/__siteId__/ig, data.siteId ? data.siteId : "")
             .replace(/__status__/ig, data.enabled ? 'enabled' : 'disabled')
             .replace(/__title__/ig, data.title)
             .replace(/__id__/ig, data.id)
             .replace(/__url__/ig, data.url)
-            .replace(/__type__/ig, type)
+            .replace(/__type__/ig, data.typeLabel)
             .replace(/__level__/ig, level)
 
         var $node = $(nodeHtml);
@@ -201,10 +199,12 @@ Craft.Navigation = Garnish.Base.extend({
     },
 
     saveNode: function(data) {
+        this.$nodeTypeLoader.removeClass('hidden');
         this.$manualLoader.removeClass('hidden');
         this.$addElementLoader.removeClass('hidden');
 
         Craft.postActionRequest('navigation/nodes/save-node', data, $.proxy(function(response, textStatus) {
+            this.$nodeTypeLoader.addClass('hidden');
             this.$manualLoader.addClass('hidden');
             this.$addElementLoader.addClass('hidden');
 
@@ -410,7 +410,9 @@ Craft.Navigation.Editor = Garnish.Base.extend({
                 var elementSelect = $elementSelect.data('elementSelect');
 
                 // Attach an on-select and on-remove handler
-                elementSelect.settings.onSelectElements = $.proxy(this, 'onSelectElements');
+                if (elementSelect) {
+                    elementSelect.settings.onSelectElements = $.proxy(this, 'onSelectElements');
+                }
             }
         }, this));
 

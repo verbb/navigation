@@ -71,59 +71,6 @@
                 </li>
             {% endfor %}
 
-            {% if 'custom' not in disabledElements %}
-                <li class="tab-list-item">
-                    <a id="tab-url" class="tab" href="#custom-url" title="{{ 'Custom URL' | t('navigation') }}">
-                        {{ 'Custom URL' | t('navigation') }}
-                    </a>
-
-                    <div id="custom-url" class="tab-list-pane hidden">
-                        <form id="manual-form" method="post" accept-charset="UTF-8">
-                            {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
-                                {{ forms.selectField({
-                                    label: 'Parent' | t('navigation'),
-                                    instructions: 'Select a navigation item as the parent.' | t('navigation'),
-                                    id: 'parent',
-                                    name: 'parent',
-                                    options: parentOptions,
-                                    class: 'fullwidth js-parent-node',
-                                }) }}
-                            {% endif %}
-
-                            {{ forms.lightswitchField({
-                                label: 'Open in new window' | t('navigation'),
-                                instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
-                                id: 'newWindow',
-                                name: 'newWindow',
-                                on: false,
-                                class: 'js-new-window-node',
-                            }) }}
-
-                            {{ forms.textField({
-                                label: 'Title' | t('navigation'),
-                                id: 'title',
-                                name: 'title',
-                                first: true,
-                                required: true,
-                                instructions: 'Name of this node in the navigation.' | t('navigation'),
-                            }) }}
-
-                            {{ forms.textField({
-                                label: 'URL' | t('navigation'),
-                                id: 'url',
-                                name: 'url',
-                                instructions: 'The URL of this node.' | t('navigation'),
-                            }) }}
-
-                            <div class="buttons">
-                                <input type="submit" class="btn submit" value="{{ 'Add' | t('navigation') }}">
-                                <div class="spinner hidden"></div>
-                            </div>
-                        </form>
-                    </div>
-                </li>
-            {% endif %}
-
             {% set nodeTypes = craft.navigation.getRegisteredNodeTypes() %}
 
             {% for nodeType in nodeTypes %}
@@ -176,6 +123,65 @@
                                 }) }}
                             {% endif %}
 
+                            <div class="node-type-data">
+                                {% namespace 'data' %}
+                                    {{ nodeType.getSettingsHtml() | raw }}
+                                {% endnamespace %}
+                            </div>
+
+                            <div class="buttons">
+                                <input type="submit" class="btn submit" value="{{ 'Add {name}' | t('navigation', { name: nodeType.displayName }) }}">
+                                <div class="spinner hidden"></div>
+                            </div>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+
+            {% if 'custom' not in disabledElements %}
+                <li class="tab-list-item">
+                    <a id="tab-url" class="tab" href="#custom-url" title="{{ 'Custom URL' | t('navigation') }}">
+                        {{ 'Custom URL' | t('navigation') }}
+                    </a>
+
+                    <div id="custom-url" class="tab-list-pane hidden">
+                        <form id="manual-form" method="post" accept-charset="UTF-8">
+                            {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
+                                {{ forms.selectField({
+                                    label: 'Parent' | t('navigation'),
+                                    instructions: 'Select a navigation item as the parent.' | t('navigation'),
+                                    id: 'parent',
+                                    name: 'parent',
+                                    options: parentOptions,
+                                    class: 'fullwidth js-parent-node',
+                                }) }}
+                            {% endif %}
+
+                            {{ forms.lightswitchField({
+                                label: 'Open in new window' | t('navigation'),
+                                instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
+                                id: 'newWindow',
+                                name: 'newWindow',
+                                on: false,
+                                class: 'js-new-window-node',
+                            }) }}
+
+                            {{ forms.textField({
+                                label: 'Title' | t('navigation'),
+                                id: 'title',
+                                name: 'title',
+                                first: true,
+                                required: true,
+                                instructions: 'Name of this node in the navigation.' | t('navigation'),
+                            }) }}
+
+                            {{ forms.textField({
+                                label: 'URL' | t('navigation'),
+                                id: 'url',
+                                name: 'url',
+                                instructions: 'The URL of this node.' | t('navigation'),
+                            }) }}
+
                             <div class="buttons">
                                 <input type="submit" class="btn submit" value="{{ 'Add' | t('navigation') }}">
                                 <div class="spinner hidden"></div>
@@ -183,7 +189,7 @@
                         </form>
                     </div>
                 </li>
-            {% endfor %}
+            {% endif %}
         </ul>
     </nav>
 </div>
@@ -211,10 +217,8 @@
         {% block element %}
             {% include '_elements/element' %}
 
-            {% set type = element.getElement() ? element.getElement().displayName() | lower : 'manual' %}
-
             <div class="node-type">
-                <span class="node-type-{{ type }}">{{ type }}</span>
+                <span class="node-type-{{ element.getNodeTypeLabel() }}">{{ element.getNodeTypeLabel() }}</span>
             </div>
 
             <span class="node-custom-title edit icon {{ element.hasOverriddenTitle ? '' : 'hidden' }}" title="{{ 'Custom Title' | t('navigation') }}"></span>
