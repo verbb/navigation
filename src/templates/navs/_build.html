@@ -217,17 +217,9 @@
                 <span class="node-type-{{ type }}">{{ type }}</span>
             </div>
 
-            {% if element.hasOverriddenTitle %}
-                <span class="edit icon" title="{{ 'Custom Title' | t('navigation') }}"></span>
-            {% endif %}
-
-            {% if element.newWindow %}
-                <span class="fa fa-external-link" title="{{ 'New Window' | t('navigation') }}"></span>
-            {% endif %}
-
-            {% if element.classes | length %}
-                <span class="classes">.{{ element.classes }}</span>
-            {% endif %}
+            <span class="node-custom-title edit icon {{ element.hasOverriddenTitle ? '' : 'hidden' }}" title="{{ 'Custom Title' | t('navigation') }}"></span>
+            <span class="node-new-window fa fa-external-link {{ element.newWindow ? '' : 'hidden' }}" title="{{ 'New Window' | t('navigation') }}"></span>
+            <span class="node-classes classes {{ element.classes | length ? '' : 'hidden' }}">.{{ element.classes }}</span>
 
             <a class="move icon" title="{{ 'Move' | t('app') }}"></a>
             <a class="settings icon" title="{{ 'Settings' | t('app') }}"></a>

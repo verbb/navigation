@@ -458,6 +458,9 @@ Craft.Navigation.Editor = Garnish.Base.extend({
 
         var data = this.$form.serialize();
         var $status = this.$node.parent().find('.status');
+        var $customTitle = this.$node.parent().find('.node-custom-title');
+        var $newWindow = this.$node.parent().find('.node-new-window');
+        var $classes = this.$node.parent().find('.node-classes');
         var $target = this.$node.find('.target');
 
         Craft.postActionRequest('navigation/nodes/save-node', data, $.proxy(function(response, textStatus) {
@@ -471,12 +474,18 @@ Craft.Navigation.Editor = Garnish.Base.extend({
                 this.$node.parent().data('label', response.node.title);
                 this.$node.parent().find('.title').text(response.node.title);
 
-                if (response.node.enabled && response.node.enabledForSite) {
+                if (response.node.enabled) {
                     $status.addClass('enabled');
                     $status.removeClass('disabled');
                 } else {
                     $status.addClass('disabled');
                     $status.removeClass('enabled');
+                }
+
+                if (response.node.newWindow) {
+                    $newWindow.removeClass('hidden');
+                } else {
+                    $newWindow.addClass('hidden');
                 }
 
                 this.closeHud();
