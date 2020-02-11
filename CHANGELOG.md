@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.5 - 2020-02-12
+
+### Fixed
+- Fix potential fatal error when upgrading from previous Craft/plugin versions.
+
 ## 1.3.4 - 2020-02-11
 
 ### Added
