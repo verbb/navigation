@@ -34,6 +34,11 @@ class Nodes extends Component
 
     public function onSaveElement(ElementEvent $event)
     {
+        // Skip this when updating Craft is currently in progress
+        if (Craft::$app->getIsInMaintenanceMode()) {
+            return;
+        }
+        
         $element = $event->element;
         $isNew = $event->isNew;
 
