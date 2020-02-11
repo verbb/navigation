@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.4 - 2020-02-11
+
+### Added
+- Add more functionality to node types, now fully-featured!
+- Add Site node type, for selecting whole sites, and using their Base URL.
+
+### Fixed
+- Fix error for site node types when propagating.
+- Bring gql implementation up to speed.
+- Fix JS error when adding a manual node.
+
 ## 1.3.3 - 2020-02-05
 
 ### Fixed
