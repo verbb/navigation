@@ -11,6 +11,7 @@ use craft\gql\interfaces\Element;
 use craft\gql\interfaces\Structure;
 use craft\gql\types\DateTime;
 use craft\gql\TypeLoader;
+use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Gql;
 
@@ -54,7 +55,7 @@ class NodeInterface extends Structure
 
     public static function getFieldDefinitions(): array
     {
-        return array_merge(parent::getFieldDefinitions(), self::getConditionalFields(), [
+        return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
             'elementId' => [
                 'name' => 'elementId',
                 'type' => Type::int(),
@@ -126,21 +127,6 @@ class NodeInterface extends Structure
                 'type' => Element::getType(),
                 'description' => 'The element the node links to.'
             ],
-        ]);
-    }
-
-    protected static function getConditionalFields(): array
-    {
-        if (Gql::canQueryUsers()) {
-            return [
-                'userId' => [
-                    'name' => 'userId',
-                    'type' => Type::int(),
-                    'description' => 'The ID of the author of this node.'
-                ],
-            ];
-        }
-
-        return [];
+        ]), self::getName());
     }
 }

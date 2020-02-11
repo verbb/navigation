@@ -80,6 +80,17 @@ class Node extends Element
         return new NodeQuery(static::class);
     }
 
+    public static function gqlTypeNameByContext($context): string
+    {
+        return $context->handle . '_Node';
+    }
+
+    public static function gqlScopesByContext($context): array
+    {
+        return ['navs.' . $context->uid];
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -369,6 +380,11 @@ class Node extends Element
         return Craft::$app->getSites()->getAllSiteIds();
     }
 
+    public function getGqlTypeName(): string
+    {
+        return static::gqlTypeNameByContext($this->getNav());
+    }
+
 
     // Events
     // -------------------------------------------------------------------------
@@ -513,16 +529,6 @@ class Node extends Element
         $nav = $this->navId === null ? null : $this->getNav();
 
         return $nav ? $nav->getNavFieldLayout() : null;
-    }
-
-    public static function gqlTypeNameByContext($context): string
-    {
-        return 'Node';
-    }
-
-    public function getGqlTypeName(): string
-    {
-        return static::gqlTypeNameByContext($this);
     }
 
 

@@ -23,6 +23,12 @@ class NodeQuery extends Query
                 'resolve' => NodeResolver::class . '::resolve',
                 'description' => 'This query is used to query for nodes.',
             ],
+            'node' => [
+                'type' => NodeInterface::getType(),
+                'args' => NodeArguments::getArguments(),
+                'resolve' => NodeResolver::class . '::resolveOne',
+                'description' => 'This query is used to query for a single node.'
+            ],
         ];
     }
 }

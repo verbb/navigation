@@ -5,10 +5,11 @@ use verbb\navigation\gql\interfaces\NodeInterface;
 
 use craft\gql\base\ObjectType;
 use craft\gql\interfaces\Element as ElementInterface;
+use craft\gql\types\elements\Element;
 
 use GraphQL\Type\Definition\ResolveInfo;
 
-class NodeType extends ObjectType
+class NodeType extends Element
 {
     // Public Methods
     // =========================================================================
@@ -17,7 +18,6 @@ class NodeType extends ObjectType
     {
         $config['interfaces'] = [
             NodeInterface::getType(),
-            ElementInterface::getType(),
         ];
 
         parent::__construct($config);
@@ -27,6 +27,11 @@ class NodeType extends ObjectType
     {
         $fieldName = $resolveInfo->fieldName;
 
-        return $source->$fieldName;
+        switch ($fieldName) {
+            case 'navHandle':
+                return $source->getNav()->handle;
+        }
+
+        return parent::resolve($source, $arguments, $context, $resolveInfo);
     }
 }

@@ -1,6 +1,9 @@
 <?php
 namespace verbb\navigation\gql\arguments;
 
+use verbb\navigation\Navigation;
+use verbb\navigation\elements\Node;
+
 use craft\gql\base\StructureElementArguments;
 use craft\gql\types\QueryArgument;
 
@@ -13,7 +16,7 @@ class NodeArguments extends StructureElementArguments
 
     public static function getArguments(): array
     {
-        return array_merge(parent::getArguments(), [
+        return array_merge(parent::getArguments(), self::getContentArguments(), [
             'nav' => [
                 'name' => 'nav',
                 'type' => Type::listOf(Type::string()),
@@ -35,5 +38,12 @@ class NodeArguments extends StructureElementArguments
                 'description' => 'Narrows the query results based on the node’s type.'
             ],
         ]);
+    }
+
+    public static function getContentArguments(): array
+    {
+        $navFieldArguments = static::buildContentArguments(Navigation::$plugin->getNavs()->getAllNavs(), Node::class);
+        
+        return array_merge(parent::getContentArguments(), $navFieldArguments);
     }
 }
