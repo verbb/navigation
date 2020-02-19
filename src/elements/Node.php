@@ -217,6 +217,11 @@ class Node extends Element
         }
     }
 
+    public function getRawUrl()
+    {
+        return $this->_url;
+    }
+
     public function getUrl()
     {
         $url = $this->getElementUrl() ?? $this->_url;
@@ -441,7 +446,7 @@ class Node extends Element
 
         $record->elementId = $this->elementId;
         $record->navId = $this->navId;
-        $record->url = $this->url;
+        $record->url = $this->getRawUrl();
         $record->type = $this->type;
         $record->classes = $this->classes;
         $record->urlSuffix = $this->urlSuffix;
