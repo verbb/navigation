@@ -29,7 +29,7 @@
 {% for navigation in navigations %}
     {% set tableData = tableData | merge([{
         id: navigation.id,
-        title: navigation.name | t('site') | e,
+        title: navigation.name | t('site'),
         url: url('navigation/navs/build/' ~ navigation.id),
         name: navigation.name | t('site') | e,
         handle: navigation.handle,
