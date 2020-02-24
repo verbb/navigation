@@ -232,6 +232,11 @@ class Node extends Element
 
         $url = Craft::getAlias($url);
 
+        // Allow twig support
+        if ($url) {
+            $url = Craft::$app->getView()->renderObjectTemplate($url, []);
+        }
+
         if ($this->urlSuffix) {
             $url = $url . $this->urlSuffix;
         }
