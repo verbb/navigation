@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.6 - 2020-02-24
+
+### Changed
+- Ensure saving node’s URL is kept raw, and not the generated URL.
+- Allow Twig to be used in node’s URLs, so you can use for example `{{ siteUrl('blog') }}` for site-specific URLs.
+
+### Fixed
+- Add element site menu to node editor HUD. (thanks @steverowling).
+- Fix double escaping of nav titles in vue admin tables. (thanks @steverowling).
+
 ## 1.3.5 - 2020-02-12
 
 ### Fixed
