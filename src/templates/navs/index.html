@@ -35,7 +35,7 @@
         handle: navigation.handle,
         settings: {
             label: 'Edit Settings' | t('site') | e,
-            url: url('navigation/navs/edit/' ~ navigation.id),
+            url: currentUser.can('navigation-manageNav-' ~ navigation.uid) ? url('navigation/navs/edit/' ~ navigation.id),
         },
     }]) %}
 {% endfor %}
@@ -48,7 +48,11 @@
         {% if editable %}
             { name: 'settings', title: Craft.t('site', 'Settings'),
                 callback: function(value) {
-                    return '<a href="' + value.url + '">' + value.label + '</a>';
+                    if (value.url) {
+                        return '<a href="' + value.url + '">' + value.label + '</a>';
+                    }
+
+                    return '';
                 }
             },
         {% endif %}
