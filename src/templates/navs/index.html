@@ -25,6 +25,7 @@
 {% endblock %}
 
 {% set tableData = [] %}
+{% set editableNavs = 0 %}
 
 {% for navigation in navigations %}
     {% set tableData = tableData | merge([{
@@ -35,9 +36,13 @@
         handle: navigation.handle,
         settings: {
             label: 'Edit Settings' | t('site') | e,
-            url: currentUser.can('navigation-manageNav-' ~ navigation.uid) ? url('navigation/navs/edit/' ~ navigation.id),
+            url: currentUser.can('navigation-editNav:' ~ navigation.uid) ? url('navigation/navs/edit/' ~ navigation.id),
         },
     }]) %}
+
+    {% if currentUser.can('navigation-editNav:' ~ navigation.uid) %}
+        {% set editableNavs = editableNavs + 1 %}
+    {% endif %}
 {% endfor %}
 
 {% js %}
@@ -45,7 +50,7 @@
         { name: '__slot:title', title: Craft.t('app', 'Name') },
         { name: '__slot:handle', title: Craft.t('app', 'Handle') },
 
-        {% if editable %}
+        {% if editable and editableNavs %}
             { name: 'settings', title: Craft.t('site', 'Settings'),
                 callback: function(value) {
                     if (value.url) {
