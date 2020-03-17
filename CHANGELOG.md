@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.9 - 2020-03-18
+
+### Fixed
+- Fix migration issues when other migrations save elements.
+- Fix potential fatal error when upgrading from previous Craft/plugin versions.
+
 ## 1.2.8 - 2020-02-01
 
 ### Changed
