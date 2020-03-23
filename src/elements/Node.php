@@ -28,6 +28,7 @@ use craft\helpers\UrlHelper;
 use yii\base\Event;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
+use yii\helpers\BaseHtml;
 
 class Node extends Element
 {
@@ -234,7 +235,8 @@ class Node extends Element
 
         // Allow twig support
         if ($url) {
-            $url = Craft::$app->getView()->renderObjectTemplate($url, []);
+            $object = $this->_getObject();
+            $url = Craft::$app->getView()->renderObjectTemplate($url, $object);
         }
 
         if ($this->urlSuffix) {
@@ -271,27 +273,40 @@ class Node extends Element
         $this->_elementUrl = $value;
     }
 
-    public function getLink()
+    public function getLinkAttributes($extraAttributes = null)
     {
-        $newWindow = '';
-        $classes = '';
-        $attributes = '';
+        $object = $this->_getObject();
 
-        if ($this->newWindow) {
-            $newWindow = 'target="_blank" rel="noopener"';
-        }
+        $classes = $this->classes ?
+            Craft::$app->view->renderObjectTemplate($this->classes, $object) : null;
 
-        if ($this->classes) {
-            $classes = 'class="' . $this->classes . '"';
-        }
+        $attributes = [
+            'href' => $this->getUrl(),
+            'target' => $this->newWindow ? '_blank' : null,
+            'rel' => $this->newWindow ? 'noopener' : null,
+            'class' => [ $classes ],
+            'data' => [],
+        ];
 
         if (is_array($this->customAttributes)) {
             foreach ($this->customAttributes as $attribute) {
-                $attributes = $attribute['attribute'] . '="' . $attribute['value'] . '" ';
+                $key = $attribute['attribute'];
+                $val = $attribute['value'];
+
+                $attributes['data'][$key] = Craft::$app->view->renderObjectTemplate($val, $object);
             }
         }
 
-        return Template::raw('<a href="' . $this->getUrl() . '" ' . $newWindow . ' ' . $classes . ' ' . $attributes . '>' . Html::encode($this->__toString()) . '</a>');
+        if (is_array($extraAttributes)) {
+            $attributes = ArrayHelper::merge($attributes, $extraAttributes);
+        }
+
+        return Template::raw(BaseHtml::renderTagAttributes($attributes));
+    }
+
+    public function getLink($attributes = null)
+    {
+        return Template::raw('<a ' . $this->getLinkAttributes($attributes) . '>' . Html::encode($this->__toString()) . '</a>');
     }
 
     public function getTarget()
@@ -638,5 +653,12 @@ class Node extends Element
         $oldParentId = $oldParentQuery->scalar();
 
         return $this->newParentId != $oldParentId;
+    }
+
+    private function _getObject()
+    {
+        return [
+            'currentUser' => Craft::$app->getUser()->getIdentity(),
+        ];
     }
 }
