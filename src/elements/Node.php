@@ -22,6 +22,7 @@ use craft\elements\db\ElementQueryInterface;
 use Craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 
@@ -354,7 +355,9 @@ class Node extends Element
     public function getNodeTypeLabel()
     {
         if ($this->getElement()) {
-            return strtolower($this->getElement()->displayName());
+            $displayName = StringHelper::toLowerCase($this->getElement()->displayName());
+
+            return $displayName;
         }
 
         if ($this->isManual()) {
@@ -362,7 +365,7 @@ class Node extends Element
         }
 
         if ($this->nodeType()) {
-            return strtolower($this->nodeType()->displayName());
+            return StringHelper::toLowerCase($this->nodeType()->displayName());
         }
 
         return '';
