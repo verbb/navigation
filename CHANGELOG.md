@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.7 - 2020-03-30
+
+### Changed
+- Refactored `getLink()` and pass classes and custom attribute values through `renderObjectTemplate()`. (thanks @jaydensmith).
+
+### Fixed
+- Hide nav settings URL if the user doesn’t have permission.
+- Fix malformed UTF-8 characters when adding a node.
+
 ## 1.3.6 - 2020-02-24
 
 ### Changed
