@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.8 - 2020-04-02
+
+### Fixed
+- Ensure plugin project config is removed when uninstalling.
+- Fix incorrect permissions being enforced for new navs.
+
 ## 1.3.7 - 2020-03-30
 
 ### Changed
