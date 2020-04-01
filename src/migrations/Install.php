@@ -20,11 +20,16 @@ class Install extends Migration
         // See if we should migrate from A&M Nav
         // $migration = new AmNavPlugin();
         // $migration->safeUp();
+
+        return true;
     }
 
     public function safeDown()
     {
         $this->removeTables();
+        $this->dropProjectConfig();
+
+        return true;
     }
 
     public function createTables()
@@ -87,5 +92,10 @@ class Install extends Migration
     {
         $this->dropTableIfExists('{{%navigation_nodes}}');
         $this->dropTableIfExists('{{%navigation_navs}}');
+    }
+
+    public function dropProjectConfig()
+    {
+        Craft::$app->projectConfig->remove('navigation');
     }
 }
