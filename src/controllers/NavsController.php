@@ -49,7 +49,7 @@ class NavsController extends Controller
             }
         }
 
-        if ($nav) {
+        if ($nav->id) {
             $this->requirePermission('navigation-editNav:' . $nav->uid);
         } else {
             $this->requirePermission('navigation-createNavs');
