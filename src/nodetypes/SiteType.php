@@ -54,7 +54,7 @@ class SiteType extends NodeType
             if ($siteId) {
                 if ($site = Craft::$app->getSites()->getSiteById($siteId)) {
                     if ($site->hasUrls) {
-                        return $site->baseUrl;
+                        return $site->getBaseUrl();
                     }
                 }
             }
