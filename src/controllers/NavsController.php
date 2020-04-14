@@ -111,8 +111,15 @@ class NavsController extends Controller
         $request = Craft::$app->getRequest();
         $session = Craft::$app->getSession();
 
-        $nav = new NavModel();
-        $nav->id = $request->getBodyParam('navId');
+        $navId = $request->getBodyParam('navId');
+
+        if ($navId) {
+            $nav = Navigation::$plugin->navs->getNavById($navId);
+        } else {
+            $nav = new NavModel();
+            $nav->id = $navId;
+        }
+
         $nav->name = $request->getBodyParam('name');
         $nav->handle = $request->getBodyParam('handle');
         $nav->instructions = $request->getBodyParam('instructions');
