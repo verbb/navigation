@@ -84,6 +84,32 @@ If you'd rather not use the `{% nav %}` functionality, you can create your own r
 {% endmacro %}
 ```
 
+Don't forget, that calling `craft.navigation.nodes()` means you're querying Nodes, so its a good idea to brush up on [querying elements](docs:getting-elements/node-queries).
+
+### Custom rendering
+
+When looping through each node, you'll have access to all the attributes of a [Node](docs:developers/node), and you have full control over what to show. Take a look at the following example, that the `craft.navigation.render()` function uses under the hood:
+
+```twig
+{% set nodes = craft.navigation.nodes('mainMenu').all() %}
+
+<ul>
+    {% nav node in nodes %}
+        <li class="{% if node.classes | length %}{{ node.classes }}{% endif %}">
+            <a {% if node.url %}href="{{ node.url }}"{% endif %} class="{% if node.active %}{{ activeClass }}{% endif %}"{% if node.newWindow %} target="_blank" rel="noopener"{% endif %} {% for attribute in node.customAttributes %}{{ attribute.attribute }}="{{ attribute.value }}"{% endfor %}>
+                {{- node.title -}}
+            </a>
+
+            {% ifchildren %}
+                <ul>
+                    {% children %}
+                </ul>
+            {% endifchildren %}
+        </li>
+    {% endnav %}
+</ul>
+```
+
 ### craft.navigation.getActiveNode()
 
 You can get the active node of any navigation through this tag. Often useful if you want to output an additional navigation area on your site that's contextual to the current node you're on.

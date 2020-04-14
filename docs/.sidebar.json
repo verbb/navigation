@@ -13,7 +13,8 @@
         "collapsable": false,
         "children": [
             "feature-tour/overview",
-            "feature-tour/am-nav-migration"
+            "feature-tour/am-nav-migration",
+            "feature-tour/navee-migration"
         ]
     },
     {
@@ -38,6 +39,7 @@
         "collapsable": false,
         "children": [
             "developers/node",
+            "developers/nav",
             "developers/events",
             "developers/extensibility",
             "developers/graphql"
