@@ -286,7 +286,6 @@ class Node extends Element
             'target' => $this->newWindow ? '_blank' : null,
             'rel' => $this->newWindow ? 'noopener' : null,
             'class' => [ $classes ],
-            'data' => [],
         ];
 
         if (is_array($this->customAttributes)) {
@@ -294,7 +293,7 @@ class Node extends Element
                 $key = $attribute['attribute'];
                 $val = $attribute['value'];
 
-                $attributes['data'][$key] = Craft::$app->view->renderObjectTemplate($val, $object);
+                $attributes[$key] = Craft::$app->view->renderObjectTemplate($val, $object);
             }
         }
 
