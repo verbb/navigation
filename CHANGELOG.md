@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.9 - 2020-04-14
+
+### Fixed
+- Use `getBaseUrl()` for parsing Site node type URLs.
+- Fix sort order not persisting when saving navs.
+- Fix custom attributes rendering incorrectly when using `node.link`.
+
 ## 1.3.8 - 2020-04-02
 
 ### Fixed
