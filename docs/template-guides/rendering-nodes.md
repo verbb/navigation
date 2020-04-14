@@ -96,7 +96,7 @@ When looping through each node, you'll have access to all the attributes of a [N
 <ul>
     {% nav node in nodes %}
         <li class="{% if node.classes | length %}{{ node.classes }}{% endif %}">
-            <a {% if node.url %}href="{{ node.url }}"{% endif %} class="{% if node.active %}{{ activeClass }}{% endif %}"{% if node.newWindow %} target="_blank" rel="noopener"{% endif %} {% for attribute in node.customAttributes %}{{ attribute.attribute }}="{{ attribute.value }}"{% endfor %}>
+            <a {% if node.url %}href="{{ node.url }}"{% endif %} class="{% if node.active %}is-active{% endif %}"{% if node.newWindow %} target="_blank" rel="noopener"{% endif %} {% for attribute in node.customAttributes %}{{ attribute.attribute }}="{{ attribute.value }}"{% endfor %}>
                 {{- node.title -}}
             </a>
 
