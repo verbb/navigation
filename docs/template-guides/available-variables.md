@@ -2,11 +2,11 @@
 
 The following are common methods you will want to call in your front end templates:
 
-### `craft.navigation.nodes()`
+### `craft.navigation.nodes(nodeQuery)`
 
 See [Node Queries](docs:getting-elements/node-queries)
 
-### `craft.navigation.render()`
+### `craft.navigation.render(nodeQuery, options)`
 
 See [Rendering Nodes](docs:template-guides/rendering-nodes)
 
@@ -14,11 +14,11 @@ See [Rendering Nodes](docs:template-guides/rendering-nodes)
 
 See [Breadcrumbs](docs:template-guides/breadcrumbs)
 
-### `craft.navigation.getActiveNode()`
+### `craft.navigation.getActiveNode(nodeQuery, includeChildren)`
 
 See [Rendering Nodes](docs:template-guides/rendering-nodes)
 
-### `craft.navigation.tree()`
+### `craft.navigation.tree(nodeQuery)`
 
 Returns a full tree structure of nodes as a nested array.
 

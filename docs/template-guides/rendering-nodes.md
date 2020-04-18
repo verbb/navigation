@@ -140,3 +140,25 @@ You can also provide any of the normal query parameters you normally would with 
     {% endnav %}
 </ul>
 ```
+
+Do note that this will only match against the exact node matching the current URL. If you're on a child of a parent that matches as active, this function will not return the parent as being active.
+
+To illustrate, take for example two URLs:
+- my-site.com/news
+- my-site.com/news/some-article
+
+And the menu included a node with the URL for `/news` (either a manual link, or linked to an entry element). You output the following in your templates: 
+
+```twig
+{{ craft.navigation.getActiveNode({ handle: 'mainMenu' }) }}
+```
+
+If you were on the URL `/news` it would return that you're on the active node. If you were on `/news/some-article` it would however return that this in not the active node. Navigation would be looking for a node with a URL that matches `/news/some-article`, and because it can't find one, it will not return an active page.
+
+However, its common you'll want to highlight the News node as being active, if your site uses nested navigation. That way, it shows to your users that you're in the "News" section of the site. In this instance you can pass a second attribute to `getActiveNode()` to include child and parent matching. For example:
+
+```twig
+{{ craft.navigation.getActiveNode({ handle: 'mainMenu' }, true) }}
+```
+
+In this case, when you are on the URL `/news`, `/news/some-article` or any other URL that includes `/news` it would return that "News" is the active node.

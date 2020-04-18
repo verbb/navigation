@@ -27,12 +27,12 @@ class NavigationVariable
         return Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
     }
 
-    public function getActiveNode($criteria = null)
+    public function getActiveNode($criteria = null, $includeChildren = false)
     {
         $nodes = $this->nodes($criteria)->all();
 
         foreach ($nodes as $node) {
-            if ($node->getActive(false)) {
+            if ($node->getActive($includeChildren)) {
                 return $node;
             }
         }
