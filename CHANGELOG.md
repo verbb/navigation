@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.12 - 2020-04-18
+
+### Added
+- Allow `getActiveNode()` to include option to match against children being active.
+
 ## 1.3.11 - 2020-04-16
 
 ### Fixed
