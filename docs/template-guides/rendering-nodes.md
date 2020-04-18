@@ -147,7 +147,7 @@ To illustrate, take for example two URLs:
 - my-site.com/news
 - my-site.com/news/some-article
 
-And the menu included a node with the URL for `/news` (either a manual link, or linked to an entry element). You output the following in your templates: 
+And the navigation included a node with the URL for `/news` (either a manual link, or linked to an entry element). You output the following in your templates: 
 
 ```twig
 {{ craft.navigation.getActiveNode({ handle: 'mainMenu' }) }}
