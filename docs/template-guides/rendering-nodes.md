@@ -153,7 +153,7 @@ And the navigation included a node with the URL for `/news` (either a manual lin
 {{ craft.navigation.getActiveNode({ handle: 'mainMenu' }) }}
 ```
 
-If you were on the URL `/news` it would return that you're on the active node. If you were on `/news/some-article` it would however return that this in not the active node. Navigation would be looking for a node with a URL that matches `/news/some-article`, and because it can't find one, it will not return an active page.
+If you were on the URL `/news` it would return that you're on the active node. If you were on `/news/some-article` it would return that this is **not** the active node. Navigation would be looking for a node with a URL that matches `/news/some-article`, and because it can't find one, it will not return an active page.
 
 However, its common you'll want to highlight the News node as being active, if your site uses nested navigation. That way, it shows to your users that you're in the "News" section of the site. In this instance you can pass a second attribute to `getActiveNode()` to include child and parent matching. For example:
 
