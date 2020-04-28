@@ -2,7 +2,7 @@
 
 ## 1.3.13 - 2020-04-28
 
-### Added
+### Fixed
 - Fix custom URL getting overwritten when selecting elements in custom fields.
 
 ## 1.3.12 - 2020-04-18
