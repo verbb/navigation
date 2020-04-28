@@ -147,7 +147,7 @@ class Node extends Element
             return $this->_element;
         }
 
-        if ($this->elementId === null) {
+        if (!$this->elementId) {
             return null;
         }
 
