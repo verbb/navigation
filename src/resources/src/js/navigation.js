@@ -404,7 +404,7 @@ Craft.Navigation.Editor = Garnish.Base.extend({
     initEventListeners: function() {
         // Make sure to watch when changing the element
         Garnish.requestAnimationFrame($.proxy(function() {
-            var $elementSelect = this.$fieldsContainer.find('.elementselect');
+            var $elementSelect = this.$fieldsContainer.find('#elementId-field .elementselect');
 
             if ($elementSelect) {
                 var elementSelect = $elementSelect.data('elementSelect');
