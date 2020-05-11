@@ -151,7 +151,7 @@ class Node extends Element
             return null;
         }
 
-        return $this->_element = Craft::$app->getElements()->getElementById($this->elementId, $this->type, $this->elementSiteId);
+        return $this->_element = Craft::$app->getElements()->getElementById($this->elementId, $this->type, $this->getElementSiteId());
     }
 
     public function setElement($element = null)
@@ -257,7 +257,7 @@ class Node extends Element
         if ($this->_elementUrl !== null) {
             $path = ($this->_elementUrl === '__home__') ? '' : $this->_elementUrl;
 
-            return UrlHelper::siteUrl($path, null, null, $this->elementSiteId);
+            return UrlHelper::siteUrl($path, null, null, $this->getElementSiteId());
         } else {
             $element = $this->getElement();
 
