@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.14 - 2020-05-11
+
+### Fixed
+- Fix site URL errors on Craft 3.5 beta.
+
 ## 1.3.13 - 2020-04-28
 
 ### Fixed
