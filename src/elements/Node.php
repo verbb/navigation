@@ -224,7 +224,7 @@ class Node extends Element
         return $this->_url;
     }
 
-    public function getUrl()
+    public function getUrl($includeSuffix = true)
     {
         $url = $this->getElementUrl() ?? $this->_url;
 
@@ -240,7 +240,7 @@ class Node extends Element
             $url = Craft::$app->getView()->renderObjectTemplate($url, $object);
         }
 
-        if ($this->urlSuffix) {
+        if ($this->urlSuffix && $includeSuffix) {
             $url = $url . $this->urlSuffix;
         }
 
@@ -575,7 +575,7 @@ class Node extends Element
             return;
         }
 
-        $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl());
+        $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl(false));
         $currentUrl = implode('/', $request->getSegments());
 
         // Stop straight away if this is potentially the homepage
