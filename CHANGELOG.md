@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.15 - 2020-05-20
+
+### Fixed
+- Fix `activeNode` taking into account the suffix for a URL. Active nodes will now return regardless of the defined suffix.
+- Fixed deprecation error on `buildNavTree `. (thanks @jaydensmith).
+
 ## 1.3.14 - 2020-05-11
 
 ### Fixed
