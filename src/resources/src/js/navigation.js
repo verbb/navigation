@@ -32,6 +32,9 @@ Craft.Navigation = Garnish.Base.extend({
     elementType: null,
     elementModals: [],
 
+    siteMenu: null,
+    $siteMenuBtn: null,
+
     $builderContainer: $('.js-nav-builder'),
     $structureContainer: $('.js-nav-builder .structure'),
     $emptyContainer: $('.js-navigation-empty'),
@@ -56,6 +59,26 @@ Craft.Navigation = Garnish.Base.extend({
                 id = $structureElement.find('.element').data('id');
 
             this.structureElements[id] = new Craft.Navigation.StructureElement(this, $structureElement);
+        }
+
+        // Try to update the selected site from cache
+        this.$siteMenuBtn = $('.nav-site-menubtn:first');
+      
+        // Try to update the selected site from cache
+        if (this.$siteMenuBtn.length) {
+            this.siteMenu = this.$siteMenuBtn.menubtn().data('menubtn').menu; // Figure out the initial site
+            this.siteMenu.on('optionselect', $.proxy(this, '_handleSiteChange'));
+
+            var defaultSiteId = Craft.getLocalStorage('BaseElementIndex.siteId');
+
+            if (defaultSiteId && defaultSiteId != this.siteId) {
+                // Is that one available here?
+                var $storedSiteOption = this.siteMenu.$options.filter('[data-site-id="' + defaultSiteId + '"]:first');
+
+                if ($storedSiteOption.length) {
+                    this.siteMenu.selectOption($storedSiteOption);
+                }
+            }
         }
 
         this.addListener(this.$addElementButton, 'activate', 'showModal');
@@ -226,6 +249,13 @@ Craft.Navigation = Garnish.Base.extend({
                 Craft.cp.displayError(response.message);
             }
         }, this));
+    },
+
+    _handleSiteChange: function(ev) {
+        this.siteMenu.$options.removeClass('sel');
+
+        var $option = $(ev.selectedOption).addClass('sel');
+        this.$siteMenuBtn.html($option.html());
     },
 
 });

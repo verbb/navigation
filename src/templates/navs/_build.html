@@ -12,13 +12,13 @@
     {% set sites = craft.app.sites.getEditableSites() %}
 
     {% if sites | length %}
-        <div id="revision-btn" class="btn menubtn" data-icon="world">{{ site.name }}</div>
+        <div id="revision-btn" class="btn menubtn nav-site-menubtn" data-icon="world">{{ site.name }}</div>
 
         <div class="menu">
             <ul class="padded">
                 {% for s in sites %}
                     <li>
-                        <a href="{{ url('navigation/navs/build/' ~ nav.id ~ '/' ~ s.handle) }}" {% if s.handle == site.handle %}class="sel"{% endif %}>
+                        <a data-site-id="{{ s.id }}" href="{{ url('navigation/navs/build/' ~ nav.id ~ '/' ~ s.handle) }}" {% if s.handle == site.handle %}class="sel"{% endif %}>
                             {{ s.name }}
                         </a>
                     </li>
@@ -256,9 +256,6 @@
 </script>
 
 {% js %}
-    // Update the local storage.
-    localStorage.setItem('Craft-' + Craft.systemUid + '.BaseElementIndex.siteId', {{ site.id }});
-
     new Craft.Navigation({{ nav | json_encode | raw }}, {
         siteId: {{ site.id }},
     });
