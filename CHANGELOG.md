@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.16 - 2020-05-29
+
+### Fixed
+- Fix site dropdown selection not persisting from element indexes
+
 ## 1.3.15 - 2020-05-20
 
 ### Fixed
