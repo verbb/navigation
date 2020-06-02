@@ -64,10 +64,12 @@ class NavsController extends Controller
     public function actionBuildNav(int $navId = null, string $siteHandle = null)
     {
         $settings = Navigation::$plugin->getSettings();
-        
+        $defaultSite = false;
+
         if ($siteHandle === null) {
             $editableSites = Craft::$app->getSites()->getEditableSites();
 
+            $defaultSite = true;
             $siteHandle = $editableSites[0]->handle ?? Craft::$app->getSites()->getCurrentSite()->handle;
         }
 
@@ -100,6 +102,7 @@ class NavsController extends Controller
             'nav' => $nav,
             'nodes' => $nodes,
             'site' => $site,
+            'defaultSite' => $defaultSite,
             'parentOptions' => $parentOptions,
             'settings' => $settings,
         ]);

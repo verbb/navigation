@@ -26,6 +26,7 @@ if (typeof Craft.Navigation === typeof undefined) {
 Craft.Navigation = Garnish.Base.extend({
     nav: null,
     siteId: null,
+    defaultSite: null,
 
     structure: null,
     structureElements: {},
@@ -49,6 +50,7 @@ Craft.Navigation = Garnish.Base.extend({
     init: function(nav, settings) {
         this.nav = nav;
         this.siteId = settings.siteId;
+        this.defaultSite = settings.defaultSite;
 
         this.structure = this.$structureContainer.data('structure');
 
@@ -65,7 +67,7 @@ Craft.Navigation = Garnish.Base.extend({
         this.$siteMenuBtn = $('.nav-site-menubtn:first');
       
         // Try to update the selected site from cache
-        if (this.$siteMenuBtn.length) {
+        if (this.$siteMenuBtn.length && this.defaultSite) {
             this.siteMenu = this.$siteMenuBtn.menubtn().data('menubtn').menu; // Figure out the initial site
             this.siteMenu.on('optionselect', $.proxy(this, '_handleSiteChange'));
 
