@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.17 - 2020-06-02
+
+### Fixed
+- Fix incorrect site being selected when editing a nav.
+
 ## 1.3.16 - 2020-05-29
 
 ### Fixed
