@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.18 - 2020-06-05
+
+### Fixed
+- Fix checking to see if Commerce is installed to enable products.
+
 ## 1.3.17 - 2020-06-02
 
 ### Fixed
