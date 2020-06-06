@@ -255,12 +255,10 @@
     </li>
 </script>
 
-{{ defaultSite }}
-
 {% js %}
     new Craft.Navigation({{ nav | json_encode | raw }}, {
         siteId: {{ site.id }},
-        defaultSite: {{ defaultSite }},
+        defaultSite: {{ defaultSite | json_encode | raw }},
     });
 {% endjs %}
 
