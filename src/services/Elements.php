@@ -50,7 +50,7 @@ class Elements extends Component
             ],
         ];
 
-        if ($this->isPluginInstalledAndEnabled('commerce')) {
+        if (Craft::$app->getPlugins()->isPluginEnabled('commerce')) {
             $elements['product'] = [
                 'label' => Craft::t('navigation', 'Products'),
                 'button' => Craft::t('navigation', 'Add a product'),
@@ -74,17 +74,6 @@ class Elements extends Component
         $this->trigger(self::EVENT_REGISTER_NAVIGATION_ELEMENT, $event);
 
         return $event->elements;
-    }
-
-    public function isPluginInstalledAndEnabled($pluginHandle)
-    {
-        $plugins = Craft::$app->getPlugins();
-
-        if ($plugins->isPluginInstalled($pluginHandle) && $plugins->isPluginEnabled($pluginHandle)) {
-            return true;
-        }
-
-        return false;
     }
 
 }
