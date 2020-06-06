@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.19 - 2020-06-06
+
+### Fixed
+- Fix JS error when editing navigations.
+
 ## 1.3.18 - 2020-06-05
 
 ### Fixed
