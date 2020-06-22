@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.20 - 2020-06-22
+
+### Added
+- Add `getModalHtml` for custom node types.
+
+### Fixed
+- Fix JS errors when there are multiple custom node types.
+- Ensure custom node types have their node set, as early as possible.
+- Ensure custom node types save the url property.
+
 ## 1.3.19 - 2020-06-06
 
 ### Fixed
