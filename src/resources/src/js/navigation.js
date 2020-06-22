@@ -113,7 +113,7 @@ Craft.Navigation = Garnish.Base.extend({
     onModalSelect: function(elements) {
         var $optionsContainer = $('.tab-list-item[data-element-type="' + this.elementType.replace(/\\/ig, '\\\\') + '"]');
         var parentId = $optionsContainer.find('.js-parent-node select').val();
-        var newWindow = $optionsContainer.find('#newWindow-field input').val();
+        var newWindow = $optionsContainer.find('[name="newWindow"]  input').val();
 
         for (var i = 0; i < elements.length; i++) {
             var element = elements[i];
@@ -141,13 +141,13 @@ Craft.Navigation = Garnish.Base.extend({
         e.preventDefault();
 
         var parentId = this.$manualForm.find('.js-parent-node select').val();
-        var newWindow = this.$manualForm.find('#newWindow-field input').val();
+        var newWindow = this.$manualForm.find('[name="newWindow"]  input').val();
 
         var data = {
             navId: this.nav.id,
             siteId: this.siteId,
-            title: this.$manualForm.find('#title').val(),
-            url: this.$manualForm.find('#url').val(),
+            title: this.$manualForm.find('[name="title"]').val(),
+            url: this.$manualForm.find('[name="url"]').val(),
             newWindow: newWindow,
             parentId: parentId,
         };
@@ -158,17 +158,19 @@ Craft.Navigation = Garnish.Base.extend({
     onNodeTypeSubmit: function(e) {
         e.preventDefault();
 
-        var parentId = this.$nodeTypeForm.find('.js-parent-node select').val();
-        var newWindow = this.$nodeTypeForm.find('#newWindow-field input').val();
-        var type = this.$nodeTypeForm.parents('[data-node-type]').data('node-type');
-        var $typeForm = this.$nodeTypeForm.find('.node-type-data select, .node-type-data textarea, .node-type-data input');
+        var $nodeTypeForm = $(e.target);
+
+        var parentId = $nodeTypeForm.find('.js-parent-node select').val();
+        var newWindow = $nodeTypeForm.find('[name="newWindow"] input').val();
+        var type = $nodeTypeForm.parents('[data-node-type]').data('node-type');
+        var $typeForm = $nodeTypeForm.find('.node-type-data select, .node-type-data textarea, .node-type-data input');
         var typeData = $typeForm.serializeJSON();
 
         var data = {
             navId: this.nav.id,
             siteId: this.siteId,
-            title: this.$nodeTypeForm.find('#title').val(),
-            url: this.$nodeTypeForm.find('#url').val(),
+            title: $nodeTypeForm.find('[name="title"]').val(),
+            url: $nodeTypeForm.find('[name="url"]').val(),
             newWindow: newWindow,
             parentId: parentId,
             type: type,
@@ -234,8 +236,8 @@ Craft.Navigation = Garnish.Base.extend({
             this.$addElementLoader.addClass('hidden');
 
             if (response.success) {
-                this.$manualForm.find('#title').val('');
-                this.$manualForm.find('#url').val('');
+                this.$manualForm.find('[name="title"]').val('');
+                this.$manualForm.find('[name="url"]').val('');
 
                 var id = response.node.id;
                 var $structureElement = this.addNode(response.node, response.level);
