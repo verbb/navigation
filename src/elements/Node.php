@@ -134,11 +134,6 @@ class Node extends Element
         if (!empty($this->data)) {
             $this->data = Json::decode($this->data);
         }
-
-        // If a custom node type, be sure to send through this element
-        if ($this->nodeType()) {
-            $this->nodeType()->node = $this;
-        }
     }
 
     public function getElement()
@@ -337,6 +332,9 @@ class Node extends Element
     public function nodeType()
     {
         if ($this->_nodeType != null) {
+            // If a custom node type, be sure to send through this element
+            $this->_nodeType->node = $this;
+
             return $this->_nodeType;
         }
 
@@ -344,6 +342,8 @@ class Node extends Element
 
         foreach ($registeredNodeTypes as $registeredNodeType) {
             if ($this->type === get_class($registeredNodeType)) {
+                $registeredNodeType->node = $this;
+
                 return $this->_nodeType = $registeredNodeType;
             }
         }
