@@ -477,7 +477,8 @@ class Node extends Element
         $record->newWindow = $this->newWindow;
 
         // Don't store the URL if its an element. We should rely on its element URL.
-        if ($this->type) {
+        // Check for custom types, they might want to save the URL
+        if ($this->type &&!$this->nodeType()) {
             $record->url = null;
         }
 
