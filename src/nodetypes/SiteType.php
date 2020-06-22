@@ -39,9 +39,16 @@ class SiteType extends NodeType
     // Public Methods
     // =========================================================================
 
+    public function getModalHtml()
+    {
+        return Craft::$app->getView()->renderTemplate('navigation/_types/site/modal', [
+            'node' => $this->node,
+        ]);
+    }
+
     public function getSettingsHtml()
     {
-        return Craft::$app->getView()->renderTemplate('navigation/_types/site');
+        return Craft::$app->getView()->renderTemplate('navigation/_types/site/settings');
     }
 
     public function getUrl()

@@ -43,6 +43,11 @@ abstract class NodeType extends Component implements NodeTypeInterface
     // Public Methods
     // =========================================================================
 
+    public function getModalHtml()
+    {
+        return null;
+    }
+
     public function getSettingsHtml()
     {
         return null;

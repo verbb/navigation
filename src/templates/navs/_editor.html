@@ -78,7 +78,12 @@
         value: node.urlSuffix,
     }) }}
 
+{% elseif node.nodeType() and node.nodeType().getModalHtml() %}
+
+    {{ node.nodeType().getModalHtml() | raw }}
+
 {% else %}
+
     {{ forms.textField({
         label: 'URL' | t('navigation'),
         instructions: 'The URL for this navigation item.' | t('navigation'),
@@ -86,6 +91,7 @@
         name: 'url',
         value: node.getRawUrl(),
     }) }}
+
 {% endif %}
 
 {{ forms.lightswitchField({
