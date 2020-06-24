@@ -211,6 +211,12 @@ class NodesController extends Controller
 
         $node->newParentId = $request->getBodyParam('parentId', null);
 
+        // Handle custom URL - remove the elementId. Particularly if we're swapping
+        if ($node->isManual()) {
+            $node->elementId = null;
+            $node->elementSiteId = null;
+        }
+
         // Set field values.
         $node->setFieldValuesFromRequest('fields');
 
