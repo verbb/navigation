@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.21 - 2020-06-24
+
+### Fixed
+- Fix element still being referenced for a node when switching it to a custom URL..
+
 ## 1.3.20 - 2020-06-22
 
 ### Added
