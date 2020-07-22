@@ -1,6 +1,6 @@
 # Navigation Plugin for Craft CMS
 
-<img width="500" src="https://verbb.io/uploads/plugins/navigation/_800x455_crop_center-center_none/navigation-social-card.png">
+<img width="500" src="https://verbb.io/uploads/plugins/navigation/navigation-social-card.png?v=1">
 
 Navigation is a Craft CMS plugin to help manage navigation menus for you site. Supports linking to existing elements like entries, categories and products, as well as custom URLs.
 
