@@ -21,4 +21,3 @@ assignees: ''
 - Multi-site: Yes or No
 
 **Additional context**
-Add any other context about the problem here.
