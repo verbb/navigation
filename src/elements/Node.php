@@ -454,6 +454,11 @@ class Node extends Element
             $this->title = $this->nodeType()->displayName();
         }
 
+        // Save the linked element's site id to the slug - again, our hacky way...
+        if ($this->elementSiteId) {
+            $this->slug = $this->elementSiteId;
+        }
+
         return parent::beforeSave($isNew);
     }
 
