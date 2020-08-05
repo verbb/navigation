@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.23 - 2020-08-05
+
+### Fixed
+- Fix `elementSiteId` not saving for nodes in Craft 3.5+.
+- Fix deprecation notice for `enabledForSite`.
+
 ## 1.3.22 - 2020-07-22
 
 ### Fixed
