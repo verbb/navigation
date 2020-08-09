@@ -8,6 +8,12 @@
 
 {% set title = nav.name %}
 
+{% block actionButton %}
+    {% if currentUser.can('navigation-editNav:' ~ nav.uid) %}
+        <a data-icon="settings" class="btn" href="{{ url('navigation/navs/edit/' ~ nav.id) }}" title="{{ 'Settings' | t('app') }}"></a>
+    {% endif %}
+{% endblock %}
+
 {% block contextMenu %}
     {% set sites = craft.app.sites.getEditableSites() %}
 
