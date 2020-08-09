@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.24 - 2020-08-10
+
+### Added
+- Add settings button when editing a navigation.
+- Add `uri` property to node.
+
+### Fixed
+- Fix incorrect translation for settings in navigation index.
+- Fix `elementSiteId` error caused by Craft 3.5 changes.
+
 ## 1.3.23 - 2020-08-05
 
 ### Fixed
