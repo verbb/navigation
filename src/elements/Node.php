@@ -108,6 +108,7 @@ class Node extends Element
     public $data = [];
     public $newWindow = false;
 
+    public $uri;
     public $newParentId;
     public $deletedWithNav = false;
     public $typeLabel = '';
@@ -133,6 +134,10 @@ class Node extends Element
 
         if (!empty($this->data)) {
             $this->data = Json::decode($this->data);
+        }
+
+        if ($url = $this->getUrl()) {
+            $this->uri = str_replace(UrlHelper::siteUrl(), '', $url);
         }
     }
 

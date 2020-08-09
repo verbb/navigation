@@ -111,6 +111,11 @@ class NodeInterface extends Structure
                 'type' => Type::string(),
                 'description' => 'The node’s full URL',
             ],
+            'uri' => [
+                'name' => 'uri',
+                'type' => Type::string(),
+                'description' => 'The node’s URI',
+            ],
             'children' => [
                 'name' => 'children',
                 'args' => NodeArguments::getArguments(),
