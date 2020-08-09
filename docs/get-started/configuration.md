@@ -16,7 +16,7 @@ return [
 ### Configuration options
 
 - `pluginName` - Optionally change the name of the plugin.
-- `disabledElements` - An array of elements to disable, so they cannot be added to navs. Availble options are `assets`, `entries`, `categories`, `custom`.
+- `disabledElements` - An array of elements to disable, so they cannot be added to navs. Available options are `assets`, `entries`, `categories`, `custom`.
 
 
 ## Control Panel
