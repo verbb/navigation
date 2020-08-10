@@ -1,6 +1,7 @@
 <?php
 namespace verbb\navigation\migrations;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 use verbb\navigation\records\Node as NodeRecord;
 
@@ -43,9 +44,7 @@ class m200810_000000_fix_elementsiteid extends Migration
 
                     $this->update(Table::ELEMENTS_SITES, ['slug' => $siteId], ['id' => $row['id']]);
                 } else {
-                    echo 'Invalid site info ' . json_encode($row) . PHP_EOL;
-
-                    return false;
+                    Navigation::error('Invalid site info ' . json_encode($row));
                 }
             }
         }

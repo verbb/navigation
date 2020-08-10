@@ -4,6 +4,7 @@
 
 ### Fixed
 - Update `node->uri` to `node->nodeUri`, prevents URI issues when saving elements.
+- Update migration to log potential errors.
 
 ## 1.3.24 - 2020-08-10
 
