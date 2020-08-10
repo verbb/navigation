@@ -11,6 +11,7 @@ Attribute | Description
 `element` | The linked element (if not custom).
 `navId` | The ID for the nav this node belongs to.
 `url` | URL for this node. Either the linked element or custom.
+`nodeUri` | URI for this node. Either the linked element or custom.
 `title` | Title for this node. Either the linked element or custom.
 `link` | Full HTML link (combined url and title).
 `type` | The element type. If custom, will be `null`.

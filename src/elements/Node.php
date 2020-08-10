@@ -135,10 +135,6 @@ class Node extends Element
         if (!empty($this->data)) {
             $this->data = Json::decode($this->data);
         }
-
-        if ($url = $this->getUrl()) {
-            $this->uri = str_replace(UrlHelper::siteUrl(), '', $url);
-        }
     }
 
     public function getElement()
@@ -272,6 +268,15 @@ class Node extends Element
     public function setElementUrl($value)
     {
         $this->_elementUrl = $value;
+    }
+
+    public function getNodeUri()
+    {
+        if ($url = $this->getUrl()) {
+            return str_replace(UrlHelper::siteUrl(), '', $url);
+        }
+
+        return '';
     }
 
     public function getLinkAttributes($extraAttributes = null)
