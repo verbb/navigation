@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.25 - 2020-08-11
+
+### Fixed
+- Update `node->uri` to `node->nodeUri`, prevents URI issues when saving elements.
+
 ## 1.3.24 - 2020-08-10
 
 ### Added
