@@ -597,36 +597,48 @@ class Node extends Element
             return;
         }
 
-        $relativeUrl = str_replace(UrlHelper::siteUrl(), '', $this->getUrl(false));
-        $currentUrl = implode('/', $request->getSegments());
+        $siteUrl = trim(UrlHelper::siteUrl(), '/');
+        $nodeUrl = $this->getUrl(false);
+
+        // We need to use `getFullPath()` to get the current path, as a site might be using a subdirectory is its base path.
+        // Using `getUrl()` would return the site-relative path, which isn't what we want to compare with.
+        // Also trim the '/' to normalise for comparison.
+        $currentUrl = trim($request->getFullPath(), '/');
+
+        // Do the same with the node's URL, to get a relative path
+        $relativeUrl = trim(str_replace($siteUrl, '', $nodeUrl), '/');
 
         // Stop straight away if this is potentially the homepage
         if ($currentUrl === '') {
-            // Check if we have the homepage entry in the nav, and mark that as active
+            // Check if we have the homepage as an entry in the nav, and mark that as active
             if ($this->_elementUrl && $this->_elementUrl === '__home__') {
                 return true;
             }
-
-            return false;
         }
 
-        // If addTrailingSlashesToUrls, remove trailing '/' for comparison
-        if (Craft::$app->config->general->addTrailingSlashesToUrls) {
-            $relativeUrl = rtrim($relativeUrl, '/');
-        }
-
-        // If manual URL, make sure to remove a leading '/' for comparison
-        if ($this->isManual()) {
-            $relativeUrl = ltrim($relativeUrl, '/');
-        }
-
+        // Check if they match, easy enough!
         $isActive = (bool)($currentUrl === $relativeUrl);
 
         // Also check if any children are active
         if ($includeChildren) {
             // Then, provide a helper based purely on the URL structure.
             // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
-            if (substr($currentUrl, 0, strlen($relativeUrl . '/')) === $relativeUrl . '/') {
+
+            // But we also need to be aware of sites that have a subdirectory in their path. Otherwise, the homepage
+            // for the site will be marked as active, because technically it's the first segment in the path.
+            // But in our case, that's not really desireable. So use the site-relative path as the current URL
+            $currentUrl = $request->getPathInfo();
+
+            // Then, a special case for manual nodes starting the a root-relative path
+            if (substr($nodeUrl, 0, 1) === '/') {
+                // Create an absolute path out of this root-relative path, remove the site URL, then we have our
+                // site-relative-root path - phew!
+                $absoluteNodeUrl = trim($request->hostInfo, '/') . '/' . trim($nodeUrl, '/');
+                $relativeUrl = str_replace($siteUrl, '', $absoluteNodeUrl);
+                $relativeUrl = trim($relativeUrl, '/');
+            }
+
+            if (substr($currentUrl, 0, strlen($relativeUrl)) === $relativeUrl) {
                 if ($relativeUrl !== '') {
                     $isActive = true;
                 }
