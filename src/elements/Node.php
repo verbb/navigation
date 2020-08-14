@@ -228,7 +228,8 @@ class Node extends Element
             return $this->nodeType()->getUrl();
         }
 
-        $url = Craft::getAlias($url);
+        // Parse aliases and env variables
+        $url = Craft::parseEnv($url);
 
         // Allow twig support
         if ($url) {
