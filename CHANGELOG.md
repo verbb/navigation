@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.26 - 2020-08-14
+
+### Fixed
+- Fix active-state check for nodes, which weren't catering for multi-sites with a sub-directory in their base url.
+
 ## 1.3.25 - 2020-08-11
 
 ### Fixed
