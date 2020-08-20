@@ -97,6 +97,8 @@ class NavsController extends Controller
 
         Craft::$app->getSession()->authorize('editStructure:' . $nav->structureId);
 
+        $editable = Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+
         return $this->renderTemplate('navigation/navs/_build', [
             'navId' => $navId,
             'nav' => $nav,
@@ -105,6 +107,7 @@ class NavsController extends Controller
             'defaultSite' => $defaultSite,
             'parentOptions' => $parentOptions,
             'settings' => $settings,
+            'editable' => $editable,
         ]);
     }
 
