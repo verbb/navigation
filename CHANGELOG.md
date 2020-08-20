@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.27 - 2020-08-20
+
+### Fixed
+- Fix edit menu button showing with `allowAdminChanges = false`.
+- Fix overflow in model node edit window, effecting some custom fields.
+
 ## 1.3.26 - 2020-08-14
 
 ### Fixed
