@@ -67,10 +67,10 @@ class NavsController extends Controller
         $defaultSite = false;
 
         if ($siteHandle === null) {
-            $primarySite = Craft::$app->getSites()->getPrimarySite();
+            $editableSites = Craft::$app->getSites()->getEditableSites();
 
             $defaultSite = true;
-            $siteHandle = $primarySite->handle ?? Craft::$app->getSites()->getCurrentSite()->handle;
+            $siteHandle = $editableSites[0]->handle;
         }
 
         $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
