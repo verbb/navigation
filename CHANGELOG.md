@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.28 - 2020-08-31
+
+### Changed
+- For site nodes, the trailing slash is now trimmed for the site URL.
+
+### Fixed
+- Fix node being marked as active for partial matches where the URLs contain the same words.
+- Fix default site when editing a nav to be the first editable for a user.
+
 ## 1.3.27 - 2020-08-20
 
 ### Fixed
