@@ -638,7 +638,9 @@ class Node extends Element
                 $relativeUrl = trim($relativeUrl, '/');
             }
 
-            if (substr($currentUrl, 0, strlen($relativeUrl)) === $relativeUrl) {
+            // Include trailing slashes to check if the parent has a child, otherwise we get partial matches
+            // for things like /some-entry and /some-entry-title - both would incorrectly match
+            if (substr($currentUrl, 0, strlen($relativeUrl . '/')) === $relativeUrl . '/') {
                 if ($relativeUrl !== '') {
                     $isActive = true;
                 }
