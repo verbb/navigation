@@ -103,3 +103,41 @@ Event::on(Node::class, Node::EVENT_NODE_ACTIVE, function(Event $e) {
     $e->isActive = true;
 });
 ```
+
+### The `beforeMoveElement` event
+
+Plugins can get notified before a node is moved in its structure.
+
+```php
+use verbb\navigation\elements\Node;
+use craft\events\MoveElementEvent;
+use craft\services\Structures;
+use yii\base\Event;
+
+Event::on(Structures::class, Structures::EVENT_BEFORE_MOVE_ELEMENT, function(MoveElementEvent $event) {
+    $element = $event->element;
+
+    if ($element instanceof Node) {
+        // ...
+    }
+});
+```
+
+### The `afterMoveElement` event
+
+Plugins can get notified after a node is moved in its structure.
+
+```php
+use verbb\navigation\elements\Node;
+use craft\events\MoveElementEvent;
+use craft\services\Structures;
+use yii\base\Event;
+
+Event::on(Structures::class, Structures::EVENT_AFTER_MOVE_ELEMENT, function(MoveElementEvent $event) {
+    $element = $event->element;
+
+    if ($element instanceof Node) {
+        // ...
+    }
+});
+```
