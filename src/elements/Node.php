@@ -600,16 +600,16 @@ class Node extends Element
         $siteUrl = trim(UrlHelper::siteUrl(), '/');
         $nodeUrl = $this->getUrl(false);
 
-        // We need to use `getFullPath()` to get the current path, as a site might be using a subdirectory is its base path.
+        // Get the full url to compare, this makes sure it works with any setup (either other domain per site or subdirs)
         // Using `getUrl()` would return the site-relative path, which isn't what we want to compare with.
         // Also trim the '/' to normalise for comparison.
-        $currentUrl = trim($request->getFullPath(), '/');
+        $currentUrl = trim($request->absoluteUrl, '/');
 
-        // Do the same with the node's URL, to get a relative path
-        $relativeUrl = trim(str_replace($siteUrl, '', $nodeUrl), '/');
+        // Do the same with the node's URL, get the absolute path, without trailing '/'
+        $relativeUrl = trim($nodeUrl, '/');
 
         // Stop straight away if this is potentially the homepage
-        if ($currentUrl === '') {
+        if (trim($request->getFullPath(), '/') === '') {
             // Check if we have the homepage as an entry in the nav, and mark that as active
             if ($this->_elementUrl && $this->_elementUrl === '__home__') {
                 return true;
