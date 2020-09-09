@@ -28,6 +28,10 @@ The easy option - let Navigation output the list items for you. This will genera
 
 For more fine-grained control over the navigation output, you can call nodes directly. As nodes are elements, output is a breeze using Craft's `{% nav %}` tag, so you don't have to deal with recursive macros.
 
+:::tip
+Once you've mastered rendering your nodes, check out the [Eager-Loading](docs:template-guides/eager-loading) docs for performance gains.
+:::
+
 ```twig
 {% set nodes = craft.navigation.nodes()
     .handle('mainMenu')
