@@ -605,13 +605,14 @@ class Node extends Element
         // Also trim the '/' to normalise for comparison.
         $currentUrl = trim($request->absoluteUrl, '/');
 
-        // Do the same with the node's URL, get the absolute path, without trailing '/'
-        if (strstr($nodeUrl, $siteUrl) === false) {
-            // Add the siteUrl since its missing.
-            $relativeUrl = $siteUrl.'/'.trim($nodeUrl, '/');
-        } else {
-            $relativeUrl = trim($nodeUrl, '/');
+        // Convert a root-relative node's URL to its absolute equivalent. Note we're not using the site URL,
+        // becuase the node's URL will likely already contain that.
+        if (UrlHelper::isRootRelativeUrl($nodeUrl)) {
+            $nodeUrl = $request->hostInfo . '/' . trim($nodeUrl, '/');
         }
+
+        // Trim the node's url to normalise for comparison, after we've detected if it's a root-relative URL.
+        $nodeUrl = trim($nodeUrl, '/');
 
         // Stop straight away if this is potentially the homepage
         if (trim($request->getPathInfo(), '/') === '') {
@@ -622,31 +623,18 @@ class Node extends Element
         }
 
         // Check if they match, easy enough!
-        $isActive = (bool)($currentUrl === $relativeUrl);
+        $isActive = (bool)($currentUrl === $nodeUrl);
 
         // Also check if any children are active
         if ($includeChildren) {
             // Then, provide a helper based purely on the URL structure.
             // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
 
-            // But we also need to be aware of sites that have a subdirectory in their path. Otherwise, the homepage
-            // for the site will be marked as active, because technically it's the first segment in the path.
-            // But in our case, that's not really desireable. So use the site-relative path as the current URL
-            $currentUrl = $request->getPathInfo();
-
-            // Then, a special case for manual nodes starting the a root-relative path
-            if (substr($nodeUrl, 0, 1) === '/') {
-                // Create an absolute path out of this root-relative path, remove the site URL, then we have our
-                // site-relative-root path - phew!
-                $absoluteNodeUrl = trim($request->hostInfo, '/') . '/' . trim($nodeUrl, '/');
-                $relativeUrl = str_replace($siteUrl, '', $absoluteNodeUrl);
-                $relativeUrl = trim($relativeUrl, '/');
-            }
-
             // Include trailing slashes to check if the parent has a child, otherwise we get partial matches
             // for things like /some-entry and /some-entry-title - both would incorrectly match
-            if (substr($currentUrl, 0, strlen($relativeUrl . '/')) === $relativeUrl . '/') {
-                if ($relativeUrl !== '') {
+            if (substr($currentUrl, 0, strlen($nodeUrl . '/')) === $nodeUrl . '/') {
+                // Make sure we're not on the homepage (unless this node is for the homepage)
+                if ($nodeUrl !== $siteUrl) {
                     $isActive = true;
                 }
             }
