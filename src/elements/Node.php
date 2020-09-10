@@ -606,7 +606,12 @@ class Node extends Element
         $currentUrl = trim($request->absoluteUrl, '/');
 
         // Do the same with the node's URL, get the absolute path, without trailing '/'
-        $relativeUrl = trim($nodeUrl, '/');
+        if (strstr($nodeUrl, $siteUrl) === false) {
+            // Add the siteUrl since its missing.
+            $relativeUrl = $siteUrl.'/'.trim($nodeUrl, '/');
+        } else {
+            $relativeUrl = trim($nodeUrl, '/');
+        }
 
         // Stop straight away if this is potentially the homepage
         if (trim($request->getPathInfo(), '/') === '') {
