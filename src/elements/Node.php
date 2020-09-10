@@ -609,7 +609,7 @@ class Node extends Element
         $relativeUrl = trim($nodeUrl, '/');
 
         // Stop straight away if this is potentially the homepage
-        if (trim($request->getFullPath(), '/') === '') {
+        if (trim($request->getPathInfo(), '/') === '') {
             // Check if we have the homepage as an entry in the nav, and mark that as active
             if ($this->_elementUrl && $this->_elementUrl === '__home__') {
                 return true;
