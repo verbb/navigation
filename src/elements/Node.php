@@ -466,8 +466,8 @@ class Node extends Element
         }
 
         // Save the linked element's site id to the slug - again, our hacky way...
-        if ($this->elementSiteId) {
-            $this->slug = $this->elementSiteId;
+        if ($this->getElementSiteId()) {
+            $this->slug = $this->elementSiteId = $this->getElementSiteId();
         }
 
         return parent::beforeSave($isNew);

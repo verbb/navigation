@@ -77,6 +77,8 @@ class Nodes extends Component
                 $node->enabled = (bool)$element->enabled;
             }
 
+            $node->elementSiteId = $element->siteId;
+
             Craft::$app->getElements()->saveElement($node, true, false);
         }
     }
