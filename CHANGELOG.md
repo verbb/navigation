@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.29 - 2020-09-16
+
+### Fixed
+- Fix detection of active parameter on multi-site setups.
+- Fix nodes being unlinked to their element in some special circumstances.
+
 ## 1.3.28 - 2020-08-31
 
 ### Changed
