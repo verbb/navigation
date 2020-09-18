@@ -614,12 +614,9 @@ class Node extends Element
         // Trim the node's url to normalise for comparison, after we've detected if it's a root-relative URL.
         $nodeUrl = trim($nodeUrl, '/');
 
-        // Stop straight away if this is potentially the homepage
-        if (trim($request->getPathInfo(), '/') === '') {
-            // Check if we have the homepage as an entry in the nav, and mark that as active
-            if ($this->_elementUrl && $this->_elementUrl === '__home__') {
-                return true;
-            }
+        // Stop straight away if this is the homepage entry
+        if ($this->_elementUrl && $this->_elementUrl === '__home__') {
+            return $currentUrl === $nodeUrl ? true : false;
         }
 
         // Check if they match, easy enough!
