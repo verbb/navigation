@@ -19,5 +19,6 @@ assignees: ''
 - Plugin version:
 - Craft version:
 - Multi-site: Yes or No
+- Propagate nodes: Yes or No
 
 **Additional context**
