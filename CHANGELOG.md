@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.30 - 2020-09-27
+
+### Fixed
+- Fix homepage entry active state check when outputting multiple different sites navs on a single site.
+- Fix error when trying to get the active state for a node with an empty URL.
+- Fix custom attributes in GraphQL not returning an object.
+
 ## 1.3.29 - 2020-09-16
 
 ### Fixed
