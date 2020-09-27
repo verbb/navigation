@@ -2,9 +2,11 @@
 namespace verbb\navigation\gql\interfaces;
 
 use verbb\navigation\elements\Node;
-use verbb\navigation\gql\types\generators\NodeGenerator;
 use verbb\navigation\gql\arguments\NodeArguments;
 use verbb\navigation\gql\interfaces\NodeInterface as NodeInterfaceLocal;
+use verbb\navigation\gql\types\CustomAttributeType;
+use verbb\navigation\gql\types\generators\CustomAttributeGenerator;
+use verbb\navigation\gql\types\generators\NodeGenerator;
 
 use craft\gql\base\InterfaceType as BaseInterfaceType;
 use craft\gql\interfaces\Element;
@@ -93,7 +95,7 @@ class NodeInterface extends Structure
             ],
             'customAttributes' => [
                 'name' => 'customAttributes',
-                'type' => Type::string(),
+                'type' => Type::listOf(CustomAttributeGenerator::generateType()),
                 'description' => 'Any additional custom attributes for the node.'
             ],
             'data' => [
