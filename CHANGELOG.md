@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.31 - 2020-09-29
+
+### Added
+- Add `propagateSiteElements` config setting to help with multi-site menus. Navigation will use the equivalent element for each site automatically for multi-site menus. But you might want to pick specific elements across your sites, and have them the same across all your navigations.
+
 ## 1.3.30 - 2020-09-27
 
 ### Fixed
