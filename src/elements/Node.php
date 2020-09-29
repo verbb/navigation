@@ -429,6 +429,8 @@ class Node extends Element
 
     public function beforeSave(bool $isNew): bool
     {
+        $settings = Navigation::$plugin->getSettings();
+
         // Set the structure ID for Element::attributes() and afterSave()
         $this->structureId = $this->getNav()->structureId;
 
@@ -447,7 +449,8 @@ class Node extends Element
         }
 
         // If this is propagating, we want to fetch the information for that site's linked element
-        if ($this->propagating && $this->isElement()) {
+        // At next breakpoint, remove `propagateSiteElements`
+        if ($this->propagating && $this->isElement() && $settings->propagateSiteElements) {
             $localeElement = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
 
             if ($localeElement) {
