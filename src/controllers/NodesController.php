@@ -166,6 +166,35 @@ class NodesController extends Controller
         ]);
     }
 
+    public function actionClear()
+    {
+        $this->requirePostRequest();
+
+        $request = Craft::$app->getRequest();
+        $session = Craft::$app->getSession();
+
+        $navId = $request->getRequiredBodyParam('navId');
+        $nodes = Navigation::$plugin->getNodes()->getNodesForNav($navId);
+
+        $errors = [];
+
+        foreach ($nodes as $key => $node) {
+            if (!Craft::$app->getElements()->deleteElementById($node->id)) {
+                $errors[] = $node->getErrors();
+            }
+        }
+
+        if ($errors) {
+            $session->setError(Craft::t('navigation', 'Unable to clear navigation.'));
+
+            return null;
+        }
+
+        $session->setNotice(Craft::t('navigation', 'Navigation cleared.'));
+
+        return $this->redirectToPostedUrl();
+    }
+
 
     // Private Methods
     // =========================================================================

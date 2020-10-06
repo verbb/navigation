@@ -9,6 +9,8 @@
 {% set title = nav.name %}
 
 {% block actionButton %}
+    <a class="formsubmit btn" data-form="x" data-action="navigation/nodes/clear" data-param="navId" data-value="{{ nav.id }}" data-confirm="{{ 'Are you sure you want to remove all nodes? This cannot be undone.' | t('navigation') }}" data-redirect="{{ ('navigation/navs/build/' ~ nav.id) | hash }}">{{ 'Clear Nodes' | t('navigation') }}</a>
+
     {% if editable and currentUser.can('navigation-editNav:' ~ nav.uid) %}
         <a data-icon="settings" class="btn" href="{{ url('navigation/navs/edit/' ~ nav.id) }}" title="{{ 'Settings' | t('app') }}"></a>
     {% endif %}
