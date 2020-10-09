@@ -606,7 +606,7 @@ class Node extends Element
         // Get the full url to compare, this makes sure it works with any setup (either other domain per site or subdirs)
         // Using `getUrl()` would return the site-relative path, which isn't what we want to compare with.
         // Also trim the '/' to normalise for comparison.
-        $currentUrl = trim($request->absoluteUrl, '/');
+        $currentUrl = trim(urldecode($request->absoluteUrl), '/');
 
         // Convert a root-relative node's URL to its absolute equivalent. Note we're not using the site URL,
         // becuase the node's URL will likely already contain that.
