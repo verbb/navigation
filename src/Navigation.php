@@ -6,6 +6,7 @@ use verbb\navigation\elements\Node;
 use verbb\navigation\fields\NavigationField;
 use verbb\navigation\gql\interfaces\NodeInterface;
 use verbb\navigation\gql\queries\NodeQuery;
+use verbb\navigation\integrations\NodeFeedMeElement;
 use verbb\navigation\models\Settings;
 use verbb\navigation\services\Navs;
 use verbb\navigation\twigextensions\Extension;
@@ -31,6 +32,9 @@ use craft\web\twig\variables\CraftVariable;
 
 use yii\base\Event;
 use yii\web\User;
+
+use craft\feedme\events\RegisterFeedMeElementsEvent;
+use craft\feedme\services\Elements as FeedMeElements;
 
 class Navigation extends Plugin
 {
@@ -68,6 +72,7 @@ class Navigation extends Plugin
         $this->_registerElementTypes();
         $this->_registerPermissions();
         $this->_registerGraphQl();
+        $this->_registerFeedMeSupport();
     }
 
     public function getPluginName()
@@ -201,5 +206,16 @@ class Navigation extends Plugin
                 $event->queries[$key] = $value;
             }
         });
+    }
+
+    private function _registerFeedMeSupport()
+    {
+        $feedMe = Craft::$app->getPlugins()->isPluginInstalled('feed-me') && Craft::$app->getPlugins()->isPluginEnabled('feed-me');
+
+        if ($feedMe) {
+            Event::on(FeedMeElements::class, FeedMeElements::EVENT_REGISTER_FEED_ME_ELEMENTS, function(RegisterFeedMeElementsEvent $e) {
+                $e->elements[] = NodeFeedMeElement::class;
+            });
+        }
     }
 }

@@ -1,0 +1,160 @@
+{% import '_includes/forms' as forms %}
+{% import 'feed-me/_macros' as feedMeMacro %}
+
+{% if feed.elementGroup %}
+    {% set navId = feed.elementGroup[feed.elementType] %}
+
+    {% set nav = craft.navigation.getNavById(navId) %}
+{% endif %}
+
+{% set nodes = [{ label: 'Don\'t import', value: '' }] %}
+{% for node in craft.navigation.nodes.all() %}
+    {% set nodes = nodes | merge([{ label: node.title | slice(0, 40), value: node.id }]) %}
+{% endfor %}
+
+{% set types = [{ label: 'Don\'t import', value: '' }] %}
+
+{% for tab in craft.navigation.getRegisteredElements() %}
+    {% set types = types | merge([{ label: tab.label, value: tab.type }]) %}
+{% endfor %}
+
+{% for nodeType in craft.navigation.getRegisteredNodeTypes() %}
+    {% set types = types | merge([{ label: nodeType.displayName, value: className(nodeType) }]) %}
+{% endfor %}
+
+{% set fields = [{
+    name: 'Title',
+    handle: 'title',
+    default: {
+        type: 'text',
+    },
+}, {
+    name: 'Type',
+    handle: 'type',
+    default: {
+        type: 'select',
+        options: types,
+    },
+}, {
+    name: 'URL',
+    handle: 'url',
+    default: {
+        type: 'text',
+    },
+}, {
+    name: 'URL Suffix',
+    handle: 'urlSuffix',
+    default: {
+        type: 'text',
+    },
+}, {
+    name: 'Open in New Window',
+    handle: 'newWindow',
+    default: {
+        type: 'lightswitch',
+    },
+}, {
+    name: 'Classes',
+    handle: 'classes',
+    default: {
+        type: 'text',
+    },
+}, {
+    type: 'nodes',
+    name: 'Parent',
+    handle: 'parent',
+    instructions: 'Select a parent node to import these nodes under.' | t('feed-me'),
+    default: {
+        type: 'select',
+        options: nodes,
+    },    
+}, {
+    name: 'Status',
+    handle: 'enabled',
+    instructions: 'Choose either a default status from the list or the imported field that will contain the status.' | t('feed-me'),
+    default: {
+        type: 'select',
+        options: [
+            { label: 'Don\'t import', value: '' },
+            { label: 'Enabled', value: '1' },
+            { label: 'Disabled', value: '0' },
+        ],
+    },
+}, {
+    name: 'Node ID',
+    handle: 'id',
+    instructions: '<strong class="error">Warning: </strong>This should only be used for an existing Navigation Node ID.' | t('feed-me'),
+    default: {
+        type: 'text',
+    },
+}] %}
+
+<h2>{{ 'Node Fields' | t('feed-me') }}</h2>
+
+<table class="feedme-mapping data fullwidth collapsible">
+    <thead>
+        <th>{{ 'Field' | t('feed-me') }}</th>
+        <th>{{ 'Feed Element' | t('feed-me') }}</th>
+        <th>{{ 'Default Value' | t('feed-me') }}</th>
+    </thead>
+    <tbody>
+        {% for field in fields %}
+            {% set template = field.type ?? 'default' %}
+            {% set variables = field | merge({ feed: feed, feedData: feedData, attribute: true }) %}
+
+            {% include 'feed-me/_includes/fields/' ~ template ignore missing with variables only %}
+        {% endfor %}
+    </tbody>
+</table>
+
+{% set tabs = [] %}
+
+{% if nav.fieldLayoutId %}
+    {% set tabs = craft.app.fields.getLayoutById(nav.fieldLayoutId).getTabs() %}
+
+    {% for tab in tabs %}
+        <hr>
+
+        <h2>{{ tab.name }} Fields</h2>
+
+        <table class="feedme-mapping data fullwidth collapsible">
+            <thead>
+                <th>{{ 'Field' | t('feed-me') }}</th>
+                <th>{{ 'Feed Element' | t('feed-me') }}</th>
+                <th>{{ 'Default Value' | t('feed-me') }}</th>
+            </thead>
+            <tbody>
+                {% for field in tab.getFields() %}
+                    {% set fieldClass = craft.feedme.fields.getRegisteredField(className(field)) %}
+                    {% set template = fieldClass.getMappingTemplate() %}
+
+                    {% set variables = { name: field.name, handle: field.handle, feed: feed, feedData: feedData, field: field, fieldClass: fieldClass } %}
+                    
+                    {% include template ignore missing with variables only %}
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+{% endif %}
+
+<hr>
+
+<h2>{{ "Set a unique identifier to match against existing elements" | t('feed-me') }}</h2>
+
+<p>{{ "Select the fields you want to use to check for existing elements. When selected, Feed Me will look for existing elements that match the fields provided below and either update, or skip depending on your choice of Import Strategy." | t('feed-me') }}</p>
+
+{% for tab in tabs %}
+    {% for field in tab.getFields() %}
+        {% set fields = fields | merge([{ name: field.name, handle: field.handle, type: className(field) }]) %}
+    {% endfor %}
+{% endfor %}
+
+<div class="feedme-uniques">
+    {% for field in fields if field and craft.feedme.fieldCanBeUniqueId(field) %}
+        {{ forms.checkboxField({
+            name: 'fieldUnique[' ~ field.handle ~ ']',
+            label: field.name,
+            checked: feed.fieldUnique[field.handle] ?? '',
+        }) }}
+    {% endfor %}
+</div>
