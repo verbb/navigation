@@ -15,7 +15,6 @@ class NaveePlugin extends Migration
     public $propagate = true;
     public $assignToDefaultSite = false;
 
-    private $processedNodes = [];
 
     // Public Methods
     // =========================================================================
@@ -62,6 +61,8 @@ class NaveePlugin extends Migration
                         ->where(['navigationId' => $NaveeNav['id'], 'siteId' => $site['id']])
                         ->all();
 
+                    $processedNodes = [];
+
                     foreach ($NaveeNodes as $key => $NaveeNode) {
                         try {
                             $node = new Node();
@@ -102,10 +103,11 @@ class NaveePlugin extends Migration
                             }
 
                             if (Craft::$app->getElements()->saveElement($node, true, $this->propagate)) {
-                                
+                                echo "    > Migrated node `{$NaveeNode['id']}` ...\n";
 
+                                $processedNodes[$NaveeNode['id']] = $node->id;
                             } else {
-                                echo "    > ERROR: Unable to save node `{$NaveeNode['title']}` ...\n";
+                                echo "    > ERROR: Unable to save node `{$NaveeNode['id']}` ...\n";
 
                                 Craft::dump($node->getErrors());
                             }
@@ -115,7 +117,46 @@ class NaveePlugin extends Migration
                             Craft::dump($e->getMessage());
 
                             continue;
-                        } 
+                        }
+                    }
+
+                    // Now the nodes are in, setup any hierarchy
+                    foreach ($processedNodes as $oldNodeId => $newNodeId) {
+                        // Get Structure information for the old node
+                        $structureElement = (new Query())
+                            ->select(['*'])
+                            ->from(['{{%structureelements}} structureelements'])
+                            ->where(['structureelements.elementId' => $oldNodeId])
+                            ->one();
+
+                        if ($structureElement) {
+                            $level = $structureElement['level'] ?? null;
+
+                            if ((int)$level > 1) {
+                                // Find the parent structure
+                                $parentStructureElement = (new Query())
+                                    ->select(['*'])
+                                    ->from(['{{%structureelements}} structureelements'])
+                                    ->where(['structureelements.lft' => $structureElement['lft'] - 1, 'structureelements.rgt' => $structureElement['rgt'] + 1])
+                                    ->one();
+
+                                if ($parentStructureElement) {
+                                    // Get the new node for the already processed parent
+                                    $parentNodeId = $processedNodes[$parentStructureElement['elementId']] ?? null;
+
+                                    if ($parentNodeId) {
+                                        $node = Navigation::$plugin->nodes->getNodeById($newNodeId);
+                                        $node->newParentId = $parentNodeId;
+
+                                        if (!Craft::$app->getElements()->saveElement($node, true, $this->propagate)) {
+                                            echo "    > ERROR: Unable to re-save node `{$node['title']}` ...\n";
+
+                                            Craft::dump($node->getErrors());
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
