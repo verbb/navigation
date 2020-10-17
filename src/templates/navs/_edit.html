@@ -6,17 +6,17 @@
     { label: 'Navigations' | t('navigation'), url: url('navigation/navs') },
 ] %}
 
-{% set tabs = {
-    0: { label: 'Settings' | t('app'), url: '#settings' },
-    1: { label: 'Node Fields' | t('navigation'), url: '#node-fields' },
-} %}
+{% set tabs = [
+    { label: 'Settings' | t('app'), url: '#settings' },
+    { label: 'Node Fields' | t('navigation'), url: '#node-fields' },
+] %}
 
 {% set fullPageForm = true %}
 
 {% set isNewNav = (nav is not defined or not nav.id) %}
 
 {% if isNewNav %}
-    {% set title = "Create a new navigation" | t('navigation') %}
+    {% set title = 'Create a new navigation' | t('navigation') %}
 {% else %}
     {% set title = nav.name %}
 {% endif %}
@@ -30,7 +30,7 @@
         {{ forms.textField({
             first: true,
             label: 'Name' | t('app'),
-            instructions: 'Name of this navigation in the CP.' | t('navigation'),
+            instructions: 'Name of this navigation in the control panel.' | t('navigation'),
             id: 'name',
             name: 'name',
             value: (nav is defined ? nav.name : null),
@@ -41,7 +41,7 @@
 
         {{ forms.textField({
             label: 'Handle' | t('app'),
-            instructions: 'Name of this navigation in the templates.' | t('navigation'),
+            instructions: 'How you’ll refer to this navigation in the templates.' | t('navigation'),
             id: 'handle',
             name: 'handle',
             class: 'code',
@@ -52,7 +52,7 @@
 
         {{ forms.textareaField({
             label: 'Instructions' | t('app'),
-            instructions: 'Helper text to guide the author.' | t('app'),
+            instructions: 'Helper text to guide the author. Shown at the top of the page when editing a navigation.' | t('app'),
             id: 'instructions',
             class: 'nicetext',
             name: 'instructions',
@@ -62,7 +62,7 @@
 
         {{ forms.textField({
             label: 'Max Levels' | t('app'),
-            instructions: 'The maximum number of levels this navigation can have. Leave blank if you don’t care.' | t('navigation'),
+            instructions: 'The maximum number of levels this navigation can have. Leave blank for no limit.' | t('navigation'),
             id: 'maxLevels',
             name: 'maxLevels',
             size: 5,
@@ -80,7 +80,7 @@
 
         {{ forms.textField({
             label: 'Max Nodes' | t('app'),
-            instructions: 'The maximum number of nodes this navigation can have. Leave blank if you don’t care.' | t('navigation'),
+            instructions: 'The maximum number of nodes this navigation can have. Leave blank for no limit.' | t('navigation'),
             id: 'maxNodes',
             name: 'maxNodes',
             size: 5,

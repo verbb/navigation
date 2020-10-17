@@ -36,7 +36,7 @@ return [
     'Create a new navigation' => 'Új menü létrehozása',
     'Name of this navigation in the CP.' => 'A menü neve az admin felületen.',
     'Name of this navigation in the templates.' => 'A menü neve a sablonokban.',
-    'The maximum number of levels this navigation can have. Leave blank if you don’t care.' => 'Szintek maximális száma a menüben. Hagyd üresen, ha mindegy.',
+    'The maximum number of levels this navigation can have. Leave blank for no limit.' => 'Szintek maximális száma a menüben. Hagyd üresen, ha mindegy.',
 
     // vendor/verbb/navigation/src/templates/navs/_editor.html:5
     'The title for this navigation item.' => 'A menüpont címe.',
