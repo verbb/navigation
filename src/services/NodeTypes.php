@@ -4,6 +4,7 @@ namespace verbb\navigation\services;
 use verbb\navigation\Navigation;
 use verbb\navigation\base\NodeTypeInterface;
 use verbb\navigation\events\RegisterNodeTypeEvent;
+use verbb\navigation\nodetypes\PassiveType;
 use verbb\navigation\nodetypes\SiteType;
 
 use Craft;
@@ -30,7 +31,9 @@ class NodeTypes extends Component
 
     public function getRegisteredNodeTypes()
     {
-        $nodeTypes = [];
+        $nodeTypes = [
+            PassiveType::class,
+        ];
 
         if (Craft::$app->getIsMultiSite()) {
             $nodeTypes[] = SiteType::class;
