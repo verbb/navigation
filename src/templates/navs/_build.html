@@ -16,11 +16,13 @@
 
         <div class="menu">
             <ul>
-                <li><a class="formsubmit" data-action="navigation/nodes/clear" data-param="navId" data-value="{{ nav.id }}" data-confirm="{{ 'Are you sure you want to remove all nodes? This cannot be undone.' | t('navigation') }}" data-redirect="{{ ('navigation/navs/build/' ~ nav.id) | hash }}">{{ 'Clear Nodes' | t('navigation') }}</a></li>
-
                 {% if editable and currentUser.can('navigation-editNav:' ~ nav.uid) %}
                     <li><a href="{{ cpUrl('navigation/navs/edit/' ~ nav.id) }}">{{ 'Settings' | t('navigation') }}</a></li>
+
+                    <hr>
                 {% endif %}
+
+                <li><a class="formsubmit error" data-action="navigation/nodes/clear" data-param="navId" data-value="{{ nav.id }}" data-confirm="{{ 'Are you sure you want to remove all nodes? This cannot be undone.' | t('navigation') }}" data-redirect="{{ ('navigation/navs/build/' ~ nav.id) | hash }}">{{ 'Clear Nodes' | t('navigation') }}</a></li>
             </ul>
         </div>
     </div>
