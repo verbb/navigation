@@ -1,0 +1,85 @@
+{% import '_includes/forms' as forms %}
+
+{% set nodeType = node.nodeType() %}
+
+{% if nodeType.hasTitle() %}
+    {{ forms.textField({
+        label: 'Title' | t('navigation'),
+        instructions: 'The title for this navigation item.' | t('navigation'),
+        id: 'title',
+        name: 'title',
+        value: node.title,
+        translatable: craft.app.getIsMultiSite() ? true : false,
+    }) }}
+{% endif %}
+
+{% if nodeType.getModalHtml() %}
+    {{ nodeType.getModalHtml() | raw }}
+{% elseif nodeType.hasUrl() %}
+    {{ forms.textField({
+        label: 'URL' | t('navigation'),
+        instructions: 'The URL for this navigation item.' | t('navigation'),
+        id: 'url',
+        name: 'url',
+        value: node.getRawUrl(),
+    }) }}
+{% endif %}
+
+{{ forms.lightswitchField({
+    label: 'Enabled' | t('navigation'),
+    instructions: 'Show or hide in navigation.' | t('navigation'),
+    id: 'enabled',
+    name: 'enabled',
+    on: node.enabled,
+}) }}
+
+{% if craft.app.getIsMultiSite() %}
+    {{ forms.lightswitchField({
+        label: "Enabled for site" | t('app'),
+        instructions: 'Whether this node should be hidden on just this site.' | t('navigation'),
+        id: 'enabledForSite',
+        name: 'enabledForSite',
+        on: node.enabledForSite,
+    }) }}
+{% endif %}
+
+{% if nodeType.hasNewWindow() %}
+    {{ forms.lightswitchField({
+        label: 'Open in new window' | t('navigation'),
+        instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
+        id: 'newWindow',
+        name: 'newWindow',
+        on: node.newWindow,
+    }) }}
+{% endif %}
+
+{% if nodeType.hasClasses() %}
+    {{ forms.textField({
+        label: 'Classes' | t('navigation'),
+        instructions: "Additional CSS classes for this navigation item." | t('navigation'),
+        id: 'classes',
+        name: 'classes',
+        value: node.classes,
+    }) }}
+{% endif %}
+
+{% if nodeType.hasAttributes() %}
+    {{ forms.editableTableField({
+        label: 'Attributes' | t('navigation'),
+        instructions: "Additional attributes for this node." | t('navigation'),
+        id: 'customAttributes',
+        name: 'customAttributes',
+        cols: {
+            attribute: {
+                type: 'singleline',
+                heading: 'Attribute' | t('navigation'),
+            },
+            value: {
+                type: 'singleline',
+                heading: 'Value' | t('navigation'),
+                code: true,
+            },
+        },
+        rows: node.customAttributes ?? [],
+    }) }}
+{% endif %}

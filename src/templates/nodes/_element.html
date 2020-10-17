@@ -1,0 +1,98 @@
+{% import '_includes/forms' as forms %}
+
+{% set element = node.getElement() %}
+
+{{ forms.textField({
+    label: 'Title' | t('navigation'),
+    instructions: 'The title for this navigation item.' | t('navigation'),
+    id: 'title',
+    name: 'title',
+    value: node.title,
+    translatable: craft.app.getIsMultiSite() ? true : false,
+}) }}
+
+{{ forms.hidden({
+    id: 'url',
+    name: 'url',
+    value: element.uri ?? elementUri ?? '',
+}) }}
+
+{{ forms.hidden({
+    id: 'elementSiteId',
+    name: 'elementSiteId',
+    value: element.siteId ?? elementSiteId ?? '',
+}) }}
+
+{{ forms.elementSelectField({
+    label: 'Linked to {element}' | t('navigation', { element: displayName(node.type) }),
+    instruction: 'The element this node is linked to.' | t('navigation'),
+    id: 'elementId',
+    name: 'elementId',
+    elements: [element],
+    elementType: node.type,
+    sources: '*',
+    showSiteMenu: true,
+    limit: 1,
+    modalStorageKey: 'navigation.elementId',
+}) }}
+
+{{ forms.textField({
+    label: 'URL Suffix' | t('navigation'),
+    instructions: "Additional content appended to the element's URL." | t('navigation'),
+    id: 'urlSuffix',
+    name: 'urlSuffix',
+    value: node.urlSuffix,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Enabled' | t('navigation'),
+    instructions: 'Show or hide in navigation.' | t('navigation'),
+    id: 'enabled',
+    name: 'enabled',
+    on: node.enabled,
+}) }}
+
+{% if craft.app.getIsMultiSite() %}
+    {{ forms.lightswitchField({
+        label: "Enabled for site" | t('app'),
+        instructions: 'Whether this node should be hidden on just this site.' | t('navigation'),
+        id: 'enabledForSite',
+        name: 'enabledForSite',
+        on: node.enabledForSite,
+    }) }}
+{% endif %}
+
+{{ forms.lightswitchField({
+    label: 'Open in new window' | t('navigation'),
+    instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
+    id: 'newWindow',
+    name: 'newWindow',
+    on: node.newWindow,
+}) }}
+
+{{ forms.textField({
+    label: 'Classes' | t('navigation'),
+    instructions: "Additional CSS classes for this navigation item." | t('navigation'),
+    id: 'classes',
+    name: 'classes',
+    value: node.classes,
+}) }}
+
+{{ forms.editableTableField({
+    label: 'Attributes' | t('navigation'),
+    instructions: "Additional attributes for this node." | t('navigation'),
+    id: 'customAttributes',
+    name: 'customAttributes',
+    cols: {
+        attribute: {
+            type: 'singleline',
+            heading: 'Attribute' | t('navigation'),
+        },
+        value: {
+            type: 'singleline',
+            heading: 'Value' | t('navigation'),
+            code: true,
+        },
+    },
+    rows: node.customAttributes ?? [],
+}) }}

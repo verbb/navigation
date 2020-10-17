@@ -104,7 +104,7 @@ class NodesController extends Controller
 
         $view = Craft::$app->getView();
 
-        $html = $view->renderTemplate('navigation/navs/_editor', ['node' => $node]);
+        $html = $view->renderTemplate('navigation/nodes/_modal', ['node' => $node]);
 
         return $this->asJson([
             'success' => true,
@@ -132,7 +132,7 @@ class NodesController extends Controller
 
         $view = Craft::$app->getView();
 
-        $html = $view->renderTemplate('navigation/navs/_editor', ['node' => $node]);
+        $html = $view->renderTemplate('navigation/nodes/_modal', ['node' => $node]);
 
         return $this->asJson([
             'success' => true,

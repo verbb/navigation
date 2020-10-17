@@ -1,0 +1,57 @@
+{% import '_includes/forms' as forms %}
+
+{% set elements = craft.navigation.getRegisteredElements() %}
+{% set nodeTypes = craft.navigation.getRegisteredNodeTypes() %}
+
+{% set options = [] %}
+
+{% for element in elements %}
+    {% set options = options | merge([{
+        label: displayName(element.type),
+        value: element.type,
+    }]) %}
+{% endfor %}
+
+{% for nodeType in nodeTypes %}
+    {% set options = options | merge([{
+        label: nodeType.displayName,
+        value: className(nodeType),
+    }]) %}
+{% endfor %}
+
+{% set options = options | merge([{
+    label: 'Custom URL' | t('navigation'),
+    value: '',
+}]) %}
+
+{{ forms.selectField({
+    label: 'Type' | t('navigation'),
+    instructions: 'The type of node this is.' | t('navigation'),
+    id: 'type',
+    name: 'type',
+    value: node.type,
+    options: options,
+}) }}
+
+{% if node.isElement() %}
+    {% include 'navigation/nodes/_element' %}
+{% elseif node.nodeType() %}
+    {% include 'navigation/nodes/_node-type' %}
+{% else %}
+    {% include 'navigation/nodes/_custom' %}
+{% endif %}
+
+{% set tabs = node.nav.getFieldLayout().getTabs() %}
+
+{% if tabs %}
+    <hr>
+
+    {% for tab in tabs %}
+        <div id="tab{{ loop.index }}">
+            {% include '_includes/fields' with {
+                fields: tab.getFields(),
+                element: node,
+            } only %}
+        </div>
+    {% endfor %}
+{% endif %}

@@ -1,0 +1,71 @@
+{% import '_includes/forms' as forms %}
+
+{{ forms.textField({
+    label: 'Title' | t('navigation'),
+    instructions: 'The title for this navigation item.' | t('navigation'),
+    id: 'title',
+    name: 'title',
+    value: node.title,
+    translatable: craft.app.getIsMultiSite() ? true : false,
+}) }}
+
+{{ forms.textField({
+    label: 'URL' | t('navigation'),
+    instructions: 'The URL for this navigation item.' | t('navigation'),
+    id: 'url',
+    name: 'url',
+    value: node.getRawUrl(),
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Enabled' | t('navigation'),
+    instructions: 'Show or hide in navigation.' | t('navigation'),
+    id: 'enabled',
+    name: 'enabled',
+    on: node.enabled,
+}) }}
+
+{% if craft.app.getIsMultiSite() %}
+    {{ forms.lightswitchField({
+        label: "Enabled for site" | t('app'),
+        instructions: 'Whether this node should be hidden on just this site.' | t('navigation'),
+        id: 'enabledForSite',
+        name: 'enabledForSite',
+        on: node.enabledForSite,
+    }) }}
+{% endif %}
+
+{{ forms.lightswitchField({
+    label: 'Open in new window' | t('navigation'),
+    instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
+    id: 'newWindow',
+    name: 'newWindow',
+    on: node.newWindow,
+}) }}
+
+{{ forms.textField({
+    label: 'Classes' | t('navigation'),
+    instructions: "Additional CSS classes for this navigation item." | t('navigation'),
+    id: 'classes',
+    name: 'classes',
+    value: node.classes,
+}) }}
+
+{{ forms.editableTableField({
+    label: 'Attributes' | t('navigation'),
+    instructions: "Additional attributes for this node." | t('navigation'),
+    id: 'customAttributes',
+    name: 'customAttributes',
+    cols: {
+        attribute: {
+            type: 'singleline',
+            heading: 'Attribute' | t('navigation'),
+        },
+        value: {
+            type: 'singleline',
+            heading: 'Value' | t('navigation'),
+            code: true,
+        },
+    },
+    rows: node.customAttributes ?? [],
+}) }}
