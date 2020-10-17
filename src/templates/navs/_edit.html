@@ -97,7 +97,7 @@
                 {% set siteRows = siteRows | merge({
                     (site.uid): {
                         heading: site.name | t('site') | e,
-                        enabled: nav.siteSettings[site.uid].enabled ?? false,
+                        enabled: isNewNav or (nav.siteSettings[site.uid].enabled ?? false),
                     } | filter
                 }) %}
             {% endfor %}
