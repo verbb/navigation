@@ -53,7 +53,7 @@
                     {% set attributes = attributes | merge({
                         'data-element-type': tab.type,
                     }) %}
-                {% elseif tab.category == 'category' %}
+                {% elseif tab.category == 'nodeType' %}
                     {% set attributes = attributes | merge({
                         'data-node-type': tab.type,
                     }) %}
