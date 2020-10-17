@@ -72,14 +72,6 @@
             errors: (nav is defined ? nav.getErrors('maxLevels') : null),
         }) }}
 
-        {{ forms.lightswitchField({
-            label: 'Propagate nodes across all enabled sites?' | t('navigation'),
-            instructions: 'Whether nodes in this navigation should be propagated across all the sites the available is enabled in. If this is disabled, each node will only belong to the site it was created in.' | t('navigation'),
-            id: 'propagateNodes',
-            name: 'propagateNodes',
-            on: nav.propagateNodes,
-        }) }}
-
         {{ forms.textField({
             label: 'Max Nodes' | t('app'),
             instructions: 'The maximum number of nodes this navigation can have. Leave blank for no limit.' | t('navigation'),
@@ -89,6 +81,49 @@
             value: (nav is defined ? nav.maxNodes : null),
             errors: (nav is defined ? nav.getErrors('maxNodes') : null),
         }) }}
+
+        {% if craft.app.getIsMultiSite() %}
+            {{ forms.lightswitchField({
+                label: 'Propagate nodes across all enabled sites?' | t('navigation'),
+                instructions: 'Whether nodes in this navigation should be propagated across all the sites the available is enabled in. If this is disabled, each node will only belong to the site it was created in.' | t('navigation'),
+                id: 'propagateNodes',
+                name: 'propagateNodes',
+                on: nav.propagateNodes,
+            }) }}
+
+            {% set siteRows = [] %}
+
+            {% for site in craft.app.sites.getAllSites() %}
+                {% set siteRows = siteRows | merge({
+                    (site.uid): {
+                        heading: site.name | t('site') | e,
+                        enabled: nav.siteSettings[site.uid].enabled ?? false,
+                    } | filter
+                }) %}
+            {% endfor %}
+
+            {{ forms.editableTableField({
+                label: 'Site Settings' | t('app'),
+                instructions: 'Choose which sites this navigation should be available in.' | t('navigation'),
+                id: 'siteSettings',
+                name: 'siteSettings',
+                cols: {
+                    heading: {
+                        type: 'heading',
+                        heading: 'Site' | t('app'),
+                        thin: true,
+                    },
+                    enabled: {
+                        type: 'lightswitch',
+                        heading: 'Enabled' | t('app'),
+                        thin: true,
+                    },
+                } | filter,
+                rows: siteRows,
+                fullWidth: false,
+                staticRows: true,
+            }) }}
+        {% endif %}
     </div>
 
     <div id="node-fields" class="hidden">

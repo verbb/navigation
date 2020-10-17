@@ -24,6 +24,7 @@ class Nav extends Model
     public $maxNodes;
     public $maxLevels;
     public $permissions = [];
+    public $siteSettings = [];
     public $structureId;
     public $fieldLayoutId;
     public $uid;
@@ -71,6 +72,26 @@ class Nav extends Model
                 'idAttribute' => 'fieldLayoutId'
             ]
         ];
+    }
+
+    public function getEditableSites(): array
+    {
+        $sites = [];
+
+        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            if (Craft::$app->getIsMultiSite()) {
+                $enabled = $this->siteSettings[$site->uid]['enabled'] ?? false;
+
+                // Backward compatibility, enabled if no settings yet
+                if ($enabled || $this->siteSettings === null) {
+                    $sites[] = $site;
+                }
+            } else {
+                $sites[] = $site;
+            }
+        }
+
+        return $sites;
     }
 
 }

@@ -144,6 +144,7 @@ class Navs extends Component
             'propagateNodes' => (bool)$nav->propagateNodes,
             'maxNodes' => $nav->maxNodes,
             'permissions' => $nav->permissions,
+            'siteSettings' => $nav->siteSettings,
             'sortOrder' => $nav->sortOrder,
         ];
 
@@ -205,6 +206,7 @@ class Navs extends Component
             $navRecord->propagateNodes = $data['propagateNodes'];
             $navRecord->maxNodes = $data['maxNodes'] ?? '';
             $navRecord->permissions = $data['permissions'] ?? [];
+            $navRecord->siteSettings = $data['siteSettings'] ?? [];
             $navRecord->sortOrder = $data['sortOrder'];
             $navRecord->uid = $navUid;
 
@@ -460,6 +462,7 @@ class Navs extends Component
             'propagateNodes',
             'maxNodes',
             'permissions',
+            'siteSettings',
             'uid',
         ]));
 
@@ -468,6 +471,7 @@ class Navs extends Component
         }
 
         $nav->permissions = Json::decodeIfJson($nav->permissions);
+        $nav->siteSettings = Json::decodeIfJson($nav->siteSettings);
 
         return $nav;
     }

@@ -700,17 +700,6 @@
 		"sC": 0,
 		"tS": 0
 		},
-	"/src/resources/src/js/navigation.js": {
-		"bF": 0,
-		"ft": 64,
-		"ma": 1,
-		"mi": 1,
-		"oA": 0,
-		"oAP": "/src/resources/dist/js/navigation.js",
-		"oF": 0,
-		"sC": 0,
-		"tS": 0
-		},
 	"/src/resources/src/scss/_font-awesome.scss": {
 		"aP": 1,
 		"bl": 0,

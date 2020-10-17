@@ -134,6 +134,21 @@ class NavsController extends Controller
         $nav->maxNodes = $request->getBodyParam('maxNodes');
         $nav->permissions = $request->getBodyParam('permissions');
 
+        $allSiteSettings = [];
+
+        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            $postedSettings = $request->getBodyParam('siteSettings.' . $site->uid);
+
+            // Skip disabled sites if this is a multi-site install
+            if (Craft::$app->getIsMultiSite() && empty($postedSettings['enabled'])) {
+                continue;
+            }
+
+            $allSiteSettings[$site->uid] = $postedSettings;
+        }
+
+        $nav->siteSettings = $allSiteSettings;
+
         // Set the nav field layout
         $fieldLayout = Craft::$app->getFields()->assembleLayoutFromPost();
         $fieldLayout->type = NodeElement::class;

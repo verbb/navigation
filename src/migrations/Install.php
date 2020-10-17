@@ -63,6 +63,7 @@ class Install extends Migration
             'propagateNodes' => $this->boolean()->defaultValue(false),
             'maxNodes' => $this->integer(),
             'permissions' => $this->text(),
+            'siteSettings' => $this->text(),
             'fieldLayoutId' => $this->integer(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),

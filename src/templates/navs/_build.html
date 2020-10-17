@@ -27,9 +27,9 @@
 {% endblock %}
 
 {% block contextMenu %}
-    {% set sites = craft.app.sites.getEditableSites() %}
+    {% set sites = nav.getEditableSites() %}
 
-    {% if sites | length %}
+    {% if sites | length > 1 %}
         <div id="revision-btn" class="btn menubtn nav-site-menubtn" data-icon="world">{{ site.name }}</div>
 
         <div class="menu">
