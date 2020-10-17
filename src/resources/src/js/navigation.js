@@ -90,21 +90,22 @@ Craft.Navigation = Garnish.Base.extend({
 
     showModal: function(e) {
         this.elementType = $(e.currentTarget).data('element-type');
+        this.sources = $(e.currentTarget).data('sources');
 
         if (!this.elementModals[this.elementType]) {
-            this.elementModals[this.elementType] = this.createModal(this.elementType);
+            this.elementModals[this.elementType] = this.createModal();
         } else {
             this.elementModals[this.elementType].show();
         }
     },
 
-    createModal: function(elementType) {
-        return Craft.createElementSelectorModal(elementType, {
+    createModal: function() {
+        return Craft.createElementSelectorModal(this.elementType, {
             criteria: {
                 enabledForSite: null,
                 // siteId: this.siteId,
             },
-            sources: '*',
+            sources: this.sources,
             multiSelect: true,
             onSelect: $.proxy(this, 'onModalSelect'),
         });

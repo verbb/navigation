@@ -62,6 +62,7 @@ class Install extends Migration
             'sortOrder' => $this->smallInteger()->unsigned(),
             'propagateNodes' => $this->boolean()->defaultValue(false),
             'maxNodes' => $this->integer(),
+            'permissions' => $this->text(),
             'fieldLayoutId' => $this->integer(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),

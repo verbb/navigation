@@ -1,5 +1,6 @@
 {% extends 'navigation/_layouts' %}
 {% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
 
 {% set crumbs = [
     { label: craft.navigation.getPluginName(), url: url('navigation') },
@@ -9,6 +10,7 @@
 {% set tabs = [
     { label: 'Settings' | t('app'), url: '#settings' },
     { label: 'Node Fields' | t('navigation'), url: '#node-fields' },
+    { label: 'Permissions' | t('navigation'), url: '#permissions' },
 ] %}
 
 {% set fullPageForm = true %}
@@ -94,6 +96,73 @@
             fieldLayout: nav.getNavFieldLayout(),
         } only %}
     </div>
+
+    <div id="permissions" class="hidden">
+        <h2>{{ 'Permissions' | t('navigation') }}</h2>
+        <p>{{ 'Select which node types can be added when building your navigation.' | t('navigation') }}</p>
+
+        {% namespace 'permissions' %}
+            {% for element in craft.navigation.getRegisteredElements() %}
+                {% set elementOptions = [] %}
+
+                {% for source in element.sources %}
+                    {% if source.key is defined %}
+                        {% set elementOptions = [{ value: source.key, label: source.label | e }] | merge(elementOptions) %}
+                    {% endif %}
+                {% endfor %}
+
+                {{ forms.lightswitchField({
+                    label: 'Show {name}' | t('navigation', { name: element.label }),
+                    instructions: 'Whether to allow {name} to be added.' | t('navigation', { name: element.label }),
+                    name: element.type ~ '[enabled]',
+                    on: nav.permissions[element.type].enabled ?? true,
+                    toggle: 'settings-' ~ element.label | kebab,
+                }) }}
+
+                <div id="settings-{{ element.label | kebab }}">
+                    {{ forms.checkboxSelectField({
+                        label: element.label | t('navigation'),
+                        instructions: 'Select which element groups should be allowed to pick elements from.' | t('navigation'),
+                        name: element.type ~ '[permissions]',
+                        options: elementOptions,
+                        values: nav.permissions[element.type].permissions ?? '*',
+                        showAllOption: true,
+                    }) }}
+                </div>
+
+                {% if not loop.last %}
+                    <hr>
+                {% endif %}
+            {% endfor %}
+
+            {% for nodeType in craft.navigation.getRegisteredNodeTypes() %}
+                {% if loop.first %}
+                    <hr>
+                {% endif %}
+
+                {{ forms.lightswitchField({
+                    label: 'Show {name}' | t('navigation', { name: nodeType.displayName() }),
+                    instructions: 'Whether to allow {name} nodes to be added.' | t('navigation', { name: nodeType.displayName() }),
+                    name: className(nodeType) ~ '[enabled]',
+                    on: nav.permissions[className(nodeType)].enabled ?? true,
+                }) }}
+
+                {% if not loop.last %}
+                    <hr>
+                {% endif %}
+            {% endfor %}
+
+            <hr>
+
+            {{ forms.lightswitchField({
+                label: 'Show {name}' | t('navigation', { name: 'Custom URL' }),
+                instructions: 'Whether to allow {name} nodes to be added.' | t('navigation', { name: 'Custom URL' }),
+                name: 'custom' ~ '[enabled]',
+                on: nav.permissions['custom'].enabled ?? true,
+            }) }}
+        {% endnamespace %}
+    </div>
+
 {% endblock %}
 
 {% if nav is not defined or not nav.handle %}

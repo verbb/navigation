@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Add “Clear Nodes” button when editing navigations.
+- Add Permissions to navigations, allowing specific sections/groups/volumes/etc to be enabled to add elements from.
+- Add Enable/Disable for each node type for navigations. Allows easier customising of available nodes to add from.
+- Add Feed Me support. Navigation nodes can now be imported using Feed Me.
+
+### Changed
+- Removed `disabledElements` config setting. This is now managed at the plugin level.
+
+### Fixed
+- Fix active node checking when special characters are in URLs.
+- Navee migration is now complete, handling migrating nested nodes.
+
 ## 1.3.31 - 2020-09-29
 
 ### Added

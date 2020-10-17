@@ -8,7 +8,6 @@ Create an `navigation.php` file under your `/config` directory with the followin
 return [
     '*' => [
         'pluginName' => 'Navigation',
-        'disabledElements' => [],
         'bypassProjectConfig' => false,
         'propagateSiteElements' => true,
     ]
@@ -18,7 +17,6 @@ return [
 ### Configuration options
 
 - `pluginName` - Optionally change the name of the plugin.
-- `disabledElements` - An array of elements to disable, so they cannot be added to navs. Available options are `assets`, `entries`, `categories`, `custom`.
 - `bypassProjectConfig` - Prevents navigations from being saved to Project Config. Be sure you know what you're doing with this!
 - `propagateSiteElements` - With propagation set to true for a navigation, auto-select the site-specific equivalient of a node for each site's navigation. Set this to `false` to ensure nodes of the chosen site are the same across all your multi-site menus.
 

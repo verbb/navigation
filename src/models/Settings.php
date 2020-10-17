@@ -9,8 +9,10 @@ class Settings extends Model
     // =========================================================================
 
     public $pluginName = 'Navigation';
-    public $disabledElements = [];
     public $bypassProjectConfig = false;
     public $propagateSiteElements = true;
+
+    // TODO: remove at next breakpoint
+    public $disabledElements = [];
 
 }

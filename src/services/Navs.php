@@ -16,6 +16,7 @@ use craft\db\Table;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\models\Structure;
 
@@ -142,6 +143,7 @@ class Navs extends Component
             'instructions' => $nav->instructions,
             'propagateNodes' => (bool)$nav->propagateNodes,
             'maxNodes' => $nav->maxNodes,
+            'permissions' => $nav->permissions,
             'sortOrder' => $nav->sortOrder,
         ];
 
@@ -202,6 +204,7 @@ class Navs extends Component
             $navRecord->instructions = $data['instructions'];
             $navRecord->propagateNodes = $data['propagateNodes'];
             $navRecord->maxNodes = $data['maxNodes'] ?? '';
+            $navRecord->permissions = $data['permissions'] ?? [];
             $navRecord->sortOrder = $data['sortOrder'];
             $navRecord->uid = $navUid;
 
@@ -387,6 +390,55 @@ class Navs extends Component
         }
     }
 
+    public function getBuilderTabs($nav)
+    {
+        $tabs = [];
+
+        $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements();
+        $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
+        
+        foreach ($registeredElements as $key => $registeredElement) {
+            $enabled = $nav->permissions[$registeredElement['type']]['enabled'] ?? true;
+            $permissions = $nav->permissions[$registeredElement['type']]['permissions'] ?? '*';
+
+            if ((bool)$enabled) {
+                $registeredElement['category'] = 'element';
+                $registeredElement['sources'] = $permissions;
+
+                $tabs[$key] = $registeredElement;
+            }
+        }
+
+        foreach ($registeredNodeTypes as $nodeType) {
+            $enabled = $nav->permissions[get_class($nodeType)]['enabled'] ?? true;
+
+            if ((bool)$enabled) {
+                $key = StringHelper::toKebabCase($nodeType->displayName());
+
+                $tabs[$key] = [
+                    'label' => $nodeType->displayName(),
+                    'button' => Craft::t('navigation', 'Add {name}', ['name' => $nodeType->displayName()]),
+                    'type' => get_class($nodeType),
+                    'category' => 'nodeType',
+                    'nodeType' => $nodeType,
+                ];
+            }
+        }
+
+        $enabled = $nav->permissions['custom']['enabled'] ?? true;
+
+        if ((bool)$enabled) {
+            $tabs['custom'] = [
+                'label' => Craft::t('navigation', 'Custom URL'),
+                'button' => Craft::t('navigation', 'Add Custom URL'),
+                'type' => 'custom',
+                'category' => 'custom',
+            ];
+        }
+
+        return $tabs;
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -407,12 +459,15 @@ class Navs extends Component
             'sortOrder',
             'propagateNodes',
             'maxNodes',
+            'permissions',
             'uid',
         ]));
 
         if ($record->structure) {
             $nav->maxLevels = $record->structure->maxLevels;
         }
+
+        $nav->permissions = Json::decodeIfJson($nav->permissions);
 
         return $nav;
     }

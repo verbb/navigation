@@ -589,6 +589,22 @@
 		"oAP": "/src/gql/resolvers/NodeResolver.php",
 		"oF": 0
 		},
+	"/src/gql/types/CustomAttributeType.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/gql/types/CustomAttributeType.php",
+		"oF": 0
+		},
+	"/src/gql/types/generators/CustomAttributeGenerator.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/gql/types/generators/CustomAttributeGenerator.php",
+		"oF": 0
+		},
 	"/src/gql/types/generators/NodeGenerator.php": {
 		"cB": 0,
 		"ft": 8192,
@@ -624,6 +640,14 @@
 		"opt": 0,
 		"plM": 3758088159,
 		"prP": 0
+		},
+	"/src/integrations/NodeFeedMeElement.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/integrations/NodeFeedMeElement.php",
+		"oF": 0
 		},
 	"/src/migrations": {
 		"ft": 65536,

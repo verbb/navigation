@@ -37,16 +37,19 @@ class Elements extends Component
                 'label' => Craft::t('navigation', 'Entries'),
                 'button' => Craft::t('navigation', 'Add an entry'),
                 'type' => Entry::class,
+                'sources' => Craft::$app->getElementIndexes()->getSources(Entry::class, 'modal'),
             ],
             'categories' => [
                 'label' => Craft::t('navigation', 'Categories'),
                 'button' => Craft::t('navigation', 'Add a category'),
                 'type' => Category::class,
+                'sources' => Craft::$app->getElementIndexes()->getSources(Category::class, 'modal'),
             ],
             'assets' => [
                 'label' => Craft::t('navigation', 'Assets'),
                 'button' => Craft::t('navigation', 'Add an asset'),
                 'type' => Asset::class,
+                'sources' => Craft::$app->getElementIndexes()->getSources(Asset::class, 'modal'),
             ],
         ];
 
@@ -55,17 +58,12 @@ class Elements extends Component
                 'label' => Craft::t('navigation', 'Products'),
                 'button' => Craft::t('navigation', 'Add a product'),
                 'type' => Product::class,
+                'sources' => Craft::$app->getElementIndexes()->getSources(Product::class, 'modal'),
             ];
         }
 
         // Remove any defined in our config
         $settings = Navigation::$plugin->getSettings();
-
-        foreach ($settings->disabledElements as $disabledElement) {
-            if (isset($elements[$disabledElement])) {
-                unset($elements[$disabledElement]);
-            }
-        }
 
         $event = new RegisterElementEvent([
             'elements' => $elements,

@@ -23,6 +23,7 @@ class Nav extends Model
     public $propagateNodes = false;
     public $maxNodes;
     public $maxLevels;
+    public $permissions = [];
     public $structureId;
     public $fieldLayoutId;
     public $uid;

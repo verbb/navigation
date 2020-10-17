@@ -99,5 +99,10 @@ class NavigationVariable
     {
         return Navigation::$plugin->getNavs()->getAllNavs();
     }
+    
+    public function getBuilderTabs($nav)
+    {
+        return Navigation::$plugin->getNavs()->getBuilderTabs($nav);
+    }
 
 }
