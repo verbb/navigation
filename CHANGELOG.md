@@ -1,12 +1,17 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 - 2020-10-18
 
 ### Added
+- Significantly improved performance when adding multiple nodes at once.
+- Add passive node type. Perfect for headings, dividers or other UI-related nodes that don't have a URL.
 - Add “Clear Nodes” button when editing navigations.
+- Add “Settings” button when editing navigations.
 - Add Permissions to navigations, allowing specific sections/groups/volumes/etc to be enabled to add elements from.
 - Add Enable/Disable for each node type for navigations. Allows easier customising of available nodes to add from.
 - Add Feed Me support. Navigation nodes can now be imported using Feed Me.
+- Add site settings to navigations, to control which sites can have the navigation enabled for.
+- Add `hasAttributes` function to node types.
 
 ### Changed
 - Removed `disabledElements` config setting. This is now managed at the plugin level.
@@ -14,6 +19,8 @@
 ### Fixed
 - Fix active node checking when special characters are in URLs.
 - Navee migration is now complete, handling migrating nested nodes.
+- Fix modal node editor not respecting node type settings for field options available to edit.
+- Fix adding multiple nodes at once often being added out of order.
 
 ## 1.3.31 - 2020-09-29
 
