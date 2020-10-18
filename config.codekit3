@@ -669,6 +669,14 @@
 		"oAP": "/src/Navigation.php",
 		"oF": 0
 		},
+	"/src/nodetypes/PassiveType.php": {
+		"cB": 0,
+		"ft": 8192,
+		"hM": 0,
+		"oA": 2,
+		"oAP": "/src/nodetypes/PassiveType.php",
+		"oF": 0
+		},
 	"/src/nodetypes/SiteType.php": {
 		"cB": 0,
 		"ft": 8192,
@@ -696,6 +704,17 @@
 		"mi": 1,
 		"oA": 1,
 		"oAP": "/src/resources/dist/js/_jquery.serializejson.min.js",
+		"oF": 0,
+		"sC": 0,
+		"tS": 0
+		},
+	"/src/resources/src/js/navigation.js": {
+		"bF": 0,
+		"ft": 64,
+		"ma": 1,
+		"mi": 1,
+		"oA": 0,
+		"oAP": "/src/resources/dist/js/navigation.js",
 		"oF": 0,
 		"sC": 0,
 		"tS": 0

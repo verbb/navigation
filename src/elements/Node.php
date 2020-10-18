@@ -135,6 +135,10 @@ class Node extends Element
         if (!empty($this->data)) {
             $this->data = Json::decode($this->data);
         }
+
+        if (!$this->typeLabel) {
+            $this->typeLabel = $this->getNodeTypeLabel();
+        }
     }
 
     public function getElement()

@@ -96,6 +96,9 @@ Craft.Navigation = Garnish.Base.extend({
             this.elementModals[this.elementType] = this.createModal();
         } else {
             this.elementModals[this.elementType].show();
+
+            // De-select any previously selected items
+            this.elementModals[this.elementType].elementIndex.view.deselectAllElements();
         }
     },
 
@@ -116,13 +119,15 @@ Craft.Navigation = Garnish.Base.extend({
         var parentId = $optionsContainer.find('.js-parent-node select').val();
         var newWindow = $optionsContainer.find('[name="newWindow"]  input').val();
 
+        var data = [];
+
         for (var i = 0; i < elements.length; i++) {
             var element = elements[i];
 
             // Unselect element in modal
             this.elementModals[this.elementType].$body.find('tr[data-id="' + element.id + '"]').removeClass('sel');
 
-            var data = {
+            data.push({
                 navId: this.nav.id,
                 siteId: this.siteId,
                 elementId: element.id,
@@ -132,10 +137,10 @@ Craft.Navigation = Garnish.Base.extend({
                 type: this.elementType,
                 newWindow: newWindow,
                 parentId: parentId,
-            };
-
-            this.saveNode(data);
+            });
         }
+
+        this.saveNode(data);
     },
 
     onManualSubmit: function(e) {
@@ -144,14 +149,14 @@ Craft.Navigation = Garnish.Base.extend({
         var parentId = this.$manualForm.find('.js-parent-node select').val();
         var newWindow = this.$manualForm.find('[name="newWindow"]  input').val();
 
-        var data = {
+        var data = [{
             navId: this.nav.id,
             siteId: this.siteId,
             title: this.$manualForm.find('[name="title"]').val(),
             url: this.$manualForm.find('[name="url"]').val(),
             newWindow: newWindow,
             parentId: parentId,
-        };
+        }];
 
         this.saveNode(data);
     },
@@ -167,7 +172,7 @@ Craft.Navigation = Garnish.Base.extend({
         var $typeForm = $nodeTypeForm.find('.node-type-data select, .node-type-data textarea, .node-type-data input');
         var typeData = $typeForm.serializeJSON();
 
-        var data = {
+        var data = [{
             navId: this.nav.id,
             siteId: this.siteId,
             title: $nodeTypeForm.find('[name="title"]').val(),
@@ -176,7 +181,7 @@ Craft.Navigation = Garnish.Base.extend({
             parentId: parentId,
             type: type,
             data: typeData.data,
-        };
+        }];
 
         this.saveNode(data);
     },
@@ -231,7 +236,9 @@ Craft.Navigation = Garnish.Base.extend({
         this.$manualLoader.removeClass('hidden');
         this.$addElementLoader.removeClass('hidden');
 
-        Craft.postActionRequest('navigation/nodes/save-node', data, $.proxy(function(response, textStatus) {
+        data = { nodes: data };
+
+        Craft.postActionRequest('navigation/nodes/add-nodes', data, $.proxy(function(response, textStatus) {
             this.$nodeTypeLoader.addClass('hidden');
             this.$manualLoader.addClass('hidden');
             this.$addElementLoader.addClass('hidden');
@@ -240,10 +247,14 @@ Craft.Navigation = Garnish.Base.extend({
                 this.$manualForm.find('[name="title"]').val('');
                 this.$manualForm.find('[name="url"]').val('');
 
-                var id = response.node.id;
-                var $structureElement = this.addNode(response.node, response.level);
+                for (var i = 0; i < response.nodes.length; i++) {
+                    var node = response.nodes[i];
 
-                this.structureElements[id] = new Craft.Navigation.StructureElement(this, $structureElement);
+                    var id = node.id;
+                    var $structureElement = this.addNode(node, response.level);
+
+                    this.structureElements[id] = new Craft.Navigation.StructureElement(this, $structureElement);
+                }
 
                 this.$emptyContainer.addClass('hidden');
 
