@@ -368,21 +368,15 @@ class Node extends Element
 
     public function getNodeTypeLabel()
     {
-        if ($this->getElement()) {
-            $displayName = StringHelper::toLowerCase($this->getElement()->displayName());
-
-            return $displayName;
-        }
-
         if ($this->isManual()) {
             return Craft::t('navigation', 'manual');
-        }
-
-        if ($this->nodeType()) {
+        } else if ($this->nodeType()) {
             return StringHelper::toLowerCase($this->nodeType()->displayName());
-        }
+        } else {
+            $classNameParts = explode('\\', $this->type);
 
-        return '';
+            return StringHelper::toLowerCase(array_pop($classNameParts));
+        }
     }
 
     public function isElement()
