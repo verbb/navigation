@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1 - 2020-10-20
+
+### Fixed
+- Fix unnecessary additional queries for nodes.
+
 ## 1.4.0 - 2020-10-18
 
 ### Added
