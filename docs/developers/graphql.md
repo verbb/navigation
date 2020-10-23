@@ -11,6 +11,10 @@ Navigation supports accessing nodes via GraphQL. Be sure to read about [Craft's 
     nodes (navHandle: "mainMenu") {
         title
         url
+        children {
+            title
+            url
+        }
     }
 }
 ```
@@ -23,7 +27,13 @@ Navigation supports accessing nodes via GraphQL. Be sure to read about [Craft's 
         "nodes": [
             {
                 "title": "About",
-                "url": "http://craft.test/about"
+                "url": "http://craft.test/about",
+                "children": [
+                    {
+                        "title": "Who We Are",
+                        "url": "http://craft.test/about/who-we-are"
+                    }
+                ]
             }
         ]
     }
