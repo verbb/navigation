@@ -117,7 +117,7 @@ Craft.Navigation = Garnish.Base.extend({
     onModalSelect: function(elements) {
         var $optionsContainer = $('.tab-list-item[data-element-type="' + this.elementType.replace(/\\/ig, '\\\\') + '"]');
         var parentId = $optionsContainer.find('.js-parent-node select').val();
-        var newWindow = $optionsContainer.find('[name="newWindow"]  input').val();
+        var newWindow = $optionsContainer.find('input[name="newWindow"]').val();
 
         var data = [];
 
@@ -147,7 +147,7 @@ Craft.Navigation = Garnish.Base.extend({
         e.preventDefault();
 
         var parentId = this.$manualForm.find('.js-parent-node select').val();
-        var newWindow = this.$manualForm.find('[name="newWindow"]  input').val();
+        var newWindow = this.$manualForm.find('input[name="newWindow"]').val();
 
         var data = [{
             navId: this.nav.id,
@@ -167,7 +167,7 @@ Craft.Navigation = Garnish.Base.extend({
         var $nodeTypeForm = $(e.target);
 
         var parentId = $nodeTypeForm.find('.js-parent-node select').val();
-        var newWindow = $nodeTypeForm.find('[name="newWindow"] input').val();
+        var newWindow = $nodeTypeForm.find('input[name="newWindow"]').val();
         var type = $nodeTypeForm.parents('[data-node-type]').data('node-type');
         var $typeForm = $nodeTypeForm.find('.node-type-data select, .node-type-data textarea, .node-type-data input');
         var typeData = $typeForm.serializeJSON();
