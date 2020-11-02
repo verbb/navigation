@@ -581,6 +581,19 @@ class Node extends Element
         return $nav ? $nav->getNavFieldLayout() : null;
     }
 
+    public function getCustomAttributesObject()
+    {
+        $object = [];
+
+        if (is_array($this->customAttributes)) {
+            foreach ($this->customAttributes as $attribute) {
+                $object[$attribute['attribute']] = $attribute['value'];
+            }
+        }
+
+        return $object;
+    }
+
 
     // Private Methods
     // =========================================================================

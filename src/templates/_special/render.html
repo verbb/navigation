@@ -1,24 +1,42 @@
 {% spaceless %}
 
-{% set ulAttributes = options.ulAttributes ?? [] %}
-{% set ulClass = options.ulClass ?? '' %}
+{% set ulAttributes = options.ulAttributes ?? {} %}
+{% set ulClass = options.ulClass is defined ? [options.ulClass] : [] %}
+{% set ulAttributes = ulAttributes | merge({ class: ulClass }) %}
 
-{% set liAttributes = options.liAttributes ?? [] %}
-{% set liClass = options.liClass ?? '' %}
+{% set liAttributes = options.liAttributes ?? {} %}
+{% set liClass = options.liClass is defined ? [options.liClass] : [] %}
+{% set liAttributes = liAttributes | merge({ class: liClass }) %}
 
-{% set aAttributes = options.aAttributes ?? [] %}
-{% set aClass = options.aClass ?? '' %}
+{% set aAttributes = options.aAttributes ?? {} %}
+{% set aClass = options.aClass is defined ? [options.aClass] : [] %}
+{% set aAttributes = aAttributes | merge({ class: aClass }) %}
+
 {% set activeClass = options.activeClass ?? 'active' %}
 
-<ul class="{{ ulClass }}" {% for attr, val in ulAttributes %}{{ attr }}="{{ val }}"{% endfor %}>
+<ul {{ attr(ulAttributes) }}>
     {% nav node in nodes %}
-        <li class="{% if node.classes | length %}{{ node.classes }}{% endif %} {{ liClass }}" {% for attr, val in liAttributes %}{{ attr }}="{{ val }}"{% endfor %}>
-            <a {% if node.url %}href="{{ node.url }}"{% endif %} class="{% if node.active %}{{ activeClass }}{% endif %} {{ aClass }}"{% if node.newWindow %} target="_blank" rel="noopener"{% endif %} {% for attr, val in aAttributes %}{{ attr }}="{{ val }}"{% endfor %} {% for attribute in node.customAttributes %}{{ attribute.attribute }}="{{ attribute.value }}"{% endfor %}>
+        {% set liClasses = liAttributes.class | merge([node.classes]) | filter %}
+        {% set liNodeAttributes = liAttributes | merge({ class: liClasses }) %}
+
+        {% set aNodeAttributes = aAttributes | merge({
+            href: node.url ?? false,
+            target: node.newWindow ? '_blank' : false,
+            rel: node.newWindow ? 'noopener' : false,
+        }) | merge(node.getCustomAttributesObject()) %}
+
+        {% if node.active %}
+            {% set aClasses = aNodeAttributes.class | merge([activeClass]) | filter %}
+            {% set aNodeAttributes = aNodeAttributes | merge({ class: aClasses }) %}
+        {% endif %}
+
+        <li {{ attr(liNodeAttributes) }}>
+            <a {{ attr(aNodeAttributes) }}>
                 {{- node.title -}}
             </a>
 
             {% ifchildren %}
-                <ul class="{{ ulClass }}">
+                <ul {{ attr(ulAttributes) }}>
                     {% children %}
                 </ul>
             {% endifchildren %}
