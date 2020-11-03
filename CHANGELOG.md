@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.2 - 2020-10-20
+
+### Added
+- Add support for all registered elements, including third-party ones that support `hasUris`. Element support can be managed in the navigation settings.
+- Add URL for element nodes when hovering over the node type.
+- Add URL for element nodes in node edit modal.
+
+### Changed
+- Refactor render template to use Twig `attr` function for cleaner templates.
+
+### Fixed
+- Fix unnecessary empty attributes being outputted when using `craft.navigation.render()`.
+
 ## 1.4.1 - 2020-10-20
 
 ### Fixed
