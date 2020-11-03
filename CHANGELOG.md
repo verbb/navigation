@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.4.2 - 2020-10-20
+## 1.4.2 - 2020-11-03
 
 ### Added
 - Add support for all registered elements, including third-party ones that support `hasUris`. Element support can be managed in the navigation settings.
