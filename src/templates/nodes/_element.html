@@ -25,7 +25,7 @@
 
 {{ forms.elementSelectField({
     label: 'Linked to {element}' | t('navigation', { element: displayName(node.type) }),
-    instruction: 'The element this node is linked to.' | t('navigation'),
+    instructions: 'The element this node is linked to.' | t('navigation'),
     id: 'elementId',
     name: 'elementId',
     elements: [element],
@@ -35,6 +35,10 @@
     limit: 1,
     modalStorageKey: 'navigation.elementId',
 }) }}
+
+{% if element %}
+    <a style="margin-top: -17px; margin-bottom: 24px; display: block;" href="{{ element.url }}" target="_blank">{{ element.url }}</a>
+{% endif %}
 
 {{ forms.textField({
     label: 'URL Suffix' | t('navigation'),
