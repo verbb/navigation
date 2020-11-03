@@ -150,7 +150,7 @@
                     label: 'Show {name}' | t('navigation', { name: element.label }),
                     instructions: 'Whether to allow {name} to be added.' | t('navigation', { name: element.label }),
                     name: element.type ~ '[enabled]',
-                    on: nav.permissions[element.type].enabled ?? true,
+                    on: nav.permissions[element.type].enabled ?? element.default ?? false,
                     toggle: 'settings-' ~ element.label | kebab,
                 }) }}
 

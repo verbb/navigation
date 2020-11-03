@@ -400,7 +400,7 @@ class Navs extends Component
         $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
         
         foreach ($registeredElements as $key => $registeredElement) {
-            $enabled = $nav->permissions[$registeredElement['type']]['enabled'] ?? true;
+            $enabled = $nav->permissions[$registeredElement['type']]['enabled'] ?? $registeredElement['default'] ?? false;
             $permissions = $nav->permissions[$registeredElement['type']]['permissions'] ?? '*';
 
             if ((bool)$enabled) {
