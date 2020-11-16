@@ -30,12 +30,15 @@
 {% set canReorder = currentUser.can('navigation-createNavs') ? true : false %}
 
 {% for navigation in navigations %}
+    {% set canDelete = currentUser.can('navigation-deleteNav:' ~ navigation.uid) ? true : false %}
+
     {% set tableData = tableData | merge([{
         id: navigation.id,
         title: navigation.name | t('site'),
         url: url('navigation/navs/build/' ~ navigation.id),
         name: navigation.name | t('site') | e,
         handle: navigation.handle,
+        _showDelete: canDelete,
         settings: {
             label: 'Edit Settings' | t('app') | e,
             url: currentUser.can('navigation-editNav:' ~ navigation.uid) ? url('navigation/navs/edit/' ~ navigation.id),
