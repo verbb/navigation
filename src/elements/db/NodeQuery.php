@@ -33,6 +33,7 @@ class NodeQuery extends ElementQuery
 
     public $element;
     public $handle;
+    public $hasUrl;
 
 
     // Public Methods
@@ -83,6 +84,7 @@ class NodeQuery extends ElementQuery
         } else {
             $this->navId = null;
         }
+
         return $this;
     }
 
@@ -101,6 +103,12 @@ class NodeQuery extends ElementQuery
     public function handle($value)
     {
         $this->handle = $value;
+        return $this;
+    }
+
+    public function hasUrl(bool $value = false)
+    {
+        $this->hasUrl = $value;
         return $this;
     }
 
@@ -211,6 +219,10 @@ class NodeQuery extends ElementQuery
 
         if ($this->handle) {
             $this->subQuery->andWhere(Db::parseParam('navigation_navs.handle', $this->handle));
+        }
+
+        if ($this->hasUrl) {
+            $this->subQuery->andWhere(['or', ['not', ['navigation_nodes.elementId' => null, 'navigation_nodes.elementId' => '']], ['not', ['navigation_nodes.url' => null, 'navigation_nodes.url' => '']]]);
         }
 
         return parent::beforePrepare();

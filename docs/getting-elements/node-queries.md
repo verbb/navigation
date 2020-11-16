@@ -356,6 +356,28 @@ $nodes = \verbb\navigation\elements\Node::find()
 
 
 
+## `hasUrl`
+
+Narrows the query results based on whether the nodes have a URL.
+
+::: code
+```twig
+{# Fetch nodes that have descendants #}
+{% set nodes = craft.navigation.nodes()
+    .hasUrl()
+    .all() %}
+```
+
+```php
+// Fetch nodes that have descendants
+$nodes = \verbb\navigation\elements\Node::find()
+    ->hasUrl()
+    ->all();
+```
+:::
+
+
+
 ### `id`
 
 Narrows the query results based on the nodes’ IDs.
