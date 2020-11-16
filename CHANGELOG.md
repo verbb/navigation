@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.3 - 2020-11-16
+
+### Added
+- Add `hasUrl()` node query param.
+
+### Fixed
+- Fix element permissions for navigations not working correctly for non-english users.
+- Allow navigation instructions to include line-breaks.
+
 ## 1.4.2 - 2020-11-03
 
 ### Added
