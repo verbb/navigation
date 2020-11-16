@@ -27,6 +27,8 @@
 {% set tableData = [] %}
 {% set editableNavs = 0 %}
 
+{% set canReorder = currentUser.can('navigation-createNavs') ? true : false %}
+
 {% for navigation in navigations %}
     {% set tableData = tableData | merge([{
         id: navigation.id,
@@ -68,7 +70,7 @@
         container: '#navigations-vue-admin-table',
         deleteAction: '{{ editable ? 'navigation/navs/delete-nav' : '' }}',
         emptyMessage: Craft.t('navigation', 'No navigations exist yet.'),
-        reorderAction: '{{ navigations | length > 1 and editable ? 'navigation/navs/reorder-nav' : '' }}',
+        reorderAction: '{{ navigations | length > 1 and canReorder ? 'navigation/navs/reorder-nav' : '' }}',
         tableData: {{ tableData | json_encode | raw }},
     });
 
