@@ -2,6 +2,7 @@
 namespace verbb\navigation\controllers;
 
 use Craft;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\Controller;
 
@@ -9,6 +10,7 @@ use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node as NodeElement;
 use verbb\navigation\models\Nav as NavModel;
 
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 class NavsController extends Controller
@@ -66,19 +68,6 @@ class NavsController extends Controller
         $settings = Navigation::$plugin->getSettings();
         $defaultSite = false;
 
-        if ($siteHandle === null) {
-            $editableSites = Craft::$app->getSites()->getEditableSites();
-
-            $defaultSite = true;
-            $siteHandle = $editableSites[0]->handle;
-        }
-
-        $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-
-        if (!$site) {
-            throw new NotFoundHttpException('Invalid site handle: ' . $siteHandle);
-        }
-
         if ($navId !== null) {
             $nav = Navigation::$plugin->navs->getNavById($navId);
 
@@ -87,6 +76,22 @@ class NavsController extends Controller
             }
         } else {
             $nav = new NavModel();
+        }
+
+        // Get all the enabled sites for the nav
+        $editableSites = $nav->getEditableSites();
+
+        // If not requesting a specific site, just get the first one
+        if ($siteHandle === null) {
+            $defaultSite = true;
+            $siteHandle = $editableSites[0]->handle;
+        }
+
+        // Ensure this is an enabled site, otherwise throw an error
+        $site = ArrayHelper::firstWhere($editableSites, 'handle', $siteHandle);
+
+        if (!$site) {
+            throw new NotFoundHttpException('Navigation not enabled for site: ' . $siteHandle);
         }
 
         $this->requirePermission('navigation-manageNav:' . $nav->uid);
