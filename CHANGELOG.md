@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.4 - 2020-11-29
+
+### Changed
+- Node field layout designer no longer allows tabs of fields.
+
+### Fixed
+- Fix error when accessing navigation nodes for a navigation that was not enabled.
+- Fix list of editable navigations not being correct, when editing a navigation. This could cause loading the incorrect (un-editable) nav in some instances.
+- Fix node custom fields not showing overrides (label, instructions) as defined in the field layout designer.
+
 ## 1.4.3 - 2020-11-16
 
 ### Added
