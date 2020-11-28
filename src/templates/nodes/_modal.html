@@ -41,17 +41,10 @@
     {% include 'navigation/nodes/_custom' %}
 {% endif %}
 
-{% set tabs = node.nav.getFieldLayout().getTabs() %}
+{% set form = node.getFieldLayout().createForm(node) %}
 
-{% if tabs %}
+{% if form.render() %}
     <hr>
 
-    {% for tab in tabs %}
-        <div id="tab{{ loop.index }}">
-            {% include '_includes/fields' with {
-                fields: tab.getFields(),
-                element: node,
-            } only %}
-        </div>
-    {% endfor %}
+    {{ form.render() | raw }}
 {% endif %}
