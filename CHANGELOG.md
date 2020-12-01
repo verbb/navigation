@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.5 - 2020-12-02
+
+### Fixed
+- Fix potential issue with Feed Me throwing errors when not installed or found.
+- Fix node type dropdown in node edit modal not showing the correct enabled node types.
+
 ## 1.4.4 - 2020-11-29
 
 ### Changed
