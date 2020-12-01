@@ -210,10 +210,7 @@ class Navigation extends Plugin
 
     private function _registerFeedMeSupport()
     {
-        $isInstalled = Craft::$app->getPlugins()->isPluginInstalled('feed-me') && Craft::$app->getPlugins()->isPluginEnabled('feed-me');
-        $classExists = class_exists(FeedMeElements::class);
-
-        if ($isInstalled && $classExists) {
+        if (class_exists(FeedMeElements::class)) {
             Event::on(FeedMeElements::class, FeedMeElements::EVENT_REGISTER_FEED_ME_ELEMENTS, function(RegisterFeedMeElementsEvent $e) {
                 $e->elements[] = NodeFeedMeElement::class;
             });
