@@ -5,24 +5,12 @@
 
 {% set options = [] %}
 
-{% for element in elements %}
+{% for tabId, tab in craft.navigation.getBuilderTabs(node.nav) %}
     {% set options = options | merge([{
-        label: displayName(element.type),
-        value: element.type,
+        label: tab.label,
+        value: tab.type,
     }]) %}
 {% endfor %}
-
-{% for nodeType in nodeTypes %}
-    {% set options = options | merge([{
-        label: nodeType.displayName,
-        value: className(nodeType),
-    }]) %}
-{% endfor %}
-
-{% set options = options | merge([{
-    label: 'Custom URL' | t('navigation'),
-    value: '',
-}]) %}
 
 {{ forms.selectField({
     label: 'Type' | t('navigation'),
