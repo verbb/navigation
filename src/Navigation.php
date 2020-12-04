@@ -16,6 +16,7 @@ use Craft;
 use craft\base\Plugin;
 use craft\events\ConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterGqlPermissionsEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -205,6 +206,27 @@ class Navigation extends Plugin
             foreach ($queries as $key => $value) {
                 $event->queries[$key] = $value;
             }
+        });
+
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_PERMISSIONS, function(RegisterGqlPermissionsEvent $event) {
+            $permissions = [];
+
+            $navs = Navigation::$plugin->getNavs()->getAllNavs();
+
+            if (!empty($navs)) {
+                $label = Craft::t('navigation', 'Navigation');
+                $navPermissions = [];
+
+                foreach ($navs as $nav) {
+                    $suffix = 'navigationNavs.' . $nav->uid;
+                    
+                    $navPermissions[$suffix . ':read'] = ['label' => Craft::t('navigation', 'View navigation - {nav}', ['nav' => Craft::t('site', $nav->name)])];
+                }
+
+                $permissions[$label] = $navPermissions;
+            }
+
+            $event->permissions = array_merge($event->permissions, $permissions);
         });
     }
 

@@ -6,6 +6,7 @@ use verbb\navigation\elements\Node;
 use verbb\navigation\gql\arguments\NodeArguments;
 use verbb\navigation\gql\interfaces\NodeInterface;
 use verbb\navigation\gql\types\NodeType;
+use verbb\navigation\helpers\Gql as NavigationGqlHelper;
 
 use Craft;
 use craft\gql\base\GeneratorInterface;
@@ -26,6 +27,11 @@ class NodeGenerator implements GeneratorInterface
 
         foreach ($navs as $nav) {
             $typeName = Node::gqlTypeNameByContext($nav);
+            $requiredContexts = Node::gqlScopesByContext($nav);
+
+            if (!NavigationGqlHelper::isSchemaAwareOf($requiredContexts)) {
+                continue;
+            }
 
             $contentFields = $nav->getFields();
             $contentFieldGqlTypes = [];

@@ -2,8 +2,10 @@
 namespace verbb\navigation\gql\resolvers;
 
 use verbb\navigation\elements\Node;
+use verbb\navigation\helpers\Gql as GqlHelper;
 
 use craft\gql\base\ElementResolver;
+use craft\helpers\Db;
 
 use GraphQL\Type\Definition\ResolveInfo;
 
@@ -27,6 +29,14 @@ class NodeResolver extends ElementResolver
         foreach ($arguments as $key => $value) {
             $query->$key($value);
         }
+
+        $pairs = GqlHelper::extractAllowedEntitiesFromSchema('read');
+
+        if (!GqlHelper::canQueryNavigation()) {
+            return [];
+        }
+
+        $query->andWhere(['in', 'navId', array_values(Db::idsByUids('{{%navigation_navs}}', $pairs['navigation']))]);
 
         return $query;
     }

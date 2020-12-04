@@ -89,7 +89,7 @@ class Node extends Element
 
     public static function gqlScopesByContext($context): array
     {
-        return ['navs.' . $context->uid];
+        return ['navigationNavs.' . $context->uid];
     }
 
 

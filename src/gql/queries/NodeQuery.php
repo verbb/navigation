@@ -4,6 +4,7 @@ namespace verbb\navigation\gql\queries;
 use verbb\navigation\gql\arguments\NodeArguments;
 use verbb\navigation\gql\interfaces\NodeInterface;
 use verbb\navigation\gql\resolvers\NodeResolver;
+use verbb\navigation\helpers\Gql as GqlHelper;
 
 use craft\gql\base\Query;
 
@@ -16,6 +17,10 @@ class NodeQuery extends Query
 
     public static function getQueries($checkToken = true): array
     {
+        if ($checkToken && !GqlHelper::canQueryNavigation()) {
+            return [];
+        }
+        
         return [
             'nodes' => [
                 'type' => Type::listOf(NodeInterface::getType()),
