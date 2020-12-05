@@ -16,8 +16,8 @@ use Craft;
 use craft\base\Plugin;
 use craft\events\ConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
-use craft\events\RegisterGqlPermissionsEvent;
 use craft\events\RegisterGqlQueriesEvent;
+use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
@@ -208,25 +208,21 @@ class Navigation extends Plugin
             }
         });
 
-        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_PERMISSIONS, function(RegisterGqlPermissionsEvent $event) {
-            $permissions = [];
-
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function(RegisterGqlSchemaComponentsEvent $event) {
             $navs = Navigation::$plugin->getNavs()->getAllNavs();
 
             if (!empty($navs)) {
                 $label = Craft::t('navigation', 'Navigation');
-                $navPermissions = [];
+                $event->queries[$label]['navigationNavs.all:read'] = ['label' => Craft::t('navigation', 'View all navigations')];
 
                 foreach ($navs as $nav) {
                     $suffix = 'navigationNavs.' . $nav->uid;
-                    
-                    $navPermissions[$suffix . ':read'] = ['label' => Craft::t('navigation', 'View navigation - {nav}', ['nav' => Craft::t('site', $nav->name)])];
+
+                    $event->queries[$label][$suffix . ':read'] = [
+                        'label' => Craft::t('navigation', 'View navigation - {nav}', ['nav' => Craft::t('site', $nav->name)]),
+                    ];
                 }
-
-                $permissions[$label] = $navPermissions;
             }
-
-            $event->permissions = array_merge($event->permissions, $permissions);
         });
     }
 

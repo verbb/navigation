@@ -36,7 +36,9 @@ class NodeResolver extends ElementResolver
             return [];
         }
 
-        $query->andWhere(['in', 'navId', array_values(Db::idsByUids('{{%navigation_navs}}', $pairs['navigation']))]);
+        if (!GqlHelper::canSchema('navigationNavs.all')) {
+            $query->andWhere(['in', 'navId', array_values(Db::idsByUids('{{%navigation_navs}}', $pairs['navigationNavs']))]);
+        }
 
         return $query;
     }
