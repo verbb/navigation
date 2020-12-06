@@ -422,7 +422,7 @@ class Node extends Element
             return [$this->siteId];
         }
 
-        return Craft::$app->getSites()->getAllSiteIds();
+        return $nav->getEditableSiteIds();
     }
 
     public function getGqlTypeName(): string

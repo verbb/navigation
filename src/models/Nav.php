@@ -7,6 +7,7 @@ use verbb\navigation\records\Nav as NavRecord;
 
 use Craft;
 use craft\base\Model;
+use craft\helpers\ArrayHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 
@@ -92,6 +93,11 @@ class Nav extends Model
         }
 
         return $sites;
+    }
+
+    public function getEditableSiteIds(): array
+    {
+        return ArrayHelper::getColumn($this->getEditableSites(), 'id');
     }
 
 }
