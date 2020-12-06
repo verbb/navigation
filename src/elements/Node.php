@@ -366,6 +366,15 @@ class Node extends Element
         return null;
     }
 
+    public function getNodeType()
+    {
+        if (!$this->type) {
+            return 'custom';
+        }
+
+        return $this->type;
+    }
+
     public function getNodeTypeLabel()
     {
         if ($this->isManual()) {
