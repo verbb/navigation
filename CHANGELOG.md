@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fix node type not persisting to a custom URL when editing a node.
+- Fix nodes propagating to all user-enabled sites, instead of the site a navigation is enabled for.
 
 ## 1.4.5 - 2020-12-02
 
