@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.6 - 2020-12-07
+
+### Changed
+- Navigation node queries via GraphQL are now no longer automatically included in the public schema.
+
+### Fixed
+- Fix node type not persisting to a custom URL when editing a node.
+
 ## 1.4.5 - 2020-12-02
 
 ### Fixed
