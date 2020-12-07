@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.7 - 2020-12-07
+
+### Fixed
+- Fix node type not persisting to a custom URL when editing a node (again).
+
 ## 1.4.6 - 2020-12-07
 
 ### Changed

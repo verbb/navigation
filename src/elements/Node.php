@@ -480,6 +480,11 @@ class Node extends Element
             $this->slug = $this->elementSiteId = $this->getElementSiteId();
         }
 
+        // 'custom' is the same as '', but we'll change to the former one day
+        if ($this->type === 'custom') {
+            $this->type = '';
+        }
+
         return parent::beforeSave($isNew);
     }
 
