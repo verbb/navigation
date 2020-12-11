@@ -200,6 +200,9 @@ class Navs extends Component
             $navRecord = $this->_getNavRecord($navUid, true);
             $isNewNav = $navRecord->getIsNewRecord();
 
+            // Save for later
+            $oldRecord = clone $navRecord;
+
             $navRecord->name = $data['name'];
             $navRecord->handle = $data['handle'];
             $navRecord->instructions = $data['instructions'];
@@ -263,6 +266,29 @@ class Navs extends Component
                 ->all();
 
             Craft::$app->getElements()->restoreElements($nodes);
+        }
+
+        // Have we changed the propagation method?
+        if ($oldRecord->propagateNodes !== $navRecord->propagateNodes) {
+            // If we've turned off propagating, we need to propagate nodes
+            // For turning on, that's a little more complicated...
+            $turnOffPropagation = $navRecord->propagateNodes === 0;
+            
+            if ($turnOffPropagation) {
+                $oldPrimarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
+                $nav = $this->getNavById($navRecord->id);
+
+                $nodes = Node::find()->navId($navRecord->id)->siteId('*')->all();
+
+                foreach ($nodes as $key => $node) {
+                    // We're creating brand-new, un-linked elements here
+                    $node->id = null;
+
+                    Craft::$app->getElements()->saveElement($node, false, false);
+                }
+            } else {
+                // Do nothing for now, until we figure out the best way to handle it...
+            }
         }
 
         // Fire an 'afterSaveNav' event
