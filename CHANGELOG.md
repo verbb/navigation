@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.8 - 2020-12-11
+
+### Fixed
+- Fix `EVENT_REGISTER_GQL_SCHEMA_COMPONENTS` error when running Navigation on Craft 3.4.x sites.
+- Fix showing sites where a user might not have permission to access.
+- Fix when setting a navigation to not propagate nodes, existing nodes should be created for new sites.
+
 ## 1.4.7 - 2020-12-07
 
 ### Fixed
