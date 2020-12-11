@@ -5,7 +5,7 @@
     value: '',
 }] %}
 
-{% for site in craft.app.sites.getAllSites() %}
+{% for site in craft.app.sites.getEditableSites() %}
     {% if site.hasUrls %}
         {% set sites = sites | merge([{ label: site.name, value: site.id }]) %}
     {% endif %}

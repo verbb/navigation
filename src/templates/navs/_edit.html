@@ -93,7 +93,7 @@
 
             {% set siteRows = [] %}
 
-            {% for site in craft.app.sites.getAllSites() %}
+            {% for site in craft.app.sites.getEditableSites() %}
                 {% set siteRows = siteRows | merge({
                     (site.uid): {
                         heading: site.name | t('site') | e,

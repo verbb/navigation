@@ -79,7 +79,7 @@ class Nav extends Model
     {
         $sites = [];
 
-        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+        foreach (Craft::$app->getSites()->getEditableSites() as $site) {
             if (Craft::$app->getIsMultiSite()) {
                 $enabled = $this->siteSettings[$site->uid]['enabled'] ?? false;
 
