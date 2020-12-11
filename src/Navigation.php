@@ -208,22 +208,24 @@ class Navigation extends Plugin
             }
         });
 
-        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function(RegisterGqlSchemaComponentsEvent $event) {
-            $navs = Navigation::$plugin->getNavs()->getAllNavs();
+        if (version_compare(Craft::$app->getInfo()->version, '3.5.0', '>=')) {
+            Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function(RegisterGqlSchemaComponentsEvent $event) {
+                $navs = Navigation::$plugin->getNavs()->getAllNavs();
 
-            if (!empty($navs)) {
-                $label = Craft::t('navigation', 'Navigation');
-                $event->queries[$label]['navigationNavs.all:read'] = ['label' => Craft::t('navigation', 'View all navigations')];
+                if (!empty($navs)) {
+                    $label = Craft::t('navigation', 'Navigation');
+                    $event->queries[$label]['navigationNavs.all:read'] = ['label' => Craft::t('navigation', 'View all navigations')];
 
-                foreach ($navs as $nav) {
-                    $suffix = 'navigationNavs.' . $nav->uid;
+                    foreach ($navs as $nav) {
+                        $suffix = 'navigationNavs.' . $nav->uid;
 
-                    $event->queries[$label][$suffix . ':read'] = [
-                        'label' => Craft::t('navigation', 'View navigation - {nav}', ['nav' => Craft::t('site', $nav->name)]),
-                    ];
+                        $event->queries[$label][$suffix . ':read'] = [
+                            'label' => Craft::t('navigation', 'View navigation - {nav}', ['nav' => Craft::t('site', $nav->name)]),
+                        ];
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     private function _registerFeedMeSupport()
