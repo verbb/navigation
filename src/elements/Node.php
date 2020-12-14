@@ -419,10 +419,19 @@ class Node extends Element
         $nav = $this->getNav();
 
         if (!$nav->propagateNodes) {
-            return [$this->siteId];
+            $siteIds = [$this->siteId];
+        } else {
+            $siteIds = $nav->getEditableSiteIds();
         }
 
-        return $nav->getEditableSiteIds();
+        $siteIds = array_filter($siteIds);
+
+        // Just an extra check in case there are no sites, for whatever reason
+        if ($siteIds) {
+            $siteIds = Craft::$app->getSites()->getAllSiteIds();
+        }
+
+        return $siteIds
     }
 
     public function getGqlTypeName(): string
