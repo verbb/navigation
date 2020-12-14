@@ -84,7 +84,7 @@ class NavsController extends Controller
         // If not requesting a specific site, just get the first one
         if ($siteHandle === null) {
             $defaultSite = true;
-            $siteHandle = $editableSites[0]->handle;
+            $siteHandle = $editableSites[0]->handle ?? '';
         }
 
         // Ensure this is an enabled site, otherwise throw an error
