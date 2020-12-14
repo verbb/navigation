@@ -431,7 +431,7 @@ class Node extends Element
             $siteIds = Craft::$app->getSites()->getAllSiteIds();
         }
 
-        return $siteIds
+        return $siteIds;
     }
 
     public function getGqlTypeName(): string
