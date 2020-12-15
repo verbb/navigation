@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.9 - 2020-12-15
+
+### Added
+- Add `node.isSite()` and `node.isPassive()`.
+
+### Fixed
+- Fix a potential error during migration, where a “All elements must have at least one site associated with them” warning might appear.
+- Fix an error when trying to edit a navigation with no enabled sites.
+
 ## 1.4.8 - 2020-12-11
 
 ### Fixed
