@@ -14,7 +14,9 @@ Attribute | Description
 `nodeUri` | URI for this node. Either the linked element or custom.
 `title` | Title for this node. Either the linked element or custom.
 `link` | Full HTML link (combined url and title).
-`type` | The element type. If custom, will be `null`.
+`type` | The class name for the type of node. If custom, will be `null`.
+`nodeType` | The class name for the type of node.
+`nodeTypeLabel` | The shortened class name for the type of node.
 `classes` | Any additional CSS classes added to the node.
 `customAttributes` | A list of attributes as provided in the table. Use `attribute` and `value` for each row.
 `urlSuffix` | If provided, a suffix (think anchor or query string) added on to the URL.
@@ -26,6 +28,9 @@ Attribute | Description
 `status` | The current status of the node.
 `children ` | A collection of child nodes (if any).
 `level ` | The level this node resides in, if using nested nodes.
+`isElement ` | Whether the node is an "Element" node type (it links to an Entry, Category, etc).
+`isPassive ` | Whether the node is a "Passive" node type.
+`isSite ` | Whether the node is a "Site" node type.
 
 ### `customAttributes`
 As attributes are stored in a table for the node, you'll need to loop through them to output them. Each row has an `attribute` and `value` property, as defined in the table field for the node. These correspond with the column names.

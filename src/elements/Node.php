@@ -6,6 +6,8 @@ use verbb\navigation\Navigation;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\events\NodeActiveEvent;
 use verbb\navigation\models\Nav as NavModel;
+use verbb\navigation\nodetypes\PassiveType;
+use verbb\navigation\nodetypes\SiteType;
 use verbb\navigation\records\Nav as NavRecord;
 use verbb\navigation\records\Node as NodeRecord;
 
@@ -399,6 +401,16 @@ class Node extends Element
         }
 
         return false;
+    }
+
+    public function isPassive()
+    {
+        return $this->type === PassiveType::class;
+    }
+
+    public function isSite()
+    {
+        return $this->type === SiteType::class;
     }
 
     public function hasOverriddenTitle()
