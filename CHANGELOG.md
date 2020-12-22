@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.10 - 2020-12-22
+
+### Fixed
+- Fix `getSupportedSites()` for a node always returning all sites.
+
 ## 1.4.9 - 2020-12-15
 
 ### Added
