@@ -439,7 +439,7 @@ class Node extends Element
         $siteIds = array_filter($siteIds);
 
         // Just an extra check in case there are no sites, for whatever reason
-        if ($siteIds) {
+        if (!$siteIds) {
             $siteIds = Craft::$app->getSites()->getAllSiteIds();
         }
 
