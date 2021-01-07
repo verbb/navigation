@@ -684,6 +684,12 @@ class Node extends Element
                     $isActive = true;
                 }
             }
+            
+            // If `$currentUrl` string contains `$nodeUrl` string, an integer is returned - if this happens,
+            // a match is found.
+            if (is_int(strpos($currentUrl, $nodeUrl))) {
+                $isActive = true;
+            }
         }
 
         return $isActive;
