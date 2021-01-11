@@ -660,7 +660,7 @@ class Node extends Element
             $nodeUrl = $request->hostInfo . '/' . trim($nodeUrl, '/');
         }
 
-        // A final check if the node is still not an absolute node, make it one.
+        // A final check if the node is still not an absolute URL, make it one.
         if (!UrlHelper::isAbsoluteUrl($nodeUrl)) {
             $nodeUrl = $request->hostInfo . '/' . trim($nodeUrl, '/');
         }
