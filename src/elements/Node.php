@@ -676,11 +676,6 @@ class Node extends Element
         // Check if they match, easy enough!
         $isActive = (bool)($currentUrl === $nodeUrl);
 
-        // If `$currentUrl` string equals `$nodeUrl` string, zero is returned - if this happens, a match is found.
-        if (strpos($currentUrl, $nodeUrl) === 0) {
-            $isActive = true;
-        }
-
         // Also check if any children are active
         if ($includeChildren) {
             // Then, provide a helper based purely on the URL structure.
@@ -693,6 +688,11 @@ class Node extends Element
                 if ($nodeUrl !== $siteUrl) {
                     $isActive = true;
                 }
+            }
+
+            // If `$currentUrl` string equals `$nodeUrl` string, zero is returned - if this happens, a match is found.
+            if (strpos($currentUrl, $nodeUrl) === 0) {
+                $isActive = true;
             }
         }
 
