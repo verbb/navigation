@@ -660,12 +660,12 @@ class Node extends Element
             $nodeUrl = $request->hostInfo . '/' . trim($nodeUrl, '/');
         }
 
-        // A final check if the node is still not an absolute URL, make it one.
+        // A final check if the node is still not an absolute URL, make it (a site) one.
         if (!UrlHelper::isAbsoluteUrl($nodeUrl)) {
-            $nodeUrl = $request->hostInfo . '/' . trim($nodeUrl, '/');
+            $nodeUrl = UrlHelper::siteUrl($nodeUrl);
         }
 
-        // Trim the node's url to normalise for comparison, after we've detected if it's a root-relative URL.
+        // Trim the node's url to normalise for comparison, after we've resolved it to an absolute URL.
         $nodeUrl = trim($nodeUrl, '/');
 
         // Stop straight away if this is the homepage entry
