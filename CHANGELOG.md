@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.11 - 2021-01-14
+
+### Fixed
+- Fix for non-absolute, non-root-relative nodes not getting their active state set correctly.
+
 ## 1.4.10 - 2020-12-22
 
 ### Fixed
