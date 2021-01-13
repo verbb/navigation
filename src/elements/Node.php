@@ -669,7 +669,7 @@ class Node extends Element
         }
 
         // Check if they match, easy enough!
-        $isActive = (bool)($currentUrl === $nodeUrl);
+        $isActive = (bool)($currentUrl === UrlHelper::siteUrl($nodeUrl));
 
         // Also check if any children are active
         if ($includeChildren) {
@@ -685,9 +685,9 @@ class Node extends Element
                 }
             }
             
-            // If `$currentUrl` string contains `$nodeUrl` string, an integer is returned - if this happens,
+            // If `$currentUrl` string equals `$nodeUrl` string, zero is returned - if this happens,
             // a match is found.
-            if (is_int(strpos($currentUrl, $nodeUrl))) {
+            if (strpos($currentUrl, UrlHelper::siteUrl($nodeUrl)) === 0) {
                 $isActive = true;
             }
         }
