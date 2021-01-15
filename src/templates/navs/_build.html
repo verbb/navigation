@@ -22,7 +22,7 @@
                     <hr>
                 {% endif %}
 
-                <li><a class="formsubmit error" data-action="navigation/nodes/clear" data-param="payload" data-value="{{ nav.id }}:{{ site.id }}" data-confirm="{{ 'Are you sure you want to remove all nodes? This cannot be undone.' | t('navigation') }}" data-redirect="{{ ('navigation/navs/build/' ~ nav.id) | hash }}">{{ 'Clear Nodes' | t('navigation') }}</a></li>
+                <li><a class="formsubmit error" data-action="navigation/nodes/clear" data-param="payload" data-value="{{ nav.id }}:{{ site.id }}" data-confirm="{{ 'Are you sure you want to remove all nodes? This cannot be undone.' | t('navigation') }}">{{ 'Clear Nodes' | t('navigation') }}</a></li>
             </ul>
         </div>
     </div>
