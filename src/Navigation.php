@@ -37,6 +37,9 @@ use yii\web\User;
 use craft\feedme\events\RegisterFeedMeElementsEvent;
 use craft\feedme\services\Elements as FeedMeElements;
 
+use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
+use craft\gatsbyhelper\services\SourceNodes;
+
 class Navigation extends Plugin
 {
     // Public Properties
@@ -224,6 +227,18 @@ class Navigation extends Plugin
                         ];
                     }
                 }
+            });
+        }
+
+        if (class_exists(SourceNodes::class)) {
+            Event::on(SourceNodes::class, SourceNodes::EVENT_REGISTER_SOURCE_NODE_TYPES, function(RegisterSourceNodeTypesEvent $event) {
+                $event->types[] = [
+                    'node' => 'node',
+                    'list' => 'nodes',
+                    'filterArgument' => '',
+                    'filterTypeExpression' => '(.+)_Node',
+                    'targetInterface' => NodeInterface::getName(),
+                ];
             });
         }
     }
