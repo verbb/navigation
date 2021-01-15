@@ -285,6 +285,13 @@ class Navs extends Component
                     $node->id = null;
 
                     Craft::$app->getElements()->saveElement($node, false, false);
+
+                    // Ensure we retain structure element info
+                    if (!$node->getParent()) {
+                        Craft::$app->getStructures()->appendToRoot($nav->structureId, $node);
+                    } else {
+                        Craft::$app->getStructures()->append($nav->structureId, $node, $node->getParent());
+                    }
                 }
             } else {
                 // Do nothing for now, until we figure out the best way to handle it...
