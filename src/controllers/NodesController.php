@@ -220,13 +220,24 @@ class NodesController extends Controller
         $request = Craft::$app->getRequest();
         $session = Craft::$app->getSession();
 
-        $navId = $request->getRequiredParam('navId');
-        $nodes = Navigation::$plugin->getNodes()->getNodesForNav($navId);
+        $payload = $request->getRequiredParam('payload');
+        $payload = explode(':', $payload);
+
+        $navId = $payload[0] ?? null;
+        $siteId = $payload[1] ?? null;
+
+        if (!$navId || !$siteId) {
+            $session->setError(Craft::t('navigation', 'Unable to resolve navigation to clear.'));
+
+            return null;
+        }
+
+        $nodes = Navigation::$plugin->getNodes()->getNodesForNav($navId, $siteId);
 
         $errors = [];
 
         foreach ($nodes as $key => $node) {
-            if (!Craft::$app->getElements()->deleteElementById($node->id)) {
+            if (!Craft::$app->getElements()->deleteElementById($node->id, NodeElement::class, $siteId)) {
                 $errors[] = $node->getErrors();
             }
         }
