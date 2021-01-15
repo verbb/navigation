@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.12 - 2021-01-15
+
+### Added
+- Add support for [Gatsby Helper](https://github.com/craftcms/gatsby-helper).
+
+### Fixed
+- Fix “Clear Nodes” clearing the primary site’s nodes, instead of the currently-editing site’s nodes.
+- Fix incorrect redirect when clearing nodes.
+- Fix when disabling propagation, node levels weren’t being retained and resetting to the root level.
+
 ## 1.4.11 - 2021-01-14
 
 ### Fixed
