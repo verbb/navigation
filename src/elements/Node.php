@@ -649,6 +649,11 @@ class Node extends Element
         $siteUrl = trim(UrlHelper::siteUrl(), '/');
         $nodeUrl = (string)$this->getUrl(false);
 
+        // If no URL and not a manual node, skip. Think passive nodes.
+        if ($nodeUrl === '' && !$this->isManual()) {
+            return;
+        }
+
         // Get the full url to compare, this makes sure it works with any setup (either other domain per site or subdirs)
         // Using `getUrl()` would return the site-relative path, which isn't what we want to compare with.
         // Also trim the '/' to normalise for comparison.
