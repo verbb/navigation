@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.13 - 2021-01-26
+
+### Fixed
+- Fix passive nodes being marked as active.
+- Ensure active state checks only check against nodes with URLs.
+- Fix potential error with GraphQL and querying `customAttributes` and `data`.
+
 ## 1.4.12 - 2021-01-15
 
 ### Added
