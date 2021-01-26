@@ -8,7 +8,7 @@ Navigation supports accessing nodes via GraphQL. Be sure to read about [Craft's 
 
 ```
 {
-    nodes (navHandle: "mainMenu") {
+    nodes (navHandle: "mainMenu", level: 1) {
         title
         url
         children {
