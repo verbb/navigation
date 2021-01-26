@@ -130,13 +130,8 @@ class Node extends Element
     {
         parent::init();
 
-        if (!empty($this->customAttributes)) {
-            $this->customAttributes = Json::decode($this->customAttributes);
-        }
-
-        if (!empty($this->data)) {
-            $this->data = Json::decode($this->data);
-        }
+        $this->customAttributes = Json::decodeIfJson($this->customAttributes) ?? [];
+        $this->data = Json::decodeIfJson($this->data) ?? [];
 
         if (!$this->typeLabel) {
             $this->typeLabel = $this->getNodeTypeLabel();
