@@ -78,17 +78,14 @@ class NavsController extends Controller
             $nav = new NavModel();
         }
 
-        // Get all the enabled sites for the nav
-        $editableSites = $nav->getEditableSites();
-
-        // If not requesting a specific site, just get the first one
+        // If not requesting a specific site, use the primary one
         if ($siteHandle === null) {
             $defaultSite = true;
-            $siteHandle = $editableSites[0]->handle ?? '';
+            $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
         }
 
         // Ensure this is an enabled site, otherwise throw an error
-        $site = ArrayHelper::firstWhere($editableSites, 'handle', $siteHandle);
+        $site = ArrayHelper::firstWhere($nav->getEditableSites(), 'handle', $siteHandle);
 
         if (!$site) {
             throw new NotFoundHttpException('Navigation not enabled for site: ' . $siteHandle);
