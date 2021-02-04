@@ -275,7 +275,7 @@ class Node extends Element
     public function getNodeUri()
     {
         if ($url = $this->getUrl()) {
-            return str_replace(UrlHelper::siteUrl(), '', $url);
+            return str_replace(UrlHelper::siteUrl('', null, null, $this->siteId), '', $url);
         }
 
         return '';
