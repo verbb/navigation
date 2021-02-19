@@ -41,6 +41,35 @@ As attributes are stored in a table for the node, you'll need to loop through th
 </a>
 ```
 
+### `linkAttributes`
+A helper function to assist with generating attributes for a anchor tag.
+
+```twig
+<a {{ node.linkAttributes }}>
+
+{# Would produce the following HTML #}
+<a href="/some-url">
+
+{# For a node that opens in a new window #}
+<a href="/some-url" target="_blank" rel="noopener">
+
+{# For a node with a custom class #}
+<a href="/some-url" class="my-custom-class">
+
+{# For a node with a custom attributes #}
+<a href="/some-url" data-attribute="my-attribute-value">
+```
+
+You can also pass in any additional attributes you require at the template level:
+
+```twig
+<a {{ node.linkAttributes([{ attribute: 'data-target', value: 'some-value' }]) }}>
+
+{# Would produce the following HTML #}
+<a href="/some-url" data-target="some-value">
+```
+
+
 ## Custom Fields
 
 As you can have custom fields attached to each node, you can access their content via their field handles. For instance you might have added a Plain Text field to your navigation's field layout, with a handle `myPlainTextfield`, which you could access via:
