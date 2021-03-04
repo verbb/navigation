@@ -2,6 +2,7 @@
 
 ## 1.4.14 - 2021-03-04
 
+### Fixed
 - Fix `nodeUri` returning the incorrect value for multi-sites with GraphQL.
 - Fix when no site selected, the primary site not being used when editing a navigation.
 - Fix when selecting element nodes on multi-sites, the element selector modal now defaults to the currently editing site.
