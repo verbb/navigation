@@ -106,8 +106,8 @@ Craft.Navigation = Garnish.Base.extend({
         return Craft.createElementSelectorModal(this.elementType, {
             criteria: {
                 enabledForSite: null,
-                // siteId: this.siteId,
             },
+            defaultSiteId: this.siteId,
             sources: this.sources,
             multiSelect: true,
             onSelect: $.proxy(this, 'onModalSelect'),
