@@ -82,6 +82,13 @@ class NavsController extends Controller
         if ($siteHandle === null) {
             $defaultSite = true;
             $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
+
+            // If they don't have access to the default site, pick the first enabled one
+            $site = ArrayHelper::firstWhere($nav->getEditableSites(), 'handle', $siteHandle);
+
+            if (!$site) {
+                $siteHandle = $nav->getEditableSites()[0]->handle ?? '';
+            }
         }
 
         // Ensure this is an enabled site, otherwise throw an error
