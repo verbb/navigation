@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.15 - 2021-03-13
+
+### Fixed
+- Fix an error when trying to view the default navigation, if the user didn’t have permission to access the primary site.
+- Fix an error that would occur when switching an element node to a non-element node (Entry to Passive).
+- Fix type label not updating when switching to a different node type.
+
 ## 1.4.14 - 2021-03-04
 
 ### Fixed
