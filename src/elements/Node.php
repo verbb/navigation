@@ -534,6 +534,12 @@ class Node extends Element
             $record->url = null;
         }
 
+        // Ensure the elementId is empty for non-element nodes. This is important when switching
+        // from an element node to a non-element node.
+        if (!$this->isElement()) {
+            $record->elementId = null;
+        }
+
         $record->save(false);
 
         $this->id = $record->id;
