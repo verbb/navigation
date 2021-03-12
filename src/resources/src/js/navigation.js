@@ -522,6 +522,9 @@ Craft.Navigation.Editor = Garnish.Base.extend({
                 this.$node.parent().data('label', response.node.title);
                 this.$node.parent().find('.title').text(response.node.title);
 
+                this.$node.parent().find('.node-type span').attr('class', 'node-type-' + response.node.typeLabel);
+                this.$node.parent().find('.node-type span').text(response.node.typeLabel);
+
                 if (response.node.enabled) {
                     $status.addClass('enabled');
                     $status.removeClass('disabled');
