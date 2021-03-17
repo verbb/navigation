@@ -474,14 +474,16 @@ class Node extends Element
         // If this is propagating, we want to fetch the information for that site's linked element
         // At next breakpoint, remove `propagateSiteElements`
         if ($this->propagating && $this->isElement() && $settings->propagateSiteElements) {
-            $localeElement = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
+            if ($this->elementId) {
+                $localeElement = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
 
-            if ($localeElement) {
-                $this->elementSiteId = $localeElement->siteId;
+                if ($localeElement) {
+                    $this->elementSiteId = $localeElement->siteId;
 
-                // Only update the title if we haven't overridden it
-                if (!$this->hasOverriddenTitle()) {
-                    $this->title = $localeElement->title;
+                    // Only update the title if we haven't overridden it
+                    if (!$this->hasOverriddenTitle()) {
+                        $this->title = $localeElement->title;
+                    }
                 }
             }
         }

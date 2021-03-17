@@ -129,7 +129,7 @@ class Nodes extends Component
     public function afterSaveSiteHandler(SiteEvent $event)
     {
         $queue = Craft::$app->getQueue();
-        $siteId = $event->oldPrimarySiteId;
+        $siteId = $event->site->id;
 
         // Only propagate nodes if we want to for the nav
         $navs = Navigation::$plugin->getNavs()->getAllNavs();
