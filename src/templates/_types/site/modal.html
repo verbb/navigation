@@ -1,5 +1,7 @@
 {% import '_includes/forms' as forms %}
 
+{% namespace 'data' %}
+
 {% set sites = [{
     label: 'Select a site' | t('navigation'),
     value: '',
@@ -19,3 +21,5 @@
     value: node.data.siteId ?? '',
     options: sites,
 }) }}
+
+{% endnamespace %}

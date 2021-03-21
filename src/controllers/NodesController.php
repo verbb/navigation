@@ -8,6 +8,8 @@ use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node as NodeElement;
 use verbb\navigation\models\Node as NodeModel;
 
+use Exception;
+
 class NodesController extends Controller
 {
     // Public Methods
