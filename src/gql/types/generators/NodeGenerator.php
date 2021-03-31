@@ -30,7 +30,9 @@ class NodeGenerator implements GeneratorInterface
             $requiredContexts = Node::gqlScopesByContext($nav);
 
             if (!NavigationGqlHelper::isSchemaAwareOf($requiredContexts)) {
-                continue;
+                if (!GqlHelper::canSchema('navigationNavs.all')) {
+                    continue;
+                }
             }
 
             $contentFields = $nav->getFields();
