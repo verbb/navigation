@@ -204,6 +204,7 @@ class NodesController extends Controller
         $navId = $request->getRequiredParam('navId');
 
         $nav = $navsService->getNavById($navId, $siteId);
+        Craft::$app->getSession()->authorize('editStructure:' . $nav->structureId);
 
         $nodes = $nodesService->getNodesForNav($navId, $siteId);
 
