@@ -122,6 +122,7 @@
                 rows: siteRows,
                 fullWidth: false,
                 staticRows: true,
+                errors: (nav is defined ? nav.getErrors('siteSettings') : null),
             }) }}
         {% endif %}
     </div>

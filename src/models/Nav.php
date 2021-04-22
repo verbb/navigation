@@ -47,15 +47,18 @@ class Nav extends Model
         ];
     }
 
-    public function rules()
+    public function defineRules(): array
     {
-        return [
-            [['id', 'structureId', 'maxLevels'], 'number', 'integerOnly' => true],
-            [['handle'], HandleValidator::class, 'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']],
-            [['handle'], UniqueValidator::class, 'targetClass' => NavRecord::class],
-            [['name', 'handle'], 'required'],
-            [['name', 'handle'], 'string', 'max' => 255],
-        ];
+        $rules = parent::defineRules();
+
+        $rules[] = [['id', 'structureId', 'maxLevels'], 'number', 'integerOnly' => true];
+        $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']];
+        $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => NavRecord::class];
+        $rules[] = [['name', 'handle'], 'required'];
+        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [['siteSettings'], 'validateSiteSettings', 'skipOnEmpty' => false];
+
+        return $rules;
     }
 
     public function getNavFieldLayout()
@@ -73,6 +76,18 @@ class Nav extends Model
                 'idAttribute' => 'fieldLayoutId'
             ]
         ];
+    }
+
+    public function validateSiteSettings($attribute)
+    {
+        if (!Craft::$app->getIsMultiSite()) {
+            return;
+        }
+
+        if (empty($this->siteSettings)) {
+            $this->addError($attribute, Craft::t('navigation', 'You must select at least one site.'));
+            return;
+        }
     }
 
     public function getEditableSites(): array
