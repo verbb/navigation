@@ -144,7 +144,10 @@ class Node extends Element
             return $this->_element;
         }
 
-        if (!$this->elementId) {
+        // To prevent potentially nasty errors, check if this node is an appropriate element node type
+        // Otherwise, in some rare scenarios where there's elementId info for a node, but a non-element node type
+        // this can really go bananas.
+        if (!$this->elementId || !$this->isElement()) {
             return null;
         }
 
