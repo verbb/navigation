@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.16 - 2021-05-08
+
+### Added
+- Add edit structure authorize to save node controller action.
+- Add validation rules for navigations to ensure at least one site is enabled, for multi-site installs.
+
+### Fixed
+- Fix an error when adding a new site, and propagating nodes.
+- Fix an error when saving a site node.
+- Fix querying navigation nodes with GraphQL with only “View all navigations” schema permissions set.
+- Fix `getActiveNode()` no matching a node if the current URL contained a query string.
+- Fix potential error when non-element type nodes have element information leftover.
+
 ## 1.4.15 - 2021-03-13
 
 ### Fixed
