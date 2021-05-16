@@ -10,6 +10,7 @@ use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
 use yii\db\Connection;
@@ -145,8 +146,14 @@ class NodeQuery extends ElementQuery
 
     protected function beforePrepare(): bool
     {
-        $projectConfig = Craft::$app->getProjectConfig();
-        $schemaVersion = $projectConfig->get('plugins.navigation.schemaVersion', true);
+        // Use a database call for performance
+        $schemaVersion = (new Query())
+            ->select(['value'])
+            ->from('{{%projectconfig}}')
+            ->where(['path' => 'plugins.navigation.schemaVersion'])
+            ->scalar();
+
+        $schemaVersion = Json::decodeIfJson($schemaVersion);
 
         $this->joinElementTable('navigation_nodes');
         $this->subQuery->innerJoin('{{%navigation_navs}} navigation_navs', '[[navigation_nodes.navId]] = [[navigation_navs.id]]');
