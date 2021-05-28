@@ -71,12 +71,18 @@ class NodeInterface extends Structure
             'navHandle' => [
                 'name' => 'navHandle',
                 'type' => Type::string(),
-                'description' => 'The handle of the navigation this node belongs to.'
+                'description' => 'The handle of the navigation this node belongs to.',
+                'resolve' => function($node) {
+                    return $node->nav->handle;
+                },
             ],
             'navName' => [
                 'name' => 'navName',
                 'type' => Type::string(),
-                'description' => 'The name of the navigation this node belongs to.'
+                'description' => 'The name of the navigation this node belongs to.',
+                'resolve' => function($node) {
+                    return $node->nav->name;
+                },
             ],
             'type' => [
                 'name' => 'type',
