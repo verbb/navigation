@@ -3,7 +3,7 @@
 ## 1.4.17 - 2021-06-05
 
 ### Changed
-- Improve query performance for large sites (with a large project config).
+- Improve query performance for large sites (with a large project config). Typically a 50-70% improvement in rendering speed.
 
 ### Fixed
 - Fix `navHandle` and `navName` for GraphQL producing errors.
