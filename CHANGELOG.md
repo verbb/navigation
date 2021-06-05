@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.17 - 2021-06-05
+
+### Changed
+- Improve query performance for large sites (with a large project config).
+
+### Fixed
+- Fix `navHandle` and `navName` for GraphQL producing errors.
+
 ## 1.4.16 - 2021-05-08
 
 ### Added
