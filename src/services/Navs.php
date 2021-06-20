@@ -19,6 +19,7 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\models\Structure;
+use craft\queue\jobs\ResaveElements;
 
 use yii\web\UserEvent;
 
@@ -270,11 +271,13 @@ class Navs extends Component
 
         // Have we changed the propagation method?
         if ($oldRecord->propagateNodes !== $navRecord->propagateNodes) {
+            $elementsService = Craft::$app->getElements();
+            $nodesToDelete = [];
+
             // If we've turned off propagating, we need to propagate nodes
             if (!$navRecord->propagateNodes && $oldRecord->propagateNodes) {
                 $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
                 $nav = $this->getNavById($navRecord->id);
-                $elementsService = Craft::$app->getElements();
 
                 $nodes = Node::find()
                     ->navId($navRecord->id)
@@ -284,25 +287,50 @@ class Navs extends Component
                     ->all();
 
                 foreach ($nav->getEditableSites() as $site) {
-                    // No need to re-save the primary site, it's all good as-is
-                    if ($site->id == $primarySiteId) {
-                        continue;
-                    }
-
                     // If we try and propagate nodes to another site's nav, which already
                     // has nodes, we'll get duplicates. As there's no real way to compare
                     // propagated and non-propagated nodes (effectively), we need to wipe all
                     // other enabled nav nodes first, before duplicating.
                     $existingNodes = Node::find()->siteId($site->id)->all();
 
+                    // But, we need to wait for all navigations to finish, before deleting.
+                    // Otherwise, we'll delete a node in one site navigation, and because we've
+                    // set to propagate, it'll delete it from all other navs instantly.
                     foreach ($existingNodes as $existingNode) {
-                        $elementsService->deleteElement($existingNode);
+                        $nodesToDelete[] = $existingNode;
                     }
 
                     $this->_duplicateElements($nodes, ['siteId' => $site->id]);
                 }
             } else {
                 // Do nothing for now, until we figure out the best way to handle it...
+            }
+
+            foreach ($nodesToDelete as $nodeToDelete) {
+                $elementsService->deleteElement($nodeToDelete);
+            }
+        }
+
+        // When enabling/disabling sites
+        if (Craft::$app->getIsMultiSite()) {
+            // Has the sites been changed?
+            $oldSiteSettings = Json::decode($oldRecord->siteSettings);
+            $newSiteSettings = Json::decode($navRecord->siteSettings);
+
+            // Removed sites
+            foreach ($oldSiteSettings as $key => $value) {
+                if (!isset($newSiteSettings[$key])) {
+                    // Nothing for now
+                }
+            }
+
+            // Added sites
+            foreach ($newSiteSettings as $key => $value) {
+                if (!isset($oldSiteSettings[$key])) {
+                    $siteId = Db::idByUid(Table::SITES, $key);
+
+                    $this->resaveNodesForSite($navRecord, $siteId);
+                }
             }
         }
 
@@ -482,6 +510,37 @@ class Navs extends Component
         return $tabs;
     }
 
+    public function resaveNodesForSite($nav, $siteId)
+    {
+        $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
+
+        // Only propagate nodes if we want to for the nav
+        if ($nav->propagateNodes) {
+            $nodes = [];
+
+            foreach (Node::find()->navId($nav->id)->siteId($primarySiteId)->all() as $node) {
+                $nodes[] = $node->id;
+            }
+
+            Craft::$app->getQueue()->push(new ResaveElements([
+                'elementType' => Node::class,
+                'criteria' => [
+                    'id' => $nodes,
+                ]
+            ]));
+        } else {
+            // Duplicate existing elements
+            $nodes = Node::find()
+                ->navId($nav->id)
+                ->siteId($primarySiteId)
+                ->level(1)
+                ->orderBy(['structureelements.lft' => SORT_ASC])
+                ->all();
+
+            $this->_duplicateElements($nodes, ['siteId' => $siteId]);
+        }
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -549,5 +608,4 @@ class Navs extends Component
             $this->_duplicateElements($children, $newAttributes, $duplicatedElementIds, $duplicate);
         }
     }
-
 }

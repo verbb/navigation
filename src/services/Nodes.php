@@ -5,7 +5,6 @@ use Craft;
 use craft\base\Component;
 use craft\events\ElementEvent;
 use craft\events\SiteEvent;
-use craft\queue\jobs\ResaveElements;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node as NodeElement;
@@ -124,39 +123,5 @@ class Nodes extends Component
         }
 
         return $parentOptions;
-    }
-
-    public function afterSaveSiteHandler(SiteEvent $event)
-    {
-        $queue = Craft::$app->getQueue();
-        $siteId = $event->site->id;
-
-        // Only propagate nodes if we want to for the nav
-        $navs = Navigation::$plugin->getNavs()->getAllNavs();
-        $nodes = [];
-
-        foreach ($navs as $nav) {
-            if ($nav->propagateNodes) {
-                foreach (Navigation::$plugin->getNodes()->getNodesForNav($nav->id) as $node) {
-                    $nodes[] = $node->id;
-                }
-            }
-        }
-
-        $elementTypes = [
-            NodeElement::class,
-        ];
-
-        foreach ($elementTypes as $elementType) {
-            $queue->push(new ResaveElements([
-                'elementType' => $elementType,
-                'criteria' => [
-                    'id' => $nodes,
-                    'siteId' => $siteId,
-                    'status' => null,
-                    'enabledForSite' => false
-                ]
-            ]));
-        }
     }
 }

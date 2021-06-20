@@ -142,9 +142,6 @@ class Navigation extends Plugin
         // Allow elements to update our nodes
         Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT, [$this->getNodes(), 'onSaveElement']);
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [$this->getNodes(), 'onDeleteElement']);
-
-        // When a site is updated, propagate nodes
-        Event::on(Sites::class, Sites::EVENT_AFTER_SAVE_SITE, [$this->getNodes(), 'afterSaveSiteHandler']);
     }
 
     private function _registerProjectConfigEventListeners()
