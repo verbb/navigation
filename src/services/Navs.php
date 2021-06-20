@@ -271,8 +271,7 @@ class Navs extends Component
         // Have we changed the propagation method?
         if ($oldRecord->propagateNodes !== $navRecord->propagateNodes) {
             // If we've turned off propagating, we need to propagate nodes
-            // For turning on, that's a little more complicated...
-            if ($navRecord->propagateNodes && !$oldRecord->propagateNodes) {
+            if (!$navRecord->propagateNodes && $oldRecord->propagateNodes) {
                 $oldPrimarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
                 $nav = $this->getNavById($navRecord->id);
 
