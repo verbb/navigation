@@ -272,23 +272,23 @@ class Navs extends Component
         if ($oldRecord->propagateNodes !== $navRecord->propagateNodes) {
             // If we've turned off propagating, we need to propagate nodes
             if (!$navRecord->propagateNodes && $oldRecord->propagateNodes) {
-                $oldPrimarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
+                $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
                 $nav = $this->getNavById($navRecord->id);
 
-                $nodes = Node::find()->navId($navRecord->id)->siteId('*')->all();
+                $nodes = Node::find()
+                    ->navId($navRecord->id)
+                    ->siteId($primarySiteId)
+                    ->level(1)
+                    ->orderBy(['structureelements.lft' => SORT_ASC])
+                    ->all();
 
-                foreach ($nodes as $key => $node) {
-                    // We're creating brand-new, un-linked elements here
-                    $node->id = null;
-
-                    Craft::$app->getElements()->saveElement($node, false, false);
-
-                    // Ensure we retain structure element info
-                    if (!$node->getParent()) {
-                        Craft::$app->getStructures()->appendToRoot($nav->structureId, $node);
-                    } else {
-                        Craft::$app->getStructures()->append($nav->structureId, $node, $node->getParent());
+                foreach ($nav->getEditableSites() as $site) {
+                    // No need to re-save the primary site
+                    if ($site->id == $primarySiteId) {
+                        continue;
                     }
+
+                    $this->_duplicateElements($nodes, ['siteId' => $site->id]);
                 }
             } else {
                 // Do nothing for now, until we figure out the best way to handle it...
@@ -511,6 +511,32 @@ class Navs extends Component
         $query = $withTrashed ? NavRecord::findWithTrashed() : NavRecord::find();
         $query->andWhere(['uid' => $uid]);
         return $query->one() ?? new NavRecord();
+    }
+
+    private function _duplicateElements($elements, $newAttributes = [], &$duplicatedElementIds = [], $newParent = null)
+    {
+        $elementsService = Craft::$app->getElements();
+        $structuresService = Craft::$app->getStructures();
+
+        foreach ($elements as $element) {
+            // Make sure this element wasn't already duplicated, which could
+            // happen if it's the descendant of a previously duplicated element
+            // and $this->deep == true.
+            if (isset($duplicatedElementIds[$element->id])) {
+                continue;
+            }
+
+            $duplicate = $elementsService->duplicateElement($element, $newAttributes);
+            $duplicatedElementIds[$element->id] = true;
+
+            if ($newParent) {
+                // Append it to the duplicate of $element's parent
+                $structuresService->append($element->structureId, $duplicate, $newParent);
+            }
+            
+            $children = $element->getChildren()->anyStatus()->all();
+            $this->_duplicateElements($children, $newAttributes, $duplicatedElementIds, $duplicate);
+        }
     }
 
 }
