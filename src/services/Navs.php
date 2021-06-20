@@ -274,6 +274,7 @@ class Navs extends Component
             if (!$navRecord->propagateNodes && $oldRecord->propagateNodes) {
                 $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
                 $nav = $this->getNavById($navRecord->id);
+                $elementsService = Craft::$app->getElements();
 
                 $nodes = Node::find()
                     ->navId($navRecord->id)
@@ -283,9 +284,19 @@ class Navs extends Component
                     ->all();
 
                 foreach ($nav->getEditableSites() as $site) {
-                    // No need to re-save the primary site
+                    // No need to re-save the primary site, it's all good as-is
                     if ($site->id == $primarySiteId) {
                         continue;
+                    }
+
+                    // If we try and propagate nodes to another site's nav, which already
+                    // has nodes, we'll get duplicates. As there's no real way to compare
+                    // propagated and non-propagated nodes (effectively), we need to wipe all
+                    // other enabled nav nodes first, before duplicating.
+                    $existingNodes = Node::find()->siteId($site->id)->all();
+
+                    foreach ($existingNodes as $existingNode) {
+                        $elementsService->deleteElement($existingNode);
                     }
 
                     $this->_duplicateElements($nodes, ['siteId' => $site->id]);
