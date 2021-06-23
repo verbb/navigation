@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.19 - 2021-06-23
+
+### Fixed
+- Fix an error when saving settings for the first time
+
 ## 1.4.18 - 2021-06-20
 
 ### Fixed
