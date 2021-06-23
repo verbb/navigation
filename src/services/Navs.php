@@ -318,9 +318,11 @@ class Navs extends Component
             $newSiteSettings = Json::decode($navRecord->siteSettings);
 
             // Removed sites
-            foreach ($oldSiteSettings as $key => $value) {
-                if (!isset($newSiteSettings[$key])) {
-                    // Nothing for now
+            if ($oldSiteSettings) {
+                foreach ($oldSiteSettings as $key => $value) {
+                    if (!isset($newSiteSettings[$key])) {
+                        // Nothing for now
+                    }
                 }
             }
 
