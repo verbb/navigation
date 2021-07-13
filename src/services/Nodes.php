@@ -5,6 +5,8 @@ use Craft;
 use craft\base\Component;
 use craft\events\ElementEvent;
 use craft\events\SiteEvent;
+use craft\helpers\ArrayHelper;
+use craft\helpers\ElementHelper;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node as NodeElement;
@@ -60,6 +62,16 @@ class Nodes extends Component
             ->all();
 
         foreach ($nodes as $node) {
+            // Check if the element is propagating, and in the allowed sites
+            if ($element->propagating) {
+                $supportedSites = ElementHelper::supportedSitesForElement($node);
+                $supportedSiteIds = ArrayHelper::getColumn($supportedSites, 'siteId');
+
+                if (!in_array($node->siteId, $supportedSiteIds, false)) {
+                    return;
+                }
+            }
+
             $currentElement = Craft::$app->getElements()->getElementById($element->id, get_class($element), $element->siteId);
 
             if ($element->uri) {
