@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.20 - 2021-07-19
+
+- Fix HUD overflow issue for some plugins (Icon Picker).
+- Fix an error when propagating elements on multi-sites, where navigation nodes didn’t support the site an element is propagating into.
+
 ## 1.4.19 - 2021-07-10
 
 ### Fixed
