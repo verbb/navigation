@@ -112,6 +112,10 @@
     overflow: visible;
 }
 
+.nav-editor-hud .main-container {
+    overflow-y: auto !important;
+}
+
 .nav-editor-hud .hud-footer {
     padding: 14px 20px;
 }
