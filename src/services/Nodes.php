@@ -62,6 +62,13 @@ class Nodes extends Component
             ->all();
 
         foreach ($nodes as $node) {
+            // If no nav for the node, skip. Just to protect against nodes in some cases
+            $nav = Navigation::$plugin->navs->getNavById($node->navId);
+
+            if (!$nav) {
+                return;
+            }
+
             // Check if the element is propagating, and in the allowed sites
             if ($element->propagating) {
                 $supportedSites = ElementHelper::supportedSitesForElement($node);
