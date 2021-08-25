@@ -395,9 +395,10 @@ class Navs extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
-            // Delete the nodes
+            // Delete the nodes - ensure to fetch for all sites
             $nodes = Node::find()
                 ->anyStatus()
+                ->site('*')
                 ->navId($navRecord->id)
                 ->all();
 
