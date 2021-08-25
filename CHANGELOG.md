@@ -1,7 +1,14 @@
 # Changelog
 
+## 1.4.21 - 2021-08-25
+
+### Fixed
+- Improve `displayName` twig function.
+- Fix an error when saving a linked element, when the node was deleted.
+
 ## 1.4.20 - 2021-07-19
 
+### Fixed
 - Fix HUD overflow issue for some plugins (Icon Picker).
 - Fix an error when propagating elements on multi-sites, where navigation nodes didn’t support the site an element is propagating into.
 
