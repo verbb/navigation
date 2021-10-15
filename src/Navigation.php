@@ -6,6 +6,7 @@ use verbb\navigation\elements\Node;
 use verbb\navigation\fields\NavigationField;
 use verbb\navigation\gql\interfaces\NodeInterface;
 use verbb\navigation\gql\queries\NodeQuery;
+use verbb\navigation\helpers\Gql as GqlHelper;
 use verbb\navigation\integrations\NodeFeedMeElement;
 use verbb\navigation\models\Settings;
 use verbb\navigation\services\Navs;
@@ -229,13 +230,15 @@ class Navigation extends Plugin
 
         if (class_exists(SourceNodes::class)) {
             Event::on(SourceNodes::class, SourceNodes::EVENT_REGISTER_SOURCE_NODE_TYPES, function(RegisterSourceNodeTypesEvent $event) {
-                $event->types[] = [
-                    'node' => 'node',
-                    'list' => 'nodes',
-                    'filterArgument' => '',
-                    'filterTypeExpression' => '(.+)_Node',
-                    'targetInterface' => NodeInterface::getName(),
-                ];
+                if (GqlHelper::canQueryNavigation()) {
+                    $event->types[NodeInterface::getName()] = [
+                        'node' => 'node',
+                        'list' => 'nodes',
+                        'filterArgument' => '',
+                        'filterTypeExpression' => '(.+)_Node',
+                        'targetInterface' => NodeInterface::getName(),
+                    ];
+                }
             });
         }
     }
