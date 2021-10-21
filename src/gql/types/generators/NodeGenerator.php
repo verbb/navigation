@@ -37,8 +37,7 @@ class NodeGenerator extends Generator implements GeneratorInterface, SingleGener
                 }
             }
 
-            // Generate a type for each entry type
-            $type = static::generateType($entryType);
+            $type = static::generateType($nav);
             $gqlTypes[$type->name] = $type;
         }
 
