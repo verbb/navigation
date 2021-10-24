@@ -55,7 +55,7 @@ class NaveePlugin extends Migration
 
                 foreach (Craft::$app->getSites()->getAllSites() as $site) {
                     $NaveeNodes = (new Query())
-                        ->select(['*'])
+                        ->select(['nodes.id', 'elementId', 'customUri', 'class', 'target', 'entryId', 'categoryId', 'assetId'])
                         ->from(['{{%navee_nodes}} nodes'])
                         ->leftJoin('{{%elements_sites}} elements_sites', '[[elements_sites.elementId]] = [[nodes.id]]')
                         ->where(['navigationId' => $NaveeNav['id'], 'siteId' => $site['id']])
@@ -68,7 +68,7 @@ class NaveePlugin extends Migration
                             $node = new Node();
 
                             $NaveeElement = (new Query())
-                                ->select(['*'])
+                                ->select(['elements.id', 'title', 'enabled'])
                                 ->from(['{{%elements}} elements'])
                                 ->leftJoin('{{%content}} content', '[[content.elementId]] = [[elements.id]]')
                                 ->where(['elements.id' => $NaveeNode['elementId'], 'type' => 'Navee_Node', 'siteId' => $site['id']])
@@ -134,11 +134,15 @@ class NaveePlugin extends Migration
 
                             if ((int)$level > 1) {
                                 // Find the parent structure
-                                $parentStructureElement = (new Query())
+                                $parentStructureElementQuery = (new Query())
                                     ->select(['*'])
                                     ->from(['{{%structureelements}} structureelements'])
-                                    ->where(['structureelements.lft' => $structureElement['lft'] - 1, 'structureelements.rgt' => $structureElement['rgt'] + 1])
-                                    ->one();
+                                    ->where(['structureelements.structureId' => $structureElement['structureId']])
+                                    ->andWhere('structureelements.lft < :lft', ['lft' => $structureElement['lft']])
+                                    ->andWhere('structureelements.rgt > :rgt', ['rgt' => $structureElement['rgt']])
+                                    ->orderBy('`structureelements`.`rgt` - `structureelements`.`lft` ASC');
+
+                                $parentStructureElement = $parentStructureElementQuery->one();
 
                                 if ($parentStructureElement) {
                                     // Get the new node for the already processed parent
@@ -154,6 +158,10 @@ class NaveePlugin extends Migration
                                             Craft::dump($node->getErrors());
                                         }
                                     }
+                                } else {
+                                    echo "    > WARNING: Unable to find parent for `{$node['title']}` ...\n";
+
+                                    echo $parentStructureElementQuery->getRawSql();
                                 }
                             }
                         }
