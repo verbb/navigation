@@ -6,7 +6,7 @@
 - Now requires Craft 3.6.0+.
 
 ### Fixed
-- Fix Navee migration, where nodes now eren't maintaining their structure. (thanks @iainsaxon).
+- Fix Navee migration, where nodes weren't maintaining their structure. (thanks @iainsaxon).
 - Fix GraphQL generator issues in some cases (Gatsby Helper).
 - Fix an error with Gatsby Helper plugin.
 - Fix when deleting navigations their nodes not being marked as deleted, on a multi-site, without node propagation disabled.
