@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.22 - 2021-10-30
+
+### Changed
+- Now requires Craft 3.6.0+.
+
+### Fixed
+- Fix Navee migration, where nodes now eren't maintaining their structure. (thanks @iainsaxon).
+- Fix GraphQL generator issues in some cases (Gatsby Helper).
+- Fix an error with Gatsby Helper plugin.
+- Fix when deleting navigations their nodes not being marked as deleted, on a multi-site, without node propagation disabled.
+
 ## 1.4.21 - 2021-08-25
 
 ### Fixed
