@@ -16,7 +16,7 @@ class m180827_000000_propagate_nav_setting_additional extends Migration
 
     public function safeDown()
     {
-        echo "m180826_000000_propagate_nav_setting cannot be reverted.\n";
+        echo "m180827_000000_propagate_nav_setting_additional cannot be reverted.\n";
 
         return false;
     }
