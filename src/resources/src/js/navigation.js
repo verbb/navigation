@@ -187,6 +187,8 @@ Craft.Navigation = Garnish.Base.extend({
     },
 
     addNode: function(data, level) {
+        var typeClassName = data.typeLabel.replace(/\s+/g, '-').toLowerCase();
+
         var nodeHtml = this.$template
             .replace(/__siteId__/ig, data.siteId ? data.siteId : "")
             .replace(/__status__/ig, data.enabled ? 'enabled' : 'disabled')
@@ -194,6 +196,7 @@ Craft.Navigation = Garnish.Base.extend({
             .replace(/__id__/ig, data.id)
             .replace(/__url__/ig, data.url)
             .replace(/__type__/ig, data.typeLabel)
+            .replace(/__typeclass__/ig, typeClassName)
             .replace(/__level__/ig, level)
 
         var $node = $(nodeHtml);
@@ -522,7 +525,8 @@ Craft.Navigation.Editor = Garnish.Base.extend({
                 this.$node.parent().data('label', response.node.title);
                 this.$node.parent().find('.title').text(response.node.title);
 
-                this.$node.parent().find('.node-type span').attr('class', 'node-type-' + response.node.typeLabel);
+                var className = response.node.typeLabel.replace(/\s+/g, '-').toLowerCase();
+                this.$node.parent().find('.node-type span').attr('class', 'node-type-' + className);
                 this.$node.parent().find('.node-type span').text(response.node.typeLabel);
 
                 if (response.node.enabled) {

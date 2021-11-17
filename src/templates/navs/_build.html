@@ -242,7 +242,7 @@
             {% include '_elements/element' %}
 
             <div class="node-type">
-                <span class="node-type-{{ element.getNodeTypeLabel() }}" title="{{ element.url }}">{{ element.getNodeTypeLabel() }}</span>
+                <span class="node-type-{{ element.getNodeTypeLabel() | kebab }}" title="{{ element.url }}">{{ element.getNodeTypeLabel() }}</span>
             </div>
 
             <span class="node-custom-title edit icon {{ element.hasOverriddenTitle ? '' : 'hidden' }}" title="{{ 'Custom Title' | t('navigation') }}"></span>
@@ -269,7 +269,7 @@
             </div>
 
             <div class="node-type">
-                <span class="node-type-__type__" title="__url__">__type__</span>
+                <span class="node-type-__typeclass__" title="__url__">__type__</span>
             </div>
 
             <a class="move icon" title="{{ 'Move' | t('app') }}"></a>
