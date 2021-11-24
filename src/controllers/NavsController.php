@@ -166,8 +166,10 @@ class NavsController extends Controller
         $success = Navigation::$plugin->navs->saveNav($nav);
 
         if (!$success) {
+            $session->setError(Craft::t('navigation', 'Unable to save navigation.'));
+
             Craft::$app->getUrlManager()->setRouteParams([
-                'nav' => $nav
+                'nav' => $nav,
             ]);
 
             return null;

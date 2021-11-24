@@ -7,10 +7,20 @@
     { label: 'Navigations' | t('navigation'), url: url('navigation/navs') },
 ] %}
 
+{% set settingsClass = '' %}
+{% set fieldsClass = '' %}
+{% set permissionsClass = '' %}
+
+{% if nav is defined %}
+    {% if nav.getErrors('name') or nav.getErrors('handle') or nav.getErrors('instructions') or nav.getErrors('maxLevels') or nav.getErrors('maxNodes') or nav.getErrors('propagateNodes') or nav.getErrors('siteSettings') %}
+        {% set settingsClass = 'error' %}
+    {% endif %}
+{% endif %}
+
 {% set tabs = [
-    { label: 'Settings' | t('app'), url: '#settings' },
-    { label: 'Node Fields' | t('navigation'), url: '#node-fields' },
-    { label: 'Permissions' | t('navigation'), url: '#permissions' },
+    { label: 'Settings' | t('app'), url: '#settings', class: settingsClass },
+    { label: 'Node Fields' | t('navigation'), url: '#node-fields', class: fieldsClass },
+    { label: 'Permissions' | t('navigation'), url: '#permissions', class: permissionsClass },
 ] %}
 
 {% set fullPageForm = true %}
