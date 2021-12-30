@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.23 - 2021-12-31
+
+### Fixed
+- Fix custom node types not having their class set correctly in the control panel.
+- Fix validation errors not appearing when saving a navigation.
+
 ## 1.4.22 - 2021-10-30
 
 ### Changed
