@@ -291,7 +291,7 @@ class Navs extends Component
                     // has nodes, we'll get duplicates. As there's no real way to compare
                     // propagated and non-propagated nodes (effectively), we need to wipe all
                     // other enabled nav nodes first, before duplicating.
-                    $existingNodes = Node::find()->siteId($site->id)->all();
+                    $existingNodes = Node::find()->navId($navRecord->id)->siteId($site->id)->all();
 
                     // But, we need to wait for all navigations to finish, before deleting.
                     // Otherwise, we'll delete a node in one site navigation, and because we've
