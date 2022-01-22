@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.24 - 2022-01-22
+
+### Fixed
+- Fix when turning on node propagation, node elements aren't re-saved in each site (for multi-sites).
+- Fix an error when turning off node propagation, which would effect all navigation nodes, instead of the navigation being edited.
+
 ## 1.4.23 - 2021-12-31
 
 ### Fixed
