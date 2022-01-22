@@ -303,7 +303,17 @@ class Navs extends Component
                     $this->_duplicateElements($nodes, ['siteId' => $site->id]);
                 }
             } else {
-                // Do nothing for now, until we figure out the best way to handle it...
+                // Re-save all nodes, to prompt them to be propagated to all enabled sites
+                $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
+
+                $nodes = Node::find()->navId($navRecord->id)->siteId($primarySiteId)->ids();
+
+                Craft::$app->getQueue()->push(new ResaveElements([
+                    'elementType' => Node::class,
+                    'criteria' => [
+                        'id' => $nodes,
+                    ]
+                ]));
             }
 
             foreach ($nodesToDelete as $nodeToDelete) {
@@ -519,11 +529,7 @@ class Navs extends Component
 
         // Only propagate nodes if we want to for the nav
         if ($nav->propagateNodes) {
-            $nodes = [];
-
-            foreach (Node::find()->navId($nav->id)->siteId($primarySiteId)->all() as $node) {
-                $nodes[] = $node->id;
-            }
+            $nodes = Node::find()->navId($nav->id)->siteId($primarySiteId)->ids();
 
             Craft::$app->getQueue()->push(new ResaveElements([
                 'elementType' => Node::class,
