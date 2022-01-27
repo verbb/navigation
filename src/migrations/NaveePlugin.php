@@ -31,6 +31,12 @@ class NaveePlugin extends Migration
                 ->from(['{{%navee_navigations}} navigations'])
                 ->all();
 
+            $siteSettings = [];
+
+            foreach (Craft::$app->getSites()->getAllSites() as $site) {
+                $siteSettings[$site->uid]['enabled'] = true;
+            }
+
             foreach ($NaveeNavs as $key => $NaveeNav) {
                 $nav = Navigation::$plugin->navs->getNavByHandle($NaveeNav['handle']);
 
@@ -44,6 +50,7 @@ class NaveePlugin extends Migration
                 $nav->handle = $NaveeNav['handle'];
                 $nav->maxLevels = $NaveeNav['maxLevels'];
                 $nav->structureId = $NaveeNav['structureId'];
+                $nav->siteSettings = $siteSettings;
 
                 if (!Navigation::$plugin->navs->saveNav($nav)) {
                     echo "    > ERROR: Unable to migrate nav `{$NaveeNav['handle']}` ...\n";

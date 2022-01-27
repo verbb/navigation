@@ -28,11 +28,14 @@ class AmNavPlugin extends Migration
             }
 
             $sitesByLanguage = [];
+            $siteSettings = [];
 
             foreach (Craft::$app->getSites()->getAllSites() as $site) {
                 $languageHandle = strtolower(str_replace('-', '_', $site->language));
 
                 $sitesByLanguage[$languageHandle] = $site;
+
+                $siteSettings[$site->uid]['enabled'] = true;
             }
 
             $defaultSite = Craft::$app->getSites()->getCurrentSite();
@@ -57,6 +60,7 @@ class AmNavPlugin extends Migration
                 $settings = Json::decode($AmNav['settings']);
                 $nav->maxLevels = $settings['maxLevels'] ?? '';
                 $nav->sortOrder = $key;
+                $nav->siteSettings = $siteSettings;
 
                 if (!Navigation::$plugin->navs->saveNav($nav)) {
                     echo "    > ERROR: Unable to migrate nav `{$AmNav['handle']}` ...\n";
