@@ -121,6 +121,8 @@ class AmNavPlugin extends Migration
 
                         Craft::dump($e->getMessage());
 
+                        echo "    > `{$this->getExceptionTraceAsString($e)}`";
+
                         continue;
                     } 
                 }
@@ -149,6 +151,8 @@ class AmNavPlugin extends Migration
             }
         } catch (\Throwable $e) {
             Craft::dump($e->getMessage());
+
+            echo "    > `{$this->getExceptionTraceAsString($e)}`";
         }
 
         return true;
@@ -157,5 +161,49 @@ class AmNavPlugin extends Migration
     public function safeDown()
     {
         return false;
+    }
+
+    private function getExceptionTraceAsString($exception) {
+        $rtn = "";
+        $count = 0;
+
+        foreach ($exception->getTrace() as $frame) {
+            $args = "";
+
+            if (isset($frame['args'])) {
+                $args = array();
+
+                foreach ($frame['args'] as $arg) {
+                    if (is_string($arg)) {
+                        $args[] = "'" . $arg . "'";
+                    } elseif (is_array($arg)) {
+                        $args[] = "Array";
+                    } elseif (is_null($arg)) {
+                        $args[] = 'NULL';
+                    } elseif (is_bool($arg)) {
+                        $args[] = ($arg) ? "true" : "false";
+                    } elseif (is_object($arg)) {
+                        $args[] = get_class($arg);
+                    } elseif (is_resource($arg)) {
+                        $args[] = get_resource_type($arg);
+                    } else {
+                        $args[] = $arg;
+                    }
+                }
+
+                $args = join(", ", $args);
+            }
+
+            $rtn .= sprintf( "#%s %s(%s): %s(%s)\n",
+                                 $count,
+                                 isset($frame['file']) ? $frame['file'] : '[internal function]',
+                                 isset($frame['line']) ? $frame['line'] : '',
+                                 (isset($frame['class']))  ? $frame['class'].$frame['type'].$frame['function'] : $frame['function'],
+                                 $args );
+
+            $count++;
+        }
+
+        return $rtn;
     }
 }
