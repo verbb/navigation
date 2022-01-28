@@ -159,12 +159,15 @@ class NaveePlugin extends Migration
 
                                     if ($parentNodeId) {
                                         $node = Navigation::$plugin->nodes->getNodeById($newNodeId);
-                                        $node->newParentId = $parentNodeId;
 
-                                        if (!Craft::$app->getElements()->saveElement($node, true, $this->propagate)) {
-                                            echo "    > ERROR: Unable to re-save node `{$node['title']}` ...\n";
+                                        if ($node) {
+                                            $node->newParentId = $parentNodeId;
 
-                                            Craft::dump($node->getErrors());
+                                            if (!Craft::$app->getElements()->saveElement($node, true, $this->propagate)) {
+                                                echo "    > ERROR: Unable to re-save node `{$node['title']}` ...\n";
+
+                                                Craft::dump($node->getErrors());
+                                            }
                                         }
                                     }
                                 } else {
