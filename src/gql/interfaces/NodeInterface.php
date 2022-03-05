@@ -4,18 +4,13 @@ namespace verbb\navigation\gql\interfaces;
 use verbb\navigation\elements\Node;
 use verbb\navigation\gql\arguments\NodeArguments;
 use verbb\navigation\gql\interfaces\NodeInterface as NodeInterfaceLocal;
-use verbb\navigation\gql\types\CustomAttributeType;
 use verbb\navigation\gql\types\generators\CustomAttributeGenerator;
 use verbb\navigation\gql\types\generators\NodeGenerator;
 
-use craft\gql\base\InterfaceType as BaseInterfaceType;
 use craft\gql\interfaces\Element;
 use craft\gql\interfaces\Structure;
-use craft\gql\types\DateTime;
-use craft\gql\TypeLoader;
 use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
-use craft\helpers\Gql;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;

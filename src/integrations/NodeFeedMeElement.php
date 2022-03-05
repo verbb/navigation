@@ -5,8 +5,8 @@ use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 
 use Craft;
-use craft\db\Query;
-use craft\elements\User as UserElement;
+use craft\helpers\Json;
+
 use craft\feedme\base\Element;
 use craft\feedme\Plugin;
 
@@ -18,7 +18,7 @@ class NodeFeedMeElement extends Element
     // =========================================================================
 
     public static $name = 'Navigation Node';
-    public static $class = 'verbb\navigation\elements\Node';
+    public static $class = Node::class;
 
     public $element;
 
@@ -26,17 +26,17 @@ class NodeFeedMeElement extends Element
     // Templates
     // =========================================================================
 
-    public function getGroupsTemplate()
+    public function getGroupsTemplate(): string
     {
         return 'navigation/_integrations/feed-me/groups';
     }
 
-    public function getColumnTemplate()
+    public function getColumnTemplate(): string
     {
         return 'navigation/_integrations/feed-me/column';
     }
 
-    public function getMappingTemplate()
+    public function getMappingTemplate(): string
     {
         return 'navigation/_integrations/feed-me/map';
     }
@@ -124,7 +124,7 @@ class NodeFeedMeElement extends Element
             $element->navId = $this->element->navId;
 
             if (!Craft::$app->getElements()->saveElement($element)) {
-                Plugin::error('Navigation Node error: Could not create parent - `{e}`.', ['e' => json_encode($element->getErrors())]);
+                Plugin::error('Navigation Node error: Could not create parent - `{e}`.', ['e' => Json::encode($element->getErrors())]);
             } else {
                 Plugin::info('Navigation Node `#{id}` added.', ['id' => $element->id]);
             }

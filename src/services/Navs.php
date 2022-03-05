@@ -21,7 +21,7 @@ use craft\helpers\StringHelper;
 use craft\models\Structure;
 use craft\queue\jobs\ResaveElements;
 
-use yii\web\UserEvent;
+use Throwable;
 
 class Navs extends Component
 {
@@ -40,7 +40,7 @@ class Navs extends Component
     // Properties
     // =========================================================================
 
-    private $_navs;
+    private ?array $_navs = null;
 
 
     // Public Methods
@@ -142,7 +142,7 @@ class Navs extends Component
                 'maxLevels' => $nav->maxLevels,
             ],
             'instructions' => $nav->instructions,
-            'propagateNodes' => (bool)$nav->propagateNodes,
+            'propagateNodes' => $nav->propagateNodes,
             'maxNodes' => $nav->maxNodes,
             'permissions' => $nav->permissions,
             'siteSettings' => $nav->siteSettings,
@@ -188,7 +188,7 @@ class Navs extends Component
         return true;
     }
 
-    public function handleChangedNav(ConfigEvent $event)
+    public function handleChangedNav(ConfigEvent $event): void
     {
         $navUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -250,7 +250,7 @@ class Navs extends Component
             }
 
             $transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
@@ -290,7 +290,7 @@ class Navs extends Component
                     // If we try and propagate nodes to another site's nav, which already
                     // has nodes, we'll get duplicates. As there's no real way to compare
                     // propagated and non-propagated nodes (effectively), we need to wipe all
-                    // other enabled nav nodes first, before duplicating.
+                    // enabled nav nodes first, before duplicating.
                     $existingNodes = Node::find()->navId($navRecord->id)->siteId($site->id)->all();
 
                     // But, we need to wait for all navigations to finish, before deleting.
@@ -384,7 +384,7 @@ class Navs extends Component
         return true;
     }
 
-    public function handleDeletedNav(ConfigEvent $event)
+    public function handleDeletedNav(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
         $navRecord = $this->_getNavRecord($uid);
@@ -431,7 +431,7 @@ class Navs extends Component
                 ->execute();
 
             $transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
@@ -463,7 +463,7 @@ class Navs extends Component
         return true;
     }
 
-    public function buildNavTree($nodes, &$nodeTree)
+    public function buildNavTree($nodes, &$nodeTree): void
     {
         foreach ($nodes as $key => $node) {
             $nodeTree[$key] = $node->toArray();
@@ -474,7 +474,7 @@ class Navs extends Component
         }
     }
 
-    public function getBuilderTabs($nav)
+    public function getBuilderTabs($nav): array
     {
         $tabs = [];
 
@@ -485,7 +485,7 @@ class Navs extends Component
             $enabled = $nav->permissions[$registeredElement['type']]['enabled'] ?? $registeredElement['default'] ?? false;
             $permissions = $nav->permissions[$registeredElement['type']]['permissions'] ?? '*';
 
-            if ((bool)$enabled) {
+            if ($enabled) {
                 $registeredElement['category'] = 'element';
                 $registeredElement['sources'] = $permissions;
 
@@ -496,7 +496,7 @@ class Navs extends Component
         foreach ($registeredNodeTypes as $nodeType) {
             $enabled = $nav->permissions[get_class($nodeType)]['enabled'] ?? true;
 
-            if ((bool)$enabled) {
+            if ($enabled) {
                 $key = StringHelper::toKebabCase($nodeType->displayName());
 
                 $tabs[$key] = [
@@ -511,7 +511,7 @@ class Navs extends Component
 
         $enabled = $nav->permissions['custom']['enabled'] ?? true;
 
-        if ((bool)$enabled) {
+        if ($enabled) {
             $tabs['custom'] = [
                 'label' => Craft::t('navigation', 'Custom URL'),
                 'button' => Craft::t('navigation', 'Add Custom URL'),
@@ -523,7 +523,7 @@ class Navs extends Component
         return $tabs;
     }
 
-    public function resaveNodesForSite($nav, $siteId)
+    public function resaveNodesForSite($nav, $siteId): void
     {
         $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
 
@@ -554,7 +554,7 @@ class Navs extends Component
     // Private Methods
     // =========================================================================
 
-    private function _createNavFromRecord(NavRecord $record = null)
+    private function _createNavFromRecord(NavRecord $record = null): ?Nav
     {
         if (!$record) {
             return null;
@@ -585,14 +585,14 @@ class Navs extends Component
         return $nav;
     }
 
-    private function _getNavRecord(string $uid, bool $withTrashed = false): NavRecord
+    private function _getNavRecord(string $uid, bool $withTrashed = false): \yii\db\ActiveRecord|array
     {
         $query = $withTrashed ? NavRecord::findWithTrashed() : NavRecord::find();
         $query->andWhere(['uid' => $uid]);
         return $query->one() ?? new NavRecord();
     }
 
-    private function _duplicateElements($elements, $newAttributes = [], &$duplicatedElementIds = [], $newParent = null)
+    private function _duplicateElements($elements, $newAttributes = [], &$duplicatedElementIds = [], $newParent = null): void
     {
         $elementsService = Craft::$app->getElements();
         $structuresService = Craft::$app->getStructures();

@@ -1,10 +1,10 @@
 <?php
 namespace verbb\navigation\twigextensions;
 
-use Twig_Extension;
-use Twig_SimpleFunction;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
 
-class Extension extends Twig_Extension
+class Extension extends AbstractExtension
 {
     // Public Methods
     // =========================================================================
@@ -17,20 +17,24 @@ class Extension extends Twig_Extension
     public function getFunctions(): array
     {
         return [
-            new Twig_SimpleFunction('displayName', [$this, 'displayName']),
+            new TwigFunction('displayName', [$this, 'displayName']),
         ];
     }
 
-    public function displayName($value)
+    public function displayName($value): ?string
     {
         if ((is_string($value) && class_exists($value)) || is_object($value)) {
             if (method_exists($value, 'displayName')) {
                 return $value::displayName();
-            } else {
-                $classNameParts = explode('\\', get_class($value));
-                                          
-                return array_pop($classNameParts);
             }
+
+            if (is_object($value)) {
+                $value = $value::class;
+            }
+
+            $classNameParts = explode('\\', $value);
+
+            return array_pop($classNameParts);
         }
 
         return '';

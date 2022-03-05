@@ -9,7 +9,6 @@ use verbb\navigation\services\Nodes;
 use verbb\navigation\services\NodeTypes;
 
 use Craft;
-use craft\log\FileTarget;
 
 use yii\log\Logger;
 
@@ -17,55 +16,59 @@ use verbb\base\BaseHelper;
 
 trait PluginTrait
 {
-    // Static Properties
+    // Properties
     // =========================================================================
 
-    public static $plugin;
+    public static Navigation $plugin;
+
+
+    // Static Methods
+    // =========================================================================
+
+    public static function log($message): void
+    {
+        Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'navigation');
+    }
+
+    public static function error($message): void
+    {
+        Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'navigation');
+    }
 
 
     // Public Methods
     // =========================================================================
 
-    public function getBreadcrumbs()
+    public function getBreadcrumbs(): Breadcrumbs
     {
         return $this->get('breadcrumbs');
     }
 
-    public function getElements()
+    public function getElements(): Elements
     {
         return $this->get('elements');
     }
 
-    public function getNavs()
+    public function getNavs(): Navs
     {
         return $this->get('navs');
     }
 
-    public function getNodes()
+    public function getNodes(): Nodes
     {
         return $this->get('nodes');
     }
 
-    public function getNodeTypes()
+    public function getNodeTypes(): NodeTypes
     {
         return $this->get('nodeTypes');
-    }
-
-    public static function log($message)
-    {
-        Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'navigation');
-    }
-
-    public static function error($message)
-    {
-        Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'navigation');
     }
 
 
     // Private Methods
     // =========================================================================
 
-    private function _setPluginComponents()
+    private function _setPluginComponents(): void
     {
         $this->setComponents([
             'breadcrumbs' => Breadcrumbs::class,
@@ -78,7 +81,7 @@ trait PluginTrait
         BaseHelper::registerModule();
     }
 
-    private function _setLogging()
+    private function _setLogging(): void
     {
         BaseHelper::setFileLogging('navigation');
     }

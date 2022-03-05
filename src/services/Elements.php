@@ -25,14 +25,14 @@ class Elements extends Component
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 
         $this->getRegisteredElements();
     }
 
-    public function getRegisteredElements()
+    public function getRegisteredElements(): array
     {
         // Add default element support
         $elements = [
@@ -40,21 +40,21 @@ class Elements extends Component
                 'label' => Craft::t('site', Entry::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add an entry'),
                 'type' => Entry::class,
-                'sources' => Craft::$app->getElementIndexes()->getSources(Entry::class, 'modal'),
+                'sources' => Craft::$app->getElementSources()->getSources(Entry::class, 'modal'),
                 'default' => true,
             ],
             [
                 'label' => Craft::t('site', Category::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add a category'),
                 'type' => Category::class,
-                'sources' => Craft::$app->getElementIndexes()->getSources(Category::class, 'modal'),
+                'sources' => Craft::$app->getElementSources()->getSources(Category::class, 'modal'),
                 'default' => true,
             ],
             [
                 'label' => Craft::t('site', Asset::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add an asset'),
                 'type' => Asset::class,
-                'sources' => Craft::$app->getElementIndexes()->getSources(Asset::class, 'modal'),
+                'sources' => Craft::$app->getElementSources()->getSources(Asset::class, 'modal'),
                 'default' => true,
             ],
         ];
@@ -64,12 +64,12 @@ class Elements extends Component
                 'label' => Craft::t('site', Product::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add a product'),
                 'type' => Product::class,
-                'sources' => Craft::$app->getElementIndexes()->getSources(Product::class, 'modal'),
+                'sources' => Craft::$app->getElementSources()->getSources(Product::class, 'modal'),
                 'default' => true,
             ];
         }
 
-        // Add all other elements that suport URIs
+        // Add all other elements that support URIs
         $addedElementTypes = ArrayHelper::getColumn($elements, 'type');
 
         foreach (Craft::$app->getElements()->getAllElementTypes() as $elementType) {
@@ -78,7 +78,7 @@ class Elements extends Component
                     'label' => Craft::t('site', $elementType::pluralDisplayName()),
                     'button' => Craft::t('site', 'Add a {name}', ['name' => $elementType::lowerDisplayName()]),
                     'type' => $elementType,
-                    'sources' => Craft::$app->getElementIndexes()->getSources($elementType, 'modal'),
+                    'sources' => Craft::$app->getElementSources()->getSources($elementType, 'modal'),
                 ];
             }
         }

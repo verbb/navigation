@@ -4,21 +4,18 @@ namespace verbb\navigation\services;
 use Craft;
 use craft\base\Component;
 use craft\events\ElementEvent;
-use craft\events\SiteEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\ElementHelper;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node as NodeElement;
 
-use yii\web\UserEvent;
-
 class Nodes extends Component
 {
     // Public Methods
     // =========================================================================
 
-    public function getNodeById($id, $siteId = null)
+    public function getNodeById($id, $siteId = null): ?\craft\base\ElementInterface
     {
         return Craft::$app->getElements()->getElementById($id, NodeElement::class, $siteId);
     }
@@ -33,7 +30,7 @@ class Nodes extends Component
             ->all();
     }
 
-    public function onSaveElement(ElementEvent $event)
+    public function onSaveElement(ElementEvent $event): void
     {
         // Skip this when updating Craft is currently in progress
         if (Craft::$app->getIsInMaintenanceMode()) {
@@ -63,7 +60,7 @@ class Nodes extends Component
 
         foreach ($nodes as $node) {
             // If no nav for the node, skip. Just to protect against nodes in some cases
-            $nav = Navigation::$plugin->navs->getNavById($node->navId);
+            $nav = Navigation::$plugin->getNavs()->getNavById($node->navId);
 
             if (!$nav) {
                 return;
@@ -92,7 +89,7 @@ class Nodes extends Component
 
             // Only update URL if its changed
             if ($currentElement && $currentElement->enabled === $node->enabled) {
-                $node->enabled = (bool)$element->enabled;
+                $node->enabled = $element->enabled;
             }
 
             $node->elementSiteId = $element->siteId;
@@ -101,7 +98,7 @@ class Nodes extends Component
         }
     }
 
-    public function onDeleteElement(ElementEvent $event)
+    public function onDeleteElement(ElementEvent $event): void
     {
         $element = $event->element;
 
@@ -116,7 +113,7 @@ class Nodes extends Component
         }
     }
 
-    public function getParentOptions($nodes, $nav)
+    public function getParentOptions($nodes, $nav): array
     {
         $maxLevels = $nav->maxLevels ?: false;
 
@@ -137,7 +134,7 @@ class Nodes extends Component
             $parentOptions[] = [
                 'label' => $label,
                 'value' => $node->id,
-                'disabled' => ($maxLevels !== false && $node->level >= $maxLevels) ? true : false,
+                'disabled' => $maxLevels !== false && $node->level >= $maxLevels,
             ];
         }
 

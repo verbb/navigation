@@ -8,5 +8,5 @@ class RegisterElementEvent extends Event
     // Properties
     // =========================================================================
 
-    public $elements = [];
+    public array $elements = [];
 }

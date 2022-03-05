@@ -11,16 +11,15 @@ use verbb\navigation\elements\Node as NodeElement;
 use verbb\navigation\models\Nav as NavModel;
 
 use yii\web\NotFoundHttpException;
-use yii\web\Response;
 
 class NavsController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    public function actionIndex()
+    public function actionIndex(): Response|\craft\web\TemplateResponseBehavior
     {
-        $navigations = Navigation::$plugin->navs->getAllEditableNavs();
+        $navigations = Navigation::$plugin->getNavs()->getAllEditableNavs();
 
         $siteHandles = [];
 
@@ -37,11 +36,11 @@ class NavsController extends Controller
         ]);
     }
 
-    public function actionEditNav(int $navId = null, NavModel $nav = null)
+    public function actionEditNav(int $navId = null, NavModel $nav = null): Response|\craft\web\TemplateResponseBehavior
     {
         if ($nav === null) {
             if ($navId !== null) {
-                $nav = Navigation::$plugin->navs->getNavById($navId);
+                $nav = Navigation::$plugin->getNavs()->getNavById($navId);
 
                 if (!$nav) {
                     throw new NotFoundHttpException('Navigation not found');
@@ -63,13 +62,13 @@ class NavsController extends Controller
         ]);
     }
 
-    public function actionBuildNav(int $navId = null, string $siteHandle = null)
+    public function actionBuildNav(int $navId = null, string $siteHandle = null): Response|\craft\web\TemplateResponseBehavior
     {
         $settings = Navigation::$plugin->getSettings();
         $defaultSite = false;
 
         if ($navId !== null) {
-            $nav = Navigation::$plugin->navs->getNavById($navId);
+            $nav = Navigation::$plugin->getNavs()->getNavById($navId);
 
             if (!$nav) {
                 throw new NotFoundHttpException('Navigation not found');
@@ -100,9 +99,9 @@ class NavsController extends Controller
 
         $this->requirePermission('navigation-manageNav:' . $nav->uid);
 
-        $nodes = Navigation::$plugin->nodes->getNodesForNav($nav->id, $site->id);
+        $nodes = Navigation::$plugin->getNodes()->getNodesForNav($nav->id, $site->id);
 
-        $parentOptions = Navigation::$plugin->nodes->getParentOptions($nodes, $nav);
+        $parentOptions = Navigation::$plugin->getNodes()->getParentOptions($nodes, $nav);
 
         Craft::$app->getSession()->authorize('editStructure:' . $nav->structureId);
 
@@ -120,7 +119,7 @@ class NavsController extends Controller
         ]);
     }
 
-    public function actionSaveNav()
+    public function actionSaveNav(): ?Response
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
@@ -129,7 +128,7 @@ class NavsController extends Controller
         $navId = $request->getBodyParam('navId');
 
         if ($navId) {
-            $nav = Navigation::$plugin->navs->getNavById($navId);
+            $nav = Navigation::$plugin->getNavs()->getNavById($navId);
         } else {
             $nav = new NavModel();
             $nav->id = $navId;
@@ -163,7 +162,7 @@ class NavsController extends Controller
         $fieldLayout->type = NodeElement::class;
         $nav->setFieldLayout($fieldLayout);
 
-        $success = Navigation::$plugin->navs->saveNav($nav);
+        $success = Navigation::$plugin->getNavs()->saveNav($nav);
 
         if (!$success) {
             $session->setError(Craft::t('navigation', 'Unable to save navigation.'));
@@ -180,28 +179,28 @@ class NavsController extends Controller
         return $this->redirectToPostedUrl($nav);
     }
 
-    public function actionReorderNav()
+    public function actionReorderNav(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $navIds = Json::decode(Craft::$app->getRequest()->getRequiredBodyParam('ids'));
-        Navigation::$plugin->navs->reorderNavs($navIds);
+        Navigation::$plugin->getNavs()->reorderNavs($navIds);
 
         return $this->asJson(['success' => true]);
     }
 
-    public function actionDeleteNav()
+    public function actionDeleteNav(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $navId = Craft::$app->getRequest()->getRequiredBodyParam('id');
-        $nav = Navigation::$plugin->navs->getNavById($navId);
+        $nav = Navigation::$plugin->getNavs()->getNavById($navId);
 
         $this->requirePermission('navigation-deleteNav:' . $nav->uid);
 
-        Navigation::$plugin->navs->deleteNavById($navId);
+        Navigation::$plugin->getNavs()->deleteNavById($navId);
 
         return $this->asJson(['success' => true]);
     }

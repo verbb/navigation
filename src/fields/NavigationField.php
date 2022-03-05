@@ -4,9 +4,7 @@ namespace verbb\navigation\fields;
 use verbb\navigation\Navigation;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\base\Field;
-use craft\helpers\Json;
 
 use yii\db\Schema;
 
@@ -25,7 +23,7 @@ class NavigationField extends Field
         return Craft::t('navigation', 'Select a navigation');
     }
 
-    public function getContentColumnType(): string
+    public function getContentColumnType(): array|string
     {
         return Schema::TYPE_TEXT;
     }
@@ -39,7 +37,7 @@ class NavigationField extends Field
     // Public Methods
     // =========================================================================
 
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         $navs = Navigation::$plugin->getNavs()->getAllNavs();
 
@@ -62,7 +60,7 @@ class NavigationField extends Field
         ]);
     }
 
-    public function getSettingsHtml()
+    public function getSettingsHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('navigation/_field/settings', [
 

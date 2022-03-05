@@ -7,14 +7,12 @@ use verbb\navigation\helpers\Gql as GqlHelper;
 use craft\gql\base\ElementResolver;
 use craft\helpers\Db;
 
-use GraphQL\Type\Definition\ResolveInfo;
-
 class NodeResolver extends ElementResolver
 {
     // Public Methods
     // =========================================================================
 
-    public static function prepareQuery($source, array $arguments, $fieldName = null)
+    public static function prepareQuery(mixed $source, array $arguments, $fieldName = null): mixed
     {
         if ($source === null) {
             $query = Node::find();

@@ -1,7 +1,8 @@
 <?php
 namespace verbb\navigation\events;
 
-use craft\models\Node as NodeModel;
+use verbb\navigation\elements\Node;
+
 use yii\base\Event;
 
 class NodeActiveEvent extends Event
@@ -9,6 +10,6 @@ class NodeActiveEvent extends Event
     // Properties
     // =========================================================================
 
-    public $node;
-    public $isActive;
+    public Node $node;
+    public ?bool $isActive = null;
 }

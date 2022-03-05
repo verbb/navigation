@@ -13,7 +13,7 @@ class BaseController extends Controller
     // Public Methods
     // =========================================================================
 
-    public function actionAmNavMigrate()
+    public function actionAmNavMigrate(): \yii\web\Response|\craft\web\TemplateResponseBehavior
     {
         // Backup!
         Craft::$app->getDb()->backup();
@@ -27,8 +27,7 @@ class BaseController extends Controller
 
         ob_start();
         $migration->up();
-        $output = ob_get_contents();
-        ob_end_clean();
+        $output = ob_get_clean();
 
         $output = nl2br($output);
 
@@ -40,7 +39,7 @@ class BaseController extends Controller
         ]);
     }
 
-    public function actionNaveeMigrate()
+    public function actionNaveeMigrate(): \yii\web\Response|\craft\web\TemplateResponseBehavior
     {
         // Backup!
         Craft::$app->getDb()->backup();
@@ -52,8 +51,7 @@ class BaseController extends Controller
 
         ob_start();
         $migration->up();
-        $output = ob_get_contents();
-        ob_end_clean();
+        $output = ob_get_clean();
 
         $output = nl2br($output);
 
@@ -65,7 +63,7 @@ class BaseController extends Controller
         ]);
     }
 
-    public function actionSettings()
+    public function actionSettings(): void
     {
         $settings = Navigation::$plugin->getSettings();
 

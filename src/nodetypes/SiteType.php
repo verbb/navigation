@@ -39,30 +39,28 @@ class SiteType extends NodeType
     // Public Methods
     // =========================================================================
 
-    public function getModalHtml()
+    public function getModalHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('navigation/_types/site/modal', [
             'node' => $this->node,
         ]);
     }
 
-    public function getSettingsHtml()
+    public function getSettingsHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('navigation/_types/site/settings');
     }
 
-    public function getUrl()
+    public function getUrl(): ?string
     {
         $data = $this->node->data ?? [];
 
         if ($data) {
             $siteId = $data['siteId'] ?? null;
 
-            if ($siteId) {
-                if ($site = Craft::$app->getSites()->getSiteById($siteId)) {
-                    if ($site->hasUrls) {
-                        return rtrim($site->getBaseUrl(), '/');
-                    }
+            if ($siteId && $site = Craft::$app->getSites()->getSiteById($siteId)) {
+                if ($site->hasUrls) {
+                    return rtrim($site->getBaseUrl(), '/');
                 }
             }
         }

@@ -1,16 +1,11 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\elements\Node;
-use verbb\navigation\records\Node as NodeRecord;
-
-use Craft;
 use craft\db\Migration;
-use craft\db\Query;
 
 class m201018_000000_site_settings extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         if (!$this->db->columnExists('{{%navigation_navs}}', 'siteSettings')) {
             $this->addColumn('{{%navigation_navs}}', 'siteSettings', $this->text()->after('permissions'));
@@ -19,7 +14,7 @@ class m201018_000000_site_settings extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m201018_000000_site_settings cannot be reverted.\n";
 

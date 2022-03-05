@@ -1,17 +1,13 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\elements\Node;
-use verbb\navigation\records\Node as NodeRecord;
-
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\db\Table;
 
 class m200811_000000_fix_uris extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         $nodeIds = (new Query())
             ->select(['id'])
@@ -27,7 +23,7 @@ class m200811_000000_fix_uris extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m200811_000000_fix_uris cannot be reverted.\n";
 

@@ -1,8 +1,6 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\Navigation;
-
 use Craft;
 use craft\db\Migration;
 
@@ -11,7 +9,7 @@ class Install extends Migration
     // Public Methods
     // =========================================================================
 
-    public function safeUp()
+    public function safeUp(): bool
     {
         $this->createTables();
         $this->createIndexes();
@@ -24,7 +22,7 @@ class Install extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         $this->removeTables();
         $this->dropProjectConfig();
@@ -32,7 +30,7 @@ class Install extends Migration
         return true;
     }
 
-    public function createTables()
+    public function createTables(): void
     {
         $this->createTable('{{%navigation_nodes}}', [
             'id' => $this->integer()->notNull(),
@@ -72,7 +70,7 @@ class Install extends Migration
         ]);
     }
 
-    public function createIndexes()
+    public function createIndexes(): void
     {
         $this->createIndex(null, '{{%navigation_nodes}}', ['navId'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['handle'], false);
@@ -81,7 +79,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%navigation_navs}}', ['dateDeleted'], false);
     }
 
-    public function addForeignKeys()
+    public function addForeignKeys(): void
     {
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['navId'], '{{%navigation_navs}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['elementId'], '{{%elements}}', ['id'], 'SET NULL', null);
@@ -90,13 +88,13 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%navigation_navs}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'SET NULL', null);
     }
 
-    public function removeTables()
+    public function removeTables(): void
     {
         $this->dropTableIfExists('{{%navigation_nodes}}');
         $this->dropTableIfExists('{{%navigation_navs}}');
     }
 
-    public function dropProjectConfig()
+    public function dropProjectConfig(): void
     {
         Craft::$app->projectConfig->remove('navigation');
     }

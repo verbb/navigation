@@ -2,18 +2,15 @@
 namespace verbb\navigation\migrations;
 
 use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node;
 use verbb\navigation\fields\NavigationField;
-use verbb\navigation\records\Node as NodeRecord;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Json;
 
 class m190307_000000_update_field_content extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         $navFields = (new Query())
             ->select(['handle'])
@@ -39,7 +36,7 @@ class m190307_000000_update_field_content extends Migration
                 $content = $navContent[$column];
 
                 // Check if this was the ID of the nav
-                $nav = Navigation::$plugin->navs->getNavById($content);
+                $nav = Navigation::$plugin->getNavs()->getNavById($content);
 
                 if ($nav) {
                     $value = $nav->handle;
@@ -61,7 +58,7 @@ class m190307_000000_update_field_content extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m190307_000000_update_field_content cannot be reverted.\n";
 

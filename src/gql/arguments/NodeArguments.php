@@ -5,7 +5,6 @@ use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 
 use craft\gql\base\StructureElementArguments;
-use craft\gql\types\QueryArgument;
 
 use GraphQL\Type\Definition\Type;
 

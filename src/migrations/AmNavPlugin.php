@@ -8,19 +8,24 @@ use verbb\navigation\models\Nav as NavModel;
 use Craft;
 use craft\db\Migration;
 use craft\db\Query;
+use craft\elements\Asset;
+use craft\elements\Category;
+use craft\elements\Entry;
 use craft\helpers\Json;
+
+use Throwable;
 
 class AmNavPlugin extends Migration
 {
-    public $propagate = true;
-    public $assignToDefaultSite = false;
+    public bool $propagate = true;
+    public bool $assignToDefaultSite = false;
 
-    private $processedNodes = [];
+    private array $processedNodes = [];
 
     // Public Methods
     // =========================================================================
 
-    public function safeUp()
+    public function safeUp(): bool
     {
         try {
             if (!$this->db->tableExists('{{%amnav_navs}}')) {
@@ -38,15 +43,13 @@ class AmNavPlugin extends Migration
                 $siteSettings[$site->uid]['enabled'] = true;
             }
 
-            $defaultSite = Craft::$app->getSites()->getCurrentSite();
-
             $AmNavs = (new Query())
                 ->select(['*'])
                 ->from(['{{%amnav_navs}}'])
                 ->all();
 
             foreach ($AmNavs as $key => $AmNav) {
-                $nav = Navigation::$plugin->navs->getNavByHandle($AmNav['handle']);
+                $nav = Navigation::$plugin->getNavs()->getNavByHandle($AmNav['handle']);
 
                 echo "\n    > Migrating nav `{$AmNav['handle']}` ...\n";
 
@@ -62,7 +65,7 @@ class AmNavPlugin extends Migration
                 $nav->sortOrder = $key;
                 $nav->siteSettings = $siteSettings;
 
-                if (!Navigation::$plugin->navs->saveNav($nav)) {
+                if (!Navigation::$plugin->getNavs()->saveNav($nav)) {
                     echo "    > ERROR: Unable to migrate nav `{$AmNav['handle']}` ...\n";
 
                     Craft::dump($nav->getErrors());
@@ -77,7 +80,7 @@ class AmNavPlugin extends Migration
                     ->orderBy('parentId ASC, order ASC')
                     ->all();
 
-                foreach ($AmNodes as $key => $AmNode) {
+                foreach ($AmNodes as $AmNode) {
                     try {
                         $node = new Node();
 
@@ -98,11 +101,11 @@ class AmNavPlugin extends Migration
                         }
 
                         if ($AmNode['elementType'] === 'Entry') {
-                           $node->type = \craft\elements\Entry::class;
+                           $node->type = Entry::class;
                         } else if ($AmNode['elementType'] === 'Category') {
-                           $node->type = \craft\elements\Category::class;
+                           $node->type = Category::class;
                         } else if ($AmNode['elementType'] === 'Asset') {
-                           $node->type = \craft\elements\Asset::class;
+                           $node->type = Asset::class;
                         }
 
                         if (Craft::$app->getElements()->saveElement($node, true, $this->propagate)) {
@@ -116,7 +119,7 @@ class AmNavPlugin extends Migration
 
                             Craft::dump($node->getErrors());
                         }
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         echo "    > ERROR: Unable to save node `{$AmNode['name']}` ...\n";
 
                         Craft::dump($e->getMessage());
@@ -134,7 +137,7 @@ class AmNavPlugin extends Migration
                 $newParent = $this->processedNodes[$nodeInfo['oldParent']] ?? null;
 
                 if ($newParent) {
-                    $node = Navigation::$plugin->nodes->getNodeById($nodeInfo['newNode'], $nodeInfo['siteId']);
+                    $node = Navigation::$plugin->getNodes()->getNodeById($nodeInfo['newNode'], $nodeInfo['siteId']);
 
                     if ($node) {
                         $node->newParentId = $newParent['newNode'];
@@ -149,7 +152,7 @@ class AmNavPlugin extends Migration
                     }
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Craft::dump($e->getMessage());
 
             echo "    > `{$this->getExceptionTraceAsString($e)}`";
@@ -158,12 +161,13 @@ class AmNavPlugin extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         return false;
     }
 
-    private function getExceptionTraceAsString($exception) {
+    private function getExceptionTraceAsString($exception): string
+    {
         $rtn = "";
         $count = 0;
 
@@ -191,13 +195,13 @@ class AmNavPlugin extends Migration
                     }
                 }
 
-                $args = join(", ", $args);
+                $args = implode(", ", $args);
             }
 
             $rtn .= sprintf( "#%s %s(%s): %s(%s)\n",
                                  $count,
-                                 isset($frame['file']) ? $frame['file'] : '[internal function]',
-                                 isset($frame['line']) ? $frame['line'] : '',
+                $frame['file'] ?? '[internal function]',
+                $frame['line'] ?? '',
                                  (isset($frame['class']))  ? $frame['class'].$frame['type'].$frame['function'] : $frame['function'],
                                  $args );
 

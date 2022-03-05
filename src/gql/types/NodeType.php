@@ -3,8 +3,6 @@ namespace verbb\navigation\gql\types;
 
 use verbb\navigation\gql\interfaces\NodeInterface;
 
-use craft\gql\base\ObjectType;
-use craft\gql\interfaces\Element as ElementInterface;
 use craft\gql\types\elements\Element;
 
 use GraphQL\Type\Definition\ResolveInfo;
@@ -23,15 +21,12 @@ class NodeType extends Element
         parent::__construct($config);
     }
 
-    protected function resolve($source, $arguments, $context, ResolveInfo $resolveInfo)
+    protected function resolve(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo): mixed
     {
         $fieldName = $resolveInfo->fieldName;
-
-        switch ($fieldName) {
-            case 'navHandle':
-                return $source->getNav()->handle;
-        }
-
-        return parent::resolve($source, $arguments, $context, $resolveInfo);
+        return match ($fieldName) {
+            'navHandle' => $source->getNav()->handle,
+            default => parent::resolve($source, $arguments, $context, $resolveInfo),
+        };
     }
 }

@@ -8,21 +8,19 @@ use verbb\navigation\elements\Node as NodeElement;
 use Craft;
 use craft\web\View;
 
-use yii\base\Behavior;
-
 class NavigationVariable
 {
-    public function getPluginName()
+    public function getPluginName(): string
     {
         return Navigation::$plugin->getPluginName();
     }
 
-    public function getRegisteredElements()
+    public function getRegisteredElements(): array
     {
         return Navigation::$plugin->getElements()->getRegisteredElements();
     }
 
-    public function getRegisteredNodeTypes()
+    public function getRegisteredNodeTypes(): array
     {
         return Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
     }
@@ -40,7 +38,7 @@ class NavigationVariable
         return null;
     }
 
-    public function nodes($criteria = null): NodeQuery
+    public function nodes($criteria = null): \craft\elements\db\ElementQueryInterface
     {
         $query = NodeElement::find();
 
@@ -55,7 +53,7 @@ class NavigationVariable
         return $query;
     }
 
-    public function render($criteria = null, array $options = [])
+    public function render($criteria = null, array $options = []): void
     {
         $nodes = $this->nodes($criteria)->all();
 
@@ -69,12 +67,12 @@ class NavigationVariable
         Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_SITE);
     }
 
-    public function breadcrumbs()
+    public function breadcrumbs(): array
     {
         return Navigation::$plugin->getBreadcrumbs()->getBreadcrumbs();
     }
 
-    public function tree($criteria = null)
+    public function tree($criteria = null): array
     {
         $nodes = $this->nodes($criteria)->level(1)->all();
 
@@ -95,12 +93,12 @@ class NavigationVariable
         return Navigation::$plugin->getNavs()->getNavByHandle($handle);
     }
     
-    public function getAllNavs()
+    public function getAllNavs(): array
     {
         return Navigation::$plugin->getNavs()->getAllNavs();
     }
     
-    public function getBuilderTabs($nav)
+    public function getBuilderTabs($nav): array
     {
         return Navigation::$plugin->getNavs()->getBuilderTabs($nav);
     }

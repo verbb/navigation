@@ -8,7 +8,7 @@ use craft\db\Migration;
 
 class m181110_000000_add_elementSiteId extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         if (!$this->db->columnExists('{{%navigation_nodes}}', 'elementSiteId')) {
             $this->addColumn('{{%navigation_nodes}}', 'elementSiteId', $this->integer()->after('elementId'));
@@ -32,7 +32,7 @@ class m181110_000000_add_elementSiteId extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m181110_000000_add_elementSiteId cannot be reverted.\n";
 

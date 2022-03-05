@@ -1,7 +1,8 @@
 <?php
 namespace verbb\navigation\events;
 
-use craft\models\Node as NodeModel;
+use verbb\navigation\elements\Node;
+
 use yii\base\Event;
 
 class NodeEvent extends Event
@@ -9,7 +10,6 @@ class NodeEvent extends Event
     // Properties
     // =========================================================================
 
-    public $node;
-
-    public $isNew = false;
+    public Node $node;
+    public bool $isNew = false;
 }

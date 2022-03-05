@@ -8,5 +8,5 @@ class RegisterNodeTypeEvent extends Event
     // Properties
     // =========================================================================
 
-    public $types = [];
+    public array $types = [];
 }

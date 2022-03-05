@@ -2,17 +2,15 @@
 namespace verbb\navigation\migrations;
 
 use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node;
-use verbb\navigation\records\Node as NodeRecord;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\db\Table;
+use craft\helpers\Json;
 
 class m200810_000000_fix_elementsiteid extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         // Check if the Craft 3.5 update has messed up the slug, which we use to store the `elementSiteId`
         $siteIds = (new Query())
@@ -26,7 +24,7 @@ class m200810_000000_fix_elementsiteid extends Migration
             ->leftJoin(['elements_sites' => Table::ELEMENTS_SITES], '[[elements_sites.elementId]] = [[nodes.id]]')
             ->all();
 
-        // Check each rows slug. If it matches a site ID, its fine, if not, it's a reference to the column ID for elements_sites
+        // Check each rows slug. If it matches a site ID, it's fine, if not, it's a reference to the column ID for elements_sites
         foreach ($rows as $row) {
             if (!$row['slug']) {
                 continue;
@@ -44,7 +42,7 @@ class m200810_000000_fix_elementsiteid extends Migration
 
                     $this->update(Table::ELEMENTS_SITES, ['slug' => $siteId], ['id' => $row['id']]);
                 } else {
-                    Navigation::error('Invalid site info ' . json_encode($row));
+                    Navigation::error('Invalid site info ' . Json::encode($row));
                 }
             }
         }
@@ -52,7 +50,7 @@ class m200810_000000_fix_elementsiteid extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m200810_000000_fix_elementsiteid cannot be reverted.\n";
 

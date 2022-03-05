@@ -1,27 +1,20 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node;
-use verbb\navigation\fields\NavigationField;
-use verbb\navigation\records\Node as NodeRecord;
-
 use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\Json;
-use craft\helpers\MigrationHelper;
 
 class m190315_000000_project_config extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         // Don't make the same config changes twice
         $projectConfig = Craft::$app->getProjectConfig();
         $schemaVersion = $projectConfig->get('plugins.navigation.schemaVersion', true);
         
         if (version_compare($schemaVersion, '1.0.11', '>=')) {
-            return;
+            return true;
         }
 
         $projectConfig->set('navigation.navs', $this->_getNavData());
@@ -67,7 +60,7 @@ class m190315_000000_project_config extends Migration
         return $navData;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m190315_000000_project_config cannot be reverted.\n";
 

@@ -4,20 +4,12 @@ namespace verbb\navigation\services;
 use Craft;
 use craft\base\Component;
 
-use verbb\navigation\Navigation;
-use verbb\navigation\events\RegisterElementEvent;
-
-use craft\elements\Asset;
-use craft\elements\Entry;
-use craft\elements\Category;
-use craft\commerce\elements\Product;
-
 class Breadcrumbs extends Component
 {
     // Public Methods
     // =========================================================================
 
-    public function getBreadcrumbs()
+    public function getBreadcrumbs(): array
     {
         $elements = [];
         $segments = Craft::$app->request->getSegments();

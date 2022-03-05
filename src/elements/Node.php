@@ -1,25 +1,16 @@
 <?php
 namespace verbb\navigation\elements;
 
-use craft\behaviors\FieldLayoutBehavior;
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\events\NodeActiveEvent;
-use verbb\navigation\models\Nav as NavModel;
 use verbb\navigation\nodetypes\PassiveType;
 use verbb\navigation\nodetypes\SiteType;
-use verbb\navigation\records\Nav as NavRecord;
 use verbb\navigation\records\Node as NodeRecord;
 
 use Craft;
 use craft\base\Element;
-use craft\controllers\ElementIndexesController;
-use craft\db\Query;
-use craft\elements\actions\Delete;
-use craft\elements\actions\Edit;
-use craft\elements\actions\NewChild;
-use craft\elements\actions\SetStatus;
-use craft\elements\actions\View;
+use craft\base\ElementInterface;
 use craft\elements\db\ElementQueryInterface;
 use Craft\helpers\ArrayHelper;
 use craft\helpers\Html;
@@ -27,11 +18,14 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 
 use yii\base\Event;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\helpers\BaseHtml;
+
+use Twig\Markup;
 
 class Node extends Element
 {
@@ -49,7 +43,7 @@ class Node extends Element
         return Craft::t('navigation', 'Navigation Node');
     }
 
-    public static function refHandle()
+    public static function refHandle(): ?string
     {
         return 'node';
     }
@@ -84,12 +78,12 @@ class Node extends Element
         return new NodeQuery(static::class);
     }
 
-    public static function gqlTypeNameByContext($context): string
+    public static function gqlTypeNameByContext(mixed $context): string
     {
         return $context->handle . '_Node';
     }
 
-    public static function gqlScopesByContext($context): array
+    public static function gqlScopesByContext(mixed $context): array
     {
         return ['navigationNavs.' . $context->uid];
     }
@@ -98,35 +92,35 @@ class Node extends Element
     // Properties
     // =========================================================================
 
-    public $id;
-    public $elementId;
-    public $siteId;
-    public $navId;
-    public $enabled = true;
-    public $type;
-    public $classes;
-    public $urlSuffix;
-    public $customAttributes = [];
-    public $data = [];
-    public $newWindow = false;
+    public ?int $id = null;
+    public ?int $elementId = null;
+    public ?int $siteId = null;
+    public ?int $navId = null;
+    public bool $enabled = true;
+    public ?string $type = null;
+    public ?string $classes = null;
+    public ?string $urlSuffix = null;
+    public array $customAttributes = [];
+    public array $data = [];
+    public bool $newWindow = false;
 
-    public $uri;
-    public $newParentId;
-    public $deletedWithNav = false;
-    public $typeLabel = '';
+    public ?string $uri = null;
+    public ?int $newParentId = null;
+    public ?bool $deletedWithNav = false;
+    public ?string $typeLabel = null;
 
-    private $_url;
-    private $_element;
-    private $_nodeType;
-    private $_elementUrl;
-    private $_hasNewParent;
-    private $_isActive;
+    private ?string $_url = null;
+    private ?ElementInterface $_element = null;
+    private ?string $_nodeType = null;
+    private ?string $_elementUrl = null;
+    private ?bool $_hasNewParent = null;
+    private ?bool $_isActive = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -138,7 +132,7 @@ class Node extends Element
         }
     }
 
-    public function getElement()
+    public function getElement(): ?\craft\base\ElementInterface
     {
         if ($this->_element !== null) {
             return $this->_element;
@@ -154,12 +148,12 @@ class Node extends Element
         return $this->_element = Craft::$app->getElements()->getElementById($this->elementId, $this->type, $this->getElementSiteId());
     }
 
-    public function setElement($element = null)
+    public function setElement($element = null): void
     {
         $this->_element = $element;
     }
 
-    public function getElementSiteId()
+    public function getElementSiteId(): ?int
     {
         // Hijack the slug of the node element, because that's a 'free' column in the `elements_sites` table for the
         // node. Otherwise, we'd have to create a `node_sites` table, which I wasn't keen on at the time...
@@ -171,12 +165,12 @@ class Node extends Element
         return Craft::$app->getSites()->getCurrentSite()->id;
     }
 
-    public function setElementSiteId($value)
+    public function setElementSiteId($value): void
     {
         $this->slug = $value;
     }
 
-    public function getElementSlug()
+    public function getElementSlug(): ?string
     {
         if ($element = $this->getElement()) {
             return $element->slug;
@@ -185,7 +179,7 @@ class Node extends Element
         return '';
     }
 
-    public function getActive($includeChildren = true)
+    public function getActive($includeChildren = true): ?bool
     {
         $isActive = $this->_getActive($includeChildren);
 
@@ -199,7 +193,7 @@ class Node extends Element
         return $event->isActive;
     }
 
-    public function setIsActive($value)
+    public function setIsActive($value): void
     {
         $this->_isActive = $value;
     }
@@ -217,14 +211,16 @@ class Node extends Element
                 }
             }
         }
+
+        return true;
     }
 
-    public function getRawUrl()
+    public function getRawUrl(): ?string
     {
         return $this->_url;
     }
 
-    public function getUrl($includeSuffix = true)
+    public function getUrl($includeSuffix = true): ?string
     {
         $url = $this->getElementUrl() ?? $this->_url;
 
@@ -242,13 +238,13 @@ class Node extends Element
         }
 
         if ($this->urlSuffix && $includeSuffix) {
-            $url = $url . $this->urlSuffix;
+            $url .= $this->urlSuffix;
         }
 
         return $url;
     }
 
-    public function setUrl($value)
+    public function setUrl($value): void
     {
         $this->_url = $value;
     }
@@ -259,23 +255,23 @@ class Node extends Element
             $path = ($this->_elementUrl === '__home__') ? '' : $this->_elementUrl;
 
             return UrlHelper::siteUrl($path, null, null, $this->getElementSiteId());
-        } else {
-            $element = $this->getElement();
+        }
 
-            if ($element) {
-                return $element->url;
-            }
+        $element = $this->getElement();
+
+        if ($element) {
+            return $element->url;
         }
 
         return null;
     }
 
-    public function setElementUrl($value)
+    public function setElementUrl($value): void
     {
         $this->_elementUrl = $value;
     }
 
-    public function getNodeUri()
+    public function getNodeUri(): string
     {
         if ($url = $this->getUrl()) {
             return str_replace(UrlHelper::siteUrl('', null, null, $this->siteId), '', $url);
@@ -284,7 +280,7 @@ class Node extends Element
         return '';
     }
 
-    public function getLinkAttributes($extraAttributes = null)
+    public function getLinkAttributes($extraAttributes = null): Markup
     {
         $object = $this->_getObject();
 
@@ -314,12 +310,12 @@ class Node extends Element
         return Template::raw(BaseHtml::renderTagAttributes($attributes));
     }
 
-    public function getLink($attributes = null)
+    public function getLink($attributes = null): ?Markup
     {
         return Template::raw('<a ' . $this->getLinkAttributes($attributes) . '>' . Html::encode($this->__toString()) . '</a>');
     }
 
-    public function getTarget()
+    public function getTarget(): string
     {
         return $this->newWindow ? '_blank' : '';
     }
@@ -330,7 +326,7 @@ class Node extends Element
             throw new InvalidConfigException('Node is missing its navigation ID');
         }
 
-        $nav = Navigation::$plugin->navs->getNavById($this->navId);
+        $nav = Navigation::$plugin->getNavs()->getNavById($this->navId);
 
         if (!$nav) {
             throw new InvalidConfigException('Invalid navigation ID: ' . $this->navId);
@@ -339,9 +335,9 @@ class Node extends Element
         return $nav;
     }
 
-    public function isManual()
+    public function isManual(): bool
     {
-        return (bool)!$this->type;
+        return !$this->type;
     }
 
     public function nodeType()
@@ -356,7 +352,7 @@ class Node extends Element
         $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
 
         foreach ($registeredNodeTypes as $registeredNodeType) {
-            if ($this->type === get_class($registeredNodeType)) {
+            if ($this->type === $registeredNodeType::class) {
                 $registeredNodeType->node = $this;
 
                 return $this->_nodeType = $registeredNodeType;
@@ -366,7 +362,7 @@ class Node extends Element
         return null;
     }
 
-    public function getNodeType()
+    public function getNodeType(): ?string
     {
         if (!$this->type) {
             return 'custom';
@@ -375,20 +371,22 @@ class Node extends Element
         return $this->type;
     }
 
-    public function getNodeTypeLabel()
+    public function getNodeTypeLabel(): ?string
     {
         if ($this->isManual()) {
             return Craft::t('navigation', 'manual');
-        } else if ($this->nodeType()) {
-            return StringHelper::toLowerCase($this->nodeType()->displayName());
-        } else {
-            $classNameParts = explode('\\', $this->type);
-
-            return StringHelper::toLowerCase(array_pop($classNameParts));
         }
+
+        if ($this->nodeType()) {
+            return StringHelper::toLowerCase($this->nodeType()->displayName());
+        }
+
+        $classNameParts = explode('\\', $this->type);
+
+        return StringHelper::toLowerCase(array_pop($classNameParts));
     }
 
-    public function isElement()
+    public function isElement(): bool
     {
         $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements();
 
@@ -401,24 +399,22 @@ class Node extends Element
         return false;
     }
 
-    public function isPassive()
+    public function isPassive(): bool
     {
         return $this->type === PassiveType::class;
     }
 
-    public function isSite()
+    public function isSite(): bool
     {
         return $this->type === SiteType::class;
     }
 
-    public function hasOverriddenTitle()
+    public function hasOverriddenTitle(): bool
     {
         $element = $this->getElement();
 
-        if ($element) {
-            if ($element->title !== $this->title) {
-                return true;
-            }
+        if ($element && $element->title !== $this->title) {
+            return true;
         }
 
         return false;
@@ -462,7 +458,7 @@ class Node extends Element
 
         if ($this->_hasNewParent()) {
             if ($this->newParentId) {
-                $parentNode = Navigation::$plugin->nodes->getNodeById($this->newParentId, $this->siteId);
+                $parentNode = Navigation::$plugin->getNodes()->getNodeById($this->newParentId, $this->siteId);
 
                 if (!$parentNode) {
                     throw new Exception('Invalid node ID: ' . $this->newParentId);
@@ -509,7 +505,7 @@ class Node extends Element
         return parent::beforeSave($isNew);
     }
 
-    public function afterSave(bool $isNew)
+    public function afterSave(bool $isNew): void
     {
         // Get the node record
         if (!$isNew) {
@@ -533,7 +529,7 @@ class Node extends Element
         $record->data = $this->data;
         $record->newWindow = $this->newWindow;
 
-        // Don't store the URL if its an element. We should rely on its element URL.
+        // Don't store the URL if it's an element. We should rely on its element URL.
         // Check for custom types, they might want to save the URL
         if ($this->type && !$this->nodeType()) {
             $record->url = null;
@@ -595,7 +591,7 @@ class Node extends Element
         return true;
     }
 
-    public function afterRestore()
+    public function afterRestore(): void
     {
         $structureId = $this->getNav()->structureId;
 
@@ -615,14 +611,14 @@ class Node extends Element
         parent::afterRestore();
     }
 
-    public function getFieldLayout()
+    public function getFieldLayout(): ?FieldLayout
     {
         $nav = $this->navId === null ? null : $this->getNav();
 
         return $nav ? $nav->getNavFieldLayout() : null;
     }
 
-    public function getCustomAttributesObject()
+    public function getCustomAttributesObject(): array
     {
         $object = [];
 
@@ -649,7 +645,7 @@ class Node extends Element
 
         // Don't run the for console requests. This is called when populating the Node element
         if ($request->getIsConsoleRequest()) {
-            return;
+            return false;
         }
 
         $siteUrl = trim(UrlHelper::siteUrl(), '/');
@@ -657,7 +653,7 @@ class Node extends Element
 
         // If no URL and not a manual node, skip. Think passive nodes.
         if ($nodeUrl === '' && !$this->isManual()) {
-            return;
+            return false;
         }
 
         // Get the full url to compare, this makes sure it works with any setup (either other domain per site or subdirs)
@@ -669,7 +665,7 @@ class Node extends Element
         $currentUrl = preg_replace('/\?.*/', '', $currentUrl);
 
         // Convert a root-relative node's URL to its absolute equivalent. Note we're not using the site URL,
-        // becuase the node's URL will likely already contain that.
+        // because the node's URL will likely already contain that.
         if (UrlHelper::isRootRelativeUrl($nodeUrl)) {
             $nodeUrl = $request->hostInfo . '/' . trim($nodeUrl, '/');
         }
@@ -684,11 +680,11 @@ class Node extends Element
 
         // Stop straight away if this is the homepage entry
         if ($this->_elementUrl && $this->_elementUrl === '__home__') {
-            return $currentUrl === $nodeUrl ? true : false;
+            return $currentUrl === $nodeUrl;
         }
 
         // Check if they match, easy enough!
-        $isActive = (bool)($currentUrl === $nodeUrl);
+        $isActive = $currentUrl === $nodeUrl;
 
         // Also check if any children are active
         if ($includeChildren) {
@@ -697,7 +693,7 @@ class Node extends Element
 
             // Include trailing slashes to check if the parent has a child, otherwise we get partial matches
             // for things like /some-entry and /some-entry-title - both would incorrectly match
-            if (substr($currentUrl, 0, strlen($nodeUrl . '/')) === $nodeUrl . '/') {
+            if (str_starts_with($currentUrl, $nodeUrl . '/')) {
                 // Make sure we're not on the homepage (unless this node is for the homepage)
                 if ($nodeUrl !== $siteUrl) {
                     $isActive = true;
@@ -705,7 +701,7 @@ class Node extends Element
             }
 
             // If `$currentUrl` string equals `$nodeUrl` string, zero is returned - if this happens, a match is found.
-            if (strpos($currentUrl, $nodeUrl) === 0) {
+            if (str_starts_with($currentUrl, $nodeUrl)) {
                 // Make sure we're not on the homepage (unless this node is for the homepage)
                 if ($nodeUrl !== $siteUrl) {
                     $isActive = true;
@@ -727,7 +723,7 @@ class Node extends Element
 
     private function _checkForNewParent(): bool
     {
-        // Is it a brand new node?
+        // Is it a brand-new node?
         if ($this->id === null) {
             return true;
         }
@@ -759,7 +755,7 @@ class Node extends Element
         return $this->newParentId != $oldParentId;
     }
 
-    private function _getObject()
+    private function _getObject(): array
     {
         return [
             'currentUser' => Craft::$app->getUser()->getIdentity(),

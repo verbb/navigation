@@ -6,11 +6,10 @@ use verbb\navigation\records\Node as NodeRecord;
 
 use Craft;
 use craft\db\Migration;
-use craft\db\Query;
 
 class m181123_000000_populate_elementSiteIds extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         // Populate it
         foreach (Craft::$app->getSites()->getAllSites() as $site) {
@@ -36,7 +35,7 @@ class m181123_000000_populate_elementSiteIds extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m181123_000000_populate_elementSiteIds cannot be reverted.\n";
 

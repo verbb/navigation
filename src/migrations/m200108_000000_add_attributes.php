@@ -1,16 +1,11 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\elements\Node;
-use verbb\navigation\records\Node as NodeRecord;
-
-use Craft;
 use craft\db\Migration;
-use craft\db\Query;
 
 class m200108_000000_add_attributes extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         if (!$this->db->columnExists('{{%navigation_nodes}}', 'customAttributes')) {
             $this->addColumn('{{%navigation_nodes}}', 'customAttributes', $this->text()->after('classes'));
@@ -19,7 +14,7 @@ class m200108_000000_add_attributes extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m200108_000000_add_attributes cannot be reverted.\n";
 

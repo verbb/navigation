@@ -4,7 +4,6 @@ namespace verbb\navigation\gql\types\generators;
 use verbb\navigation\gql\types\CustomAttributeType;
 
 use craft\gql\base\GeneratorInterface;
-use craft\gql\base\ObjectType;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
 
@@ -13,7 +12,7 @@ class CustomAttributeGenerator implements GeneratorInterface, SingleGeneratorInt
     // Static Methods
     // =========================================================================
 
-    public static function generateTypes($context = null): array
+    public static function generateTypes(mixed $context = null): array
     {
         return [static::generateType($context)];
     }
@@ -23,7 +22,7 @@ class CustomAttributeGenerator implements GeneratorInterface, SingleGeneratorInt
         return 'NodeCustomAttribute';
     }
 
-    public static function generateType($context = null): ObjectType
+    public static function generateType(mixed $context = null): mixed
     {
         $typeName = self::getName($context);
         $contentFields = CustomAttributeType::prepareRowFieldDefinition($typeName);

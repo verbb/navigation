@@ -8,18 +8,22 @@ use verbb\navigation\models\Nav as NavModel;
 use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\Json;
+use craft\elements\Asset;
+use craft\elements\Category;
+use craft\elements\Entry;
+
+use Throwable;
 
 class NaveePlugin extends Migration
 {
-    public $propagate = true;
-    public $assignToDefaultSite = false;
+    public bool $propagate = true;
+    public bool $assignToDefaultSite = false;
 
 
     // Public Methods
     // =========================================================================
 
-    public function safeUp()
+    public function safeUp(): bool
     {
         try {
             if (!$this->db->tableExists('{{%navee_navigations}}')) {
@@ -38,7 +42,7 @@ class NaveePlugin extends Migration
             }
 
             foreach ($NaveeNavs as $key => $NaveeNav) {
-                $nav = Navigation::$plugin->navs->getNavByHandle($NaveeNav['handle']);
+                $nav = Navigation::$plugin->getNavs()->getNavByHandle($NaveeNav['handle']);
 
                 echo "\n    > Migrating nav `{$NaveeNav['handle']}` ...\n";
 
@@ -52,7 +56,7 @@ class NaveePlugin extends Migration
                 $nav->structureId = $NaveeNav['structureId'];
                 $nav->siteSettings = $siteSettings;
 
-                if (!Navigation::$plugin->navs->saveNav($nav)) {
+                if (!Navigation::$plugin->getNavs()->saveNav($nav)) {
                     echo "    > ERROR: Unable to migrate nav `{$NaveeNav['handle']}` ...\n";
 
                     Craft::dump($nav->getErrors());
@@ -70,7 +74,7 @@ class NaveePlugin extends Migration
 
                     $processedNodes = [];
 
-                    foreach ($NaveeNodes as $key => $NaveeNode) {
+                    foreach ($NaveeNodes as $NaveeNode) {
                         try {
                             $node = new Node();
 
@@ -99,13 +103,13 @@ class NaveePlugin extends Migration
                             }
 
                             if ($NaveeNode['entryId']) {
-                               $node->type = \craft\elements\Entry::class;
+                               $node->type = Entry::class;
                                $node->elementId = $NaveeNode['entryId'];
                             } else if ($NaveeNode['categoryId']) {
-                               $node->type = \craft\elements\Category::class;
+                               $node->type = Category::class;
                                $node->elementId = $NaveeNode['categoryId'];
                             } else if ($NaveeNode['assetId']) {
-                               $node->type = \craft\elements\Asset::class;
+                               $node->type = Asset::class;
                                $node->elementId = $NaveeNode['assetId'];
                             }
 
@@ -118,7 +122,7 @@ class NaveePlugin extends Migration
 
                                 Craft::dump($node->getErrors());
                             }
-                        } catch (\Throwable $e) {
+                        } catch (Throwable $e) {
                             echo "    > ERROR: Unable to save node `{$NaveeNode['id']}` ...\n";
 
                             Craft::dump($e->getMessage());
@@ -158,7 +162,7 @@ class NaveePlugin extends Migration
                                     $parentNodeId = $processedNodes[$parentStructureElement['elementId']] ?? null;
 
                                     if ($parentNodeId) {
-                                        $node = Navigation::$plugin->nodes->getNodeById($newNodeId);
+                                        $node = Navigation::$plugin->getNodes()->getNodeById($newNodeId);
 
                                         if ($node) {
                                             $node->newParentId = $parentNodeId;
@@ -181,7 +185,7 @@ class NaveePlugin extends Migration
                 }
             }
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Craft::dump($e->getMessage());
 
             echo "    > `{$this->getExceptionTraceAsString($e)}`";
@@ -190,12 +194,13 @@ class NaveePlugin extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         return false;
     }
 
-    private function getExceptionTraceAsString($exception) {
+    private function getExceptionTraceAsString($exception): string
+    {
         $rtn = "";
         $count = 0;
 
@@ -223,13 +228,13 @@ class NaveePlugin extends Migration
                     }
                 }
 
-                $args = join(", ", $args);
+                $args = implode(", ", $args);
             }
 
             $rtn .= sprintf( "#%s %s(%s): %s(%s)\n",
                                  $count,
-                                 isset($frame['file']) ? $frame['file'] : '[internal function]',
-                                 isset($frame['line']) ? $frame['line'] : '',
+                $frame['file'] ?? '[internal function]',
+                $frame['line'] ?? '',
                                  (isset($frame['class']))  ? $frame['class'].$frame['type'].$frame['function'] : $frame['function'],
                                  $args );
 

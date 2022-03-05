@@ -1,20 +1,13 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node;
-use verbb\navigation\fields\NavigationField;
-use verbb\navigation\records\Node as NodeRecord;
-
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
 
 class m190310_000000_migrate_elementSiteId extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         if ($this->db->columnExists('{{%navigation_nodes}}', 'elementSiteId')) {
             $rows = (new Query())
@@ -36,7 +29,7 @@ class m190310_000000_migrate_elementSiteId extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m190310_000000_migrate_elementSiteId cannot be reverted.\n";
 

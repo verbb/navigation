@@ -3,7 +3,6 @@ namespace verbb\navigation\records;
 
 use craft\db\ActiveRecord;
 use craft\records\Element;
-use craft\records\Site;
 
 use yii\db\ActiveQueryInterface;
 

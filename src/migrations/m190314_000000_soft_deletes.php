@@ -1,20 +1,12 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node;
-use verbb\navigation\fields\NavigationField;
-use verbb\navigation\records\Node as NodeRecord;
-
-use Craft;
 use craft\db\Migration;
-use craft\db\Query;
-use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
 
 class m190314_000000_soft_deletes extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         // Add the dateDeleted columns
         if (!$this->db->columnExists('{{%navigation_navs}}', 'dateDeleted')) {
@@ -52,7 +44,7 @@ class m190314_000000_soft_deletes extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m190314_000000_soft_deletes cannot be reverted.\n";
 

@@ -1,77 +1,73 @@
 <?php
 namespace verbb\navigation\elements\db;
 
+use verbb\navigation\elements\Node;
 use verbb\navigation\models\Nav as NavModel;
 use verbb\navigation\records\Nav as NavRecord;
 
 use Craft;
 use craft\db\Query;
-use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
-
-use yii\db\Connection;
 
 class NodeQuery extends ElementQuery
 {
     // Properties
     // =========================================================================
 
-    public $id;
-    public $elementId;
-    public $siteId;
-    public $navId;
-    public $enabled = true;
-    public $type;
-    public $classes;
-    public $customAttributes;
-    public $data;
-    public $urlSuffix;
-    public $newWindow = false;
-
-    public $element;
-    public $handle;
-    public $hasUrl;
+    public mixed $id = null;
+    public mixed $elementId = null;
+    public mixed $siteId = null;
+    public mixed $navId = null;
+    public mixed $enabled = true;
+    public mixed $type = null;
+    public mixed $classes = null;
+    public mixed $customAttributes = null;
+    public mixed $data = null;
+    public mixed $urlSuffix = null;
+    public mixed $newWindow = false;
+    public mixed $element = null;
+    public mixed $handle = null;
+    public mixed $hasUrl = false;
 
 
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         $this->withStructure = true;
 
         parent::init();
     }
 
-    public function elementId($value)
+    public function elementId($value): static
     {
         $this->elementId = $value;
         return $this;
     }
 
-    public function elementSiteId($value)
+    public function elementSiteId($value): static
     {
         $this->slug = $value;
         return $this;
     }
 
-    public function navId($value)
+    public function navId($value): static
     {
         $this->navId = $value;
         return $this;
     }
 
-    public function navHandle($value)
+    public function navHandle($value): static
     {
         $this->handle = $value;
         return $this;
     }
 
-    public function nav($value)
+    public function nav($value): static
     {
         if ($value instanceof NavModel) {
             $this->structureId = ($value->structureId ?: false);
@@ -89,25 +85,25 @@ class NodeQuery extends ElementQuery
         return $this;
     }
 
-    public function type($value)
+    public function type($value): static
     {
         $this->type = $value;
         return $this;
     }
 
-    public function element($value)
+    public function element($value): static
     {
         $this->element = $value;
         return $this;
     }
 
-    public function handle($value)
+    public function handle($value): static
     {
         $this->handle = $value;
         return $this;
     }
 
-    public function hasUrl(bool $value = false)
+    public function hasUrl(bool $value = false): static
     {
         $this->hasUrl = $value;
         return $this;
@@ -116,7 +112,7 @@ class NodeQuery extends ElementQuery
     // We set the active state on each node, however it gets trickier when trying to do things like settings the active
     // state when a child is active, which involves firing off additional element queries for each node's children, 
     // which quickly blow out queries. So instead, do this when the elements are populated
-    public function populate($rows)
+    public function populate($rows): array
     {
         // Let the parent class handle this like normal
         $rows = parent::populate($rows);

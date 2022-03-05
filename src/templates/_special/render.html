@@ -1,4 +1,4 @@
-{% spaceless %}
+{% apply spaceless %}
 
 {% set ulAttributes = options.ulAttributes ?? {} %}
 {% set ulClass = options.ulClass is defined ? [options.ulClass] : [] %}
@@ -44,4 +44,4 @@
     {% endnav %}
 </ul>
 
-{% endspaceless %}
+{% endapply %}

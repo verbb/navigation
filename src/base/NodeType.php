@@ -1,6 +1,9 @@
 <?php
 namespace verbb\navigation\base;
 
+use verbb\navigation\elements\Node;
+
+use Craft;
 use craft\base\Component;
 
 abstract class NodeType extends Component implements NodeTypeInterface
@@ -8,7 +11,7 @@ abstract class NodeType extends Component implements NodeTypeInterface
     // Properties
     // =========================================================================
 
-    public $node = null;
+    public ?Node $node = null;
 
 
     // Static
@@ -48,17 +51,17 @@ abstract class NodeType extends Component implements NodeTypeInterface
     // Public Methods
     // =========================================================================
 
-    public function getModalHtml()
+    public function getModalHtml(): ?string
     {
         return null;
     }
 
-    public function getSettingsHtml()
+    public function getSettingsHtml(): ?string
     {
         return null;
     }
 
-    public function getUrl()
+    public function getUrl(): ?string
     {
         return null;
     }

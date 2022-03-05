@@ -1,7 +1,8 @@
 <?php
 namespace verbb\navigation\events;
 
-use craft\models\Nav as NavModel;
+use verbb\navigation\models\Nav;
+
 use yii\base\Event;
 
 class NavEvent extends Event
@@ -9,7 +10,6 @@ class NavEvent extends Event
     // Properties
     // =========================================================================
 
-    public $nav;
-
-    public $isNew = false;
+    public Nav $nav;
+    public bool $isNew = false;
 }

@@ -1,17 +1,12 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\elements\Node;
-use verbb\navigation\records\Node as NodeRecord;
-
-use Craft;
 use craft\db\Migration;
-use craft\db\Query;
 use craft\helpers\MigrationHelper;
 
 class m190209_000000_project_config extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         if (!$this->db->columnExists('{{%navigation_navs}}', 'isArchived')) {
             $this->addColumn('{{%navigation_navs}}', 'isArchived', $this->boolean()->notNull()->defaultValue(false)->after('propagateNodes'));
@@ -28,7 +23,7 @@ class m190209_000000_project_config extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m190203_000000_add_instructions cannot be reverted.\n";
 

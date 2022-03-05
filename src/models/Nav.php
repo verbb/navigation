@@ -16,19 +16,19 @@ class Nav extends Model
     // Public Properties
     // =========================================================================
 
-    public $id;
-    public $name;
-    public $handle;
-    public $instructions;
-    public $sortOrder;
-    public $propagateNodes = false;
-    public $maxNodes;
-    public $maxLevels;
-    public $permissions = [];
-    public $siteSettings = [];
-    public $structureId;
-    public $fieldLayoutId;
-    public $uid;
+    public ?int $id = null;
+    public ?string $name = null;
+    public ?string $handle = null;
+    public ?string $instructions = null;
+    public ?int $sortOrder = null;
+    public bool $propagateNodes = false;
+    public ?int $maxNodes = null;
+    public ?int $maxLevels = null;
+    public array $permissions = [];
+    public array $siteSettings = [];
+    public ?string $structureId = null;
+    public ?int $fieldLayoutId = null;
+    public ?string $uid = null;
 
 
     // Public Methods
@@ -36,10 +36,10 @@ class Nav extends Model
 
     public function __toString()
     {
-        return $this->handle;
+        return (string)$this->handle;
     }
 
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'handle' => Craft::t('app', 'Handle'),
@@ -63,8 +63,7 @@ class Nav extends Model
 
     public function getNavFieldLayout()
     {
-        $behavior = $this->getBehavior('navFieldLayout');
-        return $behavior->getFieldLayout();
+        return $this->getBehavior('navFieldLayout')->getFieldLayout();
     }
 
     public function behaviors(): array
@@ -78,7 +77,7 @@ class Nav extends Model
         ];
     }
 
-    public function validateSiteSettings($attribute)
+    public function validateSiteSettings($attribute): void
     {
         if (!Craft::$app->getIsMultiSite()) {
             return;
@@ -86,7 +85,6 @@ class Nav extends Model
 
         if (empty($this->siteSettings)) {
             $this->addError($attribute, Craft::t('navigation', 'You must select at least one site.'));
-            return;
         }
     }
 

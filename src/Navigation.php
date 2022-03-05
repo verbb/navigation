@@ -14,8 +14,8 @@ use verbb\navigation\twigextensions\Extension;
 use verbb\navigation\variables\NavigationVariable;
 
 use Craft;
+use craft\base\Model;
 use craft\base\Plugin;
-use craft\events\ConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlSchemaComponentsEvent;
@@ -26,14 +26,11 @@ use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gql;
-use craft\services\ProjectConfig;
-use craft\services\Sites;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
 
 use yii\base\Event;
-use yii\web\User;
 
 use craft\feedme\events\RegisterFeedMeElementsEvent;
 use craft\feedme\services\Elements as FeedMeElements;
@@ -46,9 +43,9 @@ class Navigation extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.0.21';
-    public $hasCpSettings = true;
-    public $hasCpSection = true;
+    public string $schemaVersion = '1.0.21';
+    public bool $hasCpSettings = true;
+    public bool $hasCpSection = true;
 
 
     // Traits
@@ -60,7 +57,7 @@ class Navigation extends Plugin
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -80,17 +77,17 @@ class Navigation extends Plugin
         $this->_registerFeedMeSupport();
     }
 
-    public function getPluginName()
+    public function getPluginName(): string
     {
         return Craft::t('navigation', $this->getSettings()->pluginName);
     }
 
-    public function getSettingsResponse()
+    public function getSettingsResponse(): mixed
     {
-        Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('navigation/settings'));
+        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('navigation/settings'));
     }
 
-    public function getCpNavItem()
+    public function getCpNavItem(): ?array
     {
         $navItem = parent::getCpNavItem();
         $navItem['label'] = $this->getPluginName();
@@ -102,7 +99,7 @@ class Navigation extends Plugin
     // Protected Methods
     // =========================================================================
 
-    protected function createSettingsModel(): Settings
+    protected function createSettingsModel(): ?Model
     {
         return new Settings();
     }
@@ -111,12 +108,12 @@ class Navigation extends Plugin
     // Private Methods
     // =========================================================================
 
-    private function _registerTwigExtensions()
+    private function _registerTwigExtensions(): void
     {
         Craft::$app->view->registerTwigExtension(new Extension);
     }
     
-    private function _registerCpRoutes()
+    private function _registerCpRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules = array_merge($event->rules, [
@@ -131,42 +128,42 @@ class Navigation extends Plugin
         });
     }
 
-    private function _registerVariables()
+    private function _registerVariables(): void
     {
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
             $event->sender->set('navigation', NavigationVariable::class);
         });
     }
 
-    private function _registerCraftEventListeners()
+    private function _registerCraftEventListeners(): void
     {
         // Allow elements to update our nodes
         Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT, [$this->getNodes(), 'onSaveElement']);
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [$this->getNodes(), 'onDeleteElement']);
     }
 
-    private function _registerProjectConfigEventListeners()
+    private function _registerProjectConfigEventListeners(): void
     {
         Craft::$app->getProjectConfig()->onAdd(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleChangedNav'])
             ->onUpdate(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleChangedNav'])
             ->onRemove(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleDeletedNav']);
     }
 
-    private function _registerFieldTypes()
+    private function _registerFieldTypes(): void
     {
         Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, function(RegisterComponentTypesEvent $event) {
             $event->types[] = NavigationField::class;
         });
     }
 
-    private function _registerElementTypes()
+    private function _registerElementTypes(): void
     {
         Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, function(RegisterComponentTypesEvent $event) {
             $event->types[] = Node::class;
         });
     }
 
-    private function _registerPermissions()
+    private function _registerPermissions(): void
     {
         Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
             $navs = $this->getNavs()->getAllNavs();
@@ -195,7 +192,7 @@ class Navigation extends Plugin
         });
     }
 
-    private function _registerGraphQl()
+    private function _registerGraphQl(): void
     {
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_TYPES, function(RegisterGqlTypesEvent $event) {
             $event->types[] = NodeInterface::class;
@@ -243,11 +240,11 @@ class Navigation extends Plugin
         }
     }
 
-    private function _registerFeedMeSupport()
+    private function _registerFeedMeSupport(): void
     {
         if (class_exists(FeedMeElements::class)) {
-            Event::on(FeedMeElements::class, FeedMeElements::EVENT_REGISTER_FEED_ME_ELEMENTS, function(RegisterFeedMeElementsEvent $e) {
-                $e->elements[] = NodeFeedMeElement::class;
+            Event::on(FeedMeElements::class, FeedMeElements::EVENT_REGISTER_FEED_ME_ELEMENTS, function(RegisterFeedMeElementsEvent $event) {
+                $event->elements[] = NodeFeedMeElement::class;
             });
         }
     }

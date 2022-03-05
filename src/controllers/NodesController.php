@@ -5,8 +5,7 @@ use Craft;
 use craft\web\Controller;
 
 use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node as NodeElement;
-use verbb\navigation\models\Node as NodeModel;
+use verbb\navigation\elements\Node;
 
 use Exception;
 
@@ -15,7 +14,7 @@ class NodesController extends Controller
     // Public Methods
     // =========================================================================
 
-    public function actionAddNodes()
+    public function actionAddNodes(): \yii\web\Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -76,7 +75,7 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionSaveNode()
+    public function actionSaveNode(): \yii\web\Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -105,7 +104,7 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionDelete()
+    public function actionDelete(): \yii\web\Response
     {
         $this->requireAcceptsJson();
         $this->requirePostRequest();
@@ -117,7 +116,7 @@ class NodesController extends Controller
         $siteId = $request->getParam('siteId');
         $nodeIds = $request->getRequiredParam('nodeIds');
 
-        $node = Navigation::$plugin->nodes->getNodeById($nodeIds[0], $siteId);
+        $node = Navigation::$plugin->getNodes()->getNodeById($nodeIds[0], $siteId);
         
         // We need to go against `deleteElement()` which will kick up any child elements in the structure
         // to be attached to the parent - not what we want in this case, it'd be pandemonium.
@@ -140,7 +139,7 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionEditor()
+    public function actionEditor(): \yii\web\Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -149,7 +148,7 @@ class NodesController extends Controller
 
         $nodeId = $request->getRequiredParam('nodeId');
         $siteId = $request->getRequiredParam('siteId');
-        $node = Navigation::$plugin->nodes->getNodeById($nodeId, $siteId);
+        $node = Navigation::$plugin->getNodes()->getNodeById($nodeId, $siteId);
 
         $view = Craft::$app->getView();
 
@@ -163,7 +162,7 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionChangeNodeType()
+    public function actionChangeNodeType(): \yii\web\Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -172,7 +171,7 @@ class NodesController extends Controller
 
         $nodeId = $request->getRequiredParam('nodeId');
         $siteId = $request->getRequiredParam('siteId');
-        $node = Navigation::$plugin->nodes->getNodeById($nodeId, $siteId);
+        $node = Navigation::$plugin->getNodes()->getNodeById($nodeId, $siteId);
 
         // Override and reset
         $node->type = $request->getParam('type');
@@ -191,7 +190,7 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionMove()
+    public function actionMove(): \yii\web\Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -216,7 +215,7 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionClear()
+    public function actionClear(): ?\yii\web\Response
     {
         $this->requirePostRequest();
 
@@ -240,7 +239,7 @@ class NodesController extends Controller
         $errors = [];
 
         foreach ($nodes as $key => $node) {
-            if (!Craft::$app->getElements()->deleteElementById($node->id, NodeElement::class, $siteId)) {
+            if (!Craft::$app->getElements()->deleteElementById($node->id, Node::class, $siteId)) {
                 $errors[] = $node->getErrors();
             }
         }
@@ -260,7 +259,7 @@ class NodesController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _setNodeFromPost($prefix = ''): NodeElement
+    private function _setNodeFromPost($prefix = ''): Node
     {
         // Because adding multiple nodes and saving a single node use this same function, we have to jump
         // through some hoops to get the correct post params properties.
@@ -269,13 +268,13 @@ class NodesController extends Controller
         $siteId = $request->getParam("{$prefix}siteId");
 
         if ($nodeId) {
-            $node = Navigation::$plugin->nodes->getNodeById($nodeId, $siteId);
+            $node = Navigation::$plugin->getNodes()->getNodeById($nodeId, $siteId);
 
             if (!$node) {
                 throw new Exception(Craft::t('navigation', 'No node with the ID “{id}”', ['id' => $nodeId]));
             }
         } else {
-            $node = new NodeElement();
+            $node = new Node();
         }
 
         $node->title = $request->getParam("{$prefix}title", $node->title);
@@ -301,7 +300,7 @@ class NodesController extends Controller
         $node->data = $request->getParam("{$prefix}data", $node->data);
         $node->newWindow = (bool)$request->getParam("{$prefix}newWindow", $node->newWindow);
 
-        $node->newParentId = $request->getParam("{$prefix}parentId", null);
+        $node->newParentId = $request->getParam("{$prefix}parentId");
 
         // Handle custom URL - remove the elementId. Particularly if we're swapping
         if ($node->isManual()) {

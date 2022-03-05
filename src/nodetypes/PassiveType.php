@@ -1,8 +1,6 @@
 <?php
 namespace verbb\navigation\nodetypes;
 
-use Craft;
-
 use verbb\navigation\base\NodeType;
 
 class PassiveType extends NodeType

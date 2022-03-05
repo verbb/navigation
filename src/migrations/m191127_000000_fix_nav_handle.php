@@ -1,20 +1,12 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node;
-use verbb\navigation\fields\NavigationField;
-use verbb\navigation\records\Node as NodeRecord;
-
-use Craft;
 use craft\db\Migration;
-use craft\db\Query;
-use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
 
 class m191127_000000_fix_nav_handle extends Migration
 {
-    public function safeUp()
+    public function safeUp(): bool
     {
         // Unique names & handles should no longer be enforced by the DB
         MigrationHelper::dropIndexIfExists('{{%navigation_navs}}', ['handle'], true, $this);
@@ -24,7 +16,7 @@ class m191127_000000_fix_nav_handle extends Migration
         return true;
     }
 
-    public function safeDown()
+    public function safeDown(): bool
     {
         echo "m191127_000000_fix_nav_handle cannot be reverted.\n";
 

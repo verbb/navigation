@@ -3,18 +3,13 @@ namespace verbb\navigation\gql\types\generators;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
-use verbb\navigation\gql\arguments\NodeArguments;
 use verbb\navigation\gql\interfaces\NodeInterface;
 use verbb\navigation\gql\types\NodeType;
-use verbb\navigation\helpers\Gql as NavigationGqlHelper;
 
-use Craft;
 use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
-use craft\gql\base\ObjectType;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeLoader;
 use craft\gql\TypeManager;
 use craft\helpers\Gql as GqlHelper;
 
@@ -23,7 +18,7 @@ class NodeGenerator extends Generator implements GeneratorInterface, SingleGener
     // Public Methods
     // =========================================================================
 
-    public static function generateTypes($context = null): array
+    public static function generateTypes(mixed $context = null): array
     {
         $navs = Navigation::$plugin->getNavs()->getAllNavs();
         $gqlTypes = [];
@@ -44,7 +39,7 @@ class NodeGenerator extends Generator implements GeneratorInterface, SingleGener
         return $gqlTypes;
     }
 
-    public static function generateType($context): ObjectType
+    public static function generateType(mixed $context): mixed
     {
         $typeName = Node::gqlTypeNameByContext($context);
 

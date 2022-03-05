@@ -1,7 +1,6 @@
 <?php
 namespace verbb\navigation\services;
 
-use verbb\navigation\Navigation;
 use verbb\navigation\base\NodeTypeInterface;
 use verbb\navigation\events\RegisterNodeTypeEvent;
 use verbb\navigation\nodetypes\PassiveType;
@@ -22,14 +21,14 @@ class NodeTypes extends Component
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 
         $this->getRegisteredNodeTypes();
     }
 
-    public function getRegisteredNodeTypes()
+    public function getRegisteredNodeTypes(): array
     {
         $nodeTypes = [
             PassiveType::class,
