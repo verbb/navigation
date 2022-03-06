@@ -40,7 +40,7 @@ use craft\gatsbyhelper\services\SourceNodes;
 
 class Navigation extends Plugin
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
     public bool $hasCpSection = true;
