@@ -11,13 +11,14 @@ use verbb\navigation\elements\Node as NodeElement;
 use verbb\navigation\models\Nav as NavModel;
 
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 class NavsController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    public function actionIndex(): Response|\craft\web\TemplateResponseBehavior
+    public function actionIndex(): \yii\web\Response
     {
         $navigations = Navigation::$plugin->getNavs()->getAllEditableNavs();
 
@@ -36,7 +37,7 @@ class NavsController extends Controller
         ]);
     }
 
-    public function actionEditNav(int $navId = null, NavModel $nav = null): Response|\craft\web\TemplateResponseBehavior
+    public function actionEditNav(int $navId = null, NavModel $nav = null): \yii\web\Response
     {
         if ($nav === null) {
             if ($navId !== null) {
@@ -62,7 +63,7 @@ class NavsController extends Controller
         ]);
     }
 
-    public function actionBuildNav(int $navId = null, string $siteHandle = null): Response|\craft\web\TemplateResponseBehavior
+    public function actionBuildNav(int $navId = null, string $siteHandle = null): \yii\web\Response
     {
         $settings = Navigation::$plugin->getSettings();
         $defaultSite = false;
@@ -137,9 +138,9 @@ class NavsController extends Controller
         $nav->name = $request->getBodyParam('name');
         $nav->handle = $request->getBodyParam('handle');
         $nav->instructions = $request->getBodyParam('instructions');
-        $nav->maxLevels = $request->getBodyParam('maxLevels');
-        $nav->propagateNodes = $request->getBodyParam('propagateNodes');
-        $nav->maxNodes = $request->getBodyParam('maxNodes');
+        $nav->maxLevels = !empty($request->getBodyParam('maxLevels')) ? (int)$request->getBodyParam('maxLevels') : null;
+        $nav->propagateNodes = (bool)$request->getBodyParam('propagateNodes');
+        $nav->maxNodes = !empty($request->getBodyParam('maxNodes')) ? (int)$request->getBodyParam('maxNodes') : null;
         $nav->permissions = $request->getBodyParam('permissions');
 
         $allSiteSettings = [];

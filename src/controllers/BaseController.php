@@ -8,12 +8,14 @@ use verbb\navigation\migrations\NaveePlugin;
 use Craft;
 use craft\web\Controller;
 
+use yii\web\Response;
+
 class BaseController extends Controller
 {
     // Public Methods
     // =========================================================================
 
-    public function actionAmNavMigrate(): \yii\web\Response|\craft\web\TemplateResponseBehavior
+    public function actionAmNavMigrate(): \yii\web\Response
     {
         // Backup!
         Craft::$app->getDb()->backup();
@@ -39,7 +41,7 @@ class BaseController extends Controller
         ]);
     }
 
-    public function actionNaveeMigrate(): \yii\web\Response|\craft\web\TemplateResponseBehavior
+    public function actionNaveeMigrate(): \yii\web\Response
     {
         // Backup!
         Craft::$app->getDb()->backup();
@@ -63,11 +65,11 @@ class BaseController extends Controller
         ]);
     }
 
-    public function actionSettings(): void
+    public function actionSettings(): \yii\web\Response
     {
         $settings = Navigation::$plugin->getSettings();
 
-        $this->renderTemplate('navigation/settings', [
+        return $this->renderTemplate('navigation/settings', [
             'settings' => $settings,
         ]);
     }

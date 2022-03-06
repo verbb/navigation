@@ -1,13 +1,15 @@
 <?php
 namespace verbb\navigation\models;
 
-use craft\behaviors\FieldLayoutBehavior;
 use verbb\navigation\elements\Node;
 use verbb\navigation\records\Nav as NavRecord;
 
 use Craft;
 use craft\base\Model;
+use craft\behaviors\FieldLayoutBehavior;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
+use craft\models\FieldLayout;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 
@@ -33,6 +35,32 @@ class Nav extends Model
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($config = [])
+    {
+        // Config normalization
+        if (array_key_exists('permissions', $config)) {
+            if (is_string($config['permissions'])) {
+                $config['permissions'] = Json::decodeIfJson($config['permissions']);
+            }
+
+            if (!is_array($config['permissions'])) {
+                unset($config['permissions']);
+            }
+        }
+
+        if (array_key_exists('siteSettings', $config)) {
+            if (is_string($config['siteSettings'])) {
+                $config['siteSettings'] = Json::decodeIfJson($config['siteSettings']);
+            }
+
+            if (!is_array($config['siteSettings'])) {
+                unset($config['siteSettings']);
+            }
+        }
+
+        parent::__construct($config);
+    }
 
     public function __toString()
     {
@@ -61,20 +89,22 @@ class Nav extends Model
         return $rules;
     }
 
-    public function getNavFieldLayout()
+    public function getNavFieldLayout(): ?FieldLayout
     {
         return $this->getBehavior('navFieldLayout')->getFieldLayout();
     }
 
     public function behaviors(): array
     {
-        return [
-            'navFieldLayout' => [
-                'class' => FieldLayoutBehavior::class,
-                'elementType' => Node::class,
-                'idAttribute' => 'fieldLayoutId'
-            ]
+        $behaviors = parent::behaviors();
+
+        $behaviors['navFieldLayout'] = [
+            'class' => FieldLayoutBehavior::class,
+            'elementType' => Node::class,
+            'idAttribute' => 'fieldLayoutId'
         ];
+
+        return $behaviors;
     }
 
     public function validateSiteSettings($attribute): void

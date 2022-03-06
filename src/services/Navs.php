@@ -219,9 +219,11 @@ class Navs extends Component
                 $fields = Craft::$app->getFields();
 
                 // Delete the field layout
-                $fields->deleteLayoutById($navRecord->fieldLayoutId);
+                if ($navRecord->fieldLayoutId) {
+                    $fields->deleteLayoutById($navRecord->fieldLayoutId);
+                }
 
-                //Create the new layout
+                // Create the new layout
                 $layout = FieldLayout::createFromConfig(reset($data['fieldLayouts']));
                 $layout->type = Node::class;
                 $layout->uid = key($data['fieldLayouts']);

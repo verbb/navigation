@@ -17,6 +17,7 @@ use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
+use craft\helpers\Type;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 
@@ -120,12 +121,35 @@ class Node extends Element
     // Public Methods
     // =========================================================================
 
+    public function __construct($config = [])
+    {
+        // Config normalization
+        if (array_key_exists('customAttributes', $config)) {
+            if (is_string($config['customAttributes'])) {
+                $config['customAttributes'] = Json::decodeIfJson($config['customAttributes']);
+            }
+
+            if (!is_array($config['customAttributes'])) {
+                unset($config['customAttributes']);
+            }
+        }
+
+        if (array_key_exists('data', $config)) {
+            if (is_string($config['data'])) {
+                $config['data'] = Json::decodeIfJson($config['data']);
+            }
+
+            if (!is_array($config['data'])) {
+                unset($config['data']);
+            }
+        }
+
+        parent::__construct($config);
+    }
+
     public function init(): void
     {
         parent::init();
-
-        $this->customAttributes = Json::decodeIfJson($this->customAttributes) ?? [];
-        $this->data = Json::decodeIfJson($this->data) ?? [];
 
         if (!$this->typeLabel) {
             $this->typeLabel = $this->getNodeTypeLabel();
@@ -284,8 +308,7 @@ class Node extends Element
     {
         $object = $this->_getObject();
 
-        $classes = $this->classes ?
-            Craft::$app->view->renderObjectTemplate($this->classes, $object) : null;
+        $classes = $this->classes ? Craft::$app->view->renderObjectTemplate($this->classes, $object) : null;
 
         $attributes = [
             'href' => $this->getUrl(),
@@ -679,7 +702,7 @@ class Node extends Element
         $nodeUrl = trim($nodeUrl, '/');
 
         // Stop straight away if this is the homepage entry
-        if ($this->_elementUrl && $this->_elementUrl === '__home__') {
+        if ($this->_elementUrl === '__home__') {
             return $currentUrl === $nodeUrl;
         }
 

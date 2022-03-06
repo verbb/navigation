@@ -2,10 +2,13 @@
 namespace verbb\navigation\controllers;
 
 use Craft;
+use craft\helpers\Json;
 use craft\web\Controller;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
+
+use yii\web\Response;
 
 use Exception;
 
@@ -296,8 +299,8 @@ class NodesController extends Controller
         $node->type = $request->getParam("{$prefix}type", $node->type);
         $node->classes = $request->getParam("{$prefix}classes", $node->classes);
         $node->urlSuffix = $request->getParam("{$prefix}urlSuffix", $node->urlSuffix);
-        $node->customAttributes = $request->getParam("{$prefix}customAttributes", $node->customAttributes);
-        $node->data = $request->getParam("{$prefix}data", $node->data);
+        $node->customAttributes = Json::decodeIfJson($request->getParam("{$prefix}customAttributes")) ?? $node->customAttributes;
+        $node->data = Json::decodeIfJson($request->getParam("{$prefix}data")) ?? $node->data;
         $node->newWindow = (bool)$request->getParam("{$prefix}newWindow", $node->newWindow);
 
         $node->newParentId = $request->getParam("{$prefix}parentId");
