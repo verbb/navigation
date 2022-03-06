@@ -156,7 +156,7 @@ class Node extends Element
         }
     }
 
-    public function getElement(): ?\craft\base\ElementInterface
+    public function getElement(): ?ElementInterface
     {
         if ($this->_element !== null) {
             return $this->_element;
@@ -314,7 +314,7 @@ class Node extends Element
             'href' => $this->getUrl(),
             'target' => $this->newWindow ? '_blank' : null,
             'rel' => $this->newWindow ? 'noopener' : null,
-            'class' => [ $classes ],
+            'class' => [$classes],
         ];
 
         if (is_array($this->customAttributes)) {

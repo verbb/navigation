@@ -20,7 +20,7 @@ class NodeQuery extends Query
         if ($checkToken && !GqlHelper::canQueryNavigation()) {
             return [];
         }
-        
+
         return [
             'nodes' => [
                 'type' => Type::listOf(NodeInterface::getType()),
@@ -32,7 +32,7 @@ class NodeQuery extends Query
                 'type' => NodeInterface::getType(),
                 'args' => NodeArguments::getArguments(),
                 'resolve' => NodeResolver::class . '::resolveOne',
-                'description' => 'This query is used to query for a single node.'
+                'description' => 'This query is used to query for a single node.',
             ],
         ];
     }

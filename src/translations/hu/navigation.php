@@ -68,5 +68,5 @@ return [
     'Node added.' => 'Menüpont hozzáadva.',
     'Node deleted.' => 'Menüpont törölve.',
     'Node updated.' => 'Menüpont frissítve',
-    'Are you sure you want to delete “{title}” and its descendants?' => 'Biztosan törölni szeretnéd “{title}” menüpontot és minden gyermekét?'
+    'Are you sure you want to delete “{title}” and its descendants?' => 'Biztosan törölni szeretnéd “{title}” menüpontot és minden gyermekét?',
 ];

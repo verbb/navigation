@@ -241,7 +241,7 @@ class NodeQuery extends ElementQuery
 
         // Join the element sites table (again) for the linked element
         $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND ' . $sql . ' = [[element_item_sites.siteId]]');
-        
+
         return parent::afterPrepare();
     }
 }

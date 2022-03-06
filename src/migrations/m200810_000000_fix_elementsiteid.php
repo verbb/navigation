@@ -46,7 +46,7 @@ class m200810_000000_fix_elementsiteid extends Migration
                 }
             }
         }
-    
+
         return true;
     }
 

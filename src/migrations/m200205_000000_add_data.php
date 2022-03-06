@@ -10,7 +10,7 @@ class m200205_000000_add_data extends Migration
         if (!$this->db->columnExists('{{%navigation_nodes}}', 'data')) {
             $this->addColumn('{{%navigation_nodes}}', 'data', $this->text()->after('customAttributes'));
         }
-    
+
         return true;
     }
 

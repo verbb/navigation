@@ -56,12 +56,12 @@ class NodeInterface extends Structure
             'elementId' => [
                 'name' => 'elementId',
                 'type' => Type::int(),
-                'description' => 'The ID of the element this node is linked to.'
+                'description' => 'The ID of the element this node is linked to.',
             ],
             'navId' => [
                 'name' => 'navId',
                 'type' => Type::int(),
-                'description' => 'The ID of the navigation this node belongs to.'
+                'description' => 'The ID of the navigation this node belongs to.',
             ],
             'navHandle' => [
                 'name' => 'navHandle',
@@ -82,32 +82,32 @@ class NodeInterface extends Structure
             'type' => [
                 'name' => 'type',
                 'type' => Type::string(),
-                'description' => 'The type of node this is.'
+                'description' => 'The type of node this is.',
             ],
             'classes' => [
                 'name' => 'classes',
                 'type' => Type::string(),
-                'description' => 'Any additional classes for the node.'
+                'description' => 'Any additional classes for the node.',
             ],
             'urlSuffix' => [
                 'name' => 'urlSuffix',
                 'type' => Type::string(),
-                'description' => 'The URL for this navigation item.'
+                'description' => 'The URL for this navigation item.',
             ],
             'customAttributes' => [
                 'name' => 'customAttributes',
                 'type' => Type::listOf(CustomAttributeGenerator::generateType()),
-                'description' => 'Any additional custom attributes for the node.'
+                'description' => 'Any additional custom attributes for the node.',
             ],
             'data' => [
                 'name' => 'data',
                 'type' => Type::string(),
-                'description' => 'Any additional data for the node.'
+                'description' => 'Any additional data for the node.',
             ],
             'newWindow' => [
                 'name' => 'newWindow',
                 'type' => Type::string(),
-                'description' => 'Whether this node should open in a new window.'
+                'description' => 'Whether this node should open in a new window.',
             ],
             'url' => [
                 'name' => 'url',
@@ -123,17 +123,17 @@ class NodeInterface extends Structure
                 'name' => 'children',
                 'args' => NodeArguments::getArguments(),
                 'type' => Type::listOf(NodeInterfaceLocal::getType()),
-                'description' => 'The node’s children. Accepts the same arguments as the `nodes` query.'
+                'description' => 'The node’s children. Accepts the same arguments as the `nodes` query.',
             ],
             'parent' => [
                 'name' => 'parent',
                 'type' => NodeInterfaceLocal::getType(),
-                'description' => 'The node’s parent.'
+                'description' => 'The node’s parent.',
             ],
             'element' => [
                 'name' => 'element',
                 'type' => Element::getType(),
-                'description' => 'The element the node links to.'
+                'description' => 'The element the node links to.',
             ],
         ]), self::getName());
     }

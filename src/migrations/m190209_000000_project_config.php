@@ -19,7 +19,7 @@ class m190209_000000_project_config extends Migration
         if (!MigrationHelper::doesIndexExist('{{%navigation_navs}}', 'isArchived')) {
             $this->createIndex(null, '{{%navigation_navs}}', 'isArchived', false);
         }
-    
+
         return true;
     }
 

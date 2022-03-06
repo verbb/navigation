@@ -43,9 +43,9 @@ class Navigation extends Plugin
     // Public Properties
     // =========================================================================
 
-    public string $schemaVersion = '1.0.21';
-    public bool $hasCpSettings = true;
     public bool $hasCpSection = true;
+    public bool $hasCpSettings = true;
+    public string $schemaVersion = '1.0.21';
 
 
     // Traits
@@ -112,7 +112,7 @@ class Navigation extends Plugin
     {
         Craft::$app->view->registerTwigExtension(new Extension);
     }
-    
+
     private function _registerCpRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
@@ -182,7 +182,7 @@ class Navigation extends Plugin
                             'label' => Craft::t('navigation', 'Edit navigation settings'),
                         ],
                         'navigation-deleteNav:' . $nav->uid => [
-                            'label' => Craft::t('navigation', 'Delete navigation')
+                            'label' => Craft::t('navigation', 'Delete navigation'),
                         ],
                     ],
                 ];
@@ -200,7 +200,7 @@ class Navigation extends Plugin
 
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_QUERIES, function(RegisterGqlQueriesEvent $event) {
             $queries = NodeQuery::getQueries();
-            
+
             foreach ($queries as $key => $value) {
                 $event->queries[$key] = $value;
             }

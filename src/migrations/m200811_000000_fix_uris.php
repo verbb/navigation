@@ -19,7 +19,7 @@ class m200811_000000_fix_uris extends Migration
 
             $this->update(Table::ELEMENTS_SITES, ['uri' => ''], ['id' => $nodeId]);
         }
-    
+
         return true;
     }
 

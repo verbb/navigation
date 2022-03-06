@@ -10,7 +10,7 @@ use yii\db\Schema;
 
 class NavigationField extends Field
 {
-    // Static
+    // Static Methods
     // =========================================================================
 
     public static function displayName(): string
@@ -23,19 +23,14 @@ class NavigationField extends Field
         return Craft::t('navigation', 'Select a navigation');
     }
 
+
+    // Public Methods
+    // =========================================================================
+
     public function getContentColumnType(): array|string
     {
         return Schema::TYPE_TEXT;
     }
-
-    protected function optionsSettingLabel(): string
-    {
-        return Craft::t('navigation', 'Navigation Options');
-    }
-
-
-    // Public Methods
-    // =========================================================================
 
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
@@ -65,5 +60,14 @@ class NavigationField extends Field
         return Craft::$app->getView()->renderTemplate('navigation/_field/settings', [
 
         ]);
+    }
+    
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function optionsSettingLabel(): string
+    {
+        return Craft::t('navigation', 'Navigation Options');
     }
 }

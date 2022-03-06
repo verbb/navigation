@@ -1,21 +1,22 @@
 <?php
 namespace verbb\navigation\services;
 
+use verbb\navigation\Navigation;
+use verbb\navigation\elements\Node as NodeElement;
+
 use Craft;
 use craft\base\Component;
+use craft\base\ElementInterface;
 use craft\events\ElementEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\ElementHelper;
-
-use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node as NodeElement;
 
 class Nodes extends Component
 {
     // Public Methods
     // =========================================================================
 
-    public function getNodeById($id, $siteId = null): ?\craft\base\ElementInterface
+    public function getNodeById($id, $siteId = null): ?ElementInterface
     {
         return Craft::$app->getElements()->getElementById($id, NodeElement::class, $siteId);
     }
@@ -36,7 +37,7 @@ class Nodes extends Component
         if (Craft::$app->getIsInMaintenanceMode()) {
             return;
         }
-        
+
         $element = $event->element;
         $isNew = $event->isNew;
 
@@ -53,7 +54,7 @@ class Nodes extends Component
         $nodes = NodeElement::find()
             ->elementId($element->id)
             ->siteId($element->siteId)
-            ->slug((string) $element->siteId)
+            ->slug((string)$element->siteId)
             ->status(null)
             ->type(get_class($element))
             ->all();
@@ -119,7 +120,7 @@ class Nodes extends Component
 
         $parentOptions[] = [
             'label' => '',
-            'value' => 0
+            'value' => 0,
         ];
 
         foreach ($nodes as $node) {

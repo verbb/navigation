@@ -8,13 +8,7 @@ use craft\base\Component;
 
 abstract class NodeType extends Component implements NodeTypeInterface
 {
-    // Properties
-    // =========================================================================
-
-    public ?Node $node = null;
-
-
-    // Static
+    // Static Methods
     // =========================================================================
 
     public static function displayName(): string
@@ -46,6 +40,12 @@ abstract class NodeType extends Component implements NodeTypeInterface
     {
         return false;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public ?Node $node = null;
 
 
     // Public Methods

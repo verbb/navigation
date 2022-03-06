@@ -6,6 +6,7 @@ use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\elements\Node as NodeElement;
 
 use Craft;
+use craft\elements\db\ElementQueryInterface;
 use craft\web\View;
 
 class NavigationVariable
@@ -38,7 +39,7 @@ class NavigationVariable
         return null;
     }
 
-    public function nodes($criteria = null): \craft\elements\db\ElementQueryInterface
+    public function nodes($criteria = null): ElementQueryInterface
     {
         $query = NodeElement::find();
 
@@ -63,7 +64,7 @@ class NavigationVariable
             'nodes' => $nodes,
             'options' => $options,
         ]);
-        
+
         Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_SITE);
     }
 
@@ -92,12 +93,12 @@ class NavigationVariable
     {
         return Navigation::$plugin->getNavs()->getNavByHandle($handle);
     }
-    
+
     public function getAllNavs(): array
     {
         return Navigation::$plugin->getNavs()->getAllNavs();
     }
-    
+
     public function getBuilderTabs($nav): array
     {
         return Navigation::$plugin->getNavs()->getBuilderTabs($nav);

@@ -18,7 +18,7 @@ class NavsController extends Controller
     // Public Methods
     // =========================================================================
 
-    public function actionIndex(): \yii\web\Response
+    public function actionIndex(): Response
     {
         $navigations = Navigation::$plugin->getNavs()->getAllEditableNavs();
 
@@ -37,7 +37,7 @@ class NavsController extends Controller
         ]);
     }
 
-    public function actionEditNav(int $navId = null, NavModel $nav = null): \yii\web\Response
+    public function actionEditNav(int $navId = null, NavModel $nav = null): Response
     {
         if ($nav === null) {
             if ($navId !== null) {
@@ -63,7 +63,7 @@ class NavsController extends Controller
         ]);
     }
 
-    public function actionBuildNav(int $navId = null, string $siteHandle = null): \yii\web\Response
+    public function actionBuildNav(int $navId = null, string $siteHandle = null): Response
     {
         $settings = Navigation::$plugin->getSettings();
         $defaultSite = false;

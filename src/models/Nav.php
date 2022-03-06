@@ -101,7 +101,7 @@ class Nav extends Model
         $behaviors['navFieldLayout'] = [
             'class' => FieldLayoutBehavior::class,
             'elementType' => Node::class,
-            'idAttribute' => 'fieldLayoutId'
+            'idAttribute' => 'fieldLayoutId',
         ];
 
         return $behaviors;

@@ -103,14 +103,14 @@ class NaveePlugin extends Migration
                             }
 
                             if ($NaveeNode['entryId']) {
-                               $node->type = Entry::class;
-                               $node->elementId = $NaveeNode['entryId'];
+                                $node->type = Entry::class;
+                                $node->elementId = $NaveeNode['entryId'];
                             } else if ($NaveeNode['categoryId']) {
-                               $node->type = Category::class;
-                               $node->elementId = $NaveeNode['categoryId'];
+                                $node->type = Category::class;
+                                $node->elementId = $NaveeNode['categoryId'];
                             } else if ($NaveeNode['assetId']) {
-                               $node->type = Asset::class;
-                               $node->elementId = $NaveeNode['assetId'];
+                                $node->type = Asset::class;
+                                $node->elementId = $NaveeNode['assetId'];
                             }
 
                             if (Craft::$app->getElements()->saveElement($node, true, $this->propagate)) {
@@ -184,7 +184,6 @@ class NaveePlugin extends Migration
                     }
                 }
             }
-
         } catch (Throwable $e) {
             Craft::dump($e->getMessage());
 
@@ -208,20 +207,20 @@ class NaveePlugin extends Migration
             $args = "";
 
             if (isset($frame['args'])) {
-                $args = array();
+                $args = [];
 
                 foreach ($frame['args'] as $arg) {
                     if (is_string($arg)) {
                         $args[] = "'" . $arg . "'";
-                    } elseif (is_array($arg)) {
+                    } else if (is_array($arg)) {
                         $args[] = "Array";
-                    } elseif (is_null($arg)) {
+                    } else if (is_null($arg)) {
                         $args[] = 'NULL';
-                    } elseif (is_bool($arg)) {
+                    } else if (is_bool($arg)) {
                         $args[] = ($arg) ? "true" : "false";
-                    } elseif (is_object($arg)) {
+                    } else if (is_object($arg)) {
                         $args[] = get_class($arg);
-                    } elseif (is_resource($arg)) {
+                    } else if (is_resource($arg)) {
                         $args[] = get_resource_type($arg);
                     } else {
                         $args[] = $arg;
@@ -231,12 +230,12 @@ class NaveePlugin extends Migration
                 $args = implode(", ", $args);
             }
 
-            $rtn .= sprintf( "#%s %s(%s): %s(%s)\n",
-                                 $count,
+            $rtn .= sprintf("#%s %s(%s): %s(%s)\n",
+                $count,
                 $frame['file'] ?? '[internal function]',
                 $frame['line'] ?? '',
-                                 (isset($frame['class']))  ? $frame['class'].$frame['type'].$frame['function'] : $frame['function'],
-                                 $args );
+                (isset($frame['class'])) ? $frame['class'] . $frame['type'] . $frame['function'] : $frame['function'],
+                $args);
 
             $count++;
         }

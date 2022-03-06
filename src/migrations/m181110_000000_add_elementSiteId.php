@@ -28,7 +28,7 @@ class m181110_000000_add_elementSiteId extends Migration
                 Craft::$app->getElements()->saveElement($node, true, false);
             }
         }
-    
+
         return true;
     }
 

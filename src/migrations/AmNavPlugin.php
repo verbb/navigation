@@ -101,11 +101,11 @@ class AmNavPlugin extends Migration
                         }
 
                         if ($AmNode['elementType'] === 'Entry') {
-                           $node->type = Entry::class;
+                            $node->type = Entry::class;
                         } else if ($AmNode['elementType'] === 'Category') {
-                           $node->type = Category::class;
+                            $node->type = Category::class;
                         } else if ($AmNode['elementType'] === 'Asset') {
-                           $node->type = Asset::class;
+                            $node->type = Asset::class;
                         }
 
                         if (Craft::$app->getElements()->saveElement($node, true, $this->propagate)) {
@@ -127,7 +127,7 @@ class AmNavPlugin extends Migration
                         echo "    > `{$this->getExceptionTraceAsString($e)}`";
 
                         continue;
-                    } 
+                    }
                 }
             }
 
@@ -175,20 +175,20 @@ class AmNavPlugin extends Migration
             $args = "";
 
             if (isset($frame['args'])) {
-                $args = array();
+                $args = [];
 
                 foreach ($frame['args'] as $arg) {
                     if (is_string($arg)) {
                         $args[] = "'" . $arg . "'";
-                    } elseif (is_array($arg)) {
+                    } else if (is_array($arg)) {
                         $args[] = "Array";
-                    } elseif (is_null($arg)) {
+                    } else if (is_null($arg)) {
                         $args[] = 'NULL';
-                    } elseif (is_bool($arg)) {
+                    } else if (is_bool($arg)) {
                         $args[] = ($arg) ? "true" : "false";
-                    } elseif (is_object($arg)) {
+                    } else if (is_object($arg)) {
                         $args[] = get_class($arg);
-                    } elseif (is_resource($arg)) {
+                    } else if (is_resource($arg)) {
                         $args[] = get_resource_type($arg);
                     } else {
                         $args[] = $arg;
@@ -198,12 +198,12 @@ class AmNavPlugin extends Migration
                 $args = implode(", ", $args);
             }
 
-            $rtn .= sprintf( "#%s %s(%s): %s(%s)\n",
-                                 $count,
+            $rtn .= sprintf("#%s %s(%s): %s(%s)\n",
+                $count,
                 $frame['file'] ?? '[internal function]',
                 $frame['line'] ?? '',
-                                 (isset($frame['class']))  ? $frame['class'].$frame['type'].$frame['function'] : $frame['function'],
-                                 $args );
+                (isset($frame['class'])) ? $frame['class'] . $frame['type'] . $frame['function'] : $frame['function'],
+                $args);
 
             $count++;
         }

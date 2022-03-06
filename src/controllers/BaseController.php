@@ -15,7 +15,7 @@ class BaseController extends Controller
     // Public Methods
     // =========================================================================
 
-    public function actionAmNavMigrate(): \yii\web\Response
+    public function actionAmNavMigrate(): Response
     {
         // Backup!
         Craft::$app->getDb()->backup();
@@ -41,7 +41,7 @@ class BaseController extends Controller
         ]);
     }
 
-    public function actionNaveeMigrate(): \yii\web\Response
+    public function actionNaveeMigrate(): Response
     {
         // Backup!
         Craft::$app->getDb()->backup();
@@ -65,7 +65,7 @@ class BaseController extends Controller
         ]);
     }
 
-    public function actionSettings(): \yii\web\Response
+    public function actionSettings(): Response
     {
         $settings = Navigation::$plugin->getSettings();
 

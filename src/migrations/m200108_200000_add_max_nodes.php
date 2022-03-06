@@ -10,7 +10,7 @@ class m200108_200000_add_max_nodes extends Migration
         if (!$this->db->columnExists('{{%navigation_navs}}', 'maxNodes')) {
             $this->addColumn('{{%navigation_navs}}', 'maxNodes', $this->integer()->after('propagateNodes'));
         }
-    
+
         return true;
     }
 

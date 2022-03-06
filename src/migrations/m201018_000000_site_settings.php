@@ -10,7 +10,7 @@ class m201018_000000_site_settings extends Migration
         if (!$this->db->columnExists('{{%navigation_navs}}', 'siteSettings')) {
             $this->addColumn('{{%navigation_navs}}', 'siteSettings', $this->text()->after('permissions'));
         }
-    
+
         return true;
     }
 

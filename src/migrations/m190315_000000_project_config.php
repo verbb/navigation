@@ -12,7 +12,7 @@ class m190315_000000_project_config extends Migration
         // Don't make the same config changes twice
         $projectConfig = Craft::$app->getProjectConfig();
         $schemaVersion = $projectConfig->get('plugins.navigation.schemaVersion', true);
-        
+
         if (version_compare($schemaVersion, '1.0.11', '>=')) {
             return true;
         }
@@ -20,6 +20,13 @@ class m190315_000000_project_config extends Migration
         $projectConfig->set('navigation.navs', $this->_getNavData());
 
         return true;
+    }
+
+    public function safeDown(): bool
+    {
+        echo "m190315_000000_project_config cannot be reverted.\n";
+
+        return false;
     }
 
     private function _getNavData(): array
@@ -45,7 +52,7 @@ class m190315_000000_project_config extends Migration
             if (!empty($nav['structure'])) {
                 $nav['structure'] = [
                     'uid' => $nav['structure'],
-                    'maxLevels' => $nav['structureMaxLevels']
+                    'maxLevels' => $nav['structureMaxLevels'],
                 ];
             } else {
                 unset($nav['structure']);
@@ -58,12 +65,5 @@ class m190315_000000_project_config extends Migration
         }
 
         return $navData;
-    }
-
-    public function safeDown(): bool
-    {
-        echo "m190315_000000_project_config cannot be reverted.\n";
-
-        return false;
     }
 }

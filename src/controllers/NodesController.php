@@ -17,7 +17,7 @@ class NodesController extends Controller
     // Public Methods
     // =========================================================================
 
-    public function actionAddNodes(): \yii\web\Response
+    public function actionAddNodes(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -78,7 +78,7 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionSaveNode(): \yii\web\Response
+    public function actionSaveNode(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -107,11 +107,11 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionDelete(): \yii\web\Response
+    public function actionDelete(): Response
     {
         $this->requireAcceptsJson();
         $this->requirePostRequest();
-       
+
         $request = Craft::$app->getRequest();
         $nodesService = Navigation::$plugin->getNodes();
 
@@ -120,7 +120,7 @@ class NodesController extends Controller
         $nodeIds = $request->getRequiredParam('nodeIds');
 
         $node = Navigation::$plugin->getNodes()->getNodeById($nodeIds[0], $siteId);
-        
+
         // We need to go against `deleteElement()` which will kick up any child elements in the structure
         // to be attached to the parent - not what we want in this case, it'd be pandemonium.
         foreach ($nodeIds as $nodeId) {
@@ -135,14 +135,14 @@ class NodesController extends Controller
             $nodes = $nodesService->getNodesForNav($nav->id, $siteId);
             $parentOptions = $nodesService->getParentOptions($nodes, $nav);
         }
-                
+
         return $this->asJson([
             'success' => true,
             'parentOptions' => $parentOptions,
         ]);
     }
 
-    public function actionEditor(): \yii\web\Response
+    public function actionEditor(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -165,7 +165,7 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionChangeNodeType(): \yii\web\Response
+    public function actionChangeNodeType(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -193,7 +193,7 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionMove(): \yii\web\Response
+    public function actionMove(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -218,7 +218,7 @@ class NodesController extends Controller
         ]);
     }
 
-    public function actionClear(): ?\yii\web\Response
+    public function actionClear(): ?Response
     {
         $this->requirePostRequest();
 
