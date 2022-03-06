@@ -30,13 +30,13 @@ class Navs extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_BEFORE_SAVE_NAV = 'beforeSaveNav';
-    const EVENT_AFTER_SAVE_NAV = 'afterSaveNav';
-    const EVENT_BEFORE_APPLY_NAV_DELETE = 'beforeApplyNavDelete';
-    const EVENT_BEFORE_DELETE_NAV = 'beforeDeleteNav';
-    const EVENT_AFTER_DELETE_NAV = 'afterDeleteNav';
+    public const EVENT_BEFORE_SAVE_NAV = 'beforeSaveNav';
+    public const EVENT_AFTER_SAVE_NAV = 'afterSaveNav';
+    public const EVENT_BEFORE_APPLY_NAV_DELETE = 'beforeApplyNavDelete';
+    public const EVENT_BEFORE_DELETE_NAV = 'beforeDeleteNav';
+    public const EVENT_AFTER_DELETE_NAV = 'afterDeleteNav';
 
-    const CONFIG_NAV_KEY = 'navigation.navs';
+    public const CONFIG_NAV_KEY = 'navigation.navs';
 
 
     // Properties

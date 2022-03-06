@@ -15,7 +15,7 @@ class NodeTypes extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_REGISTER_NODE_TYPES = 'registerNodeTypes';
+    public const EVENT_REGISTER_NODE_TYPES = 'registerNodeTypes';
 
 
     // Public Methods

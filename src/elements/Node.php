@@ -33,7 +33,7 @@ class Node extends Element
     // Constants
     // =========================================================================
 
-    const EVENT_NODE_ACTIVE = 'modifyNodeActive';
+    public const EVENT_NODE_ACTIVE = 'modifyNodeActive';
 
 
     // Static Methods

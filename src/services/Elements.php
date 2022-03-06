@@ -19,7 +19,7 @@ class Elements extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_REGISTER_NAVIGATION_ELEMENT = 'registerNavigationElement';
+    public const EVENT_REGISTER_NAVIGATION_ELEMENT = 'registerNavigationElement';
 
 
     // Public Methods
