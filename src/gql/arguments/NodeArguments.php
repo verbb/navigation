@@ -10,7 +10,7 @@ use GraphQL\Type\Definition\Type;
 
 class NodeArguments extends StructureElementArguments
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getArguments(): array

@@ -5,7 +5,7 @@ use verbb\navigation\base\NodeType;
 
 class PassiveType extends NodeType
 {
-    // Static
+    // Static Methods
     // =========================================================================
 
     public static function displayName(): string

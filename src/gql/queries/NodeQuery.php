@@ -12,7 +12,7 @@ use GraphQL\Type\Definition\Type;
 
 class NodeQuery extends Query
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getQueries(bool $checkToken = true): array

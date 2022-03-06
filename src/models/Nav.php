@@ -15,7 +15,7 @@ use craft\validators\UniqueValidator;
 
 class Nav extends Model
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
     public ?int $id = null;

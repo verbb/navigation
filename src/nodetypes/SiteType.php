@@ -7,7 +7,7 @@ use verbb\navigation\base\NodeType;
 
 class SiteType extends NodeType
 {
-    // Static
+    // Static Methods
     // =========================================================================
 
     public static function displayName(): string

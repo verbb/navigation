@@ -15,7 +15,7 @@ use craft\helpers\Gql as GqlHelper;
 
 class NodeGenerator extends Generator implements GeneratorInterface, SingleGeneratorInterface
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function generateTypes(mixed $context = null): array

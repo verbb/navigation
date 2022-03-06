@@ -36,7 +36,7 @@ class Node extends Element
     const EVENT_NODE_ACTIVE = 'modifyNodeActive';
 
 
-    // Static
+    // Static Methods
     // =========================================================================
 
     public static function displayName(): string
@@ -468,10 +468,6 @@ class Node extends Element
         return static::gqlTypeNameByContext($this->getNav());
     }
 
-
-    // Events
-    // -------------------------------------------------------------------------
-
     public function beforeSave(bool $isNew): bool
     {
         $settings = Navigation::$plugin->getSettings();
@@ -654,10 +650,6 @@ class Node extends Element
         return $object;
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     public function _getActive($includeChildren = true)
     {
         if ($this->_isActive && $includeChildren) {
@@ -734,6 +726,10 @@ class Node extends Element
 
         return $isActive;
     }
+    
+
+    // Private Methods
+    // =========================================================================
 
     private function _hasNewParent(): bool
     {

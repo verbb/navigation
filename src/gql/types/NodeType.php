@@ -21,6 +21,10 @@ class NodeType extends Element
         parent::__construct($config);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function resolve(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo): mixed
     {
         $fieldName = $resolveInfo->fieldName;

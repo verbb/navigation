@@ -17,7 +17,7 @@ use GraphQL\Type\Definition\Type;
 
 class NodeInterface extends Structure
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getTypeGenerator(): string

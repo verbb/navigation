@@ -11,6 +11,9 @@ use craft\web\View;
 
 class NavigationVariable
 {
+    // Public Methods
+    // =========================================================================
+
     public function getPluginName(): string
     {
         return Navigation::$plugin->getPluginName();
