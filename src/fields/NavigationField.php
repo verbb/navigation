@@ -4,6 +4,7 @@ namespace verbb\navigation\fields;
 use verbb\navigation\Navigation;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\base\Field;
 
 use yii\db\Schema;
