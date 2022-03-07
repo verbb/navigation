@@ -188,7 +188,10 @@ class Navigation extends Plugin
                 ];
             }
 
-            $event->permissions[Craft::t('navigation', 'Navigation')] = $navPermissions;
+            $event->permissions[] = [
+                'heading' => Craft::t('navigation', 'Navigation'),
+                'permissions' => $navPermissions,
+            ];
         });
     }
 
