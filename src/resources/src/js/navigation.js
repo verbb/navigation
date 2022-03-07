@@ -414,7 +414,7 @@ Craft.Navigation.Editor = Garnish.Base.extend({
 
             Garnish.requestAnimationFrame($.proxy(function() {
                 Craft.appendHeadHtml(response.headHtml);
-                Craft.appendFootHtml(response.footHtml);
+                Craft.appendBodyHtml(response.footHtml);
                 Craft.initUiElements(this.$fieldsContainer);
             }, this));
 
@@ -491,7 +491,7 @@ Craft.Navigation.Editor = Garnish.Base.extend({
 
             Garnish.requestAnimationFrame($.proxy(function() {
                 Craft.appendHeadHtml(response.headHtml);
-                Craft.appendFootHtml(response.footHtml);
+                Craft.appendBodyHtml(response.footHtml);
                 Craft.initUiElements(this.$fieldsContainer);
             }, this));
 
