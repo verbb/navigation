@@ -4,6 +4,7 @@ namespace verbb\navigation\variables;
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\elements\Node as NodeElement;
+use verbb\navigation\models\Nav;
 
 use Craft;
 use craft\elements\db\ElementQueryInterface;
@@ -29,7 +30,7 @@ class NavigationVariable
         return Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
     }
 
-    public function getActiveNode($criteria = null, $includeChildren = false)
+    public function getActiveNode($criteria = null, $includeChildren = false): ?NodeElement
     {
         $nodes = $this->nodes($criteria)->all();
 
@@ -42,7 +43,7 @@ class NavigationVariable
         return null;
     }
 
-    public function nodes($criteria = null): ElementQueryInterface
+    public function nodes($criteria = null): NodeQuery
     {
         $query = NodeElement::find();
 
@@ -87,12 +88,12 @@ class NavigationVariable
         return $nodeTree;
     }
 
-    public function getNavById($id)
+    public function getNavById($id): Nav
     {
         return Navigation::$plugin->getNavs()->getNavById($id);
     }
 
-    public function getNavByHandle($handle)
+    public function getNavByHandle($handle): Nav
     {
         return Navigation::$plugin->getNavs()->getNavByHandle($handle);
     }

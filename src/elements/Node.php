@@ -74,7 +74,7 @@ class Node extends Element
         return true;
     }
 
-    public static function find(): ElementQueryInterface
+    public static function find(): NodeQuery
     {
         return new NodeQuery(static::class);
     }

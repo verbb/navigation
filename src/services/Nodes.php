@@ -16,12 +16,13 @@ class Nodes extends Component
     // Public Methods
     // =========================================================================
 
-    public function getNodeById($id, $siteId = null): ?ElementInterface
+    public function getNodeById($id, $siteId = null): ?NodeElement
     {
+        /* @noinspection PhpIncompatibleReturnTypeInspection */
         return Craft::$app->getElements()->getElementById($id, NodeElement::class, $siteId);
     }
 
-    public function getNodesForNav($navId, $siteId = null)
+    public function getNodesForNav($navId, $siteId = null): array
     {
         return NodeElement::find()
             ->navId($navId)
