@@ -121,32 +121,6 @@ class Node extends Element
     // Public Methods
     // =========================================================================
 
-    public function __construct($config = [])
-    {
-        // Config normalization
-        if (array_key_exists('customAttributes', $config)) {
-            if (is_string($config['customAttributes'])) {
-                $config['customAttributes'] = Json::decodeIfJson($config['customAttributes']);
-            }
-
-            if (!is_array($config['customAttributes'])) {
-                $config['customAttributes'] = [];
-            }
-        }
-
-        if (array_key_exists('data', $config)) {
-            if (is_string($config['data'])) {
-                $config['data'] = Json::decodeIfJson($config['data']);
-            }
-
-            if (!is_array($config['data'])) {
-                $config['data'] = [];
-            }
-        }
-
-        parent::__construct($config);
-    }
-
     public function init(): void
     {
         parent::init();
