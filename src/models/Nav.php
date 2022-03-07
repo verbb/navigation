@@ -45,7 +45,7 @@ class Nav extends Model
             }
 
             if (!is_array($config['permissions'])) {
-                unset($config['permissions']);
+                $config['permissions'] = [];
             }
         }
 
@@ -55,7 +55,7 @@ class Nav extends Model
             }
 
             if (!is_array($config['siteSettings'])) {
-                unset($config['siteSettings']);
+                $config['siteSettings'] = [];
             }
         }
 

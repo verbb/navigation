@@ -130,7 +130,7 @@ class Node extends Element
             }
 
             if (!is_array($config['customAttributes'])) {
-                unset($config['customAttributes']);
+                $config['customAttributes'] = [];
             }
         }
 
@@ -140,7 +140,7 @@ class Node extends Element
             }
 
             if (!is_array($config['data'])) {
-                unset($config['data']);
+                $config['data'] = [];
             }
         }
 
