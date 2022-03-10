@@ -2,7 +2,7 @@
 namespace verbb\navigation\migrations;
 
 use craft\db\Migration;
-use craft\helpers\MigrationHelper;
+use craft\helpers\Db;
 
 class m190314_000000_soft_deletes extends Migration
 {
@@ -13,7 +13,7 @@ class m190314_000000_soft_deletes extends Migration
             $this->addColumn('{{%navigation_navs}}', 'dateDeleted', $this->dateTime()->null()->after('dateUpdated'));
         }
 
-        if (!MigrationHelper::doesIndexExist('{{%navigation_navs}}', 'dateDeleted')) {
+        if (!Db::doesIndexExist('{{%navigation_navs}}', 'dateDeleted')) {
             $this->createIndex(null, '{{%navigation_navs}}', ['dateDeleted'], false);
         }
 
@@ -37,8 +37,8 @@ class m190314_000000_soft_deletes extends Migration
             $this->dropColumn('{{%navigation_navs}}', 'dateArchived');
         }
 
-        if (MigrationHelper::doesIndexExist('{{%navigation_navs}}', 'isArchived')) {
-            MigrationHelper::dropIndexIfExists('{{%navigation_navs}}', ['isArchived'], true, $this);
+        if (Db::doesIndexExist('{{%navigation_navs}}', 'isArchived')) {
+            Db::dropIndexIfExists('{{%navigation_navs}}', ['isArchived'], true, $this);
         }
 
         return true;

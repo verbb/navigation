@@ -53,7 +53,7 @@ class NodeFeedMeElement extends Element
     public function getQuery($settings, $params = [])
     {
         $query = Node::find()
-            ->anyStatus()
+            ->status(null)
             ->navId($settings['elementGroup'][Node::class])
             ->siteId(Hash::get($settings, 'siteId') ?: Craft::$app->getSites()->getPrimarySite()->id);
 

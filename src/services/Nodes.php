@@ -28,7 +28,7 @@ class Nodes extends Component
             ->navId($navId)
             ->status(null)
             ->siteId($siteId)
-            ->anyStatus()
+            ->status(null)
             ->all();
     }
 

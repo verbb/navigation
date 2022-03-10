@@ -2,7 +2,7 @@
 namespace verbb\navigation\migrations;
 
 use craft\db\Migration;
-use craft\helpers\MigrationHelper;
+use craft\helpers\Db;
 
 class m190209_000000_project_config extends Migration
 {
@@ -16,7 +16,7 @@ class m190209_000000_project_config extends Migration
             $this->addColumn('{{%navigation_navs}}', 'dateArchived', $this->dateTime()->after('isArchived'));
         }
 
-        if (!MigrationHelper::doesIndexExist('{{%navigation_navs}}', 'isArchived')) {
+        if (!Db::doesIndexExist('{{%navigation_navs}}', 'isArchived')) {
             $this->createIndex(null, '{{%navigation_navs}}', 'isArchived', false);
         }
 

@@ -411,7 +411,7 @@ class Navs extends Component
         try {
             // Delete the nodes - ensure to fetch for all sites
             $nodes = Node::find()
-                ->anyStatus()
+                ->status(null)
                 ->site('*')
                 ->navId($navRecord->id)
                 ->all();
@@ -617,7 +617,7 @@ class Navs extends Component
                 $structuresService->append($element->structureId, $duplicate, $newParent);
             }
 
-            $children = $element->getChildren()->anyStatus()->all();
+            $children = $element->getChildren()->status(null)->all();
             $this->_duplicateElements($children, $newAttributes, $duplicatedElementIds, $duplicate);
         }
     }

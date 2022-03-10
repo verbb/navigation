@@ -6,11 +6,11 @@ use verbb\navigation\elements\Node;
 use verbb\navigation\gql\interfaces\NodeInterface;
 use verbb\navigation\gql\types\NodeType;
 
+use Craft;
 use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeManager;
 use craft\helpers\Gql as GqlHelper;
 
 class NodeGenerator extends Generator implements GeneratorInterface, SingleGeneratorInterface
@@ -48,7 +48,7 @@ class NodeGenerator extends Generator implements GeneratorInterface, SingleGener
         }
 
         $contentFieldGqlTypes = self::getContentFields($context);
-        $navFields = TypeManager::prepareFieldDefinitions(array_merge(NodeInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
+        $navFields = Craft::$app->getGql()->prepareFieldDefinitions(array_merge(NodeInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
 
         return GqlEntityRegistry::createEntity($typeName, new NodeType([
             'name' => $typeName,

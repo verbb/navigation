@@ -7,9 +7,9 @@ use verbb\navigation\gql\interfaces\NodeInterface as NodeInterfaceLocal;
 use verbb\navigation\gql\types\generators\CustomAttributeGenerator;
 use verbb\navigation\gql\types\generators\NodeGenerator;
 
+use Craft;
 use craft\gql\interfaces\Element;
 use craft\gql\interfaces\Structure;
-use craft\gql\TypeManager;
 use craft\gql\GqlEntityRegistry;
 
 use GraphQL\Type\Definition\InterfaceType;
@@ -52,7 +52,7 @@ class NodeInterface extends Structure
 
     public static function getFieldDefinitions(): array
     {
-        return TypeManager::prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+        return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
             'elementId' => [
                 'name' => 'elementId',
                 'type' => Type::int(),

@@ -3,7 +3,7 @@ namespace verbb\navigation\migrations;
 
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\MigrationHelper;
+use craft\helpers\Db;
 
 class m190310_000000_migrate_elementSiteId extends Migration
 {
@@ -20,8 +20,8 @@ class m190310_000000_migrate_elementSiteId extends Migration
                 $this->update('{{%elements_sites}}', ['slug' => $row['elementSiteId']], ['id' => $row['id']], [], false);
             }
 
-            MigrationHelper::dropForeignKeyIfExists('{{%navigation_nodes}}', ['elementSiteId'], $this);
-            MigrationHelper::dropIndexIfExists('{{%navigation_nodes}}', ['elementSiteId'], true, $this);
+            Db::dropForeignKeyIfExists('{{%navigation_nodes}}', ['elementSiteId'], $this);
+            Db::dropIndexIfExists('{{%navigation_nodes}}', ['elementSiteId'], true, $this);
 
             $this->dropColumn('{{%navigation_nodes}}', 'elementSiteId');
         }

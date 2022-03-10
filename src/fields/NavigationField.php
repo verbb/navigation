@@ -6,6 +6,7 @@ use verbb\navigation\Navigation;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
+use craft\helpers\Html;
 
 use yii\db\Schema;
 
@@ -45,7 +46,7 @@ class NavigationField extends Field
             $options[$nav->handle] = $nav->name;
         }
 
-        $id = Craft::$app->getView()->formatInputId($this->handle);
+        $id = Html::id($this->handle);
         $nameSpacedId = Craft::$app->getView()->namespaceInputId($id);
 
         return Craft::$app->getView()->renderTemplate('navigation/_field/input', [

@@ -12,6 +12,7 @@ use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\App;
 use Craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
@@ -227,7 +228,7 @@ class Node extends Element
         }
 
         // Parse aliases and env variables
-        $url = Craft::parseEnv($url);
+        $url = App::parseEnv($url);
 
         // Allow twig support
         if ($url) {
@@ -568,7 +569,7 @@ class Node extends Element
         if ($this->structureId) {
             // Remember the parent ID, in case the entry needs to be restored later
             $parentId = $this->getAncestors(1)
-                ->anyStatus()
+                ->status(null)
                 ->select(['elements.id'])
                 ->scalar();
 
@@ -741,7 +742,7 @@ class Node extends Element
         $oldParentQuery->ancestorOf($this);
         $oldParentQuery->ancestorDist(1);
         $oldParentQuery->siteId($this->siteId);
-        $oldParentQuery->anyStatus();
+        $oldParentQuery->status(null);
         $oldParentQuery->select('elements.id');
         $oldParentId = $oldParentQuery->scalar();
 
