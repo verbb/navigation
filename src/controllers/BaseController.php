@@ -4,6 +4,7 @@ namespace verbb\navigation\controllers;
 use verbb\navigation\Navigation;
 use verbb\navigation\migrations\AmNavPlugin;
 use verbb\navigation\migrations\NaveePlugin;
+use verbb\navigation\models\Settings;
 
 use Craft;
 use craft\web\Controller;
@@ -20,6 +21,7 @@ class BaseController extends Controller
         // Backup!
         Craft::$app->getDb()->backup();
 
+        /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
         $request = Craft::$app->getRequest();
 
@@ -46,6 +48,7 @@ class BaseController extends Controller
         // Backup!
         Craft::$app->getDb()->backup();
 
+        /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
         $request = Craft::$app->getRequest();
 
@@ -67,6 +70,7 @@ class BaseController extends Controller
 
     public function actionSettings(): Response
     {
+        /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
 
         return $this->renderTemplate('navigation/settings', [

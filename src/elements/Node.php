@@ -4,6 +4,7 @@ namespace verbb\navigation\elements;
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\events\NodeActiveEvent;
+use verbb\navigation\models\Settings;
 use verbb\navigation\nodetypes\PassiveType;
 use verbb\navigation\nodetypes\SiteType;
 use verbb\navigation\records\Node as NodeRecord;
@@ -445,6 +446,7 @@ class Node extends Element
 
     public function beforeSave(bool $isNew): bool
     {
+        /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
 
         // Set the structure ID for Element::attributes() and afterSave()

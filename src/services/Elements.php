@@ -6,6 +6,7 @@ use craft\base\Component;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\events\RegisterElementEvent;
+use verbb\navigation\models\Settings;
 
 use craft\elements\Asset;
 use craft\elements\Entry;
@@ -84,6 +85,7 @@ class Elements extends Component
         }
 
         // Remove any defined in our config
+        /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
 
         $event = new RegisterElementEvent([

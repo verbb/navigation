@@ -7,6 +7,7 @@ use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 use verbb\navigation\events\NavEvent;
 use verbb\navigation\models\Nav as NavModel;
+use verbb\navigation\models\Settings;
 use verbb\navigation\records\Nav as NavRecord;
 
 use Craft;
@@ -167,6 +168,7 @@ class Navs extends Component
             ];
         }
 
+        /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
 
         // There's some edge-cases where devs know what they're doing.

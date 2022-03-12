@@ -1,14 +1,15 @@
 <?php
 namespace verbb\navigation\controllers;
 
+use verbb\navigation\Navigation;
+use verbb\navigation\elements\Node as NodeElement;
+use verbb\navigation\models\Nav as NavModel;
+use verbb\navigation\models\Settings;
+
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\Controller;
-
-use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node as NodeElement;
-use verbb\navigation\models\Nav as NavModel;
 
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -65,6 +66,7 @@ class NavsController extends Controller
 
     public function actionBuildNav(int $navId = null, string $siteHandle = null): Response
     {
+        /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
         $defaultSite = false;
 
