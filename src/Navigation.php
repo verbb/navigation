@@ -46,7 +46,7 @@ class Navigation extends Plugin
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
     public string $schemaVersion = '1.0.21';
-    public string $minVersionRequired = '1.0.21';
+    public string $minVersionRequired = '1.4.24';
 
 
     // Traits
