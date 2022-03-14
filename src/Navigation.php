@@ -15,7 +15,10 @@ use verbb\navigation\variables\NavigationVariable;
 
 use Craft;
 use craft\base\Plugin;
+use craft\console\controllers\ResaveController;
+use craft\console\Controller as ConsoleController;
 use craft\events\ConfigEvent;
+use craft\events\DefineConsoleActionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlSchemaComponentsEvent;
@@ -78,6 +81,7 @@ class Navigation extends Plugin
         $this->_registerPermissions();
         $this->_registerGraphQl();
         $this->_registerFeedMeSupport();
+        $this->_defineResaveCommand();
     }
 
     public function getPluginName()
@@ -250,5 +254,33 @@ class Navigation extends Plugin
                 $e->elements[] = NodeFeedMeElement::class;
             });
         }
+    }
+
+    private function _defineResaveCommand()
+    {
+        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return;
+        }
+
+        Event::on(ResaveController::class, ConsoleController::EVENT_DEFINE_ACTIONS, function(DefineConsoleActionsEvent $event) {
+            $event->actions['navigation-nodes'] = [
+                'action' => function(): int {
+                    $controller = Craft::$app->controller;
+
+                    $query = Node::find();
+
+                    if ($controller->navId !== null) {
+                        $query->navId(explode(',', $controller->navId));
+                    }
+
+                    return $controller->saveElements($query);
+                },
+                'options' => ['navId'],
+                'helpSummary' => 'Re-saves Navigation nodes.',
+                'optionsHelp' => [
+                    'type' => 'The nav ID of the nodes to resave.',
+                ],
+            ];
+        });
     }
 }
