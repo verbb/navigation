@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-beta.2 - 2022-03-24
+
+### Changed
+- Now requires Navigation `1.4.24` in order to update from Craft 3.
+
+### Fixed
+- Fix an error with GraphQL.
+- Fix an error with incorrect NodeType casting.
+- Fix an error if Commerce is is enabled, but doesn’t exist.
+
 ## 2.0.0-beta.1 - 2022-03-10
 
 ### Changed

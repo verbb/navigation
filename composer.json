@@ -2,7 +2,7 @@
     "name": "verbb/navigation",
     "description": "A Craft CMS plugin to create navigation menus for your site.",
     "type": "craft-plugin",
-    "version": "2.0.0-beta.1",
+    "version": "2.0.0-beta.2",
     "keywords": [
         "craft",
         "cms",
