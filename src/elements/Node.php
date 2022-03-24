@@ -2,6 +2,7 @@
 namespace verbb\navigation\elements;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\base\NodeType;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\events\NodeActiveEvent;
 use verbb\navigation\models\Settings;
@@ -114,7 +115,7 @@ class Node extends Element
 
     private ?string $_url = null;
     private ?ElementInterface $_element = null;
-    private ?string $_nodeType = null;
+    private ?NodeType $_nodeType = null;
     private ?string $_elementUrl = null;
     private ?bool $_hasNewParent = null;
     private ?bool $_isActive = null;
