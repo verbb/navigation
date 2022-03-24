@@ -60,7 +60,7 @@ class Elements extends Component
             ],
         ];
 
-        if (Craft::$app->getPlugins()->isPluginEnabled('commerce')) {
+        if (class_exists(Product::class)) {
             $elements[] = [
                 'label' => Craft::t('site', Product::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add a product'),
