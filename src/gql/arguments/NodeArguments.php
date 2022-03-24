@@ -4,6 +4,7 @@ namespace verbb\navigation\gql\arguments;
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 
+use Craft;
 use craft\gql\base\StructureElementArguments;
 
 use GraphQL\Type\Definition\Type;
@@ -41,7 +42,7 @@ class NodeArguments extends StructureElementArguments
 
     public static function getContentArguments(): array
     {
-        $navFieldArguments = static::buildContentArguments(Navigation::$plugin->getNavs()->getAllNavs(), Node::class);
+        $navFieldArguments = Craft::$app->getGql()->getContentArguments(Navigation::$plugin->getNavs()->getAllNavs(), Node::class);
 
         return array_merge(parent::getContentArguments(), $navFieldArguments);
     }
