@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4.25 - 2022-04-06
+
+### Added
+- Add more error handling to navigation migrations.
+- Add `resave/navigation-nodes` CLI command to resave nodes in bulk.
+
+### Changed
+- Improve performance of `node->url`.
+
+### Fixed
+- Fix an error with Navee migration and parent nodes.
+- Fix `linkAttributes()` not merging in attributes defined in the control panel for the node, with template attributes
+- Fix an error when migrating navigations from A&M Nav or Navee regarding enabled sites.
+
 ## 1.4.24 - 2022-01-22
 
 ### Fixed
