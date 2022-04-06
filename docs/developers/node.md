@@ -63,11 +63,16 @@ A helper function to assist with generating attributes for a anchor tag.
 You can also pass in any additional attributes you require at the template level:
 
 ```twig
-<a {{ node.linkAttributes([{ attribute: 'data-target', value: 'some-value' }]) }}>
+<a {{ node.linkAttributes({
+    class: 'another-class',
+    'data-target': 'some-value'
+}) }}>
 
 {# Would produce the following HTML #}
-<a href="/some-url" data-target="some-value">
+<a href="/some-url" class="node-class another-class" data-target="some-value">
 ```
+
+These will be merged recursively with attributes defined in the node. For example, we might have a class `node-class` defined in the node's settings. As you can see, this is merged in with `another-class` we define in our templates.
 
 
 ## Custom Fields
