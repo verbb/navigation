@@ -312,7 +312,7 @@ class Node extends Element
         }
 
         if (is_array($extraAttributes)) {
-            $attributes = ArrayHelper::merge($attributes, $extraAttributes);
+            $attributes = array_merge_recursive($attributes, $extraAttributes);
         }
 
         return Template::raw(BaseHtml::renderTagAttributes($attributes));
