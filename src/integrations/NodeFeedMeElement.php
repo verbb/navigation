@@ -5,6 +5,7 @@ use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\helpers\Json;
 
 use craft\feedme\base\Element;
@@ -17,10 +18,10 @@ class NodeFeedMeElement extends Element
     // Properties
     // =========================================================================
 
-    public static $name = 'Navigation Node';
-    public static $class = Node::class;
+    public static string $name = 'Navigation Node';
+    public static string $class = Node::class;
 
-    public $element;
+    public ?ElementInterface $element = null;
 
 
     // Templates
@@ -45,12 +46,12 @@ class NodeFeedMeElement extends Element
     // Public Methods
     // =========================================================================
 
-    public function getGroups()
+    public function getGroups(): array
     {
         return Navigation::$plugin->getNavs()->getAllNavs();
     }
 
-    public function getQuery($settings, $params = [])
+    public function getQuery($settings, array $params = []): mixed
     {
         $query = Node::find()
             ->status(null)
@@ -62,7 +63,7 @@ class NodeFeedMeElement extends Element
         return $query;
     }
 
-    public function setModel($settings)
+    public function setModel($settings): \craft\base\Element
     {
         $this->element = new Node();
         $this->element->navId = $settings['elementGroup'][Node::class];
@@ -76,7 +77,7 @@ class NodeFeedMeElement extends Element
         return $this->element;
     }
 
-    public function afterSave($data, $settings)
+    public function afterSave($data, $settings): void
     {
         $parent = Hash::get($data, 'parent');
 
