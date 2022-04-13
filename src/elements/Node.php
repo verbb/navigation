@@ -394,7 +394,7 @@ class Node extends Element
 
     public function isElement()
     {
-        $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements();
+        $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements(false);
 
         foreach ($registeredElements as $registeredElement) {
             if ($this->type == $registeredElement['type']) {

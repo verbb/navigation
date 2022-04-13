@@ -25,14 +25,7 @@ class Elements extends Component
     // Public Methods
     // =========================================================================
 
-    public function init()
-    {
-        parent::init();
-
-        $this->getRegisteredElements();
-    }
-
-    public function getRegisteredElements()
+    public function getRegisteredElements($includeSources = true)
     {
         // Add default element support
         $elements = [
@@ -40,21 +33,21 @@ class Elements extends Component
                 'label' => Craft::t('site', Entry::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add an entry'),
                 'type' => Entry::class,
-                'sources' => Craft::$app->getElementIndexes()->getSources(Entry::class, 'modal'),
+                'sources' => [],
                 'default' => true,
             ],
             [
                 'label' => Craft::t('site', Category::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add a category'),
                 'type' => Category::class,
-                'sources' => Craft::$app->getElementIndexes()->getSources(Category::class, 'modal'),
+                'sources' => [],
                 'default' => true,
             ],
             [
                 'label' => Craft::t('site', Asset::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add an asset'),
                 'type' => Asset::class,
-                'sources' => Craft::$app->getElementIndexes()->getSources(Asset::class, 'modal'),
+                'sources' => [],
                 'default' => true,
             ],
         ];
@@ -64,7 +57,7 @@ class Elements extends Component
                 'label' => Craft::t('site', Product::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add a product'),
                 'type' => Product::class,
-                'sources' => Craft::$app->getElementIndexes()->getSources(Product::class, 'modal'),
+                'sources' => [],
                 'default' => true,
             ];
         }
@@ -78,19 +71,28 @@ class Elements extends Component
                     'label' => Craft::t('site', $elementType::pluralDisplayName()),
                     'button' => Craft::t('site', 'Add a {name}', ['name' => $elementType::lowerDisplayName()]),
                     'type' => $elementType,
-                    'sources' => Craft::$app->getElementIndexes()->getSources($elementType, 'modal'),
+                    'sources' => [],
                 ];
             }
         }
 
         // Remove any defined in our config
         $settings = Navigation::$plugin->getSettings();
+        $elementIndexes = Craft::$app->getElementIndexes();
 
         $event = new RegisterElementEvent([
             'elements' => $elements,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_NAVIGATION_ELEMENT, $event);
+
+        // For performance, only include element sources if we require them. They also do unexpected things
+        // as they're element indexes (like for assets, creating user upload directories)
+        if ($includeSources) {
+            foreach ($event->elements as $key => $element) {
+                $event->elements[$key]['sources'] = $elementIndexes->getSources($element['type'], 'modal');
+            }
+        }
 
         return $event->elements;
     }
