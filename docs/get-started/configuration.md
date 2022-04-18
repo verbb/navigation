@@ -15,7 +15,7 @@ return [
 ];
 ```
 
-### Configuration options
+## Configuration options
 - `pluginName` - Optionally change the name of the plugin.
 - `bypassProjectConfig` - Prevents navigations from being saved to Project Config. Be sure you know what you're doing with this!
 - `propagateSiteElements` - With propagation set to true for a navigation, auto-select the site-specific equivalient of a node for each site's navigation. Set this to `false` to ensure nodes of the chosen site are the same across all your multi-site menus.

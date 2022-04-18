@@ -1,5 +1,4 @@
 # Node Queries
-
 You can fetch nodes in your templates or PHP code using **node queries**.
 
 :::code
@@ -21,7 +20,6 @@ See Introduction to [Element Queries](https://docs.craftcms.com/v3/dev/element-q
 :::
 
 ## Example
-
 We can display nodes for a given level by doing the following:
 
 1. Create an node query with `craft.navigation.nodes()`.
@@ -332,7 +330,7 @@ $nodes = \verbb\navigation\elements\Node::find()
 
 
 
-## `hasDescendants`
+### `hasDescendants`
 
 Narrows the query results based on whether the nodes have any descendants.
 
@@ -356,7 +354,7 @@ $nodes = \verbb\navigation\elements\Node::find()
 
 
 
-## `hasUrl`
+### `hasUrl`
 
 Narrows the query results based on whether the nodes have a URL.
 

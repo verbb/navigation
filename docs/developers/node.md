@@ -1,5 +1,4 @@
 # Node
-
 Whenever you're dealing with a node in your template, you're actually working with a `Node` object.
 
 ## Attributes
@@ -74,9 +73,7 @@ You can also pass in any additional attributes you require at the template level
 
 These will be merged recursively with attributes defined in the node. For example, we might have a class `node-class` defined in the node's settings. As you can see, this is merged in with `another-class` we define in our templates.
 
-
 ## Custom Fields
-
 As you can have custom fields attached to each node, you can access their content via their field handles. For instance you might have added a Plain Text field to your navigation's field layout, with a handle `myPlainTextfield`, which you could access via:
 
 ```twig

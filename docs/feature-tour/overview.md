@@ -1,5 +1,4 @@
 # Overview
-
 You'll first want to create a navigation - this contains your navigation nodes with links to elements or custom URLs. Head to "Navigation" on the main sidebar menu, and click "New Navigation" on the top-right.
 
 Once saved, click on the navigation title to start adding your nodes.

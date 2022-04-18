@@ -3,10 +3,10 @@ Craft features a concept called [Eager-Loading](https://craftcms.com/docs/3.x/de
 
 We can make use of this too, to speed up rendering of navigation nodes. However, you'll only really see benefits from eager-loading when your navigation have multiple levels. A single level navigation won't get any benefit from eager-loading.
 
-### craft.navigation.render()
+## craft.navigation.render()
 If you're using the `craft.navigation.render()` Twig function, there's nothing you need to do! Navigation eager-loads nested navigations automatically.
 
-### craft.navigation.nodes()
+## craft.navigation.nodes()
 Let's take a look at an example navigation setup. We have the following navigation structure, consisting of 3-levels of nodes.
 
 ```

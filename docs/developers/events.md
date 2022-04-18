@@ -1,11 +1,9 @@
 # Events
-
 Events can be used to extend the functionality of Navigation.
 
 ## Nav related events
 
 ### The `beforeSaveNav` event
-
 Plugins can get notified before an navigation is saved
 
 ```php
@@ -19,7 +17,6 @@ Event::on(Navs::class, Navs::EVENT_BEFORE_SAVE_NAV, function(NavEvent $e) {
 ```
 
 ### The `afterSaveNav` event
-
 Plugins can get notified after a navigation has been saved
 
 ```php
@@ -33,7 +30,6 @@ Event::on(Navs::class, Navs::EVENT_AFTER_SAVE_NAV, function(NavEvent $e) {
 ```
 
 ### The `beforeDeleteNav` event
-
 Plugins can get notified before an navigation is deleted
 
 ```php
@@ -47,7 +43,6 @@ Event::on(Navs::class, Navs::EVENT_BEFORE_DELETE_NAV, function(NavEvent $e) {
 ```
 
 ### The `afterDeleteNav` event
-
 Plugins can get notified after a navigation has been deleted
 
 ```php
@@ -64,7 +59,6 @@ Event::on(Navs::class, Navs::EVENT_AFTER_DELETE_NAV, function(NavEvent $e) {
 ## Node related events
 
 ### The `beforeSaveNode` event
-
 Plugins can get notified before a node is saved. Event handlers can prevent the node from getting sent by setting `$event->isValid` to false.
 
 ```php
@@ -78,7 +72,6 @@ Event::on(Node::class, Node::EVENT_BEFORE_SAVE, function(Event $e) {
 ```
 
 ### The `afterSaveNode` event
-
 Plugins can get notified after a node has been saved
 
 ```php
@@ -91,7 +84,6 @@ Event::on(Node::class, Node::EVENT_AFTER_SAVE, function(Event $e) {
 ```
 
 ### The `modifyNodeActive` event
-
 Plugins can modify the active state of a node.
 
 ```php
@@ -105,7 +97,6 @@ Event::on(Node::class, Node::EVENT_NODE_ACTIVE, function(Event $e) {
 ```
 
 ### The `beforeMoveElement` event
-
 Plugins can get notified before a node is moved in its structure.
 
 ```php
@@ -124,7 +115,6 @@ Event::on(Structures::class, Structures::EVENT_BEFORE_MOVE_ELEMENT, function(Mov
 ```
 
 ### The `afterMoveElement` event
-
 Plugins can get notified after a node is moved in its structure.
 
 ```php
