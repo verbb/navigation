@@ -22,7 +22,7 @@ See Introduction to [Element Queries](https://docs.craftcms.com/v3/dev/element-q
 ## Example
 We can display nodes for a given level by doing the following:
 
-1. Create an node query with `craft.navigation.nodes()`.
+1. Create a node query with `craft.navigation.nodes()`.
 2. Set the [level](#level), and [limit](#limit) parameters on it.
 3. Fetch all nodes with `.all()` and output.
 4. Loop through the nodes using a [for](https://twig.symfony.com/doc/2.x/tags/for.html) tag to output the contents.

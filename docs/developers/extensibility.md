@@ -1,7 +1,7 @@
 # Extensibility
 
 ## Elements
-You can add your own custom elements to be compatible with Navigation by using the provided events. The below shows an example of how entries are setup.
+You can add your own custom elements to be compatible with Navigation by using the provided events. The below shows an example of how entries are set up.
 
 ```php
 use verbb\navigation\services\Elements;

@@ -89,7 +89,7 @@ If you'd rather not use the `{% nav %}` functionality, you can create your own r
 {% endmacro %}
 ```
 
-Don't forget, that calling `craft.navigation.nodes()` means you're querying Nodes, so its a good idea to brush up on [querying elements](docs:getting-elements/node-queries).
+Don't forget, that calling `craft.navigation.nodes()` means you're querying Nodes, so it's a good idea to brush up on [querying elements](docs:getting-elements/node-queries).
 
 ### Custom rendering
 When looping through each node, you'll have access to all the attributes of a [Node](docs:developers/node), and you have full control over what to show. Take a look at the following example, that the `craft.navigation.render()` function uses under the hood:

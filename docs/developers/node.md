@@ -41,7 +41,7 @@ As attributes are stored in a table for the node, you'll need to loop through th
 ```
 
 ### `linkAttributes`
-A helper function to assist with generating attributes for a anchor tag.
+A helper function to assist with generating attributes for an anchor tag.
 
 ```twig
 <a {{ node.linkAttributes }}>
@@ -74,7 +74,7 @@ You can also pass in any additional attributes you require at the template level
 These will be merged recursively with attributes defined in the node. For example, we might have a class `node-class` defined in the node's settings. As you can see, this is merged in with `another-class` we define in our templates.
 
 ## Custom Fields
-As you can have custom fields attached to each node, you can access their content via their field handles. For instance you might have added a Plain Text field to your navigation's field layout, with a handle `myPlainTextfield`, which you could access via:
+As you can have custom fields attached to each node, you can access their content via their field handles. For instance, you might have added a Plain Text field to your navigation's field layout, with a handle `myPlainTextfield`, which you could access via:
 
 ```twig
 {{ node.myPlainTextfield }}

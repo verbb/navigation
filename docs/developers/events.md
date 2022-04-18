@@ -4,7 +4,7 @@ Events can be used to extend the functionality of Navigation.
 ## Nav related events
 
 ### The `beforeSaveNav` event
-Plugins can get notified before an navigation is saved
+Plugins can get notified before a navigation is saved
 
 ```php
 use verbb\navigation\events\NavEvent;
@@ -30,7 +30,7 @@ Event::on(Navs::class, Navs::EVENT_AFTER_SAVE_NAV, function(NavEvent $e) {
 ```
 
 ### The `beforeDeleteNav` event
-Plugins can get notified before an navigation is deleted
+Plugins can get notified before a navigation is deleted
 
 ```php
 use verbb\navigation\events\NavEvent;
