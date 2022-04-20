@@ -12,6 +12,7 @@ use verbb\navigation\records\Nav as NavRecord;
 
 use Craft;
 use craft\base\Component;
+use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\db\Table;
 use craft\events\ConfigEvent;
@@ -43,7 +44,7 @@ class Navs extends Component
     // Properties
     // =========================================================================
     
-    private ?array $_navs = null;
+    private ?MemoizableArray $_navs = null;
 
 
     // Public Methods
@@ -51,22 +52,7 @@ class Navs extends Component
 
     public function getAllNavs(): array
     {
-        if ($this->_navs !== null) {
-            return $this->_navs;
-        }
-
-        $this->_navs = [];
-
-        $navRecords = NavRecord::find()
-            ->orderBy(['sortOrder' => SORT_ASC])
-            ->with('structure')
-            ->all();
-
-        foreach ($navRecords as $navRecord) {
-            $this->_navs[] = $this->_createNavFromRecord($navRecord);
-        }
-
-        return $this->_navs;
+        return $this->_navs()->all();
     }
 
     public function getAllEditableNavs(): array
@@ -78,19 +64,19 @@ class Navs extends Component
         });
     }
 
-    public function getNavByHandle(string $handle)
+    public function getNavByHandle(string $handle): ?NavModel
     {
-        return ArrayHelper::firstWhere($this->getAllNavs(), 'handle', $handle, true);
+        return $this->_navs()->firstWhere('handle', $handle, true);
     }
 
-    public function getNavById($id)
+    public function getNavById(int $id): ?NavModel
     {
-        return ArrayHelper::firstWhere($this->getAllNavs(), 'id', $id);
+        return $this->_navs()->firstWhere('id', $id);
     }
 
-    public function getNavByUid(string $uid)
+    public function getNavByUid(string $uid): ?NavModel
     {
-        return ArrayHelper::firstWhere($this->getAllNavs(), 'uid', $uid, true);
+        return $this->_navs()->firstWhere('uid', $uid, true);
     }
 
     public function saveNav(NavModel $nav, bool $runValidation = true): bool
@@ -560,7 +546,28 @@ class Navs extends Component
     // Private Methods
     // =========================================================================
 
-    private function _createNavFromRecord(NavRecord $record = null): ?Nav
+    private function _navs(): MemoizableArray
+    {
+        if (!isset($this->_navs)) {
+            $navs = [];
+
+            /** @var NavRecord[] $navRecords */
+            $navRecords = NavRecord::find()
+                ->orderBy(['sortOrder' => SORT_ASC])
+                ->with('structure')
+                ->all();
+
+            foreach ($navRecords as $navRecord) {
+                $navs[] = $this->_createNavFromRecord($navRecord);
+            }
+
+            $this->_navs = new MemoizableArray($navs);
+        }
+
+        return $this->_navs;
+    }
+
+    private function _createNavFromRecord(?NavRecord $record = null): ?Nav
     {
         if (!$record) {
             return null;
