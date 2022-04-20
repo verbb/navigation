@@ -8,7 +8,10 @@ use verbb\navigation\models\Nav;
 
 use Craft;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\Template;
 use craft\web\View;
+
+use Twig\Markup;
 
 class NavigationVariable
 {
@@ -58,18 +61,16 @@ class NavigationVariable
         return $query;
     }
 
-    public function render($criteria = null, array $options = []): void
+    public function render($criteria = null, array $options = []): Markup
     {
         $nodes = $this->nodes($criteria)->all();
 
-        Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_CP);
-
-        echo Craft::$app->view->renderTemplate('navigation/_special/render', [
+        $template = Craft::$app->getView()->renderTemplate('navigation/_special/render', [
             'nodes' => $nodes,
             'options' => $options,
-        ]);
+        ], View::TEMPLATE_MODE_CP);
 
-        Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_SITE);
+        return Template::raw($template);
     }
 
     public function breadcrumbs(): array
