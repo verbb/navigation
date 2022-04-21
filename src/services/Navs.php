@@ -551,14 +551,8 @@ class Navs extends Component
         if (!isset($this->_navs)) {
             $navs = [];
 
-            /** @var NavRecord[] $navRecords */
-            $navRecords = NavRecord::find()
-                ->orderBy(['sortOrder' => SORT_ASC])
-                ->with('structure')
-                ->all();
-
-            foreach ($navRecords as $navRecord) {
-                $navs[] = $this->_createNavFromRecord($navRecord);
+            foreach ($this->_createNavQuery()->all() as $result) {
+                $navs[] = new NavModel($result);
             }
 
             $this->_navs = new MemoizableArray($navs);
@@ -567,35 +561,32 @@ class Navs extends Component
         return $this->_navs;
     }
 
-    private function _createNavFromRecord(?NavRecord $record = null): ?Nav
+    private function _createNavQuery(): Query
     {
-        if (!$record) {
-            return null;
-        }
-
-        $nav = new NavModel($record->toArray([
-            'id',
-            'structureId',
-            'fieldLayoutId',
-            'name',
-            'handle',
-            'instructions',
-            'sortOrder',
-            'propagateNodes',
-            'maxNodes',
-            'permissions',
-            'siteSettings',
-            'uid',
-        ]));
-
-        if ($record->structure) {
-            $nav->maxLevels = $record->structure->maxLevels;
-        }
-
-        $nav->permissions = Json::decodeIfJson($nav->permissions);
-        $nav->siteSettings = Json::decodeIfJson($nav->siteSettings);
-
-        return $nav;
+        return (new Query())
+            ->select([
+                'navs.id',
+                'navs.structureId',
+                'navs.fieldLayoutId',
+                'navs.name',
+                'navs.handle',
+                'navs.instructions',
+                'navs.sortOrder',
+                'navs.propagateNodes',
+                'navs.maxNodes',
+                'navs.permissions',
+                'navs.siteSettings',
+                'navs.uid',
+                'structures.maxLevels',
+            ])
+            ->leftJoin(['structures' => '{{%structures}}'], [
+                'and',
+                '[[structures.id]] = [[navs.structureId]]',
+                ['structures.dateDeleted' => null],
+            ])
+            ->from(['navs' => '{{%navigation_navs}}'])
+            ->where(['navs.dateDeleted' => null])
+            ->orderBy(['sortOrder' => SORT_ASC]);
     }
 
     private function _getNavRecord(string $uid, bool $withTrashed = false): ActiveRecord|array
