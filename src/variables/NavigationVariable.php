@@ -89,12 +89,12 @@ class NavigationVariable
         return $nodeTree;
     }
 
-    public function getNavById($id): Nav
+    public function getNavById($id): ?Nav
     {
         return Navigation::$plugin->getNavs()->getNavById($id);
     }
 
-    public function getNavByHandle($handle): Nav
+    public function getNavByHandle($handle): ?Nav
     {
         return Navigation::$plugin->getNavs()->getNavByHandle($handle);
     }
