@@ -22,13 +22,13 @@ class NodeQuery extends Query
         }
 
         return [
-            'nodes' => [
+            'navigationNodes' => [
                 'type' => Type::listOf(NodeInterface::getType()),
                 'args' => NodeArguments::getArguments(),
                 'resolve' => NodeResolver::class . '::resolve',
                 'description' => 'This query is used to query for nodes.',
             ],
-            'node' => [
+            'navigationNode' => [
                 'type' => NodeInterface::getType(),
                 'args' => NodeArguments::getArguments(),
                 'resolve' => NodeResolver::class . '::resolveOne',

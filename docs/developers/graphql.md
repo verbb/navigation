@@ -8,7 +8,7 @@ Navigation supports accessing nodes via GraphQL. Be sure to read about [Craft's 
 
 ```
 {
-    nodes (navHandle: "mainMenu", level: 1) {
+    navigationNodes (navHandle: "mainMenu", level: 1) {
         title
         url
         children {
@@ -24,7 +24,7 @@ Navigation supports accessing nodes via GraphQL. Be sure to read about [Craft's 
 ```
 {
     "data": {
-        "nodes": [
+        "navigationNodes": [
             {
                 "title": "About",
                 "url": "http://craft.test/about",
