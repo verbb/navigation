@@ -28,6 +28,7 @@ class NodeType extends Element
     protected function resolve(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo): mixed
     {
         $fieldName = $resolveInfo->fieldName;
+        
         return match ($fieldName) {
             'navHandle' => $source->getNav()->handle,
             default => parent::resolve($source, $arguments, $context, $resolveInfo),
