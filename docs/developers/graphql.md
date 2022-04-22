@@ -3,7 +3,7 @@ Navigation supports accessing [Node](docs:developers/node) objects via GraphQL. 
 
 ## Nodes
 
-### Query
+### Example
 
 :::code
 ```graphql GraphQL
