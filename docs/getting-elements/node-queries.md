@@ -2,12 +2,12 @@
 You can fetch nodes in your templates or PHP code using **node queries**.
 
 :::code
-```twig
+```twig Twig
 {# Create a new node query #}
 {% set myQuery = craft.navigation.nodes() %}
 ```
 
-```php
+```php PHP
 // Create a new node query
 $myQuery = \verbb\navigation\elements\Node::find();
 ```
