@@ -263,7 +263,7 @@ class Navs extends Component
             $nodes = Node::find()
                 ->navId($navRecord->id)
                 ->trashed()
-                ->andWhere(['nodes.deletedWithNav' => true])
+                ->andWhere(['deletedWithNav' => true])
                 ->all();
 
             Craft::$app->getElements()->restoreElements($nodes);
