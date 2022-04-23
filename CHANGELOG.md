@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.26 - 2022-04-23
+
+### Fixed
+- Fix fetching element sources when rendering nodes (causing of many things, user temporary upload folders to be created) and improve performance.
+- Fix SQL query error when trying to restore trashed nodes for a nav.
+
 ## 1.4.25 - 2022-04-06
 
 ### Added
