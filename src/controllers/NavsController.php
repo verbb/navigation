@@ -17,6 +17,7 @@ use craft\helpers\Json;
 use craft\models\FieldLayoutTab;
 use craft\web\Controller;
 
+use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -161,7 +162,6 @@ class NavsController extends Controller
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
-        $session = Craft::$app->getSession();
 
         $navId = $request->getBodyParam('navId');
 

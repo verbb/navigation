@@ -1,7 +1,6 @@
 <?php
 namespace verbb\navigation\elements\db;
 
-use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 use verbb\navigation\models\Nav as NavModel;
 

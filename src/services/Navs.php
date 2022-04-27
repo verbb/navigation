@@ -8,6 +8,7 @@ use verbb\navigation\elements\Node;
 use verbb\navigation\events\NavEvent;
 use verbb\navigation\models\Nav as NavModel;
 use verbb\navigation\models\Nav_SiteSettings;
+use verbb\navigation\models\Settings;
 use verbb\navigation\records\Nav as NavRecord;
 use verbb\navigation\records\Nav_SiteSettings as Nav_SiteSettingsRecord;
 
@@ -30,7 +31,6 @@ use craft\models\Structure;
 use craft\queue\jobs\ResaveElements;
 
 use Throwable;
-use Exception;
 
 use yii\db\ActiveRecord;
 
@@ -247,9 +247,6 @@ class Navs extends Component
             // Update the site settings
             // -----------------------------------------------------------------
 
-            $sitesNowWithoutUrls = [];
-            $sitesWithNewUriFormats = [];
-
             if (!$isNewNav) {
                 // Get the old nav site settings
                 $allOldSiteSettingsRecords = Nav_SiteSettingsRecord::find()
@@ -352,7 +349,7 @@ class Navs extends Component
 
                         $nodes = Node::find()->navId($navRecord->id)->siteId($primarySiteId)->ids();
 
-                        // Resave the primary sites' nodes, which will propagate to all other sites.
+                        // Re-save the primary sites' nodes, which will propagate to all other sites.
                         Queue::push(new ResaveElements([
                             'description' => Translation::prep('app', 'Resaving {nav} nodes', [
                                 'nav' => $navRecord->name,

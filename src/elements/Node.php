@@ -107,13 +107,13 @@ class Node extends Element
         return ['navigationNavs.' . $context->uid];
     }
 
-    public static function getNodeElementTitleHtml(&$context): string
+    public static function getNodeElementTitleHtml($context): string
     {
-        $element = $context['element'] ?? '';
-        $contextName = $context['context'] ?? '';
+        $element = $context['element'] ?? null;
+        $contextName = $context['context'] ?? null;
 
         // Only do this for a Node ElementType
-        if ($element && $element::class === static::class && $contextName === 'index') {
+        if ($element::class === static::class && $contextName === 'index') {
             $title = $element->hasOverriddenTitle();
             $newWindow = $element->newWindow;
             $classes = $element->classes ? '.' . str_replace(' ', ' .', $element->classes) : '';
@@ -153,7 +153,7 @@ class Node extends Element
     protected static function defineSortOptions(): array
     {
         // We must override the sort options, otherwise any in `defineTableAttributes` will be added.
-        // We really only want a structure sort option, and dissallow users from changing, but we run
+        // We really only want a structure sort option, and disallow users from changing, but we run
         // into issues when viewing trashed nodes, which have no structure. Thus, we need at least another option.
         return [
             'id' => Craft::t('app', 'ID'),
@@ -187,8 +187,6 @@ class Node extends Element
             $elementQuery = null;
         }
 
-        $site = $elementQuery && $elementQuery->siteId ? Craft::$app->getSites()->getSiteById($elementQuery->siteId) : Craft::$app->getSites()->getCurrentSite();
-
         // Get the group we need to check permissions on
         if (preg_match('/^nav:(\d+)$/', $source, $matches)) {
             $nav = Navigation::$plugin->getNavs()->getNavById($matches[1]);
@@ -200,7 +198,7 @@ class Node extends Element
         $actions = [];
         $elementsService = Craft::$app->getElements();
 
-        if (!empty($nav)) {
+        if ($nav !== null) {
             // Set Status
             $actions[] = SetStatus::class;
 
@@ -400,7 +398,7 @@ class Node extends Element
         if ($this->hasDescendants) {
             $descendants = $this->descendants->all();
 
-            foreach ($descendants as $key => $descendant) {
+            foreach ($descendants as $descendant) {
                 if ($descendant->getActive()) {
                     $this->setIsActive(true);
 
@@ -456,11 +454,7 @@ class Node extends Element
 
         $element = $this->getElement();
 
-        if ($element) {
-            return $element->url;
-        }
-
-        return null;
+        return $element->url ?? null;
     }
 
     public function setElementUrl($value): void
@@ -490,13 +484,11 @@ class Node extends Element
             'class' => [$classes],
         ];
 
-        if (is_array($this->customAttributes)) {
-            foreach ($this->customAttributes as $attribute) {
-                $key = $attribute['attribute'];
-                $val = $attribute['value'];
+        foreach ($this->customAttributes as $attribute) {
+            $key = $attribute['attribute'];
+            $val = $attribute['value'];
 
-                $attributes[$key] = Craft::$app->view->renderObjectTemplate($val, $object);
-            }
+            $attributes[$key] = Craft::$app->view->renderObjectTemplate($val, $object);
         }
 
         if (is_array($extraAttributes)) {
@@ -617,11 +609,7 @@ class Node extends Element
     {
         $element = $this->getElement();
 
-        if ($element && $element->title !== $this->title) {
-            return true;
-        }
-
-        return false;
+        return $element && $element->title !== $this->title;
     }
 
     public function getSupportedSites(): array
@@ -707,8 +695,6 @@ class Node extends Element
 
     public function afterSave(bool $isNew): void
     {
-        $nav = $this->getNav();
-
         // Get the node record
         if (!$isNew) {
             $record = NodeRecord::findOne($this->id);
@@ -729,7 +715,7 @@ class Node extends Element
         $record->urlSuffix = $this->urlSuffix;
         $record->customAttributes = $this->customAttributes;
         $record->data = $this->data;
-        $record->newWindow = (bool)$this->newWindow;
+        $record->newWindow = $this->newWindow;
 
         // Don't store the URL if it's an element. We should rely on its element URL.
         // Check for custom types, they might want to save the URL
@@ -872,16 +858,14 @@ class Node extends Element
     {
         $object = [];
 
-        if (is_array($this->customAttributes)) {
-            foreach ($this->customAttributes as $attribute) {
-                $object[$attribute['attribute']] = $attribute['value'];
-            }
+        foreach ($this->customAttributes as $attribute) {
+            $object[$attribute['attribute']] = $attribute['value'];
         }
 
         return $object;
     }
 
-    public function setLinkedElementId($value)
+    public function setLinkedElementId($value): void
     {
         // This is a required proxy variable when editing a node, due to a conflicting `elementId`.
         if (is_array($value)) {
@@ -988,8 +972,6 @@ class Node extends Element
     {
         switch ($attribute) {
             case 'typeLabel': {
-                $typeClass = '';
-
                 if ($this->isManual()) {
                     $typeClass = 'custom';
                 } else {
@@ -1054,10 +1036,7 @@ EOD;
 
         $fields[] = (function() use ($static) {
             if ($parentId = $this->getParentId()) {
-                $parent = Navigation::$plugin->getNodes()->getNodeById($parentId, $this->siteId, [
-                    'drafts' => null,
-                    'draftOf' => false,
-                ]);
+                $parent = Navigation::$plugin->getNodes()->getNodeById($parentId, $this->siteId);
             } else {
                 // If the node already has structure data, use it. Otherwise, use its canonical node
                 /** @var self|null $parent */

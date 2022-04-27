@@ -50,7 +50,6 @@ class BaseController extends Controller
 
         /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
-        $request = Craft::$app->getRequest();
 
         $migration = new NaveePlugin();
 

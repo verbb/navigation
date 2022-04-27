@@ -38,7 +38,7 @@ if (typeof Craft.Navigation === typeof undefined) {
 // even though we only ever want Structure sorting. But structure data is blown away for deleted nodes, and when
 // viewing trashed nodes, we'll get an error when trying to view in structure order. So we need to switch to ID.
 // Fortunately `Craft.BaseElementIndex` does this for as when we switch statuses, but not when refreshing the page.
-// To replicate, view trashed nodes, then refresh the page - it'll still be sorted by ID. However manually changing
+// To replicate, view trashed nodes, then refresh the page - it'll still be sorted by ID. However, manually changing
 // to All/Enabled/Disabled status will trigger it back to the default Structure.
 Craft.setQueryParam('sort', null);
 
@@ -70,7 +70,7 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
         
         this.base();
 
-        // Add a edit button to each table row
+        // Add an edit button to each table row
         this.$elements.on('click', 'tbody tr a.node-edit-btn', this.editNode.bind(this));
 
         // Listen to when submitting a form in the sidebar
@@ -104,7 +104,7 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
         this.nodeElementType = $saveBtn.data('element-type');
         this.nodeElementSources = $saveBtn.data('sources');
 
-        // Cache element modals so we don't create new ones each time
+        // Cache element modals, so we don't create new ones each time
         if (!this.elementModals[this.nodeElementType]) {
             this.elementModals[this.nodeElementType] = this.createModal();
         } else {

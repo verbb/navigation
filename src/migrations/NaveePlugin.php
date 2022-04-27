@@ -35,7 +35,7 @@ class NaveePlugin extends Migration
                 ->from(['{{%navee_navigations}} navigations'])
                 ->all();
 
-            foreach ($NaveeNavs as $key => $NaveeNav) {
+            foreach ($NaveeNavs as $NaveeNav) {
                 $nav = Navigation::$plugin->getNavs()->getNavByHandle($NaveeNav['handle']);
 
                 echo "\n    > Migrating nav `{$NaveeNav['handle']}` ...\n";

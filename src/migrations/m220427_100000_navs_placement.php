@@ -4,8 +4,6 @@ namespace verbb\navigation\migrations;
 use verbb\navigation\models\Nav;
 
 use craft\db\Migration;
-use craft\db\Query;
-use craft\helpers\Json;
 
 class m220427_100000_navs_placement extends Migration
 {

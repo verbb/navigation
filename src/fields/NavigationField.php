@@ -47,7 +47,6 @@ class NavigationField extends Field
         }
 
         $id = Html::id($this->handle);
-        $nameSpacedId = Craft::$app->getView()->namespaceInputId($id);
 
         return Craft::$app->getView()->renderTemplate('navigation/_field/input', [
             'id' => $id,

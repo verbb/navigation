@@ -84,10 +84,6 @@ class Elements extends Component
             }
         }
 
-        // Remove any defined in our config
-        /* @var Settings $settings */
-        $settings = Navigation::$plugin->getSettings();
-
         $event = new RegisterElementEvent([
             'elements' => $elements,
         ]);
