@@ -39,6 +39,16 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
         this.$navSidebar = $('.navigation-nodes-sidebar');
 
         this.base(elementType, $container, settings);
+
+        // The `Craft.BaseElementIndex` doesn't actually stop you from switching to a site that's not enabled
+        // which is the job for the sidebar source (which we hide) so remove sites from the site menu. 
+        if (this.siteMenu) {
+            this.siteMenu.$options.each(function(index, item) {
+                if (!settings.enabledSiteIds.includes($(item).data('site-id'))) {
+                    $(item).remove();
+                }
+            });
+        }
     },
 
     afterInit: function() {

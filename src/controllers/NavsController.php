@@ -97,7 +97,7 @@ class NavsController extends Controller
         ]);
     }
 
-    public function actionBuildNav(int $navId = null, string $siteHandle = null): Response
+    public function actionBuildNav(int $navId = null): Response
     {
         /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
@@ -113,8 +113,10 @@ class NavsController extends Controller
             $nav = new Nav();
         }
 
+        $siteHandle = $this->request->getParam('site');
+
         // If not requesting a specific site, use the primary one
-        if ($siteHandle === null) {
+        if (!$siteHandle) {
             $defaultSite = true;
             $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
 

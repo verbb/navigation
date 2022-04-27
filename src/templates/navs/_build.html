@@ -212,15 +212,16 @@
 
 {% js %}
     Craft.elementIndex = Craft.createElementIndex('{{ elementType|e("js") }}', $('.body-navigation-nodes-index #main-container'), {
-        elementTypeName: '{{ elementInstance.displayName()|e("js") }}',
-        elementTypePluralName: '{{ elementInstance.pluralDisplayName()|e("js") }}',
+        elementTypeName: '{{ elementInstance.displayName() | e("js") }}',
+        elementTypePluralName: '{{ elementInstance.pluralDisplayName() | e("js") }}',
         context: 'index',
-        storageKey: 'elementindex.{{ elementType|e("js") }}',
+        storageKey: 'elementindex.{{ elementType | e("js") }}',
         criteria: Craft.defaultIndexCriteria,
         toolbarSelector: '#toolbar',
         canHaveDrafts: false,
         hideSidebar: true,
         navId: {{ nav.id }},
+        enabledSiteIds: {{ nav.getSiteIds() | json_encode }},
     });
 {% endjs %}
 

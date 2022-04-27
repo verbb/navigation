@@ -139,7 +139,6 @@ class Navigation extends Plugin
                 'navigation/navs/new' => 'navigation/navs/edit-nav',
                 'navigation/navs/edit/<navId:\d+>' => 'navigation/navs/edit-nav',
                 'navigation/navs/build/<navId:\d+>' => 'navigation/navs/build-nav',
-                'navigation/navs/build/<navId:\d+>/<siteHandle:{handle}>' => 'navigation/navs/build-nav',
                 'navigation/settings' => 'navigation/base/settings',
             ]);
         });
