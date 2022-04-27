@@ -152,8 +152,12 @@ class Node extends Element
 
     protected static function defineSortOptions(): array
     {
-        // We must override the sort options, otherwise any in `defineTableAttributes` will be added
-        return [];
+        // We must override the sort options, otherwise any in `defineTableAttributes` will be added.
+        // We really only want a structure sort option, and dissallow users from changing, but we run
+        // into issues when viewing trashed nodes, which have no structure. Thus, we need at least another option.
+        return [
+            'id' => Craft::t('app', 'ID'),
+        ];
     }
 
     protected static function defineTableAttributes(): array

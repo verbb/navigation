@@ -34,6 +34,14 @@ if (typeof Craft.Navigation === typeof undefined) {
 
 (function($) {
 
+// Super important to reset the sort on page load. This is because we have to allow sorting by Structure and ID
+// even though we only ever want Structure sorting. But structure data is blown away for deleted nodes, and when
+// viewing trashed nodes, we'll get an error when trying to view in structure order. So we need to switch to ID.
+// Fortunately `Craft.BaseElementIndex` does this for as when we switch statuses, but not when refreshing the page.
+// To replicate, view trashed nodes, then refresh the page - it'll still be sorted by ID. However manually changing
+// to All/Enabled/Disabled status will trigger it back to the default Structure.
+Craft.setQueryParam('sort', null);
+
 Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
     elementModals: [],
 
@@ -49,7 +57,7 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
         Object.keys(this.sourceStates).forEach(key => {
             this.sourceStates[key].order = 'structure';
         });
-
+        
         this.base();
 
         // Add a edit button to each table row
