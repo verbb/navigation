@@ -65,7 +65,7 @@ class NodeTypeElements extends BaseField
             return $element->nodeType()->getModalHtml();
         }
 
-        if ($element->isManual()) {
+        if ($element->isCustom()) {
             return Cp::textFieldHtml([
                 'label' => Craft::t('navigation', 'URL'),
                 'instructions' => Craft::t('navigation', 'The URL for this navigation item.'),

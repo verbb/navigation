@@ -227,12 +227,6 @@
         border-color: rgba(#da5a47, 0.25);
     }
 
-    .node-type .node-type-custom {
-        color: #0d78f2;
-        background: rgba(#0d78f2, 0.05);
-        border-color: rgba(#0d78f2, 0.25);
-    }
-
     .node-type .node-type-category {
         color: #1BB311;
         background: rgba(#1BB311, 0.05);
@@ -249,6 +243,12 @@
         color: #737df8;
         background: rgba(#737df8, 0.05);
         border-color: rgba(#737df8, 0.25);
+    }
+
+    .node-type .node-type-custom-type {
+        color: #0d78f2;
+        background: rgba(#0d78f2, 0.05);
+        border-color: rgba(#0d78f2, 0.25);
     }
 }
 

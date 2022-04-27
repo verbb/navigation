@@ -1,0 +1,9 @@
+{% import '_includes/forms' as forms %}
+
+{{ forms.textField({
+    label: 'URL' | t('navigation'),
+    instructions: 'The URL for this navigation item.' | t('navigation'),
+    id: 'url',
+    name: 'url',
+    value: node.getRawUrl(),
+}) }}

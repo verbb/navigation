@@ -183,7 +183,7 @@ class Navs extends Component
 
         try {
             $structureData = $data['structure'];
-            $siteSettingData = $data['siteSettings'];
+            $siteSettingData = $data['siteSettings'] ?? [];
             $structureUid = $structureData['uid'];
 
             // Basic data
@@ -261,7 +261,12 @@ class Navs extends Component
             $hasNewSite = false;
 
             foreach ($siteSettingData as $siteUid => $siteSettings) {
-                $siteId = $siteIdMap[$siteUid];
+                $siteId = $siteIdMap[$siteUid] ?? null;
+
+                // In case there's site data for a site no longer there. Legacy data that should be removed
+                if (!$siteId) {
+                    continue;
+                }
 
                 // Was this already selected?
                 if (!$isNewNav && isset($allOldSiteSettingsRecords[$siteId])) {
@@ -632,17 +637,6 @@ class Navs extends Component
                     'nodeType' => $nodeType,
                 ];
             }
-        }
-
-        $enabled = $nav->permissions['custom']['enabled'] ?? true;
-
-        if ($enabled) {
-            $tabs['custom'] = [
-                'label' => Craft::t('navigation', 'Custom URL'),
-                'button' => Craft::t('navigation', 'Add Custom URL'),
-                'type' => 'custom',
-                'category' => 'custom',
-            ];
         }
 
         return $tabs;

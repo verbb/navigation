@@ -223,15 +223,6 @@
                     <hr>
                 {% endif %}
             {% endfor %}
-
-            <hr>
-
-            {{ forms.lightswitchField({
-                label: 'Show {name}' | t('navigation', { name: 'Custom URL' }),
-                instructions: 'Whether to allow {name} nodes to be added.' | t('navigation', { name: 'Custom URL' }),
-                name: 'custom' ~ '[enabled]',
-                on: nav.permissions['custom'].enabled ?? true,
-            }) }}
         {% endnamespace %}
     </div>
 

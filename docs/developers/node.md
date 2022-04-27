@@ -1,5 +1,4 @@
 # Node
-
 Whenever you're dealing with a node in your template, you're actually working with a `Node` object.
 
 ## Attributes
@@ -14,7 +13,7 @@ Attribute | Description
 `nodeUri` | URI for this node. Either the linked element or custom.
 `title` | Title for this node. Either the linked element or custom.
 `link` | Full HTML link (combined url and title).
-`type` | The class name for the type of node. If custom, will be `null`.
+`type` | The class name for the type of node.
 `nodeType` | The class name for the type of node.
 `nodeTypeLabel` | The shortened class name for the type of node.
 `classes` | Any additional CSS classes added to the node.
@@ -26,11 +25,17 @@ Attribute | Description
 `hasActiveChild` | Whether the node has an active child.
 `nav` | The [Navigation](docs:developers/nav) model this node belongs to.
 `status` | The current status of the node.
-`children ` | A collection of child nodes (if any).
-`level ` | The level this node resides in, if using nested nodes.
-`isElement ` | Whether the node is an "Element" node type (it links to an Entry, Category, etc).
-`isPassive ` | Whether the node is a "Passive" node type.
-`isSite ` | Whether the node is a "Site" node type.
+`children` | A collection of child nodes (if any).
+`level` | The level this node resides in, if using nested nodes.
+
+## Methods
+
+Method | Description
+--- | ---
+`isElement()` | Whether the node is an "Element" node type (it links to an Entry, Category, etc).
+`isCustom()` | Whether the node is a "Custom URL" node type.
+`isPassive()` | Whether the node is a "Passive" node type.
+`isSite()` | Whether the node is a "Site" node type.
 
 ### `customAttributes`
 As attributes are stored in a table for the node, you'll need to loop through them to output them. Each row has an `attribute` and `value` property, as defined in the table field for the node. These correspond with the column names.
@@ -71,7 +76,6 @@ You can also pass in any additional attributes you require at the template level
 
 
 ## Custom Fields
-
 As you can have custom fields attached to each node, you can access their content via their field handles. For instance you might have added a Plain Text field to your navigation's field layout, with a handle `myPlainTextfield`, which you could access via:
 
 ```twig

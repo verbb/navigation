@@ -736,6 +736,14 @@
       "oAP" : "\/src\/Navigation.php",
       "oF" : 0
     },
+    "\/src\/nodetypes\/CustomType.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/nodetypes\/CustomType.php",
+      "oF" : 0
+    },
     "\/src\/nodetypes\/PassiveType.php" : {
       "cB" : 0,
       "ft" : 8192,

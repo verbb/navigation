@@ -4,6 +4,15 @@ While the [changelog](https://github.com/verbb/navigation/blob/craft-4/CHANGELOG
 ## Plugin Settings
 We've removed `disabledElements` and `propagateSiteElements` as they are no longer required.
 
+## Manual vs. Custom
+We've renamed references of "manual" nodes, to "custom" nodes.
+
+Old | What to do instead
+--- | ---
+| `Node::isManual()` | `Node::isCustom()`
+
+In addition, a manual node is now a Node Type, to better align with other custom node types, like Passive and Site.
+
 ## GraphQL
 
 ### Queries

@@ -16,6 +16,8 @@
 - Editing nodes now properly supports multi-tabs for custom fields and UI elements.
 - All node attributes are now native fields. They can be included or excluded as needed, with the bonus of supporting conditions (show certain attributes based on user permissions). This can help simplify and streamine editing nodes for  users.
 - When editing nodes, URL Suffix, Classes and Custom Attributes are now in an "Advanced" tab.
+- Changed `Node::isManual()` to `Node::isCustom()`.
+- Custom URL nodes are now a Node Type - `verbb\navigation\nodetypes\CustomType`.
 
 ## 2.0.0-beta.2 - 2022-03-24
 

@@ -6,6 +6,7 @@ use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\events\NodeActiveEvent;
 use verbb\navigation\models\Nav;
 use verbb\navigation\models\Settings;
+use verbb\navigation\nodetypes\CustomType;
 use verbb\navigation\nodetypes\PassiveType;
 use verbb\navigation\nodetypes\SiteType;
 use verbb\navigation\records\Node as NodeRecord;
@@ -550,16 +551,12 @@ class Node extends Element
 
     public function getNodeType(): ?string
     {
-        if (!$this->type) {
-            return 'custom';
-        }
-
         return $this->type;
     }
 
     public function getNodeTypeLabel(): ?string
     {
-        if ($this->isManual()) {
+        if ($this->isCustom()) {
             return Craft::t('navigation', 'Custom URL');
         }
 
@@ -585,14 +582,14 @@ class Node extends Element
         return false;
     }
 
-    public function isManual(): bool
-    {
-        return !$this->type || $this->type === 'custom';
-    }
-
     public function isNodeType(): bool
     {
-        return !$this->isManual() && !$this->isElement();
+        return !$this->isElement();
+    }
+
+    public function isCustom(): bool
+    {
+        return $this->type === CustomType::class;
     }
 
     public function isPassive(): bool
@@ -685,9 +682,11 @@ class Node extends Element
             $this->slug = $this->elementSiteId = $this->getElementSiteId();
         }
 
-        // 'custom' is the same as '', but we'll change to the former one day
-        if ($this->type === 'custom') {
-            $this->type = '';
+        // When swapping from an element type to node type, be sure to remove the element IDs. This ensures
+        // we don't incorrectly assume the type of node it is.
+        if (!$this->isElement()) {
+            $this->elementId = null;
+            $this->elementSiteId = null;
         }
 
         return parent::beforeSave($isNew);
@@ -891,8 +890,8 @@ class Node extends Element
         $siteUrl = trim(UrlHelper::siteUrl(), '/');
         $nodeUrl = (string)$this->getUrl(false);
 
-        // If no URL and not a manual node, skip. Think passive nodes.
-        if ($nodeUrl === '' && !$this->isManual()) {
+        // If no URL and not a custom node, skip. Think passive nodes.
+        if ($nodeUrl === '' && !$this->isCustom()) {
             return false;
         }
 
@@ -972,12 +971,8 @@ class Node extends Element
     {
         switch ($attribute) {
             case 'typeLabel': {
-                if ($this->isManual()) {
-                    $typeClass = 'custom';
-                } else {
-                    $classNameParts = explode('\\', $this->type);
-                    $typeClass = array_pop($classNameParts);
-                }
+                $classNameParts = explode('\\', $this->type);
+                $typeClass = array_pop($classNameParts);
 
                 $type = 'node-type-' . StringHelper::toKebabCase($typeClass);
                 $item = Html::tag('span', $this->getNodeTypeLabel(), ['class' => $type, 'title' => $this->url]);

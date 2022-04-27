@@ -141,48 +141,6 @@
                                     <button type="submit" class="btn submit add icon">{{ tab.button }}</button>
                                     <div class="spinner hidden"></div>
                                 </div>
-                            {% elseif tab.category == 'custom' %}
-                                {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
-                                    {{ forms.selectField({
-                                        label: 'Parent' | t('navigation'),
-                                        instructions: 'Select a navigation item as the parent.' | t('navigation'),
-                                        id: 'parentId',
-                                        name: 'parentId',
-                                        options: parentOptions,
-                                        class: 'fullwidth js-parent-node',
-                                    }) }}
-                                {% endif %}
-
-                                {{ forms.lightswitchField({
-                                    label: 'Open in new window' | t('navigation'),
-                                    instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
-                                    id: 'newWindow',
-                                    name: 'newWindow',
-                                    on: false,
-                                }) }}
-
-                                {{ forms.textField({
-                                    label: 'Title' | t('navigation'),
-                                    id: 'title',
-                                    name: 'title',
-                                    first: true,
-                                    required: true,
-                                    instructions: 'Name of this node in the navigation.' | t('navigation'),
-                                }) }}
-
-                                {{ forms.textField({
-                                    label: 'URL' | t('navigation'),
-                                    id: 'url',
-                                    name: 'url',
-                                    instructions: 'The URL of this node.' | t('navigation'),
-                                }) }}
-
-                                {{ hiddenInput('type', 'custom') }}
-
-                                <div class="buttons">
-                                    <button type="submit" class="btn submit add icon">{{ tab.button }}</button>
-                                    <div class="spinner hidden"></div>
-                                </div>
                             {% endif %}
                         </form>
                     </div>

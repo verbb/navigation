@@ -3,6 +3,7 @@ namespace verbb\navigation\services;
 
 use verbb\navigation\base\NodeTypeInterface;
 use verbb\navigation\events\RegisterNodeTypeEvent;
+use verbb\navigation\nodetypes\CustomType;
 use verbb\navigation\nodetypes\PassiveType;
 use verbb\navigation\nodetypes\SiteType;
 
@@ -44,9 +45,14 @@ class NodeTypes extends Component
 
         $this->trigger(self::EVENT_REGISTER_NODE_TYPES, $event);
 
+        $nodeTypes = $event->types;
+
+        // Always add custom node at the end
+        $nodeTypes[] = CustomType::class;
+
         $types = [];
 
-        foreach ($event->types as $type) {
+        foreach ($nodeTypes as $type) {
             $types[] = ComponentHelper::createComponent([
                 'type' => $type,
             ], NodeTypeInterface::class);

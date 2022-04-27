@@ -1,9 +1,9 @@
 <?php
 namespace verbb\navigation\nodetypes;
 
-use Craft;
-
 use verbb\navigation\base\NodeType;
+
+use Craft;
 
 class SiteType extends NodeType
 {
@@ -12,7 +12,7 @@ class SiteType extends NodeType
 
     public static function displayName(): string
     {
-        return 'Site';
+        return Craft::t('navigation', 'Site');
     }
 
     public static function hasTitle(): bool
@@ -33,6 +33,11 @@ class SiteType extends NodeType
     public static function hasClasses(): bool
     {
         return false;
+    }
+
+    public static function hasAttributes(): bool
+    {
+        return true;
     }
 
 
