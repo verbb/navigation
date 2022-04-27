@@ -35,6 +35,8 @@ use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\services\Structures;
 
+use Throwable;
+
 use yii\base\Event;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
@@ -260,7 +262,6 @@ class Node extends Element
     public ?string $uri = null;
     public ?int $newParentId = null;
     public ?bool $deletedWithNav = false;
-    public ?string $typeLabel = null;
 
     private ?string $_url = null;
     private ?ElementInterface $_element = null;
@@ -272,15 +273,6 @@ class Node extends Element
 
     // Public Methods
     // =========================================================================
-
-    public function init(): void
-    {
-        parent::init();
-
-        if (!$this->typeLabel) {
-            $this->typeLabel = $this->getNodeTypeLabel();
-        }
-    }
 
     public function createAnother(): ?self
     {
@@ -524,6 +516,7 @@ class Node extends Element
         return $nav;
     }
 
+    // Don't use `getNodeType()` due to an infinite loop issue, when appling this to registered nodes
     public function nodeType()
     {
         // Check if we've cached the node type. by sure to check by key to prevent cache
@@ -549,24 +542,20 @@ class Node extends Element
         return null;
     }
 
-    public function getNodeType(): ?string
+    public function getTypeLabel()
     {
-        return $this->type;
-    }
-
-    public function getNodeTypeLabel(): ?string
-    {
-        if ($this->isCustom()) {
-            return Craft::t('navigation', 'Custom URL');
-        }
-
-        if ($this->nodeType()) {
-            return StringHelper::toTitleCase($this->nodeType()->displayName());
+        try {
+            if (class_exists($this->type)) {
+                return $this->type::displayName();
+            }
+        } catch (Throwable $e) {
+            // This will throw an error if the class exists, but the plugin disabled/uninstalled,
+            // despite the check with `class_exists()` 
         }
 
         $classNameParts = explode('\\', $this->type);
 
-        return StringHelper::toTitleCase(StringHelper::delimit(array_pop($classNameParts), ' '));
+        return array_pop($classNameParts);
     }
 
     public function isElement(): bool
@@ -580,11 +569,6 @@ class Node extends Element
         }
 
         return false;
-    }
-
-    public function isNodeType(): bool
-    {
-        return !$this->isElement();
     }
 
     public function isCustom(): bool
@@ -682,9 +666,12 @@ class Node extends Element
             $this->slug = $this->elementSiteId = $this->getElementSiteId();
         }
 
-        // When swapping from an element type to node type, be sure to remove the element IDs. This ensures
-        // we don't incorrectly assume the type of node it is.
-        if (!$this->isElement()) {
+        if ($this->isElement()) {
+            // Don't store the URL if it's an element. We should rely on its element URL.
+            $this->url = null;
+        } else {
+            // When swapping from an element type to node type, be sure to remove the element IDs. This ensures
+            // we don't incorrectly assume the type of node it is.
             $this->elementId = null;
             $this->elementSiteId = null;
         }
@@ -716,22 +703,9 @@ class Node extends Element
         $record->data = $this->data;
         $record->newWindow = $this->newWindow;
 
-        // Don't store the URL if it's an element. We should rely on its element URL.
-        // Check for custom types, they might want to save the URL
-        if ($this->type && !$this->nodeType()) {
-            $record->url = null;
-        }
-
-        // Ensure the elementId is empty for non-element nodes. This is important when switching
-        // from an element node to a non-element node.
-        if (!$this->isElement()) {
-            $record->elementId = null;
-        }
-
         $record->save(false);
 
         $this->id = $record->id;
-        $this->typeLabel = $this->getNodeTypeLabel();
 
         $nav = $this->getNav();
 
@@ -966,16 +940,15 @@ class Node extends Element
         return $rules;
     }
 
-
     protected function tableAttributeHtml(string $attribute): string
     {
         switch ($attribute) {
             case 'typeLabel': {
                 $classNameParts = explode('\\', $this->type);
-                $typeClass = array_pop($classNameParts);
+                $className = array_pop($classNameParts);
 
-                $type = 'node-type-' . StringHelper::toKebabCase($typeClass);
-                $item = Html::tag('span', $this->getNodeTypeLabel(), ['class' => $type, 'title' => $this->url]);
+                $type = 'node-type-' . StringHelper::toKebabCase($className);
+                $item = Html::tag('span', $this->getTypeLabel(), ['class' => $type, 'title' => $this->url]);
 
                 return Html::tag('div', $item, ['class' => 'node-type']);
             }
@@ -1024,7 +997,7 @@ EOD;
                 'label' => Craft::t('navigation', 'Type'),
                 'id' => 'type',
                 'name' => 'type',
-                'value' => $this->getNodeType(),
+                'value' => $this->type,
                 'options' => $nodeTypeOptions,
             ]);
         })();

@@ -61,18 +61,8 @@ class NodeTypeElements extends BaseField
             ]);
         }
 
-        if ($element->isNodeType()) {
-            return $element->nodeType()->getModalHtml();
-        }
-
-        if ($element->isCustom()) {
-            return Cp::textFieldHtml([
-                'label' => Craft::t('navigation', 'URL'),
-                'instructions' => Craft::t('navigation', 'The URL for this navigation item.'),
-                'id' => 'url',
-                'name' => 'url',
-                'value' => $element->getUrl(false),
-            ]);
+        if ($nodeType = $element->nodeType()) {
+            return $nodeType->getModalHtml();
         }
 
         return null;

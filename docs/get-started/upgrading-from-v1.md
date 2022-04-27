@@ -13,6 +13,13 @@ Old | What to do instead
 
 In addition, a manual node is now a Node Type, to better align with other custom node types, like Passive and Site.
 
+## Nodes
+
+Old | What to do instead
+--- | ---
+| `Node::nodeType` | Use `Node::type` or `Node::getType()` instead.
+| `Node::nodeTypeLabel` | Use `Node::getTypeLabel()` instead.
+
 ## GraphQL
 
 ### Queries

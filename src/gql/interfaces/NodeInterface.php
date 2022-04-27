@@ -83,9 +83,11 @@ class NodeInterface extends Structure
                 'name' => 'type',
                 'type' => Type::string(),
                 'description' => 'The type of node this is.',
-                'resolve' => function($node) {
-                    return $node->getNodeType();
-                },
+            ],
+            'typeLabel' => [
+                'name' => 'typeLabel',
+                'type' => Type::string(),
+                'description' => 'The display name for the type of node this is.',
             ],
             'classes' => [
                 'name' => 'classes',
