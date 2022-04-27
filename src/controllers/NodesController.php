@@ -10,8 +10,6 @@ use verbb\navigation\elements\Node;
 
 use yii\web\Response;
 
-use Exception;
-
 class NodesController extends Controller
 {
     // Public Methods
@@ -38,7 +36,7 @@ class NodesController extends Controller
                 $totalNodes = count($nodes) + 1;
 
                 if ($totalNodes > $node->nav->maxNodes) {
-                    return $this->asFailure('navigation', 'Exceeded maximum allowed nodes ({number}) for this nav.', ['number' => $node->nav->maxNodes]);
+                    return $this->asFailure(Craft::t('navigation', 'Exceeded maximum allowed nodes ({number}) for this nav.', ['number' => $node->nav->maxNodes]));
                 }
             }
 

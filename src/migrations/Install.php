@@ -1,6 +1,8 @@
 <?php
 namespace verbb\navigation\migrations;
 
+use verbb\navigation\models\Nav;
+
 use Craft;
 use craft\db\Migration;
 
@@ -61,11 +63,21 @@ class Install extends Migration
             'propagateNodes' => $this->boolean()->defaultValue(false),
             'maxNodes' => $this->integer(),
             'permissions' => $this->text(),
-            'siteSettings' => $this->text(),
             'fieldLayoutId' => $this->integer(),
+            'defaultPlacement' => $this->enum('defaultPlacement', [Nav::DEFAULT_PLACEMENT_BEGINNING, Nav::DEFAULT_PLACEMENT_END])->defaultValue('end')->notNull(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'dateDeleted' => $this->dateTime()->null(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->createTable('{{%navigation_navs_sites}}', [
+            'id' => $this->primaryKey(),
+            'navId' => $this->integer()->notNull(),
+            'siteId' => $this->integer()->notNull(),
+            'enabled' => $this->boolean()->defaultValue(true)->notNull(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
     }
@@ -77,6 +89,8 @@ class Install extends Migration
         $this->createIndex(null, '{{%navigation_navs}}', ['structureId'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['fieldLayoutId'], false);
         $this->createIndex(null, '{{%navigation_navs}}', ['dateDeleted'], false);
+        $this->createIndex(null, '{{%navigation_navs_sites}}', ['navId', 'siteId'], true);
+        $this->createIndex(null, '{{%navigation_navs_sites}}', ['siteId'], false);
     }
 
     public function addForeignKeys(): void
@@ -86,12 +100,15 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%navigation_navs}}', ['structureId'], '{{%structures}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%navigation_navs}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, '{{%navigation_navs_sites}}', ['siteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, '{{%navigation_navs_sites}}', ['navId'], '{{%navigation_navs}}', ['id'], 'CASCADE', null);
     }
 
     public function removeTables(): void
     {
         $this->dropTableIfExists('{{%navigation_nodes}}');
         $this->dropTableIfExists('{{%navigation_navs}}');
+        $this->dropTableIfExists('{{%navigation_navs_sites}}');
     }
 
     public function dropProjectConfig(): void

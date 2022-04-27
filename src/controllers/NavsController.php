@@ -7,7 +7,8 @@ use verbb\navigation\fieldlayoutelements\ClassesField;
 use verbb\navigation\fieldlayoutelements\CustomAttributesField;
 use verbb\navigation\fieldlayoutelements\NewWindowField;
 use verbb\navigation\fieldlayoutelements\UrlSuffixField;
-use verbb\navigation\models\Nav as NavModel;
+use verbb\navigation\models\Nav;
+use verbb\navigation\models\Nav_SiteSettings;
 use verbb\navigation\models\Settings;
 
 use Craft;
@@ -26,7 +27,7 @@ class NavsController extends Controller
 
     public function actionIndex(): Response
     {
-        $navigations = Navigation::$plugin->getNavs()->getAllEditableNavs();
+        $navigations = Navigation::$plugin->getNavs()->getEditableNavs();
 
         $siteHandles = [];
 
@@ -43,7 +44,7 @@ class NavsController extends Controller
         ]);
     }
 
-    public function actionEditNav(int $navId = null, NavModel $nav = null): Response
+    public function actionEditNav(int $navId = null, Nav $nav = null): Response
     {
         if ($nav === null) {
             if ($navId !== null) {
@@ -53,7 +54,7 @@ class NavsController extends Controller
                     throw new NotFoundHttpException('Navigation not found');
                 }
             } else {
-                $nav = new NavModel();
+                $nav = new Nav();
 
                 // Populate the field layout
                 $tab1 = new FieldLayoutTab(['name' => 'Node']);
@@ -109,7 +110,7 @@ class NavsController extends Controller
                 throw new NotFoundHttpException('Navigation not found');
             }
         } else {
-            $nav = new NavModel();
+            $nav = new Nav();
         }
 
         // If not requesting a specific site, use the primary one
@@ -118,15 +119,15 @@ class NavsController extends Controller
             $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
 
             // If they don't have access to the default site, pick the first enabled one
-            $site = ArrayHelper::firstWhere($nav->getEditableSites(), 'handle', $siteHandle);
+            $site = ArrayHelper::firstWhere($nav->getSites(), 'handle', $siteHandle);
 
             if (!$site) {
-                $siteHandle = $nav->getEditableSites()[0]->handle ?? '';
+                $siteHandle = $nav->getSites()[0]->handle ?? '';
             }
         }
 
         // Ensure this is an enabled site, otherwise throw an error
-        $site = ArrayHelper::firstWhere($nav->getEditableSites(), 'handle', $siteHandle);
+        $site = ArrayHelper::firstWhere($nav->getSites(), 'handle', $siteHandle);
 
         if (!$site) {
             throw new NotFoundHttpException('Navigation not enabled for site: ' . $siteHandle);
@@ -164,43 +165,49 @@ class NavsController extends Controller
 
         if ($navId) {
             $nav = Navigation::$plugin->getNavs()->getNavById($navId);
+
+            if (!$nav) {
+                throw new BadRequestHttpException("Invalid navigation ID: $navId");
+            }
         } else {
-            $nav = new NavModel();
-            $nav->id = $navId;
+            $nav = new Nav();
         }
 
         $nav->name = $request->getBodyParam('name');
         $nav->handle = $request->getBodyParam('handle');
         $nav->instructions = $request->getBodyParam('instructions');
-        $nav->maxLevels = !empty($request->getBodyParam('maxLevels')) ? (int)$request->getBodyParam('maxLevels') : null;
         $nav->propagateNodes = (bool)$request->getBodyParam('propagateNodes');
-        $nav->maxNodes = !empty($request->getBodyParam('maxNodes')) ? (int)$request->getBodyParam('maxNodes') : null;
+        $nav->maxLevels = (int)$request->getBodyParam('maxLevels') ?: null;
+        $nav->maxNodes = (int)$request->getBodyParam('maxNodes') ?: null;
         $nav->permissions = $request->getBodyParam('permissions');
+        $nav->defaultPlacement = $request->getBodyParam('defaultPlacement') ?? $nav->defaultPlacement;
 
         $allSiteSettings = [];
 
         foreach (Craft::$app->getSites()->getAllSites() as $site) {
-            $postedSettings = $request->getBodyParam('siteSettings.' . $site->uid);
+            $postedSettings = $request->getBodyParam('sites.' . $site->handle);
 
             // Skip disabled sites if this is a multi-site install
             if (Craft::$app->getIsMultiSite() && empty($postedSettings['enabled'])) {
                 continue;
             }
 
-            $allSiteSettings[$site->uid] = $postedSettings;
+            $siteSettings = new Nav_SiteSettings();
+            $siteSettings->siteId = $site->id;
+            $siteSettings->enabled = $postedSettings['enabled'];
+
+            $allSiteSettings[$site->id] = $siteSettings;
         }
 
-        $nav->siteSettings = $allSiteSettings;
+        $nav->setSiteSettings($allSiteSettings);
 
         // Set the nav field layout
         $fieldLayout = Craft::$app->getFields()->assembleLayoutFromPost();
         $fieldLayout->type = NodeElement::class;
         $nav->setFieldLayout($fieldLayout);
 
-        $success = Navigation::$plugin->getNavs()->saveNav($nav);
-
-        if (!$success) {
-            $session->setError(Craft::t('navigation', 'Unable to save navigation.'));
+        if (!Navigation::$plugin->getNavs()->saveNav($nav)) {
+            $this->setFailFlash(Craft::t('navigation', 'Unable to save navigation.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'nav' => $nav,
@@ -209,7 +216,7 @@ class NavsController extends Controller
             return null;
         }
 
-        $session->setNotice(Craft::t('navigation', 'Navigation saved.'));
+        $this->setSuccessFlash(Craft::t('navigation', 'Navigation saved.'));
 
         return $this->redirectToPostedUrl($nav);
     }
@@ -222,7 +229,7 @@ class NavsController extends Controller
         $navIds = Json::decode(Craft::$app->getRequest()->getRequiredBodyParam('ids'));
         Navigation::$plugin->getNavs()->reorderNavs($navIds);
 
-        return $this->asJson(['success' => true]);
+        return $this->asSuccess();
     }
 
     public function actionDeleteNav(): Response
@@ -237,7 +244,7 @@ class NavsController extends Controller
 
         Navigation::$plugin->getNavs()->deleteNavById($navId);
 
-        return $this->asJson(['success' => true]);
+        return $this->asSuccess();
     }
 
 }

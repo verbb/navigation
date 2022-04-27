@@ -35,12 +35,6 @@ class NaveePlugin extends Migration
                 ->from(['{{%navee_navigations}} navigations'])
                 ->all();
 
-            $siteSettings = [];
-
-            foreach (Craft::$app->getSites()->getAllSites() as $site) {
-                $siteSettings[$site->uid]['enabled'] = true;
-            }
-
             foreach ($NaveeNavs as $key => $NaveeNav) {
                 $nav = Navigation::$plugin->getNavs()->getNavByHandle($NaveeNav['handle']);
 
@@ -54,7 +48,6 @@ class NaveePlugin extends Migration
                 $nav->handle = $NaveeNav['handle'];
                 $nav->maxLevels = $NaveeNav['maxLevels'];
                 $nav->structureId = $NaveeNav['structureId'];
-                $nav->siteSettings = $siteSettings;
 
                 if (!Navigation::$plugin->getNavs()->saveNav($nav)) {
                     echo "    > ERROR: Unable to migrate nav `{$NaveeNav['handle']}` ...\n";
@@ -175,7 +168,7 @@ class NaveePlugin extends Migration
                                         }
                                     }
                                 } else {
-                                    echo "    > WARNING: Unable to find parent for `{$node['title']}` ...\n";
+                                    echo "    > WARNING: Unable to find parent for `{$oldNodeId}` ...\n";
 
                                     echo $parentStructureElementQuery->getRawSql();
                                 }

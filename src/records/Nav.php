@@ -38,4 +38,9 @@ class Nav extends ActiveRecord
     {
         return $this->hasOne(FieldLayout::class, ['id' => 'fieldLayoutId']);
     }
+
+    public function getSiteSettings(): ActiveQueryInterface
+    {
+        return $this->hasMany(Nav_SiteSettings::class, ['navId' => 'id']);
+    }
 }

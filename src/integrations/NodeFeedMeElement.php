@@ -92,7 +92,7 @@ class NodeFeedMeElement extends Element
     // Protected Methods
     // =========================================================================
 
-    protected function parseParent($feedData, $fieldInfo)
+    protected function parseParent($feedData, $fieldInfo): ?int
     {
         $value = $this->fetchSimpleValue($feedData, $fieldInfo);
 

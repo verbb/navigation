@@ -21,7 +21,6 @@ use verbb\navigation\variables\NavigationVariable;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
-use craft\events\DefineFieldLayoutElementsEvent;
 use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterGqlQueriesEvent;
@@ -35,6 +34,7 @@ use craft\models\FieldLayout;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gql;
+use craft\services\Sites;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
@@ -54,7 +54,7 @@ class Navigation extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '1.0.21';
+    public string $schemaVersion = '2.0.1';
     public string $minVersionRequired = '1.4.24';
 
 
@@ -157,6 +157,12 @@ class Navigation extends Plugin
         // Allow elements to update our nodes
         Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT, [$this->getNodes(), 'onSaveElement']);
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [$this->getNodes(), 'onDeleteElement']);
+
+        // Prune deleted fields from nav
+        Event::on(Fields::class, Fields::EVENT_AFTER_DELETE_FIELD, [$this->getNavs(), 'pruneDeletedField']);
+
+        // Prune deleted sites from site settings
+        Event::on(Sites::class, Sites::EVENT_AFTER_DELETE_SITE, [$this->getNavs(), 'pruneDeletedSite']);
     }
 
     private function _registerProjectConfigEventListeners(): void

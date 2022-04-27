@@ -3,12 +3,8 @@ namespace verbb\navigation\fieldlayoutelements;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\FieldLayoutElement;
 use craft\fieldlayoutelements\BaseField;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Component;
 use craft\helpers\Cp;
-use craft\helpers\Html;
 
 class NodeTypeElements extends BaseField
 {

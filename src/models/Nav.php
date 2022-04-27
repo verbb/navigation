@@ -1,24 +1,35 @@
 <?php
 namespace verbb\navigation\models;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 use verbb\navigation\records\Nav as NavRecord;
 
 use Craft;
 use craft\base\Model;
 use craft\behaviors\FieldLayoutBehavior;
+use craft\db\Table;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
-use craft\models\FieldLayout;
+use craft\helpers\Db;
+use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 
 class Nav extends Model
 {
+    // Constants
+    // =========================================================================
+    
+    public const DEFAULT_PLACEMENT_BEGINNING = 'beginning';
+    public const DEFAULT_PLACEMENT_END = 'end';
+
+
     // Properties
     // =========================================================================
 
     public ?int $id = null;
+    public ?int $structureId = null;
+    public ?int $fieldLayoutId = null;
     public ?string $name = null;
     public ?string $handle = null;
     public ?string $instructions = null;
@@ -26,11 +37,11 @@ class Nav extends Model
     public bool $propagateNodes = false;
     public ?int $maxNodes = null;
     public ?int $maxLevels = null;
+    public string $defaultPlacement = self::DEFAULT_PLACEMENT_END;
     public array $permissions = [];
-    public array $siteSettings = [];
-    public ?string $structureId = null;
-    public ?int $fieldLayoutId = null;
     public ?string $uid = null;
+
+    private array $_siteSettings;
 
 
     // Public Methods
@@ -38,7 +49,7 @@ class Nav extends Model
 
     public function __toString()
     {
-        return (string)$this->handle;
+        return Craft::t('site', $this->name) ?: static::class;
     }
 
     public function attributeLabels(): array
@@ -49,72 +60,132 @@ class Nav extends Model
         ];
     }
 
+    protected function defineBehaviors(): array
+    {
+        return [
+            'fieldLayout' => [
+                'class' => FieldLayoutBehavior::class,
+                'elementType' => Node::class,
+            ],
+        ];
+    }
+
     public function defineRules(): array
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['id', 'structureId', 'maxLevels'], 'number', 'integerOnly' => true];
+        $rules[] = [['id', 'structureId', 'fieldLayoutId', 'maxLevels'], 'number', 'integerOnly' => true];
         $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']];
         $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => NavRecord::class];
-        $rules[] = [['name', 'handle'], 'required'];
+        $rules[] = [['name', 'handle', 'siteSettings'], 'required'];
         $rules[] = [['name', 'handle'], 'string', 'max' => 255];
-        $rules[] = [['siteSettings'], 'validateSiteSettings', 'skipOnEmpty' => false];
+        $rules[] = [['defaultPlacement'], 'in', 'range' => [self::DEFAULT_PLACEMENT_BEGINNING, self::DEFAULT_PLACEMENT_END]];
+        $rules[] = [['fieldLayout'], 'validateFieldLayout'];
+        $rules[] = [['siteSettings'], 'validateSiteSettings'];
 
         return $rules;
     }
 
-    public function getNavFieldLayout(): ?FieldLayout
+    public function validateFieldLayout(): void
     {
-        return $this->getBehavior('navFieldLayout')->getFieldLayout();
-    }
+        $fieldLayout = $this->getFieldLayout();
 
-    public function behaviors(): array
-    {
-        $behaviors = parent::behaviors();
-
-        $behaviors['navFieldLayout'] = [
-            'class' => FieldLayoutBehavior::class,
-            'elementType' => Node::class,
-            'idAttribute' => 'fieldLayoutId',
+        $fieldLayout->reservedFieldHandles = [
+            'nav',
         ];
 
-        return $behaviors;
+        if (!$fieldLayout->validate()) {
+            $this->addModelErrors($fieldLayout, 'fieldLayout');
+        }
     }
 
-    public function validateSiteSettings($attribute): void
+    public function validateSiteSettings(): void
     {
-        if (!Craft::$app->getIsMultiSite()) {
-            return;
-        }
-
-        if (empty($this->siteSettings)) {
-            $this->addError($attribute, Craft::t('navigation', 'You must select at least one site.'));
+        foreach ($this->getSiteSettings() as $i => $siteSettings) {
+            if (!$siteSettings->validate()) {
+                $this->addModelErrors($siteSettings, "siteSettings[$i]");
+            }
         }
     }
 
-    public function getEditableSites(): array
+    public function getSiteSettings(): array
+    {
+        if (isset($this->_siteSettings)) {
+            return $this->_siteSettings;
+        }
+
+        if (!$this->id) {
+            return [];
+        }
+
+        // Set them with setSiteSettings() so setNav() gets called on them
+        $this->setSiteSettings(Navigation::$plugin->getNavs()->getNavSiteSettings($this->id));
+
+        return $this->_siteSettings;
+    }
+
+    public function setSiteSettings(array $siteSettings): void
+    {
+        $this->_siteSettings = ArrayHelper::index($siteSettings, 'siteId');
+
+        foreach ($this->_siteSettings as $settings) {
+            $settings->setNav($this);
+        }
+    }
+
+    public function getSites(): array
     {
         $sites = [];
 
-        foreach (Craft::$app->getSites()->getEditableSites() as $site) {
-            if (Craft::$app->getIsMultiSite()) {
-                $enabled = $this->siteSettings[$site->uid]['enabled'] ?? false;
+        $sitesService = Craft::$app->getSites();
 
-                // Backward compatibility, enabled if no settings yet
-                if ($enabled || $this->siteSettings === null) {
-                    $sites[] = $site;
-                }
-            } else {
-                $sites[] = $site;
-            }
+        foreach ($this->getSiteIds() as $siteId) {
+            $sites[] = $sitesService->getSiteById($siteId);
         }
 
         return $sites;
     }
 
-    public function getEditableSiteIds(): array
+    public function getSiteIds(): array
     {
-        return ArrayHelper::getColumn($this->getEditableSites(), 'id');
+        return array_keys($this->getSiteSettings());
+    }
+
+    public function getConfig(): array
+    {
+        $config = [
+            'name' => $this->name,
+            'handle' => $this->handle,
+            'structure' => [
+                'uid' => $this->structureId ? Db::uidById(Table::STRUCTURES, $this->structureId) : StringHelper::UUID(),
+                'maxLevels' => (int)$this->maxLevels ?: null,
+            ],
+            'instructions' => $this->instructions,
+            'propagateNodes' => $this->propagateNodes,
+            'maxNodes' => $this->maxNodes,
+            'sortOrder' => (int)$this->sortOrder,
+            'permissions' => $this->permissions,
+            'siteSettings' => [],
+            'defaultPlacement' => $this->defaultPlacement ?? self::DEFAULT_PLACEMENT_END,
+        ];
+
+        $fieldLayout = $this->getFieldLayout();
+
+        if ($fieldLayoutConfig = $fieldLayout->getConfig()) {
+            $config['fieldLayouts'] = [
+                $fieldLayout->uid => $fieldLayoutConfig,
+            ];
+        }
+
+        foreach ($this->getSiteSettings() as $siteId => $siteSettings) {
+            $siteUid = Db::uidById(Table::SITES, $siteId);
+
+            $config['siteSettings'][$siteUid] = [
+                'enabled' => (bool)$siteSettings['enabled'],
+            ];
+        }
+
+        return $config;
     }
 
 }

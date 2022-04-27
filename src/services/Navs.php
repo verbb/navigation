@@ -7,23 +7,30 @@ use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 use verbb\navigation\events\NavEvent;
 use verbb\navigation\models\Nav as NavModel;
-use verbb\navigation\models\Settings;
+use verbb\navigation\models\Nav_SiteSettings;
 use verbb\navigation\records\Nav as NavRecord;
+use verbb\navigation\records\Nav_SiteSettings as Nav_SiteSettingsRecord;
 
 use Craft;
 use craft\base\Component;
+use craft\base\ElementInterface;
 use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\db\Table;
 use craft\events\ConfigEvent;
+use craft\events\DeleteSiteEvent;
+use craft\events\FieldEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
-use craft\helpers\Json;
+use craft\helpers\ProjectConfig as ProjectConfigHelper;
+use craft\helpers\Queue;
 use craft\helpers\StringHelper;
+use craft\i18n\Translation;
 use craft\models\Structure;
 use craft\queue\jobs\ResaveElements;
 
 use Throwable;
+use Exception;
 
 use yii\db\ActiveRecord;
 
@@ -44,6 +51,8 @@ class Navs extends Component
     // Properties
     // =========================================================================
     
+    public bool $autoResaveNodes = true;
+
     private ?MemoizableArray $_navs = null;
 
 
@@ -92,6 +101,19 @@ class Navs extends Component
         return $this->_navs()->firstWhere('uid', $uid, true);
     }
 
+    public function getNavSiteSettings(int $navId): array
+    {
+        $siteSettings = $this->_createNavSiteSettingsQuery()
+            ->where(['navs_sites.navId' => $navId])
+            ->all();
+
+        foreach ($siteSettings as $key => $value) {
+            $siteSettings[$key] = new Nav_SiteSettings($value);
+        }
+
+        return $siteSettings;
+    }
+
     public function saveNav(NavModel $nav, bool $runValidation = true): bool
     {
         $isNewNav = !$nav->id;
@@ -111,22 +133,10 @@ class Navs extends Component
 
         if ($isNewNav) {
             $nav->uid = StringHelper::UUID();
-            $structureUid = StringHelper::UUID();
 
             $nav->sortOrder = (new Query())
-                    ->from(['{{%navigation_navs}}'])
-                    ->max('[[sortOrder]]') + 1;
-        } else {
-            $existingNavRecord = NavRecord::find()
-                ->where(['id' => $nav->id])
-                ->one();
-
-            if (!$existingNavRecord) {
-                throw new NavNotFoundException("No nav exists with the ID '{$nav->id}'");
-            }
-
-            $nav->uid = $existingNavRecord->uid;
-            $structureUid = Db::uidById(Table::STRUCTURES, $existingNavRecord->structureId);
+                ->from(['{{%navigation_navs}}'])
+                ->max('[[sortOrder]]') + 1;
         }
 
         // If they've set maxLevels to 0 (don't ask why), then pretend like there are none.
@@ -134,38 +144,7 @@ class Navs extends Component
             $nav->maxLevels = null;
         }
 
-        $projectConfig = Craft::$app->getProjectConfig();
-
-        $configData = [
-            'name' => $nav->name,
-            'handle' => $nav->handle,
-            'structure' => [
-                'uid' => $structureUid,
-                'maxLevels' => $nav->maxLevels,
-            ],
-            'instructions' => $nav->instructions,
-            'propagateNodes' => $nav->propagateNodes,
-            'maxNodes' => $nav->maxNodes,
-            'permissions' => $nav->permissions,
-            'siteSettings' => $nav->siteSettings,
-            'sortOrder' => $nav->sortOrder,
-        ];
-
-        $fieldLayout = $nav->getFieldLayout();
-        $fieldLayoutConfig = $fieldLayout->getConfig();
-
-        if ($fieldLayoutConfig) {
-            if (empty($fieldLayout->id)) {
-                $layoutUid = StringHelper::UUID();
-                $fieldLayout->uid = $layoutUid;
-            } else {
-                $layoutUid = Db::uidById('{{%fieldlayouts}}', $fieldLayout->id);
-            }
-
-            $configData['fieldLayouts'] = [
-                $layoutUid => $fieldLayoutConfig,
-            ];
-        }
+        $configData = $nav->getConfig();
 
         /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
@@ -181,7 +160,7 @@ class Navs extends Component
             $this->handleChangedNav($event);
         } else {
             $configPath = self::CONFIG_NAV_KEY . '.' . $nav->uid;
-            $projectConfig->set($configPath, $configData);
+            Craft::$app->getProjectConfig()->set($configPath, $configData, "Save navigation “{$nav->handle}”");
         }
 
         if ($isNewNav) {
@@ -196,16 +175,20 @@ class Navs extends Component
         $navUid = $event->tokenMatches[0];
         $data = $event->newValue;
 
+        // Make sure sites are processed
+        ProjectConfigHelper::ensureAllSitesProcessed();
+
         $db = Craft::$app->getDb();
         $transaction = $db->beginTransaction();
 
         try {
+            $structureData = $data['structure'];
+            $siteSettingData = $data['siteSettings'];
+            $structureUid = $structureData['uid'];
+
             // Basic data
             $navRecord = $this->_getNavRecord($navUid, true);
             $isNewNav = $navRecord->getIsNewRecord();
-
-            // Save for later
-            $oldRecord = clone $navRecord;
 
             $navRecord->name = $data['name'];
             $navRecord->handle = $data['handle'];
@@ -213,33 +196,14 @@ class Navs extends Component
             $navRecord->propagateNodes = $data['propagateNodes'];
             $navRecord->maxNodes = $data['maxNodes'] ?? '';
             $navRecord->permissions = $data['permissions'] ?? [];
-            $navRecord->siteSettings = $data['siteSettings'] ?? [];
             $navRecord->sortOrder = $data['sortOrder'];
+            $navRecord->defaultPlacement = $data['defaultPlacement'] ?? NavModel::DEFAULT_PLACEMENT_END;
             $navRecord->uid = $navUid;
 
-            // Field layout
-            if (!empty($data['fieldLayouts'])) {
-                $fields = Craft::$app->getFields();
-
-                // Delete the field layout
-                if ($navRecord->fieldLayoutId) {
-                    $fields->deleteLayoutById($navRecord->fieldLayoutId);
-                }
-
-                // Create the new layout
-                $layout = FieldLayout::createFromConfig(reset($data['fieldLayouts']));
-                $layout->type = Node::class;
-                $layout->uid = key($data['fieldLayouts']);
-                $fields->saveLayout($layout);
-                $navRecord->fieldLayoutId = $layout->id;
-            } else {
-                $navRecord->fieldLayoutId = null;
-            }
+            $oldPropagateNodes = $navRecord->getOldAttribute('propagateNodes');
+            $propagationMethodChanged = $navRecord->propagateNodes != $oldPropagateNodes;
 
             // Structure
-            $structureData = $data['structure'];
-            $structureUid = $structureData['uid'];
-
             $structuresService = Craft::$app->getStructures();
             $structure = $structuresService->getStructureByUid($structureUid, true) ?? new Structure(['uid' => $structureUid]);
             $structure->maxLevels = $structureData['maxLevels'];
@@ -247,11 +211,181 @@ class Navs extends Component
 
             $navRecord->structureId = $structure->id;
 
-            // Save the nav
+            // Save the field layout
+            if (!empty($data['fieldLayouts'])) {
+                // Save the field layout
+                $layout = FieldLayout::createFromConfig(reset($data['fieldLayouts']));
+                $layout->id = $navRecord->fieldLayoutId;
+                $layout->type = Node::class;
+                $layout->uid = key($data['fieldLayouts']);
+                
+                Craft::$app->getFields()->saveLayout($layout, false);
+                
+                $navRecord->fieldLayoutId = $layout->id;
+            } else if ($navRecord->fieldLayoutId) {
+                // Delete the field layout
+                Craft::$app->getFields()->deleteLayoutById($navRecord->fieldLayoutId);
+                
+                $navRecord->fieldLayoutId = null;
+            }
+
+            $resaveNodes = (
+                $navRecord->handle !== $navRecord->getOldAttribute('handle') ||
+                $propagationMethodChanged ||
+                $navRecord->fieldLayoutId != $navRecord->getOldAttribute('fieldLayoutId') ||
+                $navRecord->structureId != $navRecord->getOldAttribute('structureId')
+            );
+
             if ($wasTrashed = (bool)$navRecord->dateDeleted) {
                 $navRecord->restore();
+
+                $resaveNodes = true;
             } else {
                 $navRecord->save(false);
+            }
+
+            // Update the site settings
+            // -----------------------------------------------------------------
+
+            $sitesNowWithoutUrls = [];
+            $sitesWithNewUriFormats = [];
+
+            if (!$isNewNav) {
+                // Get the old nav site settings
+                $allOldSiteSettingsRecords = Nav_SiteSettingsRecord::find()
+                    ->where(['navId' => $navRecord->id])
+                    ->indexBy('siteId')
+                    ->all();
+            } else {
+                $allOldSiteSettingsRecords = [];
+            }
+
+            $siteIdMap = Db::idsByUids(Table::SITES, array_keys($siteSettingData));
+            $hasNewSite = false;
+
+            foreach ($siteSettingData as $siteUid => $siteSettings) {
+                $siteId = $siteIdMap[$siteUid];
+
+                // Was this already selected?
+                if (!$isNewNav && isset($allOldSiteSettingsRecords[$siteId])) {
+                    $siteSettingsRecord = $allOldSiteSettingsRecords[$siteId];
+                } else {
+                    $siteSettingsRecord = new Nav_SiteSettingsRecord();
+                    $siteSettingsRecord->navId = $navRecord->id;
+                    $siteSettingsRecord->siteId = $siteId;
+                    $resaveNodes = true;
+                    $hasNewSite = true;
+                }
+
+                $siteSettingsRecord->enabled = $siteSettings['enabled'];
+
+                $siteSettingsRecord->save(false);
+            }
+
+            if (!$isNewNav) {
+                // Drop any sites that are no longer being used, as well as the associated node/element site rows
+                $affectedSiteUids = array_keys($siteSettingData);
+
+                foreach ($allOldSiteSettingsRecords as $siteId => $siteSettingsRecord) {
+                    $siteUid = array_search($siteId, $siteIdMap, false);
+
+                    if (!in_array($siteUid, $affectedSiteUids, false)) {
+                        $siteSettingsRecord->delete();
+                        $resaveNodes = true;
+                    }
+                }
+            }
+
+            if (!$isNewNav && $resaveNodes) {
+                // If the propagation method just changed, we definitely need to update nodes for that
+                if ($propagationMethodChanged) {
+                    $elementsService = Craft::$app->getElements();
+                    $nodesToDelete = [];
+
+                    $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
+                    $nav = $this->getNavById($navRecord->id);
+
+                    // If we've turned off propagating, we need to propagate nodes
+                    if (!$navRecord->propagateNodes && $oldPropagateNodes) {
+                        $nodes = Node::find()
+                            ->navId($navRecord->id)
+                            ->siteId($primarySiteId)
+                            ->level(1)
+                            ->orderBy(['structureelements.lft' => SORT_ASC])
+                            ->all();
+
+                        foreach ($nav->getSites() as $site) {
+                            // If we try and propagate nodes to another site's nav, which already
+                            // has nodes, we'll get duplicates. As there's no real way to compare
+                            // propagated and non-propagated nodes (effectively), we need to wipe all
+                            // enabled nav nodes first, before duplicating.
+                            $existingNodes = Node::find()->navId($navRecord->id)->siteId($site->id)->all();
+
+                            // But, we need to wait for all navigations to finish, before deleting.
+                            // Otherwise, we'll delete a node in one site navigation, and because we've
+                            // set to propagate, it'll delete it from all other navs instantly.
+                            foreach ($existingNodes as $existingNode) {
+                                $nodesToDelete[] = $existingNode;
+                            }
+
+                            $this->_duplicateElements($nodes, ['siteId' => $site->id]);
+                        }
+                    } else {
+                        // As we're switching **on** node propagation (where every node is the same across multiple sites) 
+                        // we need to empty the navs for all other sites, other than the primary site
+                        // Re-save all nodes, to prompt them to be propagated to all enabled sites
+                        foreach ($nav->getSites() as $site) {
+                            if ($site->id == $primarySiteId) {
+                                // Don't delete the primary site's nodes. They'll be propagated.
+                                continue;
+                            }
+
+                            $existingNodes = Node::find()->navId($navRecord->id)->siteId($site->id)->all();
+
+                            // But, we need to wait for all navigations to finish, before deleting.
+                            // Otherwise, we'll delete a node in one site navigation, and because we've
+                            // set to propagate, it'll delete it from all other navs instantly.
+                            foreach ($existingNodes as $existingNode) {
+                                $nodesToDelete[] = $existingNode;
+                            }
+                        }
+
+                        $nodes = Node::find()->navId($navRecord->id)->siteId($primarySiteId)->ids();
+
+                        // Resave the primary sites' nodes, which will propagate to all other sites.
+                        Queue::push(new ResaveElements([
+                            'description' => Translation::prep('app', 'Resaving {nav} nodes', [
+                                'nav' => $navRecord->name,
+                            ]),
+                            'elementType' => Node::class,
+                            'criteria' => [
+                                'id' => $nodes,
+                            ],
+                        ]));
+                    }
+
+                    foreach ($nodesToDelete as $nodeToDelete) {
+                        $elementsService->deleteElement($nodeToDelete);
+                    }
+                } else if ($this->autoResaveNodes) {
+                    Queue::push(new ResaveElements([
+                        'description' => Translation::prep('app', 'Resaving {nav} nodes', [
+                            'nav' => $navRecord->name,
+                        ]),
+                        'elementType' => Node::class,
+                        'criteria' => [
+                            'navId' => $navRecord->id,
+                            'siteId' => array_values($siteIdMap),
+                            'preferSites' => [Craft::$app->getSites()->getPrimarySite()->id],
+                            'unique' => true,
+                            'status' => null,
+                            'drafts' => null,
+                            'provisionalDrafts' => null,
+                            'revisions' => null,
+                        ],
+                        'updateSearchIndex' => $hasNewSite,
+                    ]));
+                }
             }
 
             $transaction->commit();
@@ -267,105 +401,34 @@ class Navs extends Component
             // Restore the nodes that were deleted with the nav
             $nodes = Node::find()
                 ->navId($navRecord->id)
+                ->drafts(null)
+                ->draftOf(false)
+                ->status(null)
                 ->trashed()
+                ->site('*')
+                ->unique()
                 ->andWhere(['nodes.deletedWithNav' => true])
                 ->all();
 
             Craft::$app->getElements()->restoreElements($nodes);
         }
 
-        // Have we changed the propagation method?
-        if ($oldRecord->propagateNodes !== $navRecord->propagateNodes) {
-            $elementsService = Craft::$app->getElements();
-            $nodesToDelete = [];
-
-            // If we've turned off propagating, we need to propagate nodes
-            if (!$navRecord->propagateNodes && $oldRecord->propagateNodes) {
-                $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
-                $nav = $this->getNavById($navRecord->id);
-
-                $nodes = Node::find()
-                    ->navId($navRecord->id)
-                    ->siteId($primarySiteId)
-                    ->level(1)
-                    ->orderBy(['structureelements.lft' => SORT_ASC])
-                    ->all();
-
-                foreach ($nav->getEditableSites() as $site) {
-                    // If we try and propagate nodes to another site's nav, which already
-                    // has nodes, we'll get duplicates. As there's no real way to compare
-                    // propagated and non-propagated nodes (effectively), we need to wipe all
-                    // enabled nav nodes first, before duplicating.
-                    $existingNodes = Node::find()->navId($navRecord->id)->siteId($site->id)->all();
-
-                    // But, we need to wait for all navigations to finish, before deleting.
-                    // Otherwise, we'll delete a node in one site navigation, and because we've
-                    // set to propagate, it'll delete it from all other navs instantly.
-                    foreach ($existingNodes as $existingNode) {
-                        $nodesToDelete[] = $existingNode;
-                    }
-
-                    $this->_duplicateElements($nodes, ['siteId' => $site->id]);
-                }
-            } else {
-                // Re-save all nodes, to prompt them to be propagated to all enabled sites
-                $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
-
-                $nodes = Node::find()->navId($navRecord->id)->siteId($primarySiteId)->ids();
-
-                Craft::$app->getQueue()->push(new ResaveElements([
-                    'elementType' => Node::class,
-                    'criteria' => [
-                        'id' => $nodes,
-                    ],
-                ]));
-            }
-
-            foreach ($nodesToDelete as $nodeToDelete) {
-                $elementsService->deleteElement($nodeToDelete);
-            }
-        }
-
-        // When enabling/disabling sites
-        if (Craft::$app->getIsMultiSite()) {
-            // Has the sites been changed?
-            $oldSiteSettings = Json::decode($oldRecord->siteSettings);
-            $newSiteSettings = Json::decode($navRecord->siteSettings);
-
-            // Removed sites
-            if ($oldSiteSettings) {
-                foreach ($oldSiteSettings as $key => $value) {
-                    if (!isset($newSiteSettings[$key])) {
-                        // Nothing for now
-                    }
-                }
-            }
-
-            // Added sites
-            foreach ($newSiteSettings as $key => $value) {
-                if (!isset($oldSiteSettings[$key])) {
-                    $siteId = Db::idByUid(Table::SITES, $key);
-
-                    $this->resaveNodesForSite($navRecord, $siteId);
-                }
-            }
-        }
+        $nav = $this->getNavById($navRecord->id);
 
         // Fire an 'afterSaveNav' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_NAV)) {
             $this->trigger(self::EVENT_AFTER_SAVE_NAV, new NavEvent([
-                'nav' => $this->getNavById($navRecord->id),
+                'nav' => $nav,
                 'isNew' => $isNewNav,
             ]));
         }
+
+        // Invalidate node caches
+        Craft::$app->getElements()->invalidateCachesForElementType(Node::class);
     }
 
     public function deleteNavById(int $navId): bool
     {
-        if (!$navId) {
-            return false;
-        }
-
         $nav = $this->getNavById($navId);
 
         if (!$nav) {
@@ -410,25 +473,30 @@ class Navs extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
-            // Delete the nodes - ensure to fetch for all sites
-            $nodes = Node::find()
-                ->status(null)
-                ->site('*')
+            // All nodes *should* be deleted by now via their nav, but loop through all the sites in case
+            // there are any lingering entries from unsupported sites
+            $nodeQuery = Node::find()
                 ->navId($navRecord->id)
-                ->all();
-
+                ->status(null);
+            
             $elementsService = Craft::$app->getElements();
+            
+            foreach (Craft::$app->getSites()->getAllSiteIds() as $siteId) {
+                foreach (Db::each($nodeQuery->siteId($siteId)) as $node) {
+                    $node->deletedWithNav = true;
+                    $elementsService->deleteElement($node);
+                }
+            }
 
-            foreach ($nodes as $node) {
-                $node->deletedWithNav = true;
-                $elementsService->deleteElement($node);
+            // Delete the structure
+            if ($navRecord->structureId) {
+                Craft::$app->getStructures()->deleteStructureById($navRecord->structureId);
             }
 
             // Delete the field layout.
-            Craft::$app->getFields()->deleteLayoutById($navRecord->fieldLayoutId);
-
-            // Delete the structure
-            Craft::$app->getStructures()->deleteStructureById($navRecord->structureId);
+            if ($navRecord->fieldLayoutId) {
+                Craft::$app->getFields()->deleteLayoutById($navRecord->fieldLayoutId);
+            }
 
             // Delete the navigation
             Craft::$app->getDb()->createCommand()
@@ -450,6 +518,59 @@ class Navs extends Component
                 'nav' => $nav,
             ]));
         }
+
+        // Invalidate node caches
+        Craft::$app->getElements()->invalidateCachesForElementType(Node::class);
+    }
+
+    public function pruneDeletedSite(DeleteSiteEvent $event): void
+    {
+        $siteUid = $event->site->uid;
+
+        $projectConfig = Craft::$app->getProjectConfig();
+        $navs = $projectConfig->get(self::CONFIG_NAV_KEY);
+
+        // Loop through the navs and prune the UID from field layouts.
+        if (is_array($navs)) {
+            foreach ($navs as $navUid => $nav) {
+                $projectConfig->remove(self::CONFIG_NAV_KEY . '.' . $navUid . '.siteSettings.' . $siteUid, 'Prune deleted site settings');
+            }
+        }
+    }
+
+    public function pruneDeletedField(FieldEvent $event): void
+    {
+        $field = $event->field;
+        $fieldUid = $field->uid;
+
+        $projectConfig = Craft::$app->getProjectConfig();
+        $navs = $projectConfig->get(self::CONFIG_NAV_KEY);
+
+        // Engage stealth mode
+        $projectConfig->muteEvents = true;
+
+        // Loop through the navs and prune the UID from field layouts.
+        if (is_array($navs)) {
+            foreach ($navs as $navUid => $nav) {
+                if (!empty($nav['fieldLayouts'])) {
+                    foreach ($nav['fieldLayouts'] as $layoutUid => $layout) {
+                        if (!empty($layout['tabs'])) {
+                            foreach ($layout['tabs'] as $tabUid => $tab) {
+                                $projectConfig->remove(self::CONFIG_NAV_KEY . '.' . $navUid . '.fieldLayouts.' . $layoutUid . '.tabs.' . $tabUid . '.fields.' . $fieldUid, 'Prune deleted field');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Nuke all the layout fields from the DB
+        Db::delete(Table::FIELDLAYOUTFIELDS, [
+            'fieldId' => $field->id,
+        ]);
+
+        // Allow events again
+        $projectConfig->muteEvents = false;
     }
 
     public function reorderNavs(array $navIds): bool
@@ -571,6 +692,23 @@ class Navs extends Component
             }
 
             $this->_navs = new MemoizableArray($navs);
+
+            if (!empty($navs) && Craft::$app->getRequest()->getIsCpRequest()) {
+                // Eager load the site settings
+                $allSiteSettings = $this->_createNavSiteSettingsQuery()
+                    ->where(['navs_sites.navId' => array_keys($navs)])
+                    ->all();
+
+                $siteSettingsBySection = [];
+
+                foreach ($allSiteSettings as $siteSettings) {
+                    $siteSettingsByNav[$siteSettings['navId']][] = new Nav_SiteSettings($siteSettings);
+                }
+
+                foreach ($siteSettingsBySection as $navId => $navSiteSettings) {
+                    $navs[$navId]->setSiteSettings($navSiteSettings);
+                }
+            }
         }
 
         return $this->_navs;
@@ -590,7 +728,7 @@ class Navs extends Component
                 'navs.propagateNodes',
                 'navs.maxNodes',
                 'navs.permissions',
-                'navs.siteSettings',
+                'navs.defaultPlacement',
                 'navs.uid',
                 'structures.maxLevels',
             ])
@@ -604,6 +742,20 @@ class Navs extends Component
             ->orderBy(['sortOrder' => SORT_ASC]);
     }
 
+    private function _createNavSiteSettingsQuery(): Query
+    {
+        return (new Query())
+            ->select([
+                'navs_sites.id',
+                'navs_sites.navId',
+                'navs_sites.siteId',
+                'navs_sites.enabled',
+            ])
+            ->from(['navs_sites' => '{{%navigation_navs_sites}}'])
+            ->innerJoin(['sites' => Table::SITES], '[[sites.id]] = [[navs_sites.siteId]]')
+            ->orderBy(['sites.sortOrder' => SORT_ASC]);
+    }
+
     private function _getNavRecord(string $uid, bool $withTrashed = false): ActiveRecord|array
     {
         $query = $withTrashed ? NavRecord::findWithTrashed() : NavRecord::find();
@@ -611,7 +763,7 @@ class Navs extends Component
         return $query->one() ?? new NavRecord();
     }
 
-    private function _duplicateElements($elements, $newAttributes = [], &$duplicatedElementIds = [], $newParent = null): void
+    private function _duplicateElements(array $elements, array $newAttributes = [], array &$duplicatedElementIds = [], ?ElementInterface $newParent = null): void
     {
         $elementsService = Craft::$app->getElements();
         $structuresService = Craft::$app->getStructures();
@@ -628,11 +780,20 @@ class Navs extends Component
             $duplicatedElementIds[$element->id] = true;
 
             if ($newParent) {
-                // Append it to the duplicate of $element's parent
+                // Append it to the duplicate of $element’s parent
                 $structuresService->append($element->structureId, $duplicate, $newParent);
+            } else {
+                // Place it right next to the original element
+                $structuresService->moveAfter($element->structureId, $duplicate, $element);
             }
 
-            $children = $element->getChildren()->status(null)->all();
+            $children = $element::find()
+                ->siteId($element->siteId)
+                ->descendantOf($element->id)
+                ->descendantDist(1)
+                ->status(null)
+                ->all();
+
             $this->_duplicateElements($children, $newAttributes, $duplicatedElementIds, $duplicate);
         }
     }

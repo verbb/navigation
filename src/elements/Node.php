@@ -2,7 +2,6 @@
 namespace verbb\navigation\elements;
 
 use verbb\navigation\Navigation;
-use verbb\navigation\base\NodeType;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\events\NodeActiveEvent;
 use verbb\navigation\models\Nav;
@@ -21,21 +20,19 @@ use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Duplicate;
 use craft\elements\actions\Edit;
-use craft\elements\actions\NewChild;
 use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
-use craft\elements\db\ElementQueryInterface;
+use craft\elements\db\ElementQuery;
 use craft\helpers\App;
 use Craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
 use craft\helpers\Db;
 use craft\helpers\Html;
-use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
-use craft\helpers\Type;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
+use craft\services\Structures;
 
 use yii\base\Event;
 use yii\base\Exception;
@@ -113,9 +110,10 @@ class Node extends Element
     public static function getNodeElementTitleHtml(&$context): string
     {
         $element = $context['element'] ?? '';
+        $contextName = $context['context'] ?? '';
 
         // Only do this for a Node ElementType
-        if ($element && $element::class === static::class) {
+        if ($element && $element::class === static::class && $contextName === 'index') {
             $title = $element->hasOverriddenTitle();
             $newWindow = $element->newWindow;
             $classes = $element->classes ? '.' . str_replace(' ', ' .', $element->classes) : '';
@@ -393,7 +391,7 @@ class Node extends Element
         $this->_isActive = $value;
     }
 
-    public function hasActiveChild()
+    public function hasActiveChild(): ?bool
     {
         if ($this->hasDescendants) {
             $descendants = $this->descendants->all();
@@ -514,7 +512,7 @@ class Node extends Element
         return $this->newWindow ? '_blank' : '';
     }
 
-    public function getNav()
+    public function getNav(): Nav
     {
         if ($this->navId === null) {
             throw new InvalidConfigException('Node is missing its navigation ID');
@@ -629,7 +627,7 @@ class Node extends Element
         if (!$nav->propagateNodes) {
             $siteIds = [$this->siteId];
         } else {
-            $siteIds = $nav->getEditableSiteIds();
+            $siteIds = $nav->getSiteIds();
         }
 
         $siteIds = array_filter($siteIds);
@@ -706,27 +704,29 @@ class Node extends Element
 
     public function afterSave(bool $isNew): void
     {
+        $nav = $this->getNav();
+
         // Get the node record
         if (!$isNew) {
             $record = NodeRecord::findOne($this->id);
 
             if (!$record) {
-                throw new Exception('Invalid node ID: ' . $this->id);
+                throw new InvalidConfigException("Invalid node ID: $this->id");
             }
         } else {
             $record = new NodeRecord();
-            $record->id = $this->id;
+            $record->id = (int)$this->id;
         }
 
-        $record->elementId = $this->elementId;
-        $record->navId = $this->navId;
+        $record->elementId = (int)$this->elementId;
+        $record->navId = (int)$this->navId;
         $record->url = $this->getRawUrl();
         $record->type = $this->type;
         $record->classes = $this->classes;
         $record->urlSuffix = $this->urlSuffix;
         $record->customAttributes = $this->customAttributes;
         $record->data = $this->data;
-        $record->newWindow = $this->newWindow;
+        $record->newWindow = (bool)$this->newWindow;
 
         // Don't store the URL if it's an element. We should rely on its element URL.
         // Check for custom types, they might want to save the URL
@@ -749,11 +749,7 @@ class Node extends Element
 
         // Has the parent changed?
         if ($this->_hasNewParent()) {
-            if (!$this->newParentId) {
-                Craft::$app->getStructures()->appendToRoot($nav->structureId, $this);
-            } else {
-                Craft::$app->getStructures()->append($nav->structureId, $this, $this->getParent());
-            }
+            $this->_placeInStructure($isNew, $nav);
         }
 
         parent::afterSave($isNew);
@@ -866,7 +862,7 @@ class Node extends Element
     {
         $nav = $this->navId === null ? null : $this->getNav();
 
-        return $nav ? $nav->getNavFieldLayout() : null;
+        return $nav ? $nav->getFieldLayout() : null;
     }
 
     public function getCustomAttributesObject(): array
@@ -892,7 +888,7 @@ class Node extends Element
         }
     }
 
-    public function _getActive($includeChildren = true)
+    public function _getActive($includeChildren = true): bool
     {
         if ($this->_isActive && $includeChildren) {
             return true;
@@ -1188,5 +1184,26 @@ EOD;
         }
 
         return $parentOptionCriteria;
+    }
+
+    private function _placeInStructure(bool $isNew, Nav $nav): void
+    {
+        $structuresService = Craft::$app->getStructures();
+
+        $mode = $isNew ? Structures::MODE_INSERT : Structures::MODE_AUTO;
+
+        if (!$this->newParentId) {
+            if ($nav->defaultPlacement === Nav::DEFAULT_PLACEMENT_BEGINNING) {
+                $structuresService->prependToRoot($this->structureId, $this, $mode);
+            } else {
+                $structuresService->appendToRoot($this->structureId, $this, $mode);
+            }
+        } else {
+            if ($nav->defaultPlacement === Nav::DEFAULT_PLACEMENT_BEGINNING) {
+                $structuresService->prepend($this->structureId, $this, $this->getParent(), $mode);
+            } else {
+                $structuresService->append($this->structureId, $this, $this->getParent(), $mode);
+            }
+        }
     }
 }

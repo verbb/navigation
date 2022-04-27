@@ -36,7 +36,7 @@
 {% block blockContent %}
     <input type="hidden" name="action" value="navigation/navs/save-nav">
     {% if not isNewNav %}<input type="hidden" name="navId" value="{{ nav.id }}">{% endif %}
-    {{ redirectInput('navigation/navs/edit/' ~ nav.id) }}
+    {{ redirectInput('navigation/navs/edit/{id}') }}
 
     <div id="settings">
         {{ forms.textField({
@@ -92,6 +92,18 @@
             errors: (nav is defined ? nav.getErrors('maxNodes') : null),
         }) }}
 
+        {{ forms.selectField({
+            label: 'Default {type} Placement' | t('navigation', { type: 'Node' | t('navigation') }),
+            instructions: 'Where new {type} should be placed by default in the structure.' | t('navigation', { type: 'nodes' | t('navigation') }),
+            id: 'default-placement',
+            name: 'defaultPlacement',
+            options: [
+                { label: 'Before other {type}' | t('navigation', { type: 'nodes' | t('navigation') }), value: 'beginning'},
+                { label: 'After other {type}' | t('navigation', { type: 'nodes' | t('navigation') }), value: 'end'},
+            ],
+            value: nav.defaultPlacement,
+        }) }}
+
         {% if craft.app.getIsMultiSite() %}
             {{ forms.lightswitchField({
                 label: 'Propagate nodes across all enabled sites?' | t('navigation'),
@@ -102,12 +114,21 @@
             }) }}
 
             {% set siteRows = [] %}
+            {% set siteErrors = nav.getErrors('siteSettings') %}
 
             {% for site in craft.app.sites.getEditableSites() %}
+                {% set siteSettings = nav.siteSettings[site.id] ?? null %}
+                
+                {% if siteSettings %}
+                    {% for attribute, errors in siteSettings.getErrors() %}
+                        {% set siteErrors = siteErrors | merge(errors) %}
+                    {% endfor %}
+                {% endif %}
+
                 {% set siteRows = siteRows | merge({
-                    (site.uid): {
+                    (site.handle): {
                         heading: site.name | t('site') | e,
-                        enabled: isNewNav or (nav.siteSettings[site.uid].enabled ?? false),
+                        enabled: isNewNav or (siteSettings.enabled ?? false),
                     } | filter
                 }) %}
             {% endfor %}
@@ -115,8 +136,8 @@
             {{ forms.editableTableField({
                 label: 'Site Settings' | t('app'),
                 instructions: 'Choose which sites this navigation should be available in.' | t('navigation'),
-                id: 'siteSettings',
-                name: 'siteSettings',
+                id: 'sites',
+                name: 'sites',
                 cols: {
                     heading: {
                         type: 'heading',
@@ -131,18 +152,17 @@
                 } | filter,
                 rows: siteRows,
                 fullWidth: false,
-                staticRows: true,
-                errors: (nav is defined ? nav.getErrors('siteSettings') : null),
-                allowAdd: true,
-                allowDelete: true,
-                allowReorder: true,
+                allowAdd: false,
+                allowDelete: false,
+                allowReorder: false,
+                errors: siteErrors | unique,
             }) }}
         {% endif %}
     </div>
 
     <div id="node-fields" class="hidden">
         {% include '_includes/fieldlayoutdesigner' with {
-            fieldLayout: nav.getNavFieldLayout(),
+            fieldLayout: nav.getFieldLayout(),
             customizableTabs: true,
             customizableUi: true,
             pretendTabName: 'Fields' | t('app'),

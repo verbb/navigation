@@ -6,7 +6,6 @@ use verbb\navigation\elements\Node as NodeElement;
 
 use Craft;
 use craft\base\Component;
-use craft\base\ElementInterface;
 use craft\events\ElementEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\ElementHelper;
@@ -18,7 +17,6 @@ class Nodes extends Component
 
     public function getNodeById($id, $siteId = null): ?NodeElement
     {
-        /* @noinspection PhpIncompatibleReturnTypeInspection */
         return Craft::$app->getElements()->getElementById($id, NodeElement::class, $siteId);
     }
 

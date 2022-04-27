@@ -7,7 +7,6 @@ use verbb\navigation\elements\Node as NodeElement;
 use verbb\navigation\models\Nav;
 
 use Craft;
-use craft\elements\db\ElementQueryInterface;
 use craft\helpers\Template;
 use craft\web\View;
 

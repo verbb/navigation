@@ -6,6 +6,7 @@
 - When editing nodes, you can now toggle the status of nodes, view trashed nodes, and restore nodes.
 - When editing nodes, you can now duplicate, duplicate with descendants, delete, delete with descendants with multiple nodes.
 - When editing nodes, you can now add UI elements to node layouts.
+- Added the ability to set the default placement of new nodes, when adding them to a navigation.
 
 ### Changed
 - Redesigned UI for editing navigation nodes.

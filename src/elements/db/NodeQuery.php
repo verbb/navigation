@@ -1,16 +1,15 @@
 <?php
 namespace verbb\navigation\elements\db;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 use verbb\navigation\models\Nav as NavModel;
-use verbb\navigation\records\Nav as NavRecord;
 
 use Craft;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
-use craft\helpers\Json;
 
 class NodeQuery extends ElementQuery
 {
@@ -38,7 +37,9 @@ class NodeQuery extends ElementQuery
 
     public function init(): void
     {
-        $this->withStructure = true;
+        if (!isset($this->withStructure)) {
+            $this->withStructure = true;
+        }
 
         parent::init();
     }
@@ -75,7 +76,7 @@ class NodeQuery extends ElementQuery
         } else if ($value !== null) {
             $this->navId = (new Query())
                 ->select(['id'])
-                ->from(NavRecord::tableName())
+                ->from('{{%navigation_navs}}')
                 ->where(Db::parseParam('handle', $value))
                 ->column();
         } else {
@@ -142,19 +143,10 @@ class NodeQuery extends ElementQuery
 
     protected function beforePrepare(): bool
     {
-        // Use a database call for performance
-        $schemaVersion = (new Query())
-            ->select(['value'])
-            ->from('{{%projectconfig}}')
-            ->where(['path' => 'plugins.navigation.schemaVersion'])
-            ->scalar();
-
-        $schemaVersion = Json::decodeIfJson($schemaVersion);
-
         $this->joinElementTable('navigation_nodes');
         $this->subQuery->innerJoin('{{%navigation_navs}} navigation_navs', '[[navigation_nodes.navId]] = [[navigation_navs.id]]');
 
-        $select = [
+        $this->query->select([
             'navigation_nodes.id',
             'navigation_nodes.elementId',
             'navigation_nodes.navId',
@@ -168,9 +160,7 @@ class NodeQuery extends ElementQuery
 
             // Join the element's uri onto the same query
             'element_item_sites.uri AS elementUrl',
-        ];
-
-        $this->query->select($select);
+        ]);
 
         if ($this->id) {
             $this->subQuery->andWhere(Db::parseParam('navigation_nodes.id', $this->id));
@@ -214,7 +204,7 @@ class NodeQuery extends ElementQuery
 
         if ($this->hasUrl) {
             $this->subQuery->andWhere(['or', ['not', ['navigation_nodes.elementId' => null, 'navigation_nodes.elementId' => '']], ['not', ['navigation_nodes.url' => null, 'navigation_nodes.url' => '']]]);
-        }
+        }        
 
         return parent::beforePrepare();
     }
