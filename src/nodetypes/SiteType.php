@@ -30,16 +30,6 @@ class SiteType extends NodeType
         return false;
     }
 
-    public static function hasClasses(): bool
-    {
-        return false;
-    }
-
-    public static function hasAttributes(): bool
-    {
-        return true;
-    }
-
 
     // Public Methods
     // =========================================================================

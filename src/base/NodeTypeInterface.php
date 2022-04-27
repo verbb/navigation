@@ -16,13 +16,11 @@ interface NodeTypeInterface extends ComponentInterface
 
     public static function hasNewWindow(): bool;
 
-    public static function hasClasses(): bool;
-
 
     // Public Methods
     // =========================================================================
 
-    public function getSettingsHtml();
+    public function getSettingsHtml(): ?string;
 
-    public function getUrl();
+    public function getUrl(): ?string;
 }

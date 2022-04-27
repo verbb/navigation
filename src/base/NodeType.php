@@ -31,16 +31,6 @@ abstract class NodeType extends Component implements NodeTypeInterface
         return false;
     }
 
-    public static function hasClasses(): bool
-    {
-        return false;
-    }
-
-    public static function hasAttributes(): bool
-    {
-        return false;
-    }
-
 
     // Properties
     // =========================================================================

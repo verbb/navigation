@@ -29,14 +29,4 @@ class PassiveType extends NodeType
     {
         return false;
     }
-
-    public static function hasClasses(): bool
-    {
-        return true;
-    }
-
-    public static function hasAttributes(): bool
-    {
-        return true;
-    }
 }

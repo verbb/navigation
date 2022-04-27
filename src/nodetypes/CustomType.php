@@ -30,16 +30,6 @@ class CustomType extends NodeType
         return true;
     }
 
-    public static function hasClasses(): bool
-    {
-        return true;
-    }
-
-    public static function hasAttributes(): bool
-    {
-        return false;
-    }
-
 
     // Public Methods
     // =========================================================================
