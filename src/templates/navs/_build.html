@@ -1,3 +1,5 @@
+{% set bodyClass = 'body-navigation-nodes-index' %}
+
 {% extends 'navigation/_layouts' %}
 {% import '_includes/forms' as forms %}
 
@@ -7,50 +9,34 @@
 ] %}
 
 {% set title = nav.name %}
+{% set elementType = 'verbb\\navigation\\elements\\Node' %}
+{% set elementInstance = craft.app.elements.createElement(elementType) %}
+{% set sources = craft.app.elementSources.getSources(elementType, 'index', true) %}
+
+{# Enforce a single source #}
+{% set sources = sources | filter(n => n.key == 'nav:' ~ nav.uid) %}
 
 {% block actionButton %}
-    <div class="btngroup submit">
-        <div class="btn settings icon menubtn" data-form="x" title="{{ 'Settings' | t('navigation') }}">
-            {{ 'Settings' | t('navigation') }}
-        </div>
-
-        <div class="menu">
-            <ul>
-                {% if editable and currentUser.can('navigation-editNav:' ~ nav.uid) %}
-                    <li><a href="{{ cpUrl('navigation/navs/edit/' ~ nav.id) }}">{{ 'Settings' | t('navigation') }}</a></li>
-
-                    <hr>
-                {% endif %}
-
-                <li><a class="formsubmit error" data-action="navigation/nodes/clear" data-param="payload" data-value="{{ nav.id }}:{{ site.id }}" data-confirm="{{ 'Are you sure you want to remove all nodes? This cannot be undone.' | t('navigation') }}">{{ 'Clear Nodes' | t('navigation') }}</a></li>
-            </ul>
-        </div>
-    </div>
-{% endblock %}
-
-{% block contextMenu %}
-    {% set sites = nav.getEditableSites() %}
-
-    {% if sites | length > 1 %}
-        <div id="revision-btn" class="btn menubtn nav-site-menubtn" data-icon="world">{{ site.name }}</div>
-
-        <div class="menu">
-            <ul class="padded">
-                {% for s in sites %}
-                    <li>
-                        <a data-site-id="{{ s.id }}" href="{{ url('navigation/navs/build/' ~ nav.id ~ '/' ~ s.handle) }}" {% if s.handle == site.handle %}class="sel"{% endif %}>
-                            {{ s.name }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
+    {% if editable and currentUser.can('navigation-editNav:' ~ nav.uid) %}
+        <div class="btngroup submit">
+            <a class="btn settings icon" href="{{ cpUrl('navigation/navs/edit/' ~ nav.id) }}">
+                {{ 'Settings' | t('navigation') }}
+            </a>
         </div>
     {% endif %}
 {% endblock %}
 
+{% block contextMenu %}
+    <div id="toolbar" class="flex">
+        {% include '_elements/toolbar' with {
+            showSiteMenu: true,
+        } %}
+    </div>
+{% endblock %}
+
 {% block details %}
 
-<div class="nav-sidebar">
+<div class="nav-sidebar navigation-nodes-sidebar">
     <nav id="accordion" data-vui-tabs>
         <ul class="tab-list">
             {% for tabId, tab in craft.navigation.getBuilderTabs(nav) %}
@@ -61,64 +47,53 @@
                     'data-id': tabId,
                 } %}
 
-                {% if tab.category == 'element' %}
-                    {% set attributes = attributes | merge({
-                        'data-element-type': tab.type,
-                    }) %}
-                {% elseif tab.category == 'nodeType' %}
-                    {% set attributes = attributes | merge({
-                        'data-node-type': tab.type,
-                    }) %}
-                {% endif %}
-
                 <li {{ attr(attributes) }}>
                     <a id="tab-{{ tabId }}" class="tab{% if selected %} sel{% endif %}" href="#{{ tabId }}" title="{{ tab.label }}">
                         {{ tab.label }}
                     </a>
 
                     <div id="{{ tabId }}" class="tab-list-pane {% if not selected %}hidden{% endif %}">
-                        {% if tab.category == 'element' %}
-                            {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
-                                {{ forms.selectField({
-                                    label: 'Parent' | t('navigation'),
-                                    instructions: 'Select a navigation item as the parent.' | t('navigation'),
-                                    id: 'parent',
-                                    name: 'parent',
-                                    options: parentOptions,
-                                    class: 'fullwidth js-parent-node',
-                                }) }}
-                            {% endif %}
-
-                            {{ forms.lightswitchField({
-                                label: 'Open in new window' | t('navigation'),
-                                instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
-                                id: 'newWindow',
-                                name: 'newWindow',
-                                on: false,
-                                class: 'js-new-window-node',
-                            }) }}
-
-                            <div class="buttons">
-                                {% set attributes = {
-                                    class: 'btn submit add icon js-btn-element-add',
-                                    'data-element-type': tab.type,
-                                    'data-sources': tab.sources,
-                                } %}
-
-                                <div {{ attr(attributes) }}>
-                                    {{ tab.button }}
-                                </div>
-
-                                <div class="spinner hidden"></div>
-                            </div>
-                        {% elseif tab.category == 'nodeType' %}
-                            <form class="node-type-form" method="post" accept-charset="UTF-8">
+                        <form class="form-type-{{ tab.category }}" method="post" accept-charset="UTF-8">
+                            {% if tab.category == 'element' %}
                                 {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
                                     {{ forms.selectField({
                                         label: 'Parent' | t('navigation'),
                                         instructions: 'Select a navigation item as the parent.' | t('navigation'),
-                                        id: 'parent',
-                                        name: 'parent',
+                                        id: 'parentId',
+                                        name: 'parentId',
+                                        options: parentOptions,
+                                        class: 'fullwidth js-parent-node',
+                                    }) }}
+                                {% endif %}
+
+                                {{ forms.lightswitchField({
+                                    label: 'Open in new window' | t('navigation'),
+                                    instructions: 'Whether to open this navigation item in a new window.' | t('navigation'),
+                                    id: 'newWindow',
+                                    name: 'newWindow',
+                                    on: false,
+                                }) }}
+
+                                {{ hiddenInput('type', tab.type) }}
+
+                                <div class="buttons">
+                                    {% set attributes = {
+                                        type: 'submit',
+                                        class: 'btn submit add icon js-btn-element-add',
+                                        'data-element-type': tab.type,
+                                        'data-sources': tab.sources,
+                                    } %}
+
+                                    <button {{ attr(attributes) }}>{{ tab.button }}</button>
+                                    <div class="spinner hidden"></div>
+                                </div>
+                            {% elseif tab.category == 'nodeType' %}
+                                {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
+                                    {{ forms.selectField({
+                                        label: 'Parent' | t('navigation'),
+                                        instructions: 'Select a navigation item as the parent.' | t('navigation'),
+                                        id: 'parentId',
+                                        name: 'parentId',
                                         options: parentOptions,
                                         class: 'fullwidth js-parent-node',
                                     }) }}
@@ -131,7 +106,6 @@
                                         id: 'newWindow',
                                         name: 'newWindow',
                                         on: false,
-                                        class: 'js-new-window-node',
                                     }) }}
                                 {% endif %}
 
@@ -161,20 +135,19 @@
                                     {% endnamespace %}
                                 </div>
 
+                                {{ hiddenInput('type', tab.type) }}
+
                                 <div class="buttons">
                                     <button type="submit" class="btn submit add icon">{{ tab.button }}</button>
                                     <div class="spinner hidden"></div>
                                 </div>
-                            </form>
-
-                        {% elseif tab.category == 'custom' %}
-                            <form id="manual-form" method="post" accept-charset="UTF-8">
+                            {% elseif tab.category == 'custom' %}
                                 {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
                                     {{ forms.selectField({
                                         label: 'Parent' | t('navigation'),
                                         instructions: 'Select a navigation item as the parent.' | t('navigation'),
-                                        id: 'parent',
-                                        name: 'parent',
+                                        id: 'parentId',
+                                        name: 'parentId',
                                         options: parentOptions,
                                         class: 'fullwidth js-parent-node',
                                     }) }}
@@ -186,7 +159,6 @@
                                     id: 'newWindow',
                                     name: 'newWindow',
                                     on: false,
-                                    class: 'js-new-window-node',
                                 }) }}
 
                                 {{ forms.textField({
@@ -205,12 +177,14 @@
                                     instructions: 'The URL of this node.' | t('navigation'),
                                 }) }}
 
+                                {{ hiddenInput('type', 'custom') }}
+
                                 <div class="buttons">
                                     <button type="submit" class="btn submit add icon">{{ tab.button }}</button>
                                     <div class="spinner hidden"></div>
                                 </div>
-                            </form>
-                        {% endif %}
+                            {% endif %}
+                        </form>
                     </div>
                 </li>
             {% endfor %}
@@ -222,67 +196,30 @@
 
 {% block content %}
 
-{% set structure = craft.app.structures.getStructureById(nav.structureId) %}
-{% set elements = nodes %}
-{% set sortable = true %}
-
-<div class="nav-builder js-nav-builder">
-    {% if nav.instructions %}
-        <div class="field">
-            <div class="heading">
-                <div class="instructions">
-                    <p>{{ nav.instructions | nl2br }}</p>
-                </div>
-            </div>
+<div id="navigation-nodes-index">
+    <div id="sidebar-container" class="hidden">
+        <div id="sidebar" class="sidebar">
+            <nav aria-label="{{ 'Sources'|t('app') }}">
+                {% include "_elements/sources" %}
+            </nav>
         </div>
-    {% endif %}
+    </div>
 
-    {% embed '_elements/structure' %}
-        {% block element %}
-            {% include '_elements/element' %}
-
-            <div class="node-type">
-                <span class="node-type-{{ element.getNodeTypeLabel() | kebab }}" title="{{ element.url }}">{{ element.getNodeTypeLabel() }}</span>
-            </div>
-
-            <span class="node-custom-title edit icon {{ element.hasOverriddenTitle ? '' : 'hidden' }}" title="{{ 'Custom Title' | t('navigation') }}"></span>
-            <span class="node-new-window fa fa-external-link {{ element.newWindow ? '' : 'hidden' }}" title="{{ 'New Window' | t('navigation') }}"></span>
-            <span class="node-classes classes {{ element.classes | length ? '' : 'hidden' }}">.{{ element.classes }}</span>
-
-            <a class="move icon" title="{{ 'Move' | t('app') }}"></a>
-            <a class="settings icon" title="{{ 'Settings' | t('app') }}"></a>
-            <a class="delete icon" title="{{ 'Delete' | t('app') }}"></a>
-        {% endblock %}
-    {% endembed %}
+    <div class="elements busy">
+        <div class="update-spinner spinner spinner-absolute"></div>
+    </div>
 </div>
-
-<div class="js-navigation-empty {% if elements | length %}hidden{% endif %}">
-    <p>{{ 'There are no nodes yet.' | t('navigation') }}</p>
-</div>
-
-<script id="js-node-template" type="text/template">
-    <li data-level="__level__">
-        <div class="row">
-            <div class="element small hasstatus" data-type="verbb\navigation\elements\Node" data-id="__id__" data-site-id="__siteId__" data-status="__status__" data-label="__title__" data-url="__url__" data-level="__level__">
-                <span class="status __status__"></span>
-                <div class="label"><span class="title">__title__</span></div>
-            </div>
-
-            <div class="node-type">
-                <span class="node-type-__typeclass__" title="__url__">__type__</span>
-            </div>
-
-            <a class="move icon" title="{{ 'Move' | t('app') }}"></a>
-            <a class="settings icon" title="{{ 'Settings' | t('app') }}"></a>
-            <a class="delete icon" title="{{ 'Delete' | t('app') }}"></a>
-        </div>
-    </li>
-</script>
 
 {% js %}
-    new Craft.Navigation({{ nav | json_encode | raw }}, {
-        siteId: {{ site.id }},
-        defaultSite: {{ defaultSite | json_encode | raw }},
+    Craft.elementIndex = Craft.createElementIndex('{{ elementType|e("js") }}', $('.body-navigation-nodes-index #main-container'), {
+        elementTypeName: '{{ elementInstance.displayName()|e("js") }}',
+        elementTypePluralName: '{{ elementInstance.pluralDisplayName()|e("js") }}',
+        context: 'index',
+        storageKey: 'elementindex.{{ elementType|e("js") }}',
+        criteria: Craft.defaultIndexCriteria,
+        toolbarSelector: '#toolbar',
+        canHaveDrafts: false,
+        navId: {{ nav.id }},
     });
 {% endjs %}
 

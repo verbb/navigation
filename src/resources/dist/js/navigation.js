@@ -7,5 +7,232 @@
   Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
   and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
 */
-!function(e){if("function"==typeof define&&define.amd)define(["jquery"],e);else if("object"==typeof exports){var t=require("jquery");module.exports=e(t)}else e(window.jQuery||window.Zepto||window.$)}((function(e){"use strict";e.fn.serializeJSON=function(t){var n,i,s,a,r,d,l,o,u,p,h,c,f;return n=e.serializeJSON,i=this,s=n.setupOpts(t),a=i.serializeArray(),n.readCheckboxUncheckedValues(a,s,i),r={},e.each(a,(function(e,t){d=t.name,l=t.value,u=n.extractTypeAndNameWithNoType(d),p=u.nameWithNoType,(h=u.type)||(h=n.attrFromInputWithName(i,d,"data-value-type")),n.validateType(d,h,s),"skip"!==h&&(c=n.splitInputNameIntoKeysArray(p),o=n.parseValue(l,d,h,s),(f=!o&&n.shouldSkipFalsy(i,d,p,h,s))||n.deepSet(r,c,o,s))})),r},e.serializeJSON={defaultOptions:{checkboxUncheckedValue:void 0,parseNumbers:!1,parseBooleans:!1,parseNulls:!1,parseAll:!1,parseWithFunction:null,skipFalsyValuesForTypes:[],skipFalsyValuesForFields:[],customTypes:{},defaultTypes:{string:function(e){return String(e)},number:function(e){return Number(e)},boolean:function(e){return-1===["false","null","undefined","","0"].indexOf(e)},null:function(e){return-1===["false","null","undefined","","0"].indexOf(e)?e:null},array:function(e){return JSON.parse(e)},object:function(e){return JSON.parse(e)},auto:function(t){return e.serializeJSON.parseValue(t,null,null,{parseNumbers:!0,parseBooleans:!0,parseNulls:!0})},skip:null},useIntKeysAsArrayIndex:!1},setupOpts:function(t){var n,i,s,a,r,d;for(n in d=e.serializeJSON,null==t&&(t={}),s=d.defaultOptions||{},i=["checkboxUncheckedValue","parseNumbers","parseBooleans","parseNulls","parseAll","parseWithFunction","skipFalsyValuesForTypes","skipFalsyValuesForFields","customTypes","defaultTypes","useIntKeysAsArrayIndex"],t)if(-1===i.indexOf(n))throw new Error("serializeJSON ERROR: invalid option '"+n+"'. Please use one of "+i.join(", "));return r=(a=function(e){return!1!==t[e]&&""!==t[e]&&(t[e]||s[e])})("parseAll"),{checkboxUncheckedValue:a("checkboxUncheckedValue"),parseNumbers:r||a("parseNumbers"),parseBooleans:r||a("parseBooleans"),parseNulls:r||a("parseNulls"),parseWithFunction:a("parseWithFunction"),skipFalsyValuesForTypes:a("skipFalsyValuesForTypes"),skipFalsyValuesForFields:a("skipFalsyValuesForFields"),typeFunctions:e.extend({},a("defaultTypes"),a("customTypes")),useIntKeysAsArrayIndex:a("useIntKeysAsArrayIndex")}},parseValue:function(t,n,i,s){var a,r;return a=e.serializeJSON,r=t,s.typeFunctions&&i&&s.typeFunctions[i]?r=s.typeFunctions[i](t):s.parseNumbers&&a.isNumeric(t)?r=Number(t):!s.parseBooleans||"true"!==t&&"false"!==t?s.parseNulls&&"null"==t?r=null:s.typeFunctions&&s.typeFunctions.string&&(r=s.typeFunctions.string(t)):r="true"===t,s.parseWithFunction&&!i&&(r=s.parseWithFunction(r,n)),r},isObject:function(e){return e===Object(e)},isUndefined:function(e){return void 0===e},isValidArrayIndex:function(e){return/^[0-9]+$/.test(String(e))},isNumeric:function(e){return e-parseFloat(e)>=0},optionKeys:function(e){if(Object.keys)return Object.keys(e);var t,n=[];for(t in e)n.push(t);return n},readCheckboxUncheckedValues:function(t,n,i){var s,a,r;null==n&&(n={}),e.serializeJSON,s="input[type=checkbox][name]:not(:checked):not([disabled])",i.find(s).add(i.filter(s)).each((function(i,s){if(a=e(s),null==(r=a.attr("data-unchecked-value"))&&(r=n.checkboxUncheckedValue),null!=r){if(s.name&&-1!==s.name.indexOf("[]["))throw new Error("serializeJSON ERROR: checkbox unchecked values are not supported on nested arrays of objects like '"+s.name+"'. See https://github.com/marioizquierdo/jquery.serializeJSON/issues/67");t.push({name:s.name,value:r})}}))},extractTypeAndNameWithNoType:function(e){var t;return(t=e.match(/(.*):([^:]+)$/))?{nameWithNoType:t[1],type:t[2]}:{nameWithNoType:e,type:null}},shouldSkipFalsy:function(t,n,i,s,a){var r=e.serializeJSON.attrFromInputWithName(t,n,"data-skip-falsy");if(null!=r)return"false"!==r;var d=a.skipFalsyValuesForFields;if(d&&(-1!==d.indexOf(i)||-1!==d.indexOf(n)))return!0;var l=a.skipFalsyValuesForTypes;return null==s&&(s="string"),!(!l||-1===l.indexOf(s))},attrFromInputWithName:function(e,t,n){var i,s;return s='[name="'+(i=t.replace(/(:|\.|\[|\]|\s)/g,"\\$1"))+'"]',e.find(s).add(e.filter(s)).attr(n)},validateType:function(t,n,i){var s,a;if(s=(a=e.serializeJSON).optionKeys(i?i.typeFunctions:a.defaultOptions.defaultTypes),n&&-1===s.indexOf(n))throw new Error("serializeJSON ERROR: Invalid type "+n+" found in input name '"+t+"', please use one of "+s.join(", "));return!0},splitInputNameIntoKeysArray:function(t){var n;return e.serializeJSON,n=t.split("["),""===(n=e.map(n,(function(e){return e.replace(/\]/g,"")})))[0]&&n.shift(),n},deepSet:function(t,n,i,s){var a,r,d,l,o,u;if(null==s&&(s={}),(u=e.serializeJSON).isUndefined(t))throw new Error("ArgumentError: param 'o' expected to be an object or array, found undefined");if(!n||0===n.length)throw new Error("ArgumentError: param 'keys' expected to be an array with least one element");a=n[0],1===n.length?""===a?t.push(i):t[a]=i:(r=n[1],""===a&&(o=t[l=t.length-1],a=u.isObject(o)&&(u.isUndefined(o[r])||n.length>2)?l:l+1),""===r||s.useIntKeysAsArrayIndex&&u.isValidArrayIndex(r)?!u.isUndefined(t[a])&&e.isArray(t[a])||(t[a]=[]):!u.isUndefined(t[a])&&u.isObject(t[a])||(t[a]={}),d=n.slice(1),u.deepSet(t[a],d,i,s))}}})),$(".btn-migrate").on("click",(function(e){e.preventDefault(),$('input[name="action"]').val($(this).data("action")),$("#main-form").submit()})),void 0===Craft.Navigation&&(Craft.Navigation={}),function(e){function t(t){var n="";e.each(t,(function(e,t){var i=t.disabled?"disabled":"";n+='<option value="'+t.value+'" '+i+">"+t.label+"</option>"})),e('select[name="parent"]').each((function(t,i){var s=e(i).val();e(i).html(n),e(i).val(s)}))}Craft.Navigation=Garnish.Base.extend({nav:null,siteId:null,defaultSite:null,structure:null,structureElements:{},elementType:null,elementModals:[],siteMenu:null,$siteMenuBtn:null,$builderContainer:e(".js-nav-builder"),$structureContainer:e(".js-nav-builder .structure"),$emptyContainer:e(".js-navigation-empty"),$addElementButton:e(".js-btn-element-add"),$addElementLoader:e(".nav-content-pane .buttons .spinner"),$manualForm:e("#manual-form"),$manualLoader:e("#manual-form .spinner"),$nodeTypeForm:e(".node-type-form"),$nodeTypeLoader:e(".node-type-form .spinner"),$template:e("#js-node-template").html(),init:function(t,n){this.nav=t,this.siteId=n.siteId,this.defaultSite=n.defaultSite,this.structure=this.$structureContainer.data("structure");for(var i=this.$structureContainer.find("li"),s=0;s<i.length;s++){var a=e(i[s]),r=a.find(".element").data("id");this.structureElements[r]=new Craft.Navigation.StructureElement(this,a)}if(this.$siteMenuBtn=e(".nav-site-menubtn:first"),this.$siteMenuBtn.length&&this.defaultSite){this.siteMenu=this.$siteMenuBtn.menubtn().data("menubtn").menu,this.siteMenu.on("optionselect",e.proxy(this,"_handleSiteChange"));var d=Craft.getLocalStorage("BaseElementIndex.siteId");if(d&&d!=this.siteId){var l=this.siteMenu.$options.filter('[data-site-id="'+d+'"]:first');l.length&&this.siteMenu.selectOption(l)}}this.addListener(this.$addElementButton,"activate","showModal"),this.addListener(this.$manualForm,"submit","onManualSubmit"),this.addListener(this.$nodeTypeForm,"submit","onNodeTypeSubmit")},showModal:function(t){this.elementType=e(t.currentTarget).data("element-type"),this.sources=e(t.currentTarget).data("sources"),this.elementModals[this.elementType]?(this.elementModals[this.elementType].show(),this.elementModals[this.elementType].elementIndex.view.deselectAllElements()):this.elementModals[this.elementType]=this.createModal()},createModal:function(){return Craft.createElementSelectorModal(this.elementType,{defaultSiteId:this.siteId,sources:this.sources,multiSelect:!0,onSelect:e.proxy(this,"onModalSelect")})},onModalSelect:function(t){for(var n=e('.tab-list-item[data-element-type="'+this.elementType.replace(/\\/gi,"\\\\")+'"]'),i=n.find(".js-parent-node select").val(),s=n.find('input[name="newWindow"]').val(),a=[],r=0;r<t.length;r++){var d=t[r];this.elementModals[this.elementType].$body.find('tr[data-id="'+d.id+'"]').removeClass("sel"),a.push({navId:this.nav.id,siteId:this.siteId,elementId:d.id,elementSiteId:d.siteId,title:d.label,url:d.url,type:this.elementType,newWindow:s,parentId:i})}this.saveNode(a)},onManualSubmit:function(e){e.preventDefault();var t=this.$manualForm.find(".js-parent-node select").val(),n=this.$manualForm.find('input[name="newWindow"]').val(),i=[{navId:this.nav.id,siteId:this.siteId,title:this.$manualForm.find('[name="title"]').val(),url:this.$manualForm.find('[name="url"]').val(),newWindow:n,parentId:t}];this.saveNode(i)},onNodeTypeSubmit:function(t){t.preventDefault();var n=e(t.target),i=n.find(".js-parent-node select").val(),s=n.find('input[name="newWindow"]').val(),a=n.parents("[data-node-type]").data("node-type"),r,d=n.find(".node-type-data select, .node-type-data textarea, .node-type-data input").serializeJSON(),l=[{navId:this.nav.id,siteId:this.siteId,title:n.find('[name="title"]').val(),url:n.find('[name="url"]').val(),newWindow:s,parentId:i,type:a,data:d.data}];this.saveNode(l)},addNode:function(t,n){var i=t.typeLabel.replace(/\s+/g,"-").toLowerCase(),s=this.$template.replace(/__siteId__/gi,t.siteId?t.siteId:"").replace(/__status__/gi,t.enabled?"enabled":"disabled").replace(/__title__/gi,t.title).replace(/__id__/gi,t.id).replace(/__url__/gi,t.url).replace(/__type__/gi,t.typeLabel).replace(/__typeclass__/gi,i).replace(/__level__/gi,n),a=e(s),r=e(this.structure.$container).attr("id");e("#"+r).length||e(this.structure.$container).appendTo(this.$builderContainer);var d=this.structure.$container;if(t.newParentId>0){var l=this.structure.$container.find('.element[data-id="'+t.newParentId+'"]').closest("li"),o=l.find("> ul"),u=l.data("level");o.length||(o=e("<ul/>")).appendTo(l),d=o}return a.appendTo(d),this.structure.structureDrag.addItems(a),a.css("margin-bottom",-30),a.velocity({"margin-bottom":0},"fast"),a},saveNode:function(n){this.$nodeTypeLoader.removeClass("hidden"),this.$manualLoader.removeClass("hidden"),this.$addElementLoader.removeClass("hidden"),n={nodes:n},Craft.postActionRequest("navigation/nodes/add-nodes",n,e.proxy((function(e,n){if(this.$nodeTypeLoader.addClass("hidden"),this.$manualLoader.addClass("hidden"),this.$addElementLoader.addClass("hidden"),e.success){this.$manualForm.find('[name="title"]').val(""),this.$manualForm.find('[name="url"]').val("");for(var i=0;i<e.nodes.length;i++){var s=e.nodes[i],a=s.id,r=this.addNode(s,e.level);this.structureElements[a]=new Craft.Navigation.StructureElement(this,r)}this.$emptyContainer.addClass("hidden"),t(e.parentOptions),Craft.cp.displayNotice(Craft.t("navigation","Node added."))}else Craft.cp.displayError(e.message)}),this))},_handleSiteChange:function(t){this.siteMenu.$options.removeClass("sel");var n=e(t.selectedOption).addClass("sel");this.$siteMenuBtn.html(n.html())}}),Craft.Navigation.StructureElement=Garnish.Base.extend({container:null,structure:null,$node:null,$elements:null,$element:null,$settingsBtn:null,$deleteBtn:null,init:function(t,n){this.container=t,this.structure=t.structure,this.$node=n,this.$element=n.find(".element:first"),this.$settingsBtn=this.$node.find(".settings:first"),this.$deleteBtn=this.$node.find(".delete:first"),this.structure.structureDrag.settings.onDragStop=e.proxy(this,"onDragStop"),this.addListener(this.$settingsBtn,"click","showSettings"),this.addListener(this.$element,"dblclick","showSettings"),this.addListener(this.$deleteBtn,"click","removeNode")},onDragStop:function(){var n,i,s,a={nodeId:this.$element.data("id"),siteId:this.$element.data("site-id"),navId:this.container.nav.id};setTimeout((function(){Craft.postActionRequest("navigation/nodes/move",a,e.proxy((function(e,n){e.success&&t(e.parentOptions)}),this))}),500)},showSettings:function(){new Craft.Navigation.Editor(this.$element)},removeNode:function(){for(var n=[],i=this.$node.find(".element"),s=this.$element.data("site-id"),a=this.container.nav.id,r=0;r<i.length;r++)n[r]=e(i[r]).data("id");var d;if(confirm(Craft.t("navigation","Are you sure you want to delete “{title}” and its descendants?",{title:this.$element.data("label")}))){var l={nodeIds:n,navId:a,siteId:s};Craft.postActionRequest("navigation/nodes/delete",l,e.proxy((function(n,s){n.success?(Craft.cp.displayNotice(Craft.t("navigation","Node deleted.")),t(n.parentOptions),i.each(e.proxy((function(t,n){this.structure.removeElement(e(n)),delete this.container.structureElements[e(n).data("id")]}),this)),0==Object.keys(this.container.structureElements).length&&this.container.$emptyContainer.removeClass("hidden")):Craft.cp.displayError(n.errors)}),this))}}}),Craft.Navigation.Editor=Garnish.Base.extend({$node:null,nodeId:null,siteId:null,$form:null,$fieldsContainer:null,$cancelBtn:null,$saveBtn:null,$spinner:null,hud:null,init:function(t){this.$node=t,this.nodeId=t.data("id"),this.siteId=t.data("site-id"),this.$node.addClass("loading");var n={nodeId:this.nodeId,siteId:this.siteId};Craft.postActionRequest("navigation/nodes/editor",n,e.proxy(this,"showEditor"))},showEditor:function(t,n){if(t.success){this.$node.removeClass("loading");var i=e();this.$form=e("<form/>"),e('<input type="hidden" name="nodeId" value="'+this.nodeId+'">').appendTo(this.$form),e('<input type="hidden" name="siteId" value="'+this.siteId+'">').appendTo(this.$form),this.$fieldsContainer=e('<div class="fields"/>').appendTo(this.$form),this.$fieldsContainer.html(t.html),Garnish.requestAnimationFrame(e.proxy((function(){Craft.appendHeadHtml(t.headHtml),Craft.appendBodyHtml(t.footHtml),Craft.initUiElements(this.$fieldsContainer)}),this));var s=e('<div class="hud-footer"/>').appendTo(this.$form),a=e('<div class="buttons right"/>').appendTo(s);this.$cancelBtn=e('<div class="btn">'+Craft.t("app","Cancel")+"</div>").appendTo(a),this.$saveBtn=e('<input class="btn submit" type="submit" value="'+Craft.t("app","Save")+'"/>').appendTo(a),this.$spinner=e('<div class="spinner left hidden"/>').appendTo(a),i=i.add(this.$form),this.hud=new Garnish.HUD(this.$node,i,{bodyClass:"body nav-editor-hud",closeOtherHUDs:!1}),this.hud.on("hide",e.proxy((function(){this.hud.$body.remove(),delete this.hud}),this)),this.initEventListeners(),this.addListener(this.$saveBtn,"click","saveNode"),this.addListener(this.$cancelBtn,"click","closeHud")}},initEventListeners:function(){Garnish.requestAnimationFrame(e.proxy((function(){var t=this.$fieldsContainer.find("#elementId-field .elementselect");if(t){var n=t.data("elementSelect");n&&(n.settings.onSelectElements=e.proxy(this,"onSelectElements"))}}),this)),this.$typeSelect=this.$fieldsContainer.find("#type-field #type"),this.$typeSpinner=e('<div class="spinner hidden"></div>').appendTo(this.$typeSelect.parent().parent()),this.addListener(this.$typeSelect,"change","onSelectType")},onSelectElements:function(e){var t=e[0].siteId,n=e[0].url;this.$fieldsContainer.find('input[name="elementSiteId"]').val(t),this.$fieldsContainer.find('input[name="url"]').val(n)},onSelectType:function(t){t.preventDefault(),this.$typeSpinner.removeClass("hidden");var n=this.$form.serialize();Craft.postActionRequest("navigation/nodes/change-node-type",n,e.proxy((function(t,n){this.$typeSpinner.addClass("hidden"),this.$fieldsContainer.html(t.html),Garnish.requestAnimationFrame(e.proxy((function(){Craft.appendHeadHtml(t.headHtml),Craft.appendBodyHtml(t.footHtml),Craft.initUiElements(this.$fieldsContainer)}),this)),this.initEventListeners()}),this))},saveNode:function(n){n.preventDefault(),this.$spinner.removeClass("hidden");var i=this.$form.serialize(),s=this.$node.parent().find(".status"),a=this.$node.parent().find(".node-custom-title"),r=this.$node.parent().find(".node-new-window"),d=this.$node.parent().find(".node-classes"),l=this.$node.find(".target");Craft.postActionRequest("navigation/nodes/save-node",i,e.proxy((function(e,n){if(this.$spinner.addClass("hidden"),e.success){Craft.cp.displayNotice(Craft.t("navigation","Node updated.")),t(e.parentOptions),this.$node.parent().data("label",e.node.title),this.$node.parent().find(".title").text(e.node.title);var i=e.node.typeLabel.replace(/\s+/g,"-").toLowerCase();this.$node.parent().find(".node-type span").attr("class","node-type-"+i),this.$node.parent().find(".node-type span").text(e.node.typeLabel),e.node.enabled?(s.addClass("enabled"),s.removeClass("disabled")):(s.addClass("disabled"),s.removeClass("enabled")),e.node.newWindow?r.removeClass("hidden"):r.addClass("hidden"),this.closeHud()}else Garnish.shake(this.hud.$hud),Craft.cp.displayError(e.errors)}),this))},closeHud:function(){this.hud.hide()}})}(jQuery);
-//# sourceMappingURL=navigation.js.map
+!function(e){if("function"==typeof define&&define.amd)define(["jquery"],e);else if("object"==typeof exports){var n=require("jquery");module.exports=e(n)}else e(window.jQuery||window.Zepto||window.$)}(function(e){"use strict";e.fn.serializeJSON=function(n){var r,s,t,i,a,u,l,o,p,c,d,f,y;return r=e.serializeJSON,s=this,t=r.setupOpts(n),i=s.serializeArray(),r.readCheckboxUncheckedValues(i,t,s),a={},e.each(i,function(e,n){u=n.name,l=n.value,p=r.extractTypeAndNameWithNoType(u),c=p.nameWithNoType,(d=p.type)||(d=r.attrFromInputWithName(s,u,"data-value-type")),r.validateType(u,d,t),"skip"!==d&&(f=r.splitInputNameIntoKeysArray(c),o=r.parseValue(l,u,d,t),(y=!o&&r.shouldSkipFalsy(s,u,c,d,t))||r.deepSet(a,f,o,t))}),a},e.serializeJSON={defaultOptions:{checkboxUncheckedValue:void 0,parseNumbers:!1,parseBooleans:!1,parseNulls:!1,parseAll:!1,parseWithFunction:null,skipFalsyValuesForTypes:[],skipFalsyValuesForFields:[],customTypes:{},defaultTypes:{string:function(e){return String(e)},number:function(e){return Number(e)},boolean:function(e){return-1===["false","null","undefined","","0"].indexOf(e)},null:function(e){return-1===["false","null","undefined","","0"].indexOf(e)?e:null},array:function(e){return JSON.parse(e)},object:function(e){return JSON.parse(e)},auto:function(n){return e.serializeJSON.parseValue(n,null,null,{parseNumbers:!0,parseBooleans:!0,parseNulls:!0})},skip:null},useIntKeysAsArrayIndex:!1},setupOpts:function(n){var r,s,t,i,a,u;u=e.serializeJSON,null==n&&(n={}),t=u.defaultOptions||{},s=["checkboxUncheckedValue","parseNumbers","parseBooleans","parseNulls","parseAll","parseWithFunction","skipFalsyValuesForTypes","skipFalsyValuesForFields","customTypes","defaultTypes","useIntKeysAsArrayIndex"];for(r in n)if(-1===s.indexOf(r))throw new Error("serializeJSON ERROR: invalid option '"+r+"'. Please use one of "+s.join(", "));return i=function(e){return!1!==n[e]&&""!==n[e]&&(n[e]||t[e])},a=i("parseAll"),{checkboxUncheckedValue:i("checkboxUncheckedValue"),parseNumbers:a||i("parseNumbers"),parseBooleans:a||i("parseBooleans"),parseNulls:a||i("parseNulls"),parseWithFunction:i("parseWithFunction"),skipFalsyValuesForTypes:i("skipFalsyValuesForTypes"),skipFalsyValuesForFields:i("skipFalsyValuesForFields"),typeFunctions:e.extend({},i("defaultTypes"),i("customTypes")),useIntKeysAsArrayIndex:i("useIntKeysAsArrayIndex")}},parseValue:function(n,r,s,t){var i,a;return i=e.serializeJSON,a=n,t.typeFunctions&&s&&t.typeFunctions[s]?a=t.typeFunctions[s](n):t.parseNumbers&&i.isNumeric(n)?a=Number(n):!t.parseBooleans||"true"!==n&&"false"!==n?t.parseNulls&&"null"==n?a=null:t.typeFunctions&&t.typeFunctions.string&&(a=t.typeFunctions.string(n)):a="true"===n,t.parseWithFunction&&!s&&(a=t.parseWithFunction(a,r)),a},isObject:function(e){return e===Object(e)},isUndefined:function(e){return void 0===e},isValidArrayIndex:function(e){return/^[0-9]+$/.test(String(e))},isNumeric:function(e){return e-parseFloat(e)>=0},optionKeys:function(e){if(Object.keys)return Object.keys(e);var n,r=[];for(n in e)r.push(n);return r},readCheckboxUncheckedValues:function(n,r,s){var t,i,a;null==r&&(r={}),e.serializeJSON,t="input[type=checkbox][name]:not(:checked):not([disabled])",s.find(t).add(s.filter(t)).each(function(s,t){if(i=e(t),null==(a=i.attr("data-unchecked-value"))&&(a=r.checkboxUncheckedValue),null!=a){if(t.name&&-1!==t.name.indexOf("[]["))throw new Error("serializeJSON ERROR: checkbox unchecked values are not supported on nested arrays of objects like '"+t.name+"'. See https://github.com/marioizquierdo/jquery.serializeJSON/issues/67");n.push({name:t.name,value:a})}})},extractTypeAndNameWithNoType:function(e){var n;return(n=e.match(/(.*):([^:]+)$/))?{nameWithNoType:n[1],type:n[2]}:{nameWithNoType:e,type:null}},shouldSkipFalsy:function(n,r,s,t,i){var a=e.serializeJSON.attrFromInputWithName(n,r,"data-skip-falsy");if(null!=a)return"false"!==a;var u=i.skipFalsyValuesForFields;if(u&&(-1!==u.indexOf(s)||-1!==u.indexOf(r)))return!0;var l=i.skipFalsyValuesForTypes;return null==t&&(t="string"),!(!l||-1===l.indexOf(t))},attrFromInputWithName:function(e,n,r){var s,t;return s=n.replace(/(:|\.|\[|\]|\s)/g,"\\$1"),t='[name="'+s+'"]',e.find(t).add(e.filter(t)).attr(r)},validateType:function(n,r,s){var t,i;if(i=e.serializeJSON,t=i.optionKeys(s?s.typeFunctions:i.defaultOptions.defaultTypes),r&&-1===t.indexOf(r))throw new Error("serializeJSON ERROR: Invalid type "+r+" found in input name '"+n+"', please use one of "+t.join(", "));return!0},splitInputNameIntoKeysArray:function(n){var r;return e.serializeJSON,r=n.split("["),""===(r=e.map(r,function(e){return e.replace(/\]/g,"")}))[0]&&r.shift(),r},deepSet:function(n,r,s,t){var i,a,u,l,o,p;if(null==t&&(t={}),(p=e.serializeJSON).isUndefined(n))throw new Error("ArgumentError: param 'o' expected to be an object or array, found undefined");if(!r||0===r.length)throw new Error("ArgumentError: param 'keys' expected to be an array with least one element");i=r[0],1===r.length?""===i?n.push(s):n[i]=s:(a=r[1],""===i&&(o=n[l=n.length-1],i=p.isObject(o)&&(p.isUndefined(o[a])||r.length>2)?l:l+1),""===a?!p.isUndefined(n[i])&&e.isArray(n[i])||(n[i]=[]):t.useIntKeysAsArrayIndex&&p.isValidArrayIndex(a)?!p.isUndefined(n[i])&&e.isArray(n[i])||(n[i]=[]):!p.isUndefined(n[i])&&p.isObject(n[i])||(n[i]={}),u=r.slice(1),p.deepSet(n[i],u,s,t))}}});
+
+// ==========================================================================
+
+// Navigation Plugin for Craft CMS
+// Author: Verbb - https://verbb.io/
+
+// ==========================================================================
+
+// @codekit-prepend "_jquery.serializejson.min.js"
+
+// When clicking migrate, change the form submission to our action endpoint
+$('.btn-migrate').on('click', function(e) {
+    e.preventDefault();
+
+    $('input[name="action"]').val($(this).data('action'));
+
+    $('#main-form').submit();
+});
+
+
+if (typeof Craft.Navigation === typeof undefined) {
+    Craft.Navigation = {};
+}
+
+(function($) {
+
+Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
+    elementModals: [],
+
+    init: function(elementType, $container, settings) {
+        this.navId = settings.navId;
+        this.$navSidebar = $('.navigation-nodes-sidebar');
+
+        this.base(elementType, $container, settings);
+    },
+
+    afterInit: function() {
+        // Ensure the order is always structure
+        Object.keys(this.sourceStates).forEach(key => {
+            this.sourceStates[key].order = 'structure';
+        });
+
+        this.base();
+
+        // Add a edit button to each table row
+        this.$elements.on('click', 'tbody tr a.node-edit-btn', this.editNode.bind(this));
+
+        // Listen to when submitting a form in the sidebar
+        this.$navSidebar.find('form').each($.proxy(function(index, form) {
+            const $form = $(form);
+
+            // Handle element forms differently
+            if ($form.hasClass('form-type-element')) {
+                $form.on('submit', this.showElementModal.bind(this));
+            } else {
+                $form.on('submit', this.onNodeFormSubmit.bind(this));
+            }
+        }, this));
+    },
+
+    editNode: function(e) {
+        e.preventDefault();
+
+        // Open the element slide-out
+        var $element = $(e.target).parents('tr').find('.element');
+
+        Craft.createElementEditor($element.data('type'), $element);
+    },
+
+    showElementModal: function(e) {
+        e.preventDefault();
+
+        this.$form = $(e.target);
+
+        var $saveBtn = this.$form.find('button[type=submit]');
+        this.nodeElementType = $saveBtn.data('element-type');
+        this.nodeElementSources = $saveBtn.data('sources');
+
+        // Cache element modals so we don't create new ones each time
+        if (!this.elementModals[this.nodeElementType]) {
+            this.elementModals[this.nodeElementType] = this.createModal();
+        } else {
+            this.elementModals[this.nodeElementType].show();
+
+            // De-select any previously selected items
+            this.elementModals[this.nodeElementType].elementIndex.view.deselectAllElements();
+        }
+    },
+
+    createModal: function() {
+        return Craft.createElementSelectorModal(this.nodeElementType, {
+            defaultSiteId: this.siteId,
+            sources: this.nodeElementSources,
+            multiSelect: true,
+            onSelect: $.proxy(this, 'onElementModalSelect'),
+        });
+    },
+
+    onElementModalSelect: function(elements) {
+        var data = [];
+
+        for (var i = 0; i < elements.length; i++) {
+            var element = elements[i];
+
+            // Unselect element in modal
+            this.elementModals[this.nodeElementType].$body.find('tr[data-id="' + element.id + '"]').removeClass('sel');
+
+            var nodeData = this.$form.serializeJSON();
+            nodeData.navId = this.navId;
+            nodeData.siteId = this.siteId;
+            nodeData.elementId = element.id;
+            nodeData.elementSiteId = element.siteId;
+            nodeData.title = element.label;
+            nodeData.url = element.url;
+
+            data.push(nodeData);
+        }
+
+        this.addNodes({ nodes: data });
+    },
+
+    onNodeFormSubmit: function(e) {
+        e.preventDefault();
+
+        this.$form = $(e.target);
+
+        var data = this.$form.serializeJSON();
+        data.navId = this.navId;
+        data.siteId = this.siteId;
+
+        // Always send a collection of nodes to add
+        this.addNodes({ nodes: [data] });
+    },
+
+    addNodes: function(data) {
+        var $spinner = this.$form.find('.spinner');
+        var $errorList = this.$form.find('ul.errors');
+        var $saveBtn = this.$form.find('button[type=submit]');
+
+        $spinner.removeClass('hidden');
+
+        if ($errorList.length) {
+            $errorList.remove();
+        }
+
+        Craft.sendActionRequest('POST', 'navigation/nodes/add-nodes', { data })
+            .then((response) => {
+                Craft.cp.displayNotice(response.data.message);
+
+                this.updateElements();
+
+                this.$form[0].reset();
+            })
+            .catch((error) => {
+                const response = error.response;
+
+                if (response && response.data && response.data.errors) {
+                    $errorList = $('<ul class="errors"/>').insertBefore($saveBtn.parent());
+
+                    for (var attribute in response.data.errors) {
+                        if (!response.data.errors.hasOwnProperty(attribute)) {
+                            continue;
+                        }
+
+                        for (var i = 0; i < response.data.errors[attribute].length; i++) {
+                            var error = response.data.errors[attribute][i];
+                            $('<li>' + error + '</li>').appendTo($errorList);
+                        }
+                    }
+                }
+
+                if (response && response.data && response.data.message) {
+                    Craft.cp.displayError(response.data.message);
+                } else {
+                    console.error(error);
+
+                    Craft.cp.displayError();
+                }
+            })
+            .finally(() => {
+                $spinner.addClass('hidden');
+            });
+    },
+
+    onUpdateElements: function() {
+        this.updateParentSelect();
+    },
+
+    onSelectSite: function() {
+        // When changing the site, the index will update anchor href's, reflecting the
+        // current URL with site query params. Which is normally great, but messes with the accordion tabs
+        // which only need to contain the hash to toggle tabs. So put them back!
+        $('.navigation-nodes-sidebar a.tab').each(function(index, element) {
+            var $a = $(element);
+            var href = $a.attr('href');
+            var parts = href.split('#');
+
+            $a.attr('href', '#' + parts[1]);
+        });
+    },
+
+    updateParentSelect: function() {
+        var data = { navId: this.navId, siteId: this.siteId };
+
+        Craft.sendActionRequest('POST', 'navigation/nodes/get-parent-options', { data })
+            .then((response) => {
+                var html = '';
+
+                $.each(response.data.options, function(index, value) {
+                    var disabled = value.disabled ? 'disabled' : '';
+                    html += '<option value="' + value.value + '" ' + disabled + '>' + value.label + '</option>';
+                });
+
+                $('.js-parent-node select').each(function(index, element) {
+                    var selected = $(element).val();
+
+                    $(element).html(html);
+                    $(element).val(selected);
+                });
+            });
+    },
+});
+
+// Register it!
+Craft.registerElementIndexClass('verbb\\navigation\\elements\\Node', Craft.Navigation.NodeIndex);
+
+
+})(jQuery);

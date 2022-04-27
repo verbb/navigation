@@ -3,12 +3,17 @@ namespace verbb\navigation\controllers;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node as NodeElement;
+use verbb\navigation\fieldlayoutelements\ClassesField;
+use verbb\navigation\fieldlayoutelements\CustomAttributesField;
+use verbb\navigation\fieldlayoutelements\NewWindowField;
+use verbb\navigation\fieldlayoutelements\UrlSuffixField;
 use verbb\navigation\models\Nav as NavModel;
 use verbb\navigation\models\Settings;
 
 use Craft;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\models\FieldLayoutTab;
 use craft\web\Controller;
 
 use yii\web\NotFoundHttpException;
@@ -49,6 +54,33 @@ class NavsController extends Controller
                 }
             } else {
                 $nav = new NavModel();
+
+                // Populate the field layout
+                $tab1 = new FieldLayoutTab(['name' => 'Node']);
+                $tab1->setLayout($nav->fieldLayout);
+
+                $tab1->setElements([
+                    Craft::createObject([
+                        'class' => NewWindowField::class,
+                    ]),
+                ]);
+
+                $tab2 = new FieldLayoutTab(['name' => 'Advanced']);
+                $tab2->setLayout($nav->fieldLayout);
+                
+                $tab2->setElements([
+                    Craft::createObject([
+                        'class' => UrlSuffixField::class,
+                    ]),
+                    Craft::createObject([
+                        'class' => ClassesField::class,
+                    ]),
+                    Craft::createObject([
+                        'class' => CustomAttributesField::class,
+                    ]),
+                ]);
+
+                $nav->fieldLayout->setTabs([$tab1, $tab2]);
             }
         }
 

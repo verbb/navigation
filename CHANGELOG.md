@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.0-beta.2 - Unreleased
+
+### Added
+- When editing nodes, you can now toggle the status of nodes, view trashed nodes, and restore nodes.
+- When editing nodes, you can now duplicate, duplicate with descendants, delete, delete with descendants with multiple nodes.
+- When editing nodes, you can now add UI elements to node layouts.
+
+### Changed
+- Redesigned UI for editing navigation nodes.
+- When editing nodes, toggling the site is much quicker.
+- When editing nodes, we now lazy-load collapsed nodes to improve performance.
+- Editing nodes is now performed through slide-out menu, instead of HUD. This gives users much more room to edit content.
+- Editing nodes now properly supports multi-tabs for custom fields and UI elements.
+- All node attributes are now native fields. They can be included or excluded as needed, with the bonus of supporting conditions (show certain attributes based on user permissions). This can help simplify and streamine editing nodes for  users.
+- When editing nodes, URL Suffix, Classes and Custom Attributes are now in an "Advanced" tab.
+
 ## 2.0.0-beta.2 - 2022-03-24
 
 ### Changed

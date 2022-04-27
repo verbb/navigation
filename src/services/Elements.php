@@ -39,21 +39,21 @@ class Elements extends Component
         $elements = [
             [
                 'label' => Craft::t('site', Entry::pluralDisplayName()),
-                'button' => Craft::t('site', 'Add an entry'),
+                'button' => Craft::t('site', 'Add an Entry'),
                 'type' => Entry::class,
                 'sources' => Craft::$app->getElementSources()->getSources(Entry::class, 'modal'),
                 'default' => true,
             ],
             [
                 'label' => Craft::t('site', Category::pluralDisplayName()),
-                'button' => Craft::t('site', 'Add a category'),
+                'button' => Craft::t('site', 'Add a Category'),
                 'type' => Category::class,
                 'sources' => Craft::$app->getElementSources()->getSources(Category::class, 'modal'),
                 'default' => true,
             ],
             [
                 'label' => Craft::t('site', Asset::pluralDisplayName()),
-                'button' => Craft::t('site', 'Add an asset'),
+                'button' => Craft::t('site', 'Add an Asset'),
                 'type' => Asset::class,
                 'sources' => Craft::$app->getElementSources()->getSources(Asset::class, 'modal'),
                 'default' => true,
@@ -63,7 +63,7 @@ class Elements extends Component
         if (Craft::$app->getPlugins()->isPluginEnabled('commerce') && class_exists(Product::class)) {
             $elements[] = [
                 'label' => Craft::t('site', Product::pluralDisplayName()),
-                'button' => Craft::t('site', 'Add a product'),
+                'button' => Craft::t('site', 'Add a Product'),
                 'type' => Product::class,
                 'sources' => Craft::$app->getElementSources()->getSources(Product::class, 'modal'),
                 'default' => true,
@@ -77,7 +77,7 @@ class Elements extends Component
             if ($elementType::hasUris() && !in_array($elementType, $addedElementTypes)) {
                 $elements[] = [
                     'label' => Craft::t('site', $elementType::pluralDisplayName()),
-                    'button' => Craft::t('site', 'Add a {name}', ['name' => $elementType::lowerDisplayName()]),
+                    'button' => Craft::t('site', 'Add a {name}', ['name' => $elementType::displayName()]),
                     'type' => $elementType,
                     'sources' => Craft::$app->getElementSources()->getSources($elementType, 'modal'),
                 ];

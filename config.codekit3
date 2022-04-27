@@ -572,6 +572,46 @@
       "oAP" : "\/src\/events\/RegisterNodeTypeEvent.php",
       "oF" : 0
     },
+    "\/src\/fieldlayoutelements\/ClassesField.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/fieldlayoutelements\/ClassesField.php",
+      "oF" : 0
+    },
+    "\/src\/fieldlayoutelements\/CustomAttributesField.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/fieldlayoutelements\/CustomAttributesField.php",
+      "oF" : 0
+    },
+    "\/src\/fieldlayoutelements\/NewWindowField.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/fieldlayoutelements\/NewWindowField.php",
+      "oF" : 0
+    },
+    "\/src\/fieldlayoutelements\/NodeTypeElements.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/fieldlayoutelements\/NodeTypeElements.php",
+      "oF" : 0
+    },
+    "\/src\/fieldlayoutelements\/UrlSuffixField.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/fieldlayoutelements\/UrlSuffixField.php",
+      "oF" : 0
+    },
     "\/src\/fields" : {
       "ft" : 65536,
       "oA" : 1,
@@ -727,8 +767,8 @@
     "\/src\/resources\/src\/js\/_jquery.serializejson.min.js" : {
       "bF" : 0,
       "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
+      "ma" : 0,
+      "mi" : 0,
       "oA" : 1,
       "oAP" : "\/src\/resources\/dist\/js\/_jquery.serializejson.min.js",
       "oF" : 0,
@@ -738,8 +778,8 @@
     "\/src\/resources\/src\/js\/navigation.js" : {
       "bF" : 0,
       "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
+      "ma" : 0,
+      "mi" : 0,
       "oA" : 0,
       "oAP" : "\/src\/resources\/dist\/js\/navigation.js",
       "oF" : 0,
@@ -2187,8 +2227,8 @@
       "autoOutputPathReplace2" : "",
       "autoOutputPathStyle" : 2,
       "bundleFormat" : 0,
-      "minifierStyle" : 1,
-      "sourceMapStyle" : 1,
+      "minifierStyle" : 0,
+      "sourceMapStyle" : 0,
       "syntaxCheckerStyle" : 0,
       "transpilerStyle" : 0
     },

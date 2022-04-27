@@ -36,7 +36,7 @@
 {% block blockContent %}
     <input type="hidden" name="action" value="navigation/navs/save-nav">
     {% if not isNewNav %}<input type="hidden" name="navId" value="{{ nav.id }}">{% endif %}
-    {{ redirectInput('navigation/navs') }}
+    {{ redirectInput('navigation/navs/edit/' ~ nav.id) }}
 
     <div id="settings">
         {{ forms.textField({
@@ -144,7 +144,7 @@
         {% include '_includes/fieldlayoutdesigner' with {
             fieldLayout: nav.getNavFieldLayout(),
             customizableTabs: true,
-            customizableUi: false,
+            customizableUi: true,
             pretendTabName: 'Fields' | t('app'),
         } only %}
     </div>

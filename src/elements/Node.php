@@ -5,6 +5,7 @@ use verbb\navigation\Navigation;
 use verbb\navigation\base\NodeType;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\events\NodeActiveEvent;
+use verbb\navigation\models\Nav;
 use verbb\navigation\models\Settings;
 use verbb\navigation\nodetypes\PassiveType;
 use verbb\navigation\nodetypes\SiteType;
@@ -13,9 +14,21 @@ use verbb\navigation\records\Node as NodeRecord;
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\controllers\ElementIndexesController;
+use craft\db\Query;
+use craft\db\Table;
+use craft\elements\User;
+use craft\elements\actions\Delete;
+use craft\elements\actions\Duplicate;
+use craft\elements\actions\Edit;
+use craft\elements\actions\NewChild;
+use craft\elements\actions\Restore;
+use craft\elements\actions\SetStatus;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\App;
 use Craft\helpers\ArrayHelper;
+use craft\helpers\Cp;
+use craft\helpers\Db;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -44,7 +57,12 @@ class Node extends Element
 
     public static function displayName(): string
     {
-        return Craft::t('navigation', 'Navigation Node');
+        return Craft::t('navigation', 'Node');
+    }
+
+    public static function pluralDisplayName(): string
+    {
+        return Craft::t('navigation', 'Nodes');
     }
 
     public static function refHandle(): ?string
@@ -92,6 +110,136 @@ class Node extends Element
         return ['navigationNavs.' . $context->uid];
     }
 
+    public static function getNodeElementTitleHtml(&$context): string
+    {
+        $element = $context['element'] ?? '';
+
+        // Only do this for a Node ElementType
+        if ($element && $element::class === static::class) {
+            $title = $element->hasOverriddenTitle();
+            $newWindow = $element->newWindow;
+            $classes = $element->classes ? '.' . str_replace(' ', ' .', $element->classes) : '';
+
+            $html = implode(' ', array_filter([
+                $title ? Html::tag('span', '', ['class' => 'node-custom-title edit icon']) : false,
+                $newWindow ? Html::tag('span', '', ['class' => 'node-new-window fa fa-external-link']) : false,
+                $classes ? Html::tag('span', $classes, ['class' => 'node-classes classes code']) : false,
+            ]));
+
+            return Html::tag('span', $html, ['class' => 'node-info-icons']) . Html::tag('a', Craft::t('navigation', 'Edit'), ['class' => 'btn small icon edit node-edit-btn']);
+        }
+
+        return '';
+    }
+
+    protected static function defineSources(string $context): array
+    {
+        $sources = [];
+
+        $navs = Navigation::$plugin->getNavs()->getEditableNavs();
+
+        foreach ($navs as $nav) {
+            $sources[] = [
+                'key' => 'nav:' . $nav->uid,
+                'label' => Craft::t('site', $nav->name),
+                'data' => ['handle' => $nav->handle],
+                'criteria' => ['navId' => $nav->id],
+                'structureId' => $nav->structureId,
+                'structureEditable' => Craft::$app->getUser()->checkPermission("nav:$nav->uid"),
+            ];
+        }
+
+        return $sources;
+    }
+
+    protected static function defineSortOptions(): array
+    {
+        // We must override the sort options, otherwise any in `defineTableAttributes` will be added
+        return [];
+    }
+
+    protected static function defineTableAttributes(): array
+    {
+        return [
+            'typeLabel' => ['label' => Craft::t('app', 'Type')],
+        ];
+    }
+
+    protected static function defineDefaultTableAttributes(string $source): array
+    {
+        // These are static and cannot be customised by users
+        return [
+            'typeLabel',
+        ];
+    }
+
+    protected static function defineActions(string $source): array
+    {
+        // Get the selected site
+        $controller = Craft::$app->controller;
+
+        if ($controller instanceof ElementIndexesController) {
+            /** @var ElementQuery $elementQuery */
+            $elementQuery = $controller->getElementQuery();
+        } else {
+            $elementQuery = null;
+        }
+
+        $site = $elementQuery && $elementQuery->siteId ? Craft::$app->getSites()->getSiteById($elementQuery->siteId) : Craft::$app->getSites()->getCurrentSite();
+
+        // Get the group we need to check permissions on
+        if (preg_match('/^nav:(\d+)$/', $source, $matches)) {
+            $nav = Navigation::$plugin->getNavs()->getNavById($matches[1]);
+        } else if (preg_match('/^nav:(.+)$/', $source, $matches)) {
+            $nav = Navigation::$plugin->getNavs()->getNavByUid($matches[1]);
+        }
+
+        // Now figure out what we can do with it
+        $actions = [];
+        $elementsService = Craft::$app->getElements();
+
+        if (!empty($nav)) {
+            // Set Status
+            $actions[] = SetStatus::class;
+
+            // Edit
+            $actions[] = $elementsService->createAction([
+                'type' => Edit::class,
+                'label' => Craft::t('app', 'Edit node'),
+            ]);
+
+            // Duplicate
+            $actions[] = Duplicate::class;
+
+            if ($nav->maxLevels != 1) {
+                $actions[] = [
+                    'type' => Duplicate::class,
+                    'deep' => true,
+                ];
+            }
+
+            // Delete
+            $actions[] = Delete::class;
+
+            if ($nav->maxLevels != 1) {
+                $actions[] = [
+                    'type' => Delete::class,
+                    'withDescendants' => true,
+                ];
+            }
+        }
+
+        // Restore
+        $actions[] = $elementsService->createAction([
+            'type' => Restore::class,
+            'successMessage' => Craft::t('app', 'Nodes restored.'),
+            'partialSuccessMessage' => Craft::t('app', 'Some nodes restored.'),
+            'failMessage' => Craft::t('app', 'Nodes not restored.'),
+        ]);
+
+        return $actions;
+    }
+
 
     // Properties
     // =========================================================================
@@ -115,7 +263,7 @@ class Node extends Element
 
     private ?string $_url = null;
     private ?ElementInterface $_element = null;
-    private ?NodeType $_nodeType = null;
+    private array $_nodeTypes = [];
     private ?string $_elementUrl = null;
     private ?bool $_hasNewParent = null;
     private ?bool $_isActive = null;
@@ -131,6 +279,52 @@ class Node extends Element
         if (!$this->typeLabel) {
             $this->typeLabel = $this->getNodeTypeLabel();
         }
+    }
+
+    public function createAnother(): ?self
+    {
+        $nav = $this->getNav();
+
+        $node = Craft::createObject([
+            'class' => self::class,
+            'navId' => $this->navId,
+            'siteId' => $this->siteId,
+        ]);
+
+        $node->enabled = $this->enabled;
+        $node->setEnabledForSite($this->getEnabledForSite());
+
+        // Structure parent
+        if ($nav->maxLevels !== 1) {
+            $node->setParentId($this->getParentId());
+        }
+
+        return $node;
+    }
+
+    public function canView(User $user): bool
+    {
+        return true;
+    }
+
+    public function canSave(User $user): bool
+    {
+        return true;
+    }
+
+    public function canDuplicate(User $user): bool
+    {
+        return true;
+    }
+
+    public function canDelete(User $user): bool
+    {
+        return true;
+    }
+
+    public function canCreateDrafts(User $user): bool
+    {
+        return true;
     }
 
     public function getElement(): ?ElementInterface
@@ -335,18 +529,16 @@ class Node extends Element
         return $nav;
     }
 
-    public function isManual(): bool
-    {
-        return !$this->type;
-    }
-
     public function nodeType()
     {
-        if ($this->_nodeType != null) {
-            // If a custom node type, be sure to send through this element
-            $this->_nodeType->node = $this;
+        // Check if we've cached the node type. by sure to check by key to prevent cache
+        $_nodeType = $this->_nodeTypes[$this->type] ?? null;
 
-            return $this->_nodeType;
+        if ($_nodeType != null) {
+            // If a custom node type, be sure to send through this element
+            $_nodeType->node = $this;
+
+            return $_nodeType;
         }
 
         $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
@@ -355,7 +547,7 @@ class Node extends Element
             if ($this->type === $registeredNodeType::class) {
                 $registeredNodeType->node = $this;
 
-                return $this->_nodeType = $registeredNodeType;
+                return $this->_nodeTypes[$this->type] = $registeredNodeType;
             }
         }
 
@@ -374,16 +566,16 @@ class Node extends Element
     public function getNodeTypeLabel(): ?string
     {
         if ($this->isManual()) {
-            return Craft::t('navigation', 'manual');
+            return Craft::t('navigation', 'Custom URL');
         }
 
         if ($this->nodeType()) {
-            return StringHelper::toLowerCase($this->nodeType()->displayName());
+            return StringHelper::toTitleCase($this->nodeType()->displayName());
         }
 
         $classNameParts = explode('\\', $this->type);
 
-        return StringHelper::toLowerCase(array_pop($classNameParts));
+        return StringHelper::toTitleCase(StringHelper::delimit(array_pop($classNameParts), ' '));
     }
 
     public function isElement(): bool
@@ -397,6 +589,16 @@ class Node extends Element
         }
 
         return false;
+    }
+
+    public function isManual(): bool
+    {
+        return !$this->type || $this->type === 'custom';
+    }
+
+    public function isNodeType(): bool
+    {
+        return !$this->isManual() && !$this->isElement();
     }
 
     public function isPassive(): bool
@@ -581,9 +783,9 @@ class Node extends Element
             }
         }
 
-        Craft::$app->getDb()->createCommand()
-            ->update('{{%navigation_nodes}}', $data, ['id' => $this->id], [], false)
-            ->execute();
+        Db::update('{{%navigation_nodes}}', $data, [
+            'id' => $this->id,
+        ], [], false);
 
         return true;
     }
@@ -595,7 +797,7 @@ class Node extends Element
         // Add the node back into its structure
         $parent = self::find()
             ->structureId($structureId)
-            ->innerJoin('{{%navigation_nodes}} j', '[[j.parentId]] = [[elements.id]]')
+            ->innerJoin(['j' => '{{%navigation_nodes}}'], '[[j.parentId]] = [[elements.id]]')
             ->andWhere(['j.id' => $this->id])
             ->one();
 
@@ -606,6 +808,58 @@ class Node extends Element
         }
 
         parent::afterRestore();
+    }
+
+    public function afterMoveInStructure(int $structureId): void
+    {
+        // Was the node moved within its group's structure?
+        if ($this->getNav()->structureId == $structureId) {
+            // Update its URI
+            Craft::$app->getElements()->updateElementSlugAndUri($this, true, true, true);
+
+            // Make sure that each of the node's ancestors are related wherever the node is related
+            $newRelationValues = [];
+
+            $ancestorIds = $this->getAncestors()
+                ->status(null)
+                ->ids();
+
+            $sources = (new Query())
+                ->select(['fieldId', 'sourceId', 'sourceSiteId'])
+                ->from([Table::RELATIONS])
+                ->where(['targetId' => $this->id])
+                ->all();
+
+            foreach ($sources as $source) {
+                $existingAncestorRelations = (new Query())
+                    ->select(['targetId'])
+                    ->from([Table::RELATIONS])
+                    ->where([
+                        'fieldId' => $source['fieldId'],
+                        'sourceId' => $source['sourceId'],
+                        'sourceSiteId' => $source['sourceSiteId'],
+                        'targetId' => $ancestorIds,
+                    ])
+                    ->column();
+
+                $missingAncestorRelations = array_diff($ancestorIds, $existingAncestorRelations);
+
+                foreach ($missingAncestorRelations as $categoryId) {
+                    $newRelationValues[] = [
+                        $source['fieldId'],
+                        $source['sourceId'],
+                        $source['sourceSiteId'],
+                        $categoryId,
+                    ];
+                }
+            }
+
+            if (!empty($newRelationValues)) {
+                Db::batchInsert(Table::RELATIONS, ['fieldId', 'sourceId', 'sourceSiteId', 'targetId'], $newRelationValues);
+            }
+        }
+
+        parent::afterMoveInStructure($structureId);
     }
 
     public function getFieldLayout(): ?FieldLayout
@@ -626,6 +880,16 @@ class Node extends Element
         }
 
         return $object;
+    }
+
+    public function setLinkedElementId($value)
+    {
+        // This is a required proxy variable when editing a node, due to a conflicting `elementId`.
+        if (is_array($value)) {
+            $this->elementId = $value[0];
+        } else {
+            $this->elementId = (int)$value;
+        }
     }
 
     public function _getActive($includeChildren = true)
@@ -704,6 +968,130 @@ class Node extends Element
 
         return $isActive;
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        // Must be included to allow `setAttributes()` to work, and treat it as safe. This is so the element
+        // slide-out can update the type for draft-changes.
+        $rules[] = [['linkedElementId', 'url', 'urlSuffix', 'classes', 'newWindow', 'customAttributes', 'type', 'data'], 'safe'];
+
+        return $rules;
+    }
+
+
+    protected function tableAttributeHtml(string $attribute): string
+    {
+        switch ($attribute) {
+            case 'typeLabel': {
+                $typeClass = '';
+
+                if ($this->isManual()) {
+                    $typeClass = 'custom';
+                } else {
+                    $classNameParts = explode('\\', $this->type);
+                    $typeClass = array_pop($classNameParts);
+                }
+
+                $type = 'node-type-' . StringHelper::toKebabCase($typeClass);
+                $item = Html::tag('span', $this->getNodeTypeLabel(), ['class' => $type, 'title' => $this->url]);
+
+                return Html::tag('div', $item, ['class' => 'node-type']);
+            }
+            case 'actions': {
+                $tags = Html::tag('a', null, ['class' => 'settings icon', 'title' => 'Settings']) . Html::tag('a', null, ['class' => 'delete icon', 'title' => 'Delete']);
+
+                return Html::tag('div', $tags);
+            }
+        }
+
+        return parent::tableAttributeHtml($attribute);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function metaFieldsHtml(bool $static): string
+    {
+        $fields = [];
+
+        // Type
+        $fields[] = (function() use ($static) {
+            $nodeTypeOptions = [];
+
+            foreach (Navigation::$plugin->getNavs()->getBuilderTabs($this->getNav()) as $tab) {
+                $nodeTypeOptions[] = [
+                    'label' => Craft::t('site', $tab['label']),
+                    'value' => $tab['type'],
+                ];
+            }
+
+            $view = Craft::$app->getView();
+            $typeInputId = $view->namespaceInputId('type');
+            $js = <<<EOD
+(() => {
+const \$typeInput = $('#$typeInputId');
+const editor = \$typeInput.closest('form').data('elementEditor');
+if (editor) {
+    editor.checkForm();
+}
+})();
+EOD;
+            $view->registerJs($js);
+
+            return Cp::selectFieldHtml([
+                'label' => Craft::t('navigation', 'Type'),
+                'id' => 'type',
+                'name' => 'type',
+                'value' => $this->getNodeType(),
+                'options' => $nodeTypeOptions,
+            ]);
+        })();
+
+        $fields[] = (function() use ($static) {
+            if ($parentId = $this->getParentId()) {
+                $parent = Navigation::$plugin->getNodes()->getNodeById($parentId, $this->siteId, [
+                    'drafts' => null,
+                    'draftOf' => false,
+                ]);
+            } else {
+                // If the node already has structure data, use it. Otherwise, use its canonical node
+                /** @var self|null $parent */
+                $parent = self::find()
+                    ->siteId($this->siteId)
+                    ->ancestorOf($this->lft ? $this : ($this->getIsCanonical() ? $this->id : $this->getCanonical(true)))
+                    ->ancestorDist(1)
+                    ->drafts(null)
+                    ->draftOf(false)
+                    ->status(null)
+                    ->one();
+            }
+
+            $nav = $this->getNav();
+
+            return Cp::elementSelectFieldHtml([
+                'label' => Craft::t('app', 'Parent'),
+                'id' => 'parentId',
+                'name' => 'parentId',
+                'elementType' => self::class,
+                'selectionLabel' => Craft::t('app', 'Choose'),
+                'sources' => ["nav:$nav->uid"],
+                'criteria' => $this->_parentOptionCriteria($nav),
+                'limit' => 1,
+                'elements' => $parent ? [$parent] : [],
+                'disabled' => $static,
+            ]);
+        })();
+
+        $fields[] = parent::metaFieldsHtml($static);
+
+        return implode("\n", $fields);
+    }
     
 
     // Private Methods
@@ -757,5 +1145,48 @@ class Node extends Element
         return [
             'currentUser' => Craft::$app->getUser()->getIdentity(),
         ];
+    }
+
+    private function _parentOptionCriteria(Nav $nav): array
+    {
+        $parentOptionCriteria = [
+            'siteId' => $this->siteId,
+            'navId' => $nav->id,
+            'status' => null,
+            'drafts' => null,
+            'draftOf' => false,
+        ];
+
+        // Prevent the current entry, or any of its descendants, from being selected as a parent
+        if ($this->id) {
+            $excludeIds = self::find()
+                ->descendantOf($this)
+                ->drafts(null)
+                ->draftOf(false)
+                ->status(null)
+                ->ids();
+
+            $excludeIds[] = $this->getCanonicalId();
+            $parentOptionCriteria['id'] = array_merge(['not'], $excludeIds);
+        }
+
+        if ($nav->maxLevels) {
+            if ($this->id) {
+                // Figure out how deep the ancestors go
+                $maxDepth = self::find()
+                    ->select('level')
+                    ->descendantOf($this)
+                    ->status(null)
+                    ->leaves()
+                    ->scalar();
+                $depth = 1 + ($maxDepth ?: $this->level) - $this->level;
+            } else {
+                $depth = 1;
+            }
+
+            $parentOptionCriteria['level'] = sprintf('<=%s', $nav->maxLevels - $depth);
+        }
+
+        return $parentOptionCriteria;
     }
 }

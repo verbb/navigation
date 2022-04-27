@@ -16,231 +16,241 @@
 // Accordion Tabs
 //
 
-#main-container #main #main-content #details {
-    // background: #f1f5f8 !important;
-    // padding: 0;
-}
+.navigation-nodes-sidebar {
+    margin: 0 -24px;
 
-.nav-sidebar #accordion {
-    position: relative;
-    z-index: 1;
-    box-shadow: inset 0 -1px 0 #e3e5e8;
-    min-height: 40px;
-    overflow: hidden;
-    box-shadow: 0 0 0 1px rgba(205, 216, 228, 0.25), 0 2px 12px rgba(205, 216, 228, 0.5);
-    border-radius: 5px;
-}
-
-#main-container #main #main-content #details .text {
-    background: #fff !important;
-    border-color: #bed1df;
-
-    &:focus {
-        border-color: rgba(0, 0, 20, 0.4);
-    }
-}
-
-.nav-sidebar #accordion .tab-list {
-    display: block;
-    max-width: inherit;
-}
-
-.nav-sidebar #accordion .tab-list-item {
-    .tab {
-        color: #576575;
-        border-bottom: 1px solid rgba(0, 0, 20, 0.1);
-        max-width: 100% !important;
-
+    #accordion {
         position: relative;
-        display: block;
-        padding: 10px 20px;
-        white-space: nowrap;
+        z-index: 1;
+        box-shadow: inset 0 -1px 0 #e3e5e8;
+        min-height: 40px;
         overflow: hidden;
-        background: #f3f7fc;
+        box-shadow: 0 0 0 1px rgba(205, 216, 228, 0.25), 0 2px 12px rgba(205, 216, 228, 0.5);
+        border-radius: 5px;
+    }
 
-        &:after {
-            font-family: 'Craft';
-            speak: none;
-            font-feature-settings: "liga", "dlig";
-            text-rendering: optimizeLegibility;
-            font-weight: normal;
-            font-variant: normal;
-            text-transform: none;
-            line-height: 1;
-            direction: ltr;
-            display: inline-block;
-            text-align: center;
-            font-style: normal;
-            vertical-align: middle;
-            word-wrap: normal !important;
-            user-select: none;
-            content: 'downangle';
-            float: right;
-            margin-top: 2px;
-            font-size: 16px;
-        }
+    #accordion .tab-list {
+        display: block;
+        max-width: inherit;
+    }
 
-        &:hover {
-            text-decoration: none;
-            background: darken(#f3f7fc, 2%);
-        }
+    #accordion .tab-list-item {
+        .tab {
+            color: #576575;
+            border-bottom: 1px solid rgba(0, 0, 20, 0.1);
+            max-width: 100% !important;
 
-        &.sel {
-            color: #29323d;
-            padding-bottom: 10px;
+            position: relative;
+            display: block;
+            padding: 10px 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            background: #f3f7fc;
 
             &:after {
-                transform: rotate(180deg);
+                font-family: 'Craft';
+                speak: none;
+                font-feature-settings: "liga", "dlig";
+                text-rendering: optimizeLegibility;
+                font-weight: normal;
+                font-variant: normal;
+                text-transform: none;
+                line-height: 1;
+                direction: ltr;
+                display: inline-block;
+                text-align: center;
+                font-style: normal;
+                vertical-align: middle;
+                word-wrap: normal !important;
+                user-select: none;
+                content: 'downangle';
+                float: right;
+                margin-top: 2px;
+                font-size: 16px;
+            }
+
+            &:hover {
+                text-decoration: none;
+                background: darken(#f3f7fc, 2%);
+            }
+
+            &.sel {
+                color: #29323d;
+                padding-bottom: 10px;
+
+                &:after {
+                    transform: rotate(180deg);
+                }
             }
         }
     }
-}
 
-.tab-list-pane {
-    background: #cdd8e4;
-    padding: 20px;
-    border-bottom: 1px solid rgba(0, 0, 20, 0.1);
+    .tab-list-pane {
+        background: #cdd8e4;
+        padding: 20px;
+        border-bottom: 1px solid rgba(0, 0, 20, 0.1);
 
-    .field {
-        margin-left: 0;
-        margin-right: 0;
+        .field {
+            margin-left: 0;
+            margin-right: 0;
+        }
+    }
+
+    input.text {
+        background: #fff !important;
+        border-color: #9eb4c5;
     }
 }
-
-
-//
-// HUD Editor
-//
-
-.nav-editor-hud .main {
-    padding: 20px;
-    overflow: visible;
-}
-
-.nav-editor-hud .main-container {
-    overflow-y: auto !important;
-}
-
-.nav-editor-hud .hud-footer {
-    padding: 14px 20px;
-}
-
-.nav-editor-hud .fields {
-    font-size: 12px;
-    line-height: 1.2;
-}
-
-.nav-editor-hud .elementselect,
-.nav-editor-hud table.editable + .btn.add {
-    line-height: 1.5;
-}
-
-.nav-editor-hud th.thin,
-.nav-editor-hud td.thin {
-    width: 10px !important;
-}
-
-.nav-editor-hud .fields .field {
-    margin: 20px 0;
-}
-
 
 
 //
 // Structure
 //
 
-.nav-builder > li:first-child > .row {
-    border-top: 1px dotted rgba(115, 127, 140, 0.15);
-}
-
-.nav-builder .row {
-    border-bottom: 1px dotted rgba(115, 127, 140, 0.15);
-}
-
-.nav-builder .icon.move,
-.nav-builder .icon.settings,
-.nav-builder .icon.delete {
-    opacity: 0;
-    transition: opacity linear 100ms;
-}
-
-.nav-builder .fa {
-    font-size: 11px;
-}
-
-.nav-builder .fa,
-.nav-builder .icon {
-    margin: 5px 5px 0 0;
-    display: inline-block;
-
-    &:hover:before,
-    &:before {
-        color: rgba(0, 0, 0, 0.2);
+// Hide toolbar items. Required to exist for element index
+.body-navigation-nodes-index #toolbar {
+    .search,
+    .search + div {
+        display: none;
     }
 }
 
-.nav-builder .classes {
-    color: #8f98a3;
-    margin: 5px 5px 0 0;
-    display: inline-block;
+.body-navigation-nodes-index #navigation-nodes-index {
+    .tablepane {
+        margin: -24px -24px -10px -24px;
+    }
+
+    table.data thead th {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
 }
 
-.nav-builder a.icon {
-    &:hover:before {
+// Style the TR items, to also work when in dragee, but not affect other element indexes (modals)
+.body-navigation-nodes-index #navigation-nodes-index,
+.body-navigation-nodes-index .elements.datatablesorthelper {
+    table.data th:first-child,
+    table.data td:first-child {
+        padding-left: 15px !important;
+    }
+
+    table.data th:last-child,
+    table.data td:last-child {
+        padding-right: 15px !important;
+    }
+
+    table.data tbody th,
+    table.data tbody td {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    table.data .element.small,
+    table.data .element.large:not(.hasthumb) {
+        padding-top: 7px;
+        padding-bottom: 7px;
+    }
+
+    table.data th:nth-child(3),
+    table.data td:nth-child(3) {
+        width: 1px;
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    .node-edit-btn {
+        height: 20px;
+        border: 1px rgba(96, 125, 159, 0.25) solid;
+        font-size: 11px;
+        font-weight: 400;
+        background: transparent;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    tr:hover .node-edit-btn {
+        opacity: 1;
+    }
+
+    // Info Icons
+    table.data .node-info-icons .fa {
+        font-size: 11px;
+    }
+
+    table.data .node-info-icons .fa,
+    table.data .node-info-icons .icon {
+        margin: 5px 5px 0 0;
+        display: inline-block;
+
+        &:hover:before,
+        &:before {
+            color: rgba(#7b8793, 0.5);
+        }
+    }
+
+    table.data .node-info-icons .node-classes {
+        color: #8f98a3;
+        margin: 5px 5px 0 0;
+        display: inline-block;
+        font-weight: 400;
+        font-size: 0.75em !important;
+    }
+
+    // Node Types
+    .node-type {
+        font-size: 10px;
+        font-weight: 500;
+        text-transform: uppercase;
+        cursor: default;
+        user-select: none;
+        text-align: right;
+    }
+
+    .node-type span {
+        padding: 4px 6px;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        color: #888;
+        background: rgba(#888, 0.05);
+        border-color: rgba(#888, 0.25);
+    }
+
+    .node-type .node-type-entry {
+        color: #5e5378;
+        background: rgba(#5e5378, 0.05);
+        border-color: rgba(#5e5378, 0.25);
+    }
+
+    .node-type .node-type-asset {
+        color: #e12d39;
+        background: rgba(#e12d39, 0.05);
+        border-color: rgba(#da5a47, 0.25);
+    }
+
+    .node-type .node-type-custom {
         color: #0d78f2;
-    }
-}
-
-.nav-builder .node-element {
-    display: inline-block;
-    padding: 6px 7px;
-
-    &.loading {
-        padding-right: 29px;
-    }
-}
-
-.nav-builder .node-type {
-    float: right;
-    font-size: 12px;
-    text-transform: lowercase;
-    padding: 6px 7px;
-    cursor: default;
-    text-align: right;
-
-    span {
-        padding: 3px 10px;
-        border-left: 2px solid #CCC;
-        color: #999;
-        background: #F5F5F5;
+        background: rgba(#0d78f2, 0.05);
+        border-color: rgba(#0d78f2, 0.25);
     }
 
-    .node-type-manual {
-        color: #0d78f2;
-        border-color: #0d78f2;
-    }
-
-    .node-type-category {
+    .node-type .node-type-category {
         color: #1BB311;
-        border-color: #1BB311;
+        background: rgba(#1BB311, 0.05);
+        border-color: rgba(#1BB311, 0.25);
     }
 
-    .node-type-asset {
-        color: #da5a47;
-        border-color: #da5a47;
+    .node-type .node-type-passive-type {
+        color: #fe7d02;
+        background: rgba(#fe7d02, 0.05);
+        border-color: rgba(#fe7d02, 0.25);
+    }
+
+    .node-type .node-type-site-type {
+        color: #737df8;
+        background: rgba(#737df8, 0.05);
+        border-color: rgba(#737df8, 0.25);
     }
 }
-
-.nav-builder .status.disabled {
-    background-color: #D0021B;
-}
-
-.structure .draghelper .icon,
-.structure .draghelper .node-type {
-    display: none;
-}
-
 
 // ==========================================================================
 // Settings
@@ -250,5 +260,4 @@
     width: 100%;
     max-width: 100% !important;
 }
-
 

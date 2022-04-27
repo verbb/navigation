@@ -4,6 +4,11 @@ namespace verbb\navigation;
 use verbb\navigation\base\PluginTrait;
 use verbb\navigation\elements\Node;
 use verbb\navigation\fields\NavigationField;
+use verbb\navigation\fieldlayoutelements\ClassesField;
+use verbb\navigation\fieldlayoutelements\CustomAttributesField;
+use verbb\navigation\fieldlayoutelements\NewWindowField;
+use verbb\navigation\fieldlayoutelements\NodeTypeElements;
+use verbb\navigation\fieldlayoutelements\UrlSuffixField;
 use verbb\navigation\gql\interfaces\NodeInterface;
 use verbb\navigation\gql\queries\NodeQuery;
 use verbb\navigation\helpers\Gql as GqlHelper;
@@ -16,13 +21,17 @@ use verbb\navigation\variables\NavigationVariable;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\events\DefineFieldLayoutElementsEvent;
+use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\fieldlayoutelements\TitleField;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gql;
@@ -66,7 +75,6 @@ class Navigation extends Plugin
 
         $this->_setPluginComponents();
         $this->_setLogging();
-        $this->_registerCpRoutes();
         $this->_registerVariables();
         $this->_registerCraftEventListeners();
         $this->_registerProjectConfigEventListeners();
@@ -76,6 +84,14 @@ class Navigation extends Plugin
         $this->_registerPermissions();
         $this->_registerGraphQl();
         $this->_registerFeedMeSupport();
+        $this->_registerFieldLayoutListener();
+
+        $request = Craft::$app->getRequest();
+
+        if ($request->getIsCpRequest()) {
+            $this->_registerCpRoutes();
+            $this->_registerTemplateHooks();
+        }
     }
 
     public function getPluginName(): string
@@ -249,5 +265,25 @@ class Navigation extends Plugin
                 $event->elements[] = NodeFeedMeElement::class;
             });
         }
+    }
+
+    private function _registerFieldLayoutListener(): void
+    {
+        Event::on(FieldLayout::class, FieldLayout::EVENT_DEFINE_NATIVE_FIELDS, function(DefineFieldLayoutFieldsEvent $event) {
+            if ($event->sender->type === Node::class) {
+                $event->fields[] = TitleField::class;
+                $event->fields[] = UrlSuffixField::class;
+                $event->fields[] = ClassesField::class;
+                $event->fields[] = NewWindowField::class;
+                $event->fields[] = CustomAttributesField::class;
+                $event->fields[] = NodeTypeElements::class;
+            }
+        });
+    }
+
+    private function _registerTemplateHooks(): void
+    {
+        // Hook into the 'cp.elements.element' to allow us to modify the Title column for node element index
+        Craft::$app->getView()->hook('cp.elements.element', [Node::class, 'getNodeElementTitleHtml']);
     }
 }

@@ -55,13 +55,26 @@ class Navs extends Component
         return $this->_navs()->all();
     }
 
-    public function getAllEditableNavs(): array
+    public function getEditableNavs(): array
     {
-        $userSession = Craft::$app->getUser();
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return $this->getAllNavs();
+        }
 
-        return ArrayHelper::where($this->getAllNavs(), function(NavModel $nav) use ($userSession) {
-            return $userSession->checkPermission('navigation-manageNav:' . $nav->uid);
-        });
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$user) {
+            return [];
+        }
+
+        return ArrayHelper::where($this->getAllNavs(), function(NavModel $nav) use ($user) {
+            return $user->can("navigation-manageNav:$nav->uid");
+        }, true, true, false);
+    }
+
+    public function getEditableNavIds(): array
+    {
+        return ArrayHelper::getColumn($this->getEditableNavs(), 'id');
     }
 
     public function getNavByHandle(string $handle): ?NavModel
@@ -473,11 +486,13 @@ class Navs extends Component
         $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements();
         $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
 
-        foreach ($registeredElements as $key => $registeredElement) {
+        foreach ($registeredElements as $registeredElement) {
             $enabled = $nav->permissions[$registeredElement['type']]['enabled'] ?? $registeredElement['default'] ?? false;
             $permissions = $nav->permissions[$registeredElement['type']]['permissions'] ?? '*';
 
             if ($enabled) {
+                $key = StringHelper::toKebabCase($registeredElement['label']);
+
                 $registeredElement['category'] = 'element';
                 $registeredElement['sources'] = $permissions;
 
