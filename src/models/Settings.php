@@ -10,9 +10,17 @@ class Settings extends Model
 
     public string $pluginName = 'Navigation';
     public bool $bypassProjectConfig = false;
-    public bool $propagateSiteElements = true;
+    
 
-    // TODO: remove at next breakpoint
-    public array $disabledElements = [];
+    // Public Methods
+    // =========================================================================
+
+    public function __construct($config = [])
+    {
+        // Remove deprecated settings
+        unset($config['disabledElements'], $config['propagateSiteElements']);
+
+        parent::__construct($config);
+    }
 
 }

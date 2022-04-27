@@ -672,8 +672,7 @@ class Node extends Element
         }
 
         // If this is propagating, we want to fetch the information for that site's linked element
-        // At next breakpoint, remove `propagateSiteElements`
-        if ($this->propagating && $this->isElement() && $settings->propagateSiteElements) {
+        if ($this->propagating && $this->isElement()) {
             if ($this->elementId) {
                 $localeElement = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
 
