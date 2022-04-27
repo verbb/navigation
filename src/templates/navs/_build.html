@@ -48,11 +48,11 @@
                 } %}
 
                 <li {{ attr(attributes) }}>
-                    <a id="tab-{{ tabId }}" class="tab{% if selected %} sel{% endif %}" href="#{{ tabId }}" title="{{ tab.label }}">
+                    <a id="tab-{{ tabId }}" class="tab{% if selected %} sel{% endif %}" href="#pane-{{ tabId }}" title="{{ tab.label }}">
                         {{ tab.label }}
                     </a>
 
-                    <div id="{{ tabId }}" class="tab-list-pane {% if not selected %}hidden{% endif %}">
+                    <div id="pane-{{ tabId }}" class="tab-list-pane {% if not selected %}hidden{% endif %}">
                         <form class="form-type-{{ tab.category }}" method="post" accept-charset="UTF-8">
                             {% if tab.category == 'element' %}
                                 {% if nav.maxLevels == '' or nav.maxLevels > 1 %}
