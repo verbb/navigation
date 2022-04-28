@@ -268,7 +268,6 @@ class Node extends Element
     private ?ElementInterface $_element = null;
     private array $_nodeTypes = [];
     private ?string $_elementUrl = null;
-    private ?bool $_hasNewParent = null;
     private ?bool $_isActive = null;
 
 
@@ -662,12 +661,15 @@ class Node extends Element
         // Set the structure ID for Element::attributes() and afterSave()
         $this->structureId = $this->getNav()->structureId;
 
-        if ($this->_hasNewParent()) {
-            if ($this->newParentId) {
-                $parentNode = Navigation::$plugin->getNodes()->getNodeById($this->newParentId, $this->siteId);
+        if (!$this->duplicateOf && $this->hasNewParent()) {
+            if ($parentId = $this->getParentId()) {
+                $parentNode = Navigation::$plugin->getNodes()->getNodeById($parentId, $this->siteId, [
+                    'drafts' => null,
+                    'draftOf' => false,
+                ]);
 
                 if (!$parentNode) {
-                    throw new Exception('Invalid node ID: ' . $this->newParentId);
+                    throw new InvalidConfigException("Invalid node ID: $parentId");
                 }
             } else {
                 $parentNode = null;
@@ -746,7 +748,7 @@ class Node extends Element
         $nav = $this->getNav();
 
         // Has the parent changed?
-        if ($this->_hasNewParent()) {
+        if ($this->hasNewParent()) {
             $this->_placeInStructure($isNew, $nav);
         }
 
@@ -971,7 +973,7 @@ class Node extends Element
 
         // Must be included to allow `setAttributes()` to work, and treat it as safe. This is so the element
         // slide-out can update the type for draft-changes.
-        $rules[] = [['linkedElementId', 'url', 'urlSuffix', 'classes', 'newWindow', 'customAttributes', 'type', 'data'], 'safe'];
+        $rules[] = [['linkedElementId', 'url', 'urlSuffix', 'classes', 'newWindow', 'customAttributes', 'type', 'data', 'parentId', 'newParentId'], 'safe'];
 
         return $rules;
     }
@@ -1081,49 +1083,6 @@ EOD;
 
     // Private Methods
     // =========================================================================
-
-    private function _hasNewParent(): bool
-    {
-        if ($this->_hasNewParent !== null) {
-            return $this->_hasNewParent;
-        }
-
-        return $this->_hasNewParent = $this->_checkForNewParent();
-    }
-
-    private function _checkForNewParent(): bool
-    {
-        // Is it a brand-new node?
-        if ($this->id === null) {
-            return true;
-        }
-
-        // Was a new parent ID actually submitted?
-        if ($this->newParentId === null) {
-            return false;
-        }
-
-        // Is it set to the top level now, but it hadn't been before?
-        if (!$this->newParentId && $this->level != 1) {
-            return true;
-        }
-
-        // Is it set to be under a parent now, but didn't have one before?
-        if ($this->newParentId && $this->level == 1) {
-            return true;
-        }
-
-        // Is the newParentId set to a different node ID than its previous parent?
-        $oldParentQuery = self::find();
-        $oldParentQuery->ancestorOf($this);
-        $oldParentQuery->ancestorDist(1);
-        $oldParentQuery->siteId($this->siteId);
-        $oldParentQuery->status(null);
-        $oldParentQuery->select('elements.id');
-        $oldParentId = $oldParentQuery->scalar();
-
-        return $this->newParentId != $oldParentId;
-    }
 
     private function _getObject(): array
     {

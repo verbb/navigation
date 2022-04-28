@@ -15,9 +15,9 @@ class Nodes extends Component
     // Public Methods
     // =========================================================================
 
-    public function getNodeById($id, $siteId = null): ?NodeElement
+    public function getNodeById(int $id, mixed $siteId = null, array $criteria = []): ?NodeElement
     {
-        return Craft::$app->getElements()->getElementById($id, NodeElement::class, $siteId);
+        return Craft::$app->getElements()->getElementById($id, NodeElement::class, $siteId, $criteria);
     }
 
     public function getNodesForNav($navId, $siteId = null): array
