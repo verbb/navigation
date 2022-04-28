@@ -324,10 +324,4 @@ class Navigation extends Plugin
         // Hook into the 'cp.elements.element' to allow us to modify the Title column for node element index
         Craft::$app->getView()->hook('cp.elements.element', [Node::class, 'getNodeElementTitleHtml']);
     }
-
-    private function _registerTemplateHooks(): void
-    {
-        // Hook into the 'cp.elements.element' to allow us to modify the Title column for node element index
-        Craft::$app->getView()->hook('cp.elements.element', [Node::class, 'getNodeElementTitleHtml']);
-    }
 }
