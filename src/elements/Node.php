@@ -24,6 +24,7 @@ use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
 use craft\elements\db\ElementQuery;
+use craft\events\DefineElementInnerHtmlEvent;
 use craft\fields\data\ColorData;
 use craft\helpers\App;
 use Craft\helpers\ArrayHelper;
@@ -111,29 +112,6 @@ class Node extends Element
         return ['navigationNavs.' . $context->uid];
     }
 
-    public static function getNodeElementTitleHtml($context): string
-    {
-        $element = $context['element'] ?? null;
-        $contextName = $context['context'] ?? null;
-
-        // Only do this for a Node ElementType
-        if ($element::class === static::class && $contextName === 'index') {
-            $title = $element->hasOverriddenTitle();
-            $newWindow = $element->newWindow;
-            $classes = $element->classes ? '.' . str_replace(' ', ' .', $element->classes) : '';
-
-            $html = implode(' ', array_filter([
-                $title ? Html::tag('span', '', ['class' => 'node-custom-title edit icon']) : false,
-                $newWindow ? Html::tag('span', '', ['class' => 'node-new-window fa fa-external-link']) : false,
-                $classes ? Html::tag('span', $classes, ['class' => 'node-classes classes code']) : false,
-            ]));
-
-            return Html::tag('span', $html, ['class' => 'node-info-icons']) . Html::tag('a', Craft::t('navigation', 'Edit'), ['class' => 'btn small icon edit node-edit-btn']);
-        }
-
-        return '';
-    }
-
     protected static function defineSources(string $context): array
     {
         $sources = [];
@@ -177,6 +155,29 @@ class Node extends Element
         return [
             'typeLabel',
         ];
+    }
+
+    public static function getNodeElementTitleHtml(DefineElementInnerHtmlEvent $event)
+    {
+        $element = $event->element;
+        $context = $event->context;
+        $elementHtml = $event->innerHtml;
+
+        if ($context !== 'index') {
+            return;
+        }
+
+        $title = $element->hasOverriddenTitle();
+        $newWindow = $element->newWindow;
+        $classes = $element->classes ? '.' . str_replace(' ', ' .', $element->classes) : '';
+
+        $html = implode(' ', array_filter([
+            $title ? Html::tag('span', '', ['class' => 'node-custom-title edit icon']) : false,
+            $newWindow ? Html::tag('span', '', ['class' => 'node-new-window fa fa-external-link']) : false,
+            $classes ? Html::tag('span', $classes, ['class' => 'node-classes classes code']) : false,
+        ]));
+
+        $event->innerHtml = $elementHtml . ($html ? Html::tag('span', $html, ['class' => 'node-info-icons']) : '') . Html::tag('a', Craft::t('navigation', 'Edit'), ['class' => 'btn small icon edit node-edit-btn']);
     }
 
     protected static function defineActions(string $source): array

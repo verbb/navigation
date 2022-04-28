@@ -159,6 +159,7 @@
     }
 
     .node-edit-btn {
+        position: static;
         height: 20px;
         border: 1px rgba(96, 125, 159, 0.25) solid;
         font-size: 11px;
@@ -166,6 +167,7 @@
         background: transparent;
         opacity: 0;
         transition: opacity 0.2s ease;
+        margin-left: 7px;
     }
 
     tr:hover .node-edit-btn {
@@ -179,7 +181,8 @@
 
     table.data .node-info-icons .fa,
     table.data .node-info-icons .icon {
-        margin: 5px 5px 0 0;
+        position: static;
+        margin: 5px 0 0 7px;
         display: inline-block;
 
         &:hover:before,
@@ -190,8 +193,9 @@
 
     table.data .node-info-icons .node-classes {
         color: #8f98a3;
-        margin: 5px 5px 0 0;
+        margin: 0 0 0 7px;
         display: inline-block;
+        line-height: 1.4;
         font-weight: 400;
         font-size: 0.75em !important;
     }

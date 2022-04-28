@@ -33,6 +33,7 @@ use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\fieldlayoutelements\TitleField;
+use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\services\Elements;
@@ -95,7 +96,6 @@ class Navigation extends Plugin
 
         if ($request->getIsCpRequest()) {
             $this->_registerCpRoutes();
-            $this->_registerTemplateHooks();
         }
     }
 
@@ -167,6 +167,9 @@ class Navigation extends Plugin
 
         // Prune deleted sites from site settings
         Event::on(Sites::class, Sites::EVENT_AFTER_DELETE_SITE, [$this->getNavs(), 'pruneDeletedSite']);
+
+        // Modify the element's HTML for the element index
+        Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_INNER_HTML, [Node::class, 'getNodeElementTitleHtml']);
     }
 
     private function _registerProjectConfigEventListeners(): void
@@ -317,11 +320,5 @@ class Navigation extends Plugin
                 $event->fields[] = NodeTypeElements::class;
             }
         });
-    }
-
-    private function _registerTemplateHooks(): void
-    {
-        // Hook into the 'cp.elements.element' to allow us to modify the Title column for node element index
-        Craft::$app->getView()->hook('cp.elements.element', [Node::class, 'getNodeElementTitleHtml']);
     }
 }
