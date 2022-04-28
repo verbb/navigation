@@ -21,6 +21,10 @@ use verbb\navigation\variables\NavigationVariable;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\console\controllers\ResaveController;
+use craft\console\Controller as ConsoleController;
+use craft\events\ConfigEvent;
+use craft\events\DefineConsoleActionsEvent;
 use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterGqlQueriesEvent;
@@ -84,6 +88,7 @@ class Navigation extends Plugin
         $this->_registerPermissions();
         $this->_registerGraphQl();
         $this->_registerFeedMeSupport();
+        $this->_defineResaveCommand();
         $this->_registerFieldLayoutListener();
 
         $request = Craft::$app->getRequest();
@@ -272,6 +277,34 @@ class Navigation extends Plugin
         }
     }
 
+    private function _defineResaveCommand()
+    {
+        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return;
+        }
+
+        Event::on(ResaveController::class, ConsoleController::EVENT_DEFINE_ACTIONS, function(DefineConsoleActionsEvent $event) {
+            $event->actions['navigation-nodes'] = [
+                'action' => function(): int {
+                    $controller = Craft::$app->controller;
+
+                    $query = Node::find();
+
+                    if ($controller->navId !== null) {
+                        $query->navId(explode(',', $controller->navId));
+                    }
+
+                    return $controller->saveElements($query);
+                },
+                'options' => ['navId'],
+                'helpSummary' => 'Re-saves Navigation nodes.',
+                'optionsHelp' => [
+                    'type' => 'The nav ID of the nodes to resave.',
+                ],
+            ];
+        });
+    }
+
     private function _registerFieldLayoutListener(): void
     {
         Event::on(FieldLayout::class, FieldLayout::EVENT_DEFINE_NATIVE_FIELDS, function(DefineFieldLayoutFieldsEvent $event) {
@@ -284,6 +317,12 @@ class Navigation extends Plugin
                 $event->fields[] = NodeTypeElements::class;
             }
         });
+    }
+
+    private function _registerTemplateHooks(): void
+    {
+        // Hook into the 'cp.elements.element' to allow us to modify the Title column for node element index
+        Craft::$app->getView()->hook('cp.elements.element', [Node::class, 'getNodeElementTitleHtml']);
     }
 
     private function _registerTemplateHooks(): void

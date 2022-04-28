@@ -6,7 +6,6 @@ use craft\base\Component;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\events\RegisterElementEvent;
-use verbb\navigation\models\Settings;
 
 use craft\elements\Asset;
 use craft\elements\Entry;
@@ -26,14 +25,7 @@ class Elements extends Component
     // Public Methods
     // =========================================================================
 
-    public function init(): void
-    {
-        parent::init();
-
-        $this->getRegisteredElements();
-    }
-
-    public function getRegisteredElements(): array
+    public function getRegisteredElements($includeSources = true): array
     {
         // Add default element support
         $elements = [
@@ -41,7 +33,7 @@ class Elements extends Component
                 'label' => Craft::t('site', Entry::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add an Entry'),
                 'type' => Entry::class,
-                'sources' => Craft::$app->getElementSources()->getSources(Entry::class, 'modal'),
+                'sources' => [],
                 'default' => true,
                 'color' => '#5e5378',
             ],
@@ -49,7 +41,7 @@ class Elements extends Component
                 'label' => Craft::t('site', Category::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add a Category'),
                 'type' => Category::class,
-                'sources' => Craft::$app->getElementSources()->getSources(Category::class, 'modal'),
+                'sources' => [],
                 'default' => true,
                 'color' => '#1BB311',
             ],
@@ -57,7 +49,7 @@ class Elements extends Component
                 'label' => Craft::t('site', Asset::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add an Asset'),
                 'type' => Asset::class,
-                'sources' => Craft::$app->getElementSources()->getSources(Asset::class, 'modal'),
+                'sources' => [],
                 'default' => true,
                 'color' => '#e12d39',
             ],
@@ -68,7 +60,7 @@ class Elements extends Component
                 'label' => Craft::t('site', Product::pluralDisplayName()),
                 'button' => Craft::t('site', 'Add a Product'),
                 'type' => Product::class,
-                'sources' => Craft::$app->getElementSources()->getSources(Product::class, 'modal'),
+                'sources' => [],
                 'default' => true,
             ];
         }
@@ -82,7 +74,7 @@ class Elements extends Component
                     'label' => Craft::t('site', $elementType::pluralDisplayName()),
                     'button' => Craft::t('site', 'Add a {name}', ['name' => $elementType::displayName()]),
                     'type' => $elementType,
-                    'sources' => Craft::$app->getElementSources()->getSources($elementType, 'modal'),
+                    'sources' => [],
                 ];
             }
         }
@@ -92,6 +84,16 @@ class Elements extends Component
         ]);
 
         $this->trigger(self::EVENT_REGISTER_NAVIGATION_ELEMENT, $event);
+
+        $elementIndexes = Craft::$app->getElementIndexes();
+
+        // For performance, only include element sources if we require them. They also do unexpected things
+        // as they're element indexes (like for assets, creating user upload directories)
+        if ($includeSources) {
+            foreach ($event->elements as $key => $element) {
+                $event->elements[$key]['sources'] = $elementIndexes->getSources($element['type'], 'modal');
+            }
+        }
 
         return $event->elements;
     }

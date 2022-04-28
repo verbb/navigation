@@ -1,8 +1,7 @@
 # Extensibility
 
-### Elements
-
-You can add your own custom elements to be compatible with Navigation by using the provided events. The below shows an example of how entries are setup.
+## Elements
+You can add your own custom elements to be compatible with Navigation by using the provided events. The below shows an example of how entries are set up.
 
 ```php
 use verbb\navigation\services\Elements;
@@ -18,8 +17,7 @@ Event::on(Elements::class, Elements::EVENT_REGISTER_NAVIGATION_ELEMENT, function
 });
 ```
 
-### Node Types
-
+## Node Types
 Node types allow you to define your own type of nodes for various cases. You might like to have certain types of "Custom URL" nodes for instance.
 
 You'll need to first create a class to implement your node type. Here's an example for a Group.

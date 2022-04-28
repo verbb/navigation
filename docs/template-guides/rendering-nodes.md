@@ -1,9 +1,9 @@
 # Rendering Nodes
-
 You have two options for outputting your menu:
 
-### craft.navigation.render()
+## Render Function
 
+### craft.navigation.render()
 The easy option - let Navigation output the list items for you. This will generate a nested `<ul>` list of navigation items. You can also pass in additional classes for each element.
 
 ```twig
@@ -24,8 +24,9 @@ The easy option - let Navigation output the list items for you. This will genera
 }) }}
 ```
 
-### craft.navigation.nodes()
+## Querying Nodes
 
+### craft.navigation.nodes()
 For more fine-grained control over the navigation output, you can call nodes directly. As nodes are elements, output is a breeze using Craft's `{% nav %}` tag, so you don't have to deal with recursive macros.
 
 :::tip
@@ -88,10 +89,9 @@ If you'd rather not use the `{% nav %}` functionality, you can create your own r
 {% endmacro %}
 ```
 
-Don't forget, that calling `craft.navigation.nodes()` means you're querying Nodes, so its a good idea to brush up on [querying elements](docs:getting-elements/node-queries).
+Don't forget, that calling `craft.navigation.nodes()` means you're querying Nodes, so it's a good idea to brush up on [querying elements](docs:getting-elements/node-queries).
 
 ### Custom rendering
-
 When looping through each node, you'll have access to all the attributes of a [Node](docs:developers/node), and you have full control over what to show. Take a look at the following example, that the `craft.navigation.render()` function uses under the hood:
 
 ```twig
@@ -114,8 +114,7 @@ When looping through each node, you'll have access to all the attributes of a [N
 </ul>
 ```
 
-### craft.navigation.getActiveNode()
-
+## craft.navigation.getActiveNode()
 You can get the active node of any navigation through this tag. Often useful if you want to output an additional navigation area on your site that's contextual to the current node you're on.
 
 You can also provide any of the normal query parameters you normally would with `craft.navigation.nodes()`.

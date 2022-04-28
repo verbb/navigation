@@ -1,5 +1,4 @@
 # Nav
-
 A `Nav` object contains multiple navigation nodes. Whenever you're dealing with a nav in your template, you have access to the following.
 
 ## Attributes

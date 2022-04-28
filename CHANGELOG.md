@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-beta.2 - Unreleased
+## 2.0.0-beta.3 - Unreleased
 
 ### Added
 - When editing nodes, you can now toggle the status of nodes, view trashed nodes, and restore nodes.
@@ -38,6 +38,26 @@
 ### Changed
 - Now requires PHP `^8.0.2`.
 - Now requires Craft `^4.0.0-beta.1`.
+
+## 1.4.26 - 2022-04-23
+
+### Fixed
+- Fix fetching element sources when rendering nodes (causing of many things, user temporary upload folders to be created) and improve performance.
+- Fix SQL query error when trying to restore trashed nodes for a nav.
+
+## 1.4.25 - 2022-04-06
+
+### Added
+- Add more error handling to navigation migrations.
+- Add `resave/navigation-nodes` CLI command to resave nodes in bulk.
+
+### Changed
+- Improve performance of `node->url`.
+
+### Fixed
+- Fix an error with Navee migration and parent nodes.
+- Fix `linkAttributes()` not merging in attributes defined in the control panel for the node, with template attributes
+- Fix an error when migrating navigations from A&M Nav or Navee regarding enabled sites.
 
 ## 1.4.24 - 2022-01-22
 

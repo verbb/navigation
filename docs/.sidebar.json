@@ -6,6 +6,7 @@
             "get-started/installation-setup",
             "get-started/requirements",
             "get-started/configuration",
+            "get-started/credit-thanks",
             "get-started/upgrading-from-v1"
         ]
     },
@@ -45,14 +46,6 @@
             "developers/events",
             "developers/extensibility",
             "developers/graphql"
-        ]
-    },
-    {
-        "title": "Support",
-        "collapsable": false,
-        "children": [
-            "support/get-support",
-            "support/credit-thanks"
         ]
     }
 ]
