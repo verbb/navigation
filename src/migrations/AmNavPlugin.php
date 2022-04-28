@@ -136,7 +136,7 @@ class AmNavPlugin extends Migration
                     $node = Navigation::$plugin->getNodes()->getNodeById($nodeInfo['newNode'], $nodeInfo['siteId']);
 
                     if ($node) {
-                        $node->newParentId = $newParent['newNode'];
+                        $node->parentId = $newParent['newNode'];
 
                         if (Craft::$app->getElements()->saveElement($node, true, $this->propagate)) {
                             echo "    > Migrated node `{$node['title']}` ...\n";

@@ -103,7 +103,7 @@ class NodesController extends Controller
         $node->data = Json::decodeIfJson($request->getParam("{$prefix}data")) ?? $node->data;
         $node->newWindow = (bool)$request->getParam("{$prefix}newWindow", $node->newWindow);
 
-        $node->newParentId = $request->getParam("{$prefix}parentId");
+        $node->parentId = $request->getParam("{$prefix}parentId");
 
         // Set field values.
         $node->setFieldValuesFromRequest('fields');

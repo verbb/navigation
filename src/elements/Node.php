@@ -261,7 +261,6 @@ class Node extends Element
     public bool $newWindow = false;
 
     public ?string $uri = null;
-    public ?int $newParentId = null;
     public ?bool $deletedWithNav = false;
 
     private ?string $_url = null;
@@ -973,7 +972,7 @@ class Node extends Element
 
         // Must be included to allow `setAttributes()` to work, and treat it as safe. This is so the element
         // slide-out can update the type for draft-changes.
-        $rules[] = [['linkedElementId', 'url', 'urlSuffix', 'classes', 'newWindow', 'customAttributes', 'type', 'data', 'parentId', 'newParentId'], 'safe'];
+        $rules[] = [['linkedElementId', 'url', 'urlSuffix', 'classes', 'newWindow', 'customAttributes', 'type', 'data', 'parentId'], 'safe'];
 
         return $rules;
     }
@@ -1136,11 +1135,12 @@ EOD;
 
     private function _placeInStructure(bool $isNew, Nav $nav): void
     {
+        $parentId = $this->getParentId();
         $structuresService = Craft::$app->getStructures();
 
         $mode = $isNew ? Structures::MODE_INSERT : Structures::MODE_AUTO;
 
-        if (!$this->newParentId) {
+        if (!$parentId) {
             if ($nav->defaultPlacement === Nav::DEFAULT_PLACEMENT_BEGINNING) {
                 $structuresService->prependToRoot($this->structureId, $this, $mode);
             } else {
