@@ -264,7 +264,7 @@ class Navs extends Component
                 $siteId = $siteIdMap[$siteUid] ?? null;
 
                 // In case there's site data for a site no longer there. Legacy data that should be removed
-                if (!$siteId) {
+                if (!$siteId || !$siteSettings) {
                     continue;
                 }
 
