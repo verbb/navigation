@@ -20,6 +20,9 @@
 - Changed `Node::isManual()` to `Node::isCustom()`.
 - Custom URL nodes are now a Node Type - `verbb\navigation\nodetypes\CustomType`.
 
+### Fixed
+- Fix some scenarios in the navigation builder, when you were unable to nest nodes under another node, or be able to un-nest.
+
 ### Removed
 - Removed `NodeType::hasClasses()` and `NodeType::hasAttributes()` which are now controlled by native fields.
 

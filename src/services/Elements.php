@@ -85,7 +85,7 @@ class Elements extends Component
 
         $this->trigger(self::EVENT_REGISTER_NAVIGATION_ELEMENT, $event);
 
-        $elementIndexes = Craft::$app->getElementIndexes();
+        $elementIndexes = Craft::$app->getElementSources();
 
         // For performance, only include element sources if we require them. They also do unexpected things
         // as they're element indexes (like for assets, creating user upload directories)
