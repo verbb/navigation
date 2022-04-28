@@ -31,6 +31,11 @@ abstract class NodeType extends Component implements NodeTypeInterface
         return false;
     }
 
+    public static function getColor(): string
+    {
+        return '#888888';
+    }
+
 
     // Properties
     // =========================================================================

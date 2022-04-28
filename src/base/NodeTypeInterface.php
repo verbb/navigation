@@ -16,9 +16,13 @@ interface NodeTypeInterface extends ComponentInterface
 
     public static function hasNewWindow(): bool;
 
+    public static function getColor(): string;
+
 
     // Public Methods
     // =========================================================================
+
+    public function getModalHtml(): ?string;
 
     public function getSettingsHtml(): ?string;
 

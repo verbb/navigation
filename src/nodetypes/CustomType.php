@@ -30,6 +30,11 @@ class CustomType extends NodeType
         return true;
     }
 
+    public static function getColor(): string
+    {
+        return '#0d78f2';
+    }
+
 
     // Public Methods
     // =========================================================================

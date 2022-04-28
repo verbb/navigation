@@ -198,6 +198,8 @@
 
     // Node Types
     .node-type {
+        --node-type-color: 136, 136, 136;
+
         font-size: 10px;
         font-weight: 500;
         text-transform: uppercase;
@@ -210,45 +212,9 @@
         padding: 4px 6px;
         border-radius: 4px;
         border: 1px solid transparent;
-        color: #888;
-        background: rgba(#888, 0.05);
-        border-color: rgba(#888, 0.25);
-    }
-
-    .node-type .node-type-entry {
-        color: #5e5378;
-        background: rgba(#5e5378, 0.05);
-        border-color: rgba(#5e5378, 0.25);
-    }
-
-    .node-type .node-type-asset {
-        color: #e12d39;
-        background: rgba(#e12d39, 0.05);
-        border-color: rgba(#da5a47, 0.25);
-    }
-
-    .node-type .node-type-category {
-        color: #1BB311;
-        background: rgba(#1BB311, 0.05);
-        border-color: rgba(#1BB311, 0.25);
-    }
-
-    .node-type .node-type-passive-type {
-        color: #fe7d02;
-        background: rgba(#fe7d02, 0.05);
-        border-color: rgba(#fe7d02, 0.25);
-    }
-
-    .node-type .node-type-site-type {
-        color: #737df8;
-        background: rgba(#737df8, 0.05);
-        border-color: rgba(#737df8, 0.25);
-    }
-
-    .node-type .node-type-custom-type {
-        color: #0d78f2;
-        background: rgba(#0d78f2, 0.05);
-        border-color: rgba(#0d78f2, 0.25);
+        color: rgba(var(--node-type-color), 1);
+        background: rgba(var(--node-type-color), 0.05);
+        border-color: rgba(var(--node-type-color), 0.25);
     }
 }
 

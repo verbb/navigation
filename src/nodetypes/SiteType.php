@@ -30,6 +30,11 @@ class SiteType extends NodeType
         return false;
     }
 
+    public static function getColor(): string
+    {
+        return '#737df8';
+    }
+
 
     // Public Methods
     // =========================================================================

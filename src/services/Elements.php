@@ -43,6 +43,7 @@ class Elements extends Component
                 'type' => Entry::class,
                 'sources' => Craft::$app->getElementSources()->getSources(Entry::class, 'modal'),
                 'default' => true,
+                'color' => '#5e5378',
             ],
             [
                 'label' => Craft::t('site', Category::pluralDisplayName()),
@@ -50,6 +51,7 @@ class Elements extends Component
                 'type' => Category::class,
                 'sources' => Craft::$app->getElementSources()->getSources(Category::class, 'modal'),
                 'default' => true,
+                'color' => '#1BB311',
             ],
             [
                 'label' => Craft::t('site', Asset::pluralDisplayName()),
@@ -57,6 +59,7 @@ class Elements extends Component
                 'type' => Asset::class,
                 'sources' => Craft::$app->getElementSources()->getSources(Asset::class, 'modal'),
                 'default' => true,
+                'color' => '#e12d39',
             ],
         ];
 

@@ -24,6 +24,7 @@ use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
 use craft\elements\db\ElementQuery;
+use craft\fields\data\ColorData;
 use craft\helpers\App;
 use Craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
@@ -558,17 +559,48 @@ class Node extends Element
         return array_pop($classNameParts);
     }
 
-    public function isElement(): bool
+    public function getTypeColor()
+    {
+        $color = '#888888';
+
+        try {
+            if ($this->isElement()) {
+                $registeredElementColor = $this->getRegisteredElement()['color'] ?? null;
+
+                if ($registeredElementColor) {
+                    $color = $registeredElementColor;
+                }
+            } else {
+                $color = $this->type::getColor();
+            }
+        } catch (Throwable $e) {
+            // This will throw an error if the class exists, but the plugin disabled/uninstalled,
+            // despite the check with `class_exists()` 
+        }
+
+        // Convert to rgb to play nice with opacity alterations
+        $colorData = new ColorData($color);
+        $color = "{$colorData->getRed()},{$colorData->getGreen()},{$colorData->getBlue()}";
+
+        return $color;
+    }
+
+    public function getRegisteredElement(): mixed
     {
         $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements();
 
         foreach ($registeredElements as $registeredElement) {
             if ($this->type == $registeredElement['type']) {
-                return true;
+                return $registeredElement;
             }
         }
 
-        return false;
+        return null;
+    }
+
+    public function isElement(): bool
+    {
+        return (bool)$this->getRegisteredElement();
     }
 
     public function isCustom(): bool
@@ -947,10 +979,13 @@ class Node extends Element
                 $classNameParts = explode('\\', $this->type);
                 $className = array_pop($classNameParts);
 
+                // Convert Hex to RGB
+                $color = '--node-type-color: ' . $this->getTypeColor() . ';';
+
                 $type = 'node-type-' . StringHelper::toKebabCase($className);
                 $item = Html::tag('span', $this->getTypeLabel(), ['class' => $type, 'title' => $this->url]);
 
-                return Html::tag('div', $item, ['class' => 'node-type']);
+                return Html::tag('div', $item, ['class' => 'node-type', 'style' => $color]);
             }
             case 'actions': {
                 $tags = Html::tag('a', null, ['class' => 'settings icon', 'title' => 'Settings']) . Html::tag('a', null, ['class' => 'delete icon', 'title' => 'Delete']);

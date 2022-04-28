@@ -29,4 +29,9 @@ class PassiveType extends NodeType
     {
         return false;
     }
+
+    public static function getColor(): string
+    {
+        return '#fe7d02';
+    }
 }
