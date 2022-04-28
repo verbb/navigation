@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0-beta.4 - 2022-04-28
+
+### Fixed
+- Fix an error when trying to set a new nodes parent.
+- Fix a nested node having its level reset when saving.
+- Fix another legacy site settings check.
+
 ## 2.0.0-beta.3 - 2022-04-28
 
 ### Added
