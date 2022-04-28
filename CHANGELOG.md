@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-beta.3 - Unreleased
+## 2.0.0-beta.3 - 2022-04-28
 
 ### Added
 - When editing nodes, you can now toggle the status of nodes, view trashed nodes, and restore nodes.
