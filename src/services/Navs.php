@@ -538,6 +538,16 @@ class Navs extends Component
                 ]
             ]));
         } else {
+            $nodesToDelete = [];
+
+            // Ensure we mark any nodes already in the new site to be deleted. This could happy due to
+            // maybe some PC leftover nodes, otherwise we end up with duplicates.
+            $existingNodes = Node::find()->navId($nav->id)->siteId($siteId)->all();
+
+            foreach ($existingNodes as $existingNode) {
+                $nodesToDelete[] = $existingNode;
+            }
+
             // Duplicate existing elements
             $nodes = Node::find()
                 ->navId($nav->id)
@@ -547,6 +557,10 @@ class Navs extends Component
                 ->all();
 
             $this->_duplicateElements($nodes, ['siteId' => $siteId]);
+
+            foreach ($nodesToDelete as $nodeToDelete) {
+                $elementsService->deleteElement($nodeToDelete);
+            }
         }
     }
 
