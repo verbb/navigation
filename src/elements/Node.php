@@ -163,7 +163,7 @@ class Node extends Element
         $context = $event->context;
         $elementHtml = $event->innerHtml;
 
-        if ($context !== 'index') {
+        if (($context !== 'index') || !($element instanceof self)) {
             return;
         }
 
