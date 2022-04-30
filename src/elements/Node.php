@@ -731,7 +731,7 @@ class Node extends Element
             $record->id = (int)$this->id;
         }
 
-        $record->elementId = (int)$this->elementId;
+        $record->elementId = $this->elementId;
         $record->navId = (int)$this->navId;
         $record->url = $this->getRawUrl();
         $record->type = $this->type;
