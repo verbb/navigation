@@ -175,6 +175,11 @@
     }
 
     // Info Icons
+    table.data .node-info-icons {
+        display: inline-flex;
+        align-items: baseline;
+    }
+
     table.data .node-info-icons .fa {
         font-size: 11px;
     }
