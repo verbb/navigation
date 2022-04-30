@@ -34,6 +34,7 @@ class Install extends Migration
 
     public function createTables(): void
     {
+        $this->archiveTableIfExists('{{%navigation_nodes}}');
         $this->createTable('{{%navigation_nodes}}', [
             'id' => $this->integer()->notNull(),
             'elementId' => $this->integer(),
@@ -53,6 +54,7 @@ class Install extends Migration
             'PRIMARY KEY(id)',
         ]);
 
+        $this->archiveTableIfExists('{{%navigation_navs}}');
         $this->createTable('{{%navigation_navs}}', [
             'id' => $this->primaryKey(),
             'structureId' => $this->integer()->notNull(),
@@ -71,6 +73,7 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%navigation_navs_sites}}');
         $this->createTable('{{%navigation_navs_sites}}', [
             'id' => $this->primaryKey(),
             'navId' => $this->integer()->notNull(),
