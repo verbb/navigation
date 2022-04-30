@@ -8,10 +8,14 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Json;
 
-use craft\feedme\base\Element;
 use craft\feedme\Plugin;
+use craft\feedme\base\Element;
+use craft\feedme\events\FeedProcessEvent;
+use craft\feedme\services\Process;
 
 use Cake\Utility\Hash;
+
+use yii\base\Event;
 
 class NodeFeedMeElement extends Element
 {
@@ -46,6 +50,17 @@ class NodeFeedMeElement extends Element
     // Public Methods
     // =========================================================================
 
+    public function init(): void
+    {
+        parent::init();
+
+        Event::on(Process::class, Process::EVENT_STEP_AFTER_ELEMENT_SAVE, function(FeedProcessEvent $event): void {
+            if ($event->feed['elementType'] === Node::class) {
+                $this->_processNestedNode($event);
+            }
+        });
+    }
+
     public function getGroups(): array
     {
         return Navigation::$plugin->getNavs()->getAllNavs();
@@ -77,63 +92,98 @@ class NodeFeedMeElement extends Element
         return $this->element;
     }
 
-    public function afterSave($data, $settings): void
-    {
-        $parent = Hash::get($data, 'parent');
-
-        if ($parent && $parent !== $this->element->id) {
-            $parentNode = Node::findOne(['id' => $parent]);
-
-            Craft::$app->getStructures()->append($this->element->nav->structureId, $this->element, $parentNode);
-        }
-    }
-
 
     // Protected Methods
     // =========================================================================
 
-    protected function parseParent($feedData, $fieldInfo): ?int
+    protected function parseParentId($feedData, $fieldInfo): ?int
     {
         $value = $this->fetchSimpleValue($feedData, $fieldInfo);
 
+        // In Craft 4, we need to explicitly call `setParentId()`, as it's no longer a property
+        // only available as a setter method.
+        $this->element->setParentId($value);
+
+        return $value;
+    }
+
+    protected function parseElementId($feedData, $fieldInfo): ?int
+    {
+        $value = $this->fetchSimpleValue($feedData, $fieldInfo);
         $match = Hash::get($fieldInfo, 'options.match');
-        $create = Hash::get($fieldInfo, 'options.create');
 
         // Element lookups must have a value to match against
         if ($value === null || $value === '') {
             return null;
         }
 
-        $query = Node::find()
-            ->status(null)
-            ->andWhere(['=', $match, $value]);
+        $elementId = null;
 
-        if (isset($this->feed['siteId']) && $this->feed['siteId']) {
-            $query->siteId($this->feed['siteId']);
+        // Because we can match on element attributes and custom fields, AND we're directly using SQL
+        // queries in our `where` below, we need to check if we need a prefix for custom fields accessing
+        // the content table.
+        $columnName = $match;
+
+        if (Craft::$app->getFields()->getFieldByHandle($match)) {
+            $columnName = Craft::$app->getFields()->oldFieldColumnPrefix . $match;
         }
 
-        $element = $query->one();
+        $result = (new Query())
+            ->select(['elements.id', 'elements_sites.elementId'])
+            ->from(['{{%elements}} elements'])
+            ->innerJoin('{{%elements_sites}} elements_sites', '[[elements_sites.elementId]] = [[elements.id]]')
+            ->innerJoin('{{%content}} content', '[[content.elementId]] = [[elements.id]]')
+            ->where(['=', $columnName, $value])
+            ->andWhere(['dateDeleted' => null])
+            ->one();
 
-        if ($element) {
-            return $element->id;
+        if ($result) {
+            $elementId = $result['id'];
         }
 
-        // Check if we should create the element. But only if title is provided (for the moment)
-        if ($create && $match === 'title') {
-            $element = new Node();
-            $element->title = $value;
-            $element->navId = $this->element->navId;
-
-            if (!Craft::$app->getElements()->saveElement($element)) {
-                Plugin::error('Navigation Node error: Could not create parent - `{e}`.', ['e' => Json::encode($element->getErrors())]);
-            } else {
-                Plugin::info('Navigation Node `#{id}` added.', ['id' => $element->id]);
-            }
-
-            return $element->id;
+        if ($elementId) {
+            return $elementId;
         }
 
         return null;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _processNestedNode($event): void
+    {
+        // Save the imported node as the parent, we'll need it in a sec
+        $parentId = $event->element->id;
+
+        // Check if we're mapping a node to start looking for children.
+        $childrenNode = Hash::get($event->feed, 'fieldMapping.children.node');
+
+        if (!$childrenNode) {
+            return;
+        }
+
+        // Check if there's any children data for the node we've just imported
+        $expandedData = Hash::expand($event->feedData, '/');
+        $childrenData = Hash::get($expandedData, $childrenNode, []);
+
+        foreach ($childrenData as $childData) {
+            // Prep the data, cutting the nested content to the top of the array
+            $newFeedData = Hash::flatten($childData, '/');
+
+            $processedElementIds = [];
+
+            // Directly modify the field mapping data, because we're programatically adding
+            // the `parentId`, which cannot be mapped.
+            $event->feed['fieldMapping']['parentId'] = [
+                'attribute' => true,
+                'default' => $parentId,
+            ];
+
+            // Trigger the import for each child
+            Plugin::$plugin->getProcess()->processFeed(-1, $event->feed, $processedElementIds, $newFeedData);
+        }
     }
 
 }

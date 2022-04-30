@@ -7,11 +7,6 @@
     {% set nav = craft.navigation.getNavById(navId) %}
 {% endif %}
 
-{% set nodes = [{ label: 'Don\'t import', value: '' }] %}
-{% for node in craft.navigation.nodes.all() %}
-    {% set nodes = nodes | merge([{ label: node.title | slice(0, 40), value: node.id }]) %}
-{% endfor %}
-
 {% set types = [{ label: 'Don\'t import', value: '' }] %}
 
 {% for tab in craft.navigation.getRegisteredElements() %}
@@ -34,6 +29,14 @@
     default: {
         type: 'select',
         options: types,
+    },
+}, {
+    type: 'element',
+    name: 'Element',
+    handle: 'elementId',
+    instructions: 'The element this node links to.' | t('feed-me'),
+    default: {
+        type: 'text',
     },
 }, {
     name: 'URL',
@@ -60,14 +63,10 @@
         type: 'text',
     },
 }, {
-    type: 'nodes',
-    name: 'Parent',
-    handle: 'parent',
-    instructions: 'Select a parent node to import these nodes under.' | t('feed-me'),
-    default: {
-        type: 'select',
-        options: nodes,
-    },    
+    type: 'nested-node',
+    name: 'Children',
+    handle: 'children',
+    instructions: 'The starting node for nested child nodes.'|t('feed-me'),
 }, {
     name: 'Status',
     handle: 'enabled',
@@ -102,7 +101,10 @@
             {% set template = field.type ?? 'default' %}
             {% set variables = field | merge({ feed: feed, feedData: feedData, attribute: true }) %}
 
-            {% include 'feed-me/_includes/fields/' ~ template ignore missing with variables only %}
+            {% include [
+                'navigation/_integrations/feed-me/fields/' ~ template,
+                'feed-me/_includes/fields/' ~ template
+            ] ignore missing with variables only %}
         {% endfor %}
     </tbody>
 </table>
@@ -124,7 +126,7 @@
                 <th>{{ 'Default Value' | t('feed-me') }}</th>
             </thead>
             <tbody>
-                {% for layoutField in tab.getFields() %}
+                {% for layoutField in tab.getElements() | filter(e => e is instance of('craft\\fieldlayoutelements\\CustomField')) %}
                     {% set field = layoutField.getField() %}
                     {% set fieldClass = craft.feedme.fields.getRegisteredField(className(field)) %}
                     {% set template = fieldClass.getMappingTemplate() %}
@@ -145,7 +147,7 @@
 <p>{{ "Select the fields you want to use to check for existing elements. When selected, Feed Me will look for existing elements that match the fields provided below and either update, or skip depending on your choice of Import Strategy." | t('feed-me') }}</p>
 
 {% for tab in tabs %}
-    {% for layoutField in tab.getFields() %}
+    {% for layoutField in tab.getElements() | filter(e => e is instance of('craft\\fieldlayoutelements\\CustomField')) %}
         {% set field = layoutField.getField() %}
         {% set fields = fields | merge([{ name: field.name, handle: field.handle, type: className(field) }]) %}
     {% endfor %}
