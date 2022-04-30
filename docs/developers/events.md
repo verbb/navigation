@@ -62,10 +62,11 @@ Event::on(Navs::class, Navs::EVENT_AFTER_DELETE_NAV, function(NavEvent $e) {
 Plugins can get notified before a node is saved. Event handlers can prevent the node from getting sent by setting `$event->isValid` to false.
 
 ```php
+use craft\events\ModelEvent;
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Node::class, Node::EVENT_BEFORE_SAVE, function(Event $e) {
+Event::on(Node::class, Node::EVENT_BEFORE_SAVE, function(ModelEvent $e) {
     $node = $e->sender;
     $e->isValid = false;
 });
@@ -75,10 +76,11 @@ Event::on(Node::class, Node::EVENT_BEFORE_SAVE, function(Event $e) {
 Plugins can get notified after a node has been saved
 
 ```php
+use craft\events\ModelEvent;
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Node::class, Node::EVENT_AFTER_SAVE, function(Event $e) {
+Event::on(Node::class, Node::EVENT_AFTER_SAVE, function(ModelEvent $e) {
     $node = $e->sender;
 });
 ```
