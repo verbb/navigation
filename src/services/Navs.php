@@ -642,33 +642,6 @@ class Navs extends Component
         return $tabs;
     }
 
-    public function resaveNodesForSite($nav, $siteId): void
-    {
-        $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
-
-        // Only propagate nodes if we want to for the nav
-        if ($nav->propagateNodes) {
-            $nodes = Node::find()->navId($nav->id)->siteId($primarySiteId)->ids();
-
-            Craft::$app->getQueue()->push(new ResaveElements([
-                'elementType' => Node::class,
-                'criteria' => [
-                    'id' => $nodes,
-                ],
-            ]));
-        } else {
-            // Duplicate existing elements
-            $nodes = Node::find()
-                ->navId($nav->id)
-                ->siteId($primarySiteId)
-                ->level(1)
-                ->orderBy(['structureelements.lft' => SORT_ASC])
-                ->all();
-
-            $this->_duplicateElements($nodes, ['siteId' => $siteId]);
-        }
-    }
-
 
     // Private Methods
     // =========================================================================
