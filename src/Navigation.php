@@ -12,6 +12,7 @@ use verbb\navigation\fieldlayoutelements\UrlSuffixField;
 use verbb\navigation\gql\interfaces\NodeInterface;
 use verbb\navigation\gql\queries\NodeQuery;
 use verbb\navigation\helpers\Gql as GqlHelper;
+use verbb\navigation\helpers\ProjectConfigData;
 use verbb\navigation\integrations\NodeFeedMeElement;
 use verbb\navigation\models\Settings;
 use verbb\navigation\services\Navs;
@@ -27,6 +28,7 @@ use craft\console\controllers\ResaveController;
 use craft\events\ConfigEvent;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\DefineFieldLayoutFieldsEvent;
+use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlSchemaComponentsEvent;
@@ -40,6 +42,7 @@ use craft\models\FieldLayout;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gql;
+use craft\services\ProjectConfig;
 use craft\services\Sites;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
@@ -182,6 +185,10 @@ class Navigation extends Plugin
         Craft::$app->getProjectConfig()->onAdd(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleChangedNav'])
             ->onUpdate(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleChangedNav'])
             ->onRemove(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleDeletedNav']);
+
+        Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
+            $event->config['navigation'] = ProjectConfigData::rebuildProjectConfig();
+        });
     }
 
     private function _registerFieldTypes(): void
