@@ -7,12 +7,11 @@ use verbb\navigation\services\Elements;
 use verbb\navigation\services\Navs;
 use verbb\navigation\services\Nodes;
 use verbb\navigation\services\NodeTypes;
+use verbb\base\BaseHelper;
 
 use Craft;
 
 use yii\log\Logger;
-
-use verbb\base\BaseHelper;
 
 trait PluginTrait
 {
@@ -25,13 +24,17 @@ trait PluginTrait
     // Static Methods
     // =========================================================================
 
-    public static function log($message): void
+    public static function log(string $message, array $params = []): void
     {
+        $message = Craft::t('navigation', $message, $params);
+
         Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'navigation');
     }
 
-    public static function error($message): void
+    public static function error(string $message, array $params = []): void
     {
+        $message = Craft::t('navigation', $message, $params);
+
         Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'navigation');
     }
 
@@ -68,7 +71,7 @@ trait PluginTrait
     // Private Methods
     // =========================================================================
 
-    private function _setPluginComponents(): void
+    private function _registerComponents(): void
     {
         $this->setComponents([
             'breadcrumbs' => Breadcrumbs::class,
@@ -81,7 +84,7 @@ trait PluginTrait
         BaseHelper::registerModule();
     }
 
-    private function _setLogging(): void
+    private function _registerLogTarget(): void
     {
         BaseHelper::setFileLogging('navigation');
     }
