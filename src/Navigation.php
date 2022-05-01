@@ -21,8 +21,9 @@ use verbb\navigation\variables\NavigationVariable;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
-use craft\console\controllers\ResaveController;
+use craft\console\Application as ConsoleApplication;
 use craft\console\Controller as ConsoleController;
+use craft\console\controllers\ResaveController;
 use craft\events\ConfigEvent;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\DefineFieldLayoutFieldsEvent;
@@ -286,6 +287,10 @@ class Navigation extends Plugin
 
     private function _registerResaveCommand()
     {
+        if (!Craft::$app instanceof ConsoleApplication) {
+            return;
+        }
+        
         Event::on(ResaveController::class, ConsoleController::EVENT_DEFINE_ACTIONS, function(DefineConsoleActionsEvent $event) {
             $event->actions['navigation-nodes'] = [
                 'action' => function(): int {
