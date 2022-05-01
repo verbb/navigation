@@ -86,16 +86,20 @@ class Navigation extends Plugin
         $this->_registerTwigExtensions();
         $this->_registerFieldTypes();
         $this->_registerElementTypes();
-        $this->_registerPermissions();
         $this->_registerGraphQl();
         $this->_registerFeedMeSupport();
-        $this->_defineResaveCommand();
-        $this->_registerFieldLayoutListener();
 
-        $request = Craft::$app->getRequest();
-
-        if ($request->getIsCpRequest()) {
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpRoutes();
+            $this->_registerFieldLayoutListener();
+        }
+
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            $this->_registerResaveCommand();
+        }
+
+        if (Craft::$app->getEdition() === Craft::Pro) {
+            $this->_registerPermissions();
         }
     }
 
@@ -280,12 +284,8 @@ class Navigation extends Plugin
         }
     }
 
-    private function _defineResaveCommand()
+    private function _registerResaveCommand()
     {
-        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
-            return;
-        }
-
         Event::on(ResaveController::class, ConsoleController::EVENT_DEFINE_ACTIONS, function(DefineConsoleActionsEvent $event) {
             $event->actions['navigation-nodes'] = [
                 'action' => function(): int {
