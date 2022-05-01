@@ -25,7 +25,7 @@ class NodeFeedMeElement extends Element
     public static string $name = 'Navigation Node';
     public static string $class = Node::class;
 
-    public ?ElementInterface $element = null;
+    public $element = null;
 
 
     // Templates
