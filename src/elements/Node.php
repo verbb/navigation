@@ -411,22 +411,11 @@ class Node extends Element
     public function getUrl($includeSuffix = true): ?string
     {
         if ($this->nodeType()) {
-            return $this->nodeType()->getUrl();
-        }
-
-        $url = $this->_url;
-
-        if (!$url) {
+            $url = $this->nodeType()->getUrl();
+        } else if ($this->isElement()) {
             $url = $this->getElementUrl();
-        }
-
-        // Parse aliases and env variables
-        $url = App::parseEnv($url);
-
-        // Allow twig support
-        if ($url && strstr($url, '{')) {
-            $object = $this->_getObject();
-            $url = Craft::$app->getView()->renderObjectTemplate($url, $object);
+        } else {
+            $url = $this->getRawUrl();
         }
 
         if ($this->urlSuffix && $includeSuffix) {
