@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.0-beta.5 - 2022-05-03
+
+### Added
+- Add nested node support for Feed Me.
+- Add checks for registering events for performance.
+- Add `project-config/rebuild` support.
+- Add `archiveTableIfExists()` to install migration.
+
+### Changed
+- Rename base plugin methods.
+- Support new `DefineElementInnerHtmlEvent` event for modifying element index html.
+
+### Fixed
+- Fix custom node’s URLs being blank.
+- Fix an error with Feed Me beta.
+- Fix icon aligment for node table rows.
+- Fix being unable to save non-element type nodes.
+- Fix lack of checking for node element in some places.
+
 ## 2.0.0-beta.4 - 2022-04-28
 
 ### Fixed
