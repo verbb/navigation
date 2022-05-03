@@ -15,7 +15,7 @@
 ### Fixed
 - Fix custom node’s URLs being blank.
 - Fix an error with Feed Me beta.
-- Fix icon aligment for node table rows.
+- Fix icon alignment for node table rows.
 - Fix being unable to save non-element type nodes.
 - Fix lack of checking for node element in some places.
 
