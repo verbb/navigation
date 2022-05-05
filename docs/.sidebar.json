@@ -15,7 +15,7 @@
         "collapsable": false,
         "children": [
             "feature-tour/overview",
-            "feature-tour/am-nav-migration",
+            "feature-tour/a-m-nav-migration",
             "feature-tour/navee-migration"
         ]
     },
