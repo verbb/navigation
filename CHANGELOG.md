@@ -1,32 +1,6 @@
 # Changelog
 
-## 2.0.0-beta.5 - 2022-05-03
-
-### Added
-- Add nested node support for Feed Me.
-- Add checks for registering events for performance.
-- Add `project-config/rebuild` support.
-- Add `archiveTableIfExists()` to install migration.
-
-### Changed
-- Rename base plugin methods.
-- Support new `DefineElementInnerHtmlEvent` event for modifying element index html.
-
-### Fixed
-- Fix custom node’s URLs being blank.
-- Fix an error with Feed Me beta.
-- Fix icon alignment for node table rows.
-- Fix being unable to save non-element type nodes.
-- Fix lack of checking for node element in some places.
-
-## 2.0.0-beta.4 - 2022-04-28
-
-### Fixed
-- Fix an error when trying to set a new nodes parent.
-- Fix a nested node having its level reset when saving.
-- Fix another legacy site settings check.
-
-## 2.0.0-beta.3 - 2022-04-28
+## 2.0.0 - 2022-05-06
 
 ### Added
 - When editing nodes, you can now toggle the status of nodes, view trashed nodes, and restore nodes.
@@ -34,8 +8,15 @@
 - When editing nodes, you can now add UI elements to node layouts.
 - Added the ability to set the default placement of new nodes, when adding them to a navigation.
 - Added the ability to set the color for custom nodes and registered elements, which show as the color indicator on the type of node in the navigation builder.
+- Add nested node support for Feed Me.
+- Add checks for registering events for performance.
+- Add `project-config/rebuild` support.
+- Add `archiveTableIfExists()` to install migration.
 
 ### Changed
+- Now requires PHP `8.0.2+`.
+- Now requires Craft `4.0.0+`.
+- Now requires Navigation `1.4.24` in order to update from Craft 3.
 - Redesigned UI for editing navigation nodes.
 - When editing nodes, toggling the site is much quicker.
 - When editing nodes, we now lazy-load collapsed nodes to improve performance.
@@ -45,28 +26,26 @@
 - When editing nodes, URL Suffix, Classes and Custom Attributes are now in an "Advanced" tab.
 - Changed `Node::isManual()` to `Node::isCustom()`.
 - Custom URL nodes are now a Node Type - `verbb\navigation\nodetypes\CustomType`.
-
-### Fixed
-- Fix some scenarios in the navigation builder, when you were unable to nest nodes under another node, or be able to un-nest.
-
-### Removed
-- Removed `NodeType::hasClasses()` and `NodeType::hasAttributes()` which are now controlled by native fields.
-
-## 2.0.0-beta.2 - 2022-03-24
-
-### Changed
-- Now requires Navigation `1.4.24` in order to update from Craft 3.
+- Rename base plugin methods.
+- Support new `DefineElementInnerHtmlEvent` event for modifying element index html.
 
 ### Fixed
 - Fix an error with GraphQL.
 - Fix an error with incorrect NodeType casting.
 - Fix an error if Commerce is is enabled, but doesn’t exist.
+- Fix some scenarios in the navigation builder, when you were unable to nest nodes under another node, or be able to un-nest.
+- Fix an error when trying to set a new nodes parent.
+- Fix a nested node having its level reset when saving.
+- Fix another legacy site settings check.
+- Fix custom node’s URLs being blank.
+- Fix an error with Feed Me beta.
+- Fix icon alignment for node table rows.
+- Fix being unable to save non-element type nodes.
+- Fix lack of checking for node element in some places.
+- Fix an error when trying to create a navigation on a non-multi-site.
 
-## 2.0.0-beta.1 - 2022-03-10
-
-### Changed
-- Now requires PHP `^8.0.2`.
-- Now requires Craft `^4.0.0-beta.1`.
+### Removed
+- Removed `NodeType::hasClasses()` and `NodeType::hasAttributes()` which are now controlled by native fields.
 
 ## 1.4.26 - 2022-04-23
 
