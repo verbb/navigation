@@ -189,14 +189,11 @@ class NavsController extends Controller
         foreach (Craft::$app->getSites()->getAllSites() as $site) {
             $postedSettings = $request->getBodyParam('sites.' . $site->handle);
 
-            // Skip disabled sites if this is a multi-site install
-            if (Craft::$app->getIsMultiSite() && empty($postedSettings['enabled'])) {
-                continue;
-            }
-
             $siteSettings = new Nav_SiteSettings();
             $siteSettings->siteId = $site->id;
-            $siteSettings->enabled = $postedSettings['enabled'];
+
+            // Enabled by default, particularly for non-multi-sites
+            $siteSettings->enabled = $postedSettings['enabled'] ?? true;
 
             $allSiteSettings[$site->id] = $siteSettings;
         }
