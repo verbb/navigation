@@ -62,7 +62,18 @@ class NavigationVariable
 
     public function render($criteria = null, array $options = []): Markup
     {
-        $nodes = $this->nodes($criteria)->all();
+        $query = $this->nodes($criteria);
+
+        // Add eager-loading in by default. Generate a map for `children.children.children.etc`
+        $eagerLoadingMap = [];
+
+        for ($i = 1; $i < 8; $i++) { 
+            $eagerLoadingMap[] = rtrim(str_repeat('children.', $i), '.');
+        }
+
+        $query->with($eagerLoadingMap);
+
+        $nodes = $query->all();
 
         $template = Craft::$app->getView()->renderTemplate('navigation/_special/render', [
             'nodes' => $nodes,
