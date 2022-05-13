@@ -31,7 +31,7 @@ class Elements extends Component
         $elements = [
             [
                 'label' => Craft::t('site', Entry::pluralDisplayName()),
-                'button' => Craft::t('site', 'Add an Entry'),
+                'button' => Craft::t('navigation', 'Add an Entry'),
                 'type' => Entry::class,
                 'sources' => [],
                 'default' => true,
@@ -39,7 +39,7 @@ class Elements extends Component
             ],
             [
                 'label' => Craft::t('site', Category::pluralDisplayName()),
-                'button' => Craft::t('site', 'Add a Category'),
+                'button' => Craft::t('navigation', 'Add a Category'),
                 'type' => Category::class,
                 'sources' => [],
                 'default' => true,
@@ -47,7 +47,7 @@ class Elements extends Component
             ],
             [
                 'label' => Craft::t('site', Asset::pluralDisplayName()),
-                'button' => Craft::t('site', 'Add an Asset'),
+                'button' => Craft::t('navigation', 'Add an Asset'),
                 'type' => Asset::class,
                 'sources' => [],
                 'default' => true,
@@ -58,7 +58,7 @@ class Elements extends Component
         if (Craft::$app->getPlugins()->isPluginEnabled('commerce') && class_exists(Product::class)) {
             $elements[] = [
                 'label' => Craft::t('site', Product::pluralDisplayName()),
-                'button' => Craft::t('site', 'Add a Product'),
+                'button' => Craft::t('navigation', 'Add a Product'),
                 'type' => Product::class,
                 'sources' => [],
                 'default' => true,
@@ -72,7 +72,7 @@ class Elements extends Component
             if ($elementType::hasUris() && !in_array($elementType, $addedElementTypes)) {
                 $elements[] = [
                     'label' => Craft::t('site', $elementType::pluralDisplayName()),
-                    'button' => Craft::t('site', 'Add a {name}', ['name' => $elementType::displayName()]),
+                    'button' => Craft::t('navigation', 'Add a {name}', ['name' => $elementType::displayName()]),
                     'type' => $elementType,
                     'sources' => [],
                 ];
