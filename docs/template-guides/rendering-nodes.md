@@ -12,6 +12,7 @@ The easy option - let Navigation output the list items for you. This will genera
     liClass: 'nav-item',
     aClass: 'nav-link',
     activeClass: 'nav-active',
+    hasChildrenClass: 'nav-has-children',
     ulAttributes: {
         'data-attr': 'Some value',
     },

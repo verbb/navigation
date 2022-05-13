@@ -13,10 +13,16 @@
 {% set aAttributes = aAttributes | merge({ class: aClass }) %}
 
 {% set activeClass = options.activeClass ?? 'active' %}
+{% set hasChildrenClass = options.hasChildrenClass ?? 'has-children' %}
 
 <ul {{ attr(ulAttributes) }}>
     {% nav node in nodes %}
         {% set liClasses = liAttributes.class | merge([node.classes]) | filter %}
+
+        {% if node.children | length %}
+            {% set liClasses = liClasses | merge([hasChildrenClass]) %}
+        {% endif %}
+
         {% set liNodeAttributes = liAttributes | merge({ class: liClasses }) %}
 
         {% set aNodeAttributes = aAttributes | merge({
