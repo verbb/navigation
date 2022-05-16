@@ -400,7 +400,7 @@ class Node extends Element
             }
         }
 
-        return true;
+        return null;
     }
 
     public function getRawUrl(): ?string
