@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.1 - 2022-05-18
+
+### Added
+- Added `active`, `target` and `element` items to `buildNavTree`.
+- Added French translation (thanks @pascalminator).
+- Added `hasChildrenClass` setting to `navigation.render`. Now also includes a `nav-children` class on `<li>` elements that have children.
+
+### Changed
+- Using `navgation.render()` now uses eager-loading by default.
+- Move `Add a …` strings to `navigation` translation strings.
+
+### Fixed
+- Fixed missing instruction text when editing a navigation.
+- Fixed `node.hasActiveChild` returning `true` incorrectly.
+
 ## 2.0.0 - 2022-05-06
 
 ### Added
