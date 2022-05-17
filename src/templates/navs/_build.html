@@ -154,6 +154,14 @@
 
 {% block content %}
 
+{% if nav.instructions %}
+    <div id="js-navigation-nodes-instructions" class="hidden">
+        <div class="navigation-nodes-instructions">
+            <p>{{ nav.instructions | nl2br }}</p>
+        </div>
+    </div>
+{% endif %}
+
 <div id="navigation-nodes-index">
     <div id="sidebar-container" class="hidden">
         <div id="sidebar" class="sidebar">
