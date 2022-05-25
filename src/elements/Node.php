@@ -125,7 +125,7 @@ class Node extends Element
                 'data' => ['handle' => $nav->handle],
                 'criteria' => ['navId' => $nav->id],
                 'structureId' => $nav->structureId,
-                'structureEditable' => Craft::$app->getUser()->checkPermission("nav:$nav->uid"),
+                'structureEditable' => Craft::$app->getUser()->checkPermission("navigation-manageNav:$nav->uid"),
             ];
         }
 
