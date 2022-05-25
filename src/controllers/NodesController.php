@@ -56,7 +56,7 @@ class NodesController extends Controller
         $request = Craft::$app->getRequest();
         $nodesService = Navigation::$plugin->getNodes();
         $navId = $request->getRequiredParam('navId');
-        $siteId = $request->getRequiredParam('siteId');
+        $siteId = $request->getParam('siteId');
 
         $nodes = $nodesService->getNodesForNav($navId, $siteId);
 
