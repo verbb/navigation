@@ -54,7 +54,7 @@ Node queries support the following parameters:
 Narrows the query results to only nodes that are up to a certain distance away from the node specified by [ancestorOf](#ancestorof).
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes above this one #}
 {% set nodes = craft.navigation.nodes()
     .ancestorOf(node)
@@ -62,7 +62,7 @@ Narrows the query results to only nodes that are up to a certain distance away f
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes above this one
 $nodes = \verbb\navigation\elements\Node::find()
     ->ancestorOf($node)
@@ -85,14 +85,14 @@ Possible values include:
 | a [Node](docs:developers/node) object | above the node represented by the object.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes above this one #}
 {% set nodes = craft.navigation.nodes()
     .ancestorOf(node)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes above this one
 $nodes = \verbb\navigation\elements\Node::find()
     ->ancestorOf($node)
@@ -111,14 +111,14 @@ This can be combined with [ancestorDist](#ancestordist) if you want to limit how
 Clears out the [status()](https://docs.craftcms.com/api/v3/craft-elements-db-elementquery.html#method-status) and [enabledForSite()](https://docs.craftcms.com/api/v3/craft-elements-db-elementquery.html#method-enabledforsite) parameters.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all nodes, regardless of status #}
 {% set nodes = craft.navigation.nodes()
     .anyStatus()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all nodes, regardless of status
 $nodes = \verbb\navigation\elements\Node::find()
     ->anyStatus()
@@ -133,14 +133,14 @@ $nodes = \verbb\navigation\elements\Node::find()
 Causes the query to return matching nodes as arrays of data, rather than [Node](docs:developers/node) objects.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes as arrays #}
 {% set nodes = craft.navigation.nodes()
     .asArray()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes as arrays
 $nodes = \verbb\navigation\elements\Node::find()
     ->asArray()
@@ -163,7 +163,7 @@ Possible values include:
 | `['and', '>= 2018-04-04', '< 2018-05-01']` | that were created between 2018-04-01 and 2018-05-01.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes created last month #}
 {% set start = date('first day of last month') | atom %}
 {% set end = date('first day of this month') | atom %}
@@ -173,7 +173,7 @@ Possible values include:
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes created last month
 $start = new \DateTime('first day of next month')->format(\DateTime::ATOM);
 $end = new \DateTime('first day of this month')->format(\DateTime::ATOM);
@@ -199,7 +199,7 @@ Possible values include:
 | `['and', '>= 2018-04-04', '< 2018-05-01']` | that were updated between 2018-04-01 and 2018-05-01.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes updated in the last week #}
 {% set lastWeek = date('1 week ago')|atom %}
 
@@ -208,7 +208,7 @@ Possible values include:
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes updated in the last week
 $lastWeek = new \DateTime('1 week ago')->format(\DateTime::ATOM);
 
@@ -225,7 +225,7 @@ $nodes = \verbb\navigation\elements\Node::find()
 Narrows the query results to only nodes that are up to a certain distance away from the node specified by [descendantOf](#descendantof).
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes below this one #}
 {% set nodes = craft.navigation.nodes()
     .descendantOf(node)
@@ -233,7 +233,7 @@ Narrows the query results to only nodes that are up to a certain distance away f
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes below this one
 $nodes = \verbb\navigation\elements\Node::find()
     ->descendantOf($node)
@@ -256,14 +256,14 @@ Possible values include:
 | a [Node](docs:developers/node) object | below the node represented by the object.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes below this one #}
 {% set nodes = craft.navigation.nodes()
     .descendantOf(node)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes below this one
 $nodes = \verbb\navigation\elements\Node::find()
     ->descendantOf($node)
@@ -289,14 +289,14 @@ Possible values include:
 | `false` | whether they are enabled or not in the site.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all nodes, including ones disabled for this site #}
 {% set nodes = craft.navigation.nodes()
     .enabledForSite(false)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all nodes, including ones disabled for this site
 $nodes = \verbb\navigation\elements\Node::find()
     ->enabledForSite(false)
@@ -311,7 +311,7 @@ $nodes = \verbb\navigation\elements\Node::find()
 Causes the query results to be returned in the order specified by [id](#id).
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes in a specific order #}
 {% set nodes = craft.navigation.nodes()
     .id([1, 2, 3, 4, 5])
@@ -319,7 +319,7 @@ Causes the query results to be returned in the order specified by [id](#id).
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes in a specific order
 $nodes = \verbb\navigation\elements\Node::find()
     ->id([1, 2, 3, 4, 5])
@@ -337,14 +337,14 @@ Narrows the query results based on whether the nodes have any descendants.
 (This has the opposite effect of calling [leaves](#leaves).)
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes that have descendants #}
 {% set nodes = craft.navigation.nodes()
     .hasDescendants()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes that have descendants
 $nodes = \verbb\navigation\elements\Node::find()
     ->hasDescendants()
@@ -359,14 +359,14 @@ $nodes = \verbb\navigation\elements\Node::find()
 Narrows the query results based on whether the nodes have a URL.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes that have descendants #}
 {% set nodes = craft.navigation.nodes()
     .hasUrl()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes that have descendants
 $nodes = \verbb\navigation\elements\Node::find()
     ->hasUrl()
@@ -390,14 +390,14 @@ Possible values include:
 | `['not', 1, 2]` | not with an ID of 1 or 2.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch the node by its ID #}
 {% set node = craft.navigation.nodes()
     .id(1)
     .one() %}
 ```
 
-```php
+```php PHP
 // Fetch the node by its ID
 $node = \verbb\navigation\elements\Node::find()
     ->id(1)
@@ -416,14 +416,14 @@ This can be combined with [fixedOrder](#fixedorder) if you want the results to b
 Causes the query results to be returned in reverse order.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes in reverse #}
 {% set nodes = craft.navigation.nodes()
     .inReverse()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes in reverse
 $nodes = \verbb\navigation\elements\Node::find()
     ->inReverse()
@@ -440,14 +440,14 @@ Narrows the query results based on whether the nodes are “leaves” (nodes wit
 (This has the opposite effect of calling [hasDescendants](#hasdescendants).)
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes that have no descendants #}
 {% set nodes = craft.navigation.nodes()
     .leaves()
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes that have no descendants
 $nodes = \verbb\navigation\elements\Node::find()
     ->leaves()
@@ -472,14 +472,14 @@ Possible values include:
 | `['not', 1, 2]` | not with level of 1 or 2.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes positioned at level 3 or above #}
 {% set nodes = craft.navigation.nodes()
     .level('>= 3')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes positioned at level 3 or above
 $nodes = \verbb\navigation\elements\Node::find()
     ->level('>= 3')
@@ -494,14 +494,14 @@ $nodes = \verbb\navigation\elements\Node::find()
 Determines the number of nodes that should be returned.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch up to 10 nodes  #}
 {% set nodes = craft.navigation.nodes()
     .limit(10)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch up to 10 nodes
 $nodes = \verbb\navigation\elements\Node::find()
     ->limit(10)
@@ -523,14 +523,14 @@ Possible values include:
 | a [Node](docs:developers/node) object | after the node represented by the object.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch the next node #}
 {% set node = craft.navigation.nodes()
     .nextSiblingOf(node)
     .one() %}
 ```
 
-```php
+```php PHP
 // Fetch the next node
 $node = \verbb\navigation\elements\Node::find()
     ->nextSiblingOf($node)
@@ -545,14 +545,14 @@ $node = \verbb\navigation\elements\Node::find()
 Determines how many nodes should be skipped in the results.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all nodes except for the first 3 #}
 {% set nodes = craft.navigation.nodes()
     .offset(3)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all nodes except for the first 3
 $nodes = \verbb\navigation\elements\Node::find()
     ->offset(3)
@@ -567,14 +567,14 @@ $nodes = \verbb\navigation\elements\Node::find()
 Determines the order that the nodes should be returned in.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch all nodes in order of date created #}
 {% set nodes = craft.navigation.nodes()
     .orderBy('elements.dateCreated asc')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch all nodes in order of date created
 $nodes = \verbb\navigation\elements\Node::find()
     ->orderBy('elements.dateCreated asc')
@@ -596,14 +596,14 @@ Possible values include:
 | a [Node](docs:developers/node) object | after the node represented by the object.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes after this one #}
 {% set nodes = craft.navigation.nodes()
     .positionedAfter(node)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes after this one
 $nodes = \verbb\navigation\elements\Node::find()
     ->positionedAfter($node)
@@ -625,14 +625,14 @@ Possible values include:
 | a [Node](docs:developers/node) object | before the node represented by the object.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes before this one #}
 {% set nodes = craft.navigation.nodes()
     .positionedBefore(node)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes before this one
 $nodes = \verbb\navigation\elements\Node::find()
     ->positionedBefore($node)
@@ -654,14 +654,14 @@ Possible values include:
 | a [Node](docs:developers/node) object | before the node represented by the object.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch the previous node #}
 {% set node = craft.navigation.nodes()
     .prevSiblingOf(node)
     .one() %}
 ```
 
-```php
+```php PHP
 // Fetch the previous node
 $node = \verbb\navigation\elements\Node::find()
     ->prevSiblingOf($node)
@@ -683,14 +683,14 @@ Possible values include:
 | a [Node](docs:developers/node) object | beside the node represented by the object.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes beside this one #}
 {% set nodes = craft.navigation.nodes()
     .siblingOf(node)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes beside this one
 $nodes = \verbb\navigation\elements\Node::find()
     ->siblingOf($node)
@@ -714,14 +714,14 @@ Possible values include:
 | a `\craft\elements\db\Site` object | from the site represented by the object.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes from the Foo site #}
 {% set nodes = craft.navigation.nodes()
     .site('foo')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes from the Foo site
 $nodes = \verbb\navigation\elements\Node::find()
     ->site('foo')
@@ -738,14 +738,14 @@ Determines which site the nodes should be queried in, per the site’s ID.
 The current site will be used by default.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch nodes from the site with an ID of 1 #}
 {% set nodes = craft.navigation.nodes()
     .siteId(1)
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch nodes from the site with an ID of 1
 $nodes = \verbb\navigation\elements\Node::find()
     ->siteId(1)
@@ -770,14 +770,14 @@ Possible values include:
 | `['live', 'pending']` | that are live or pending.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch disabled nodes #}
 {% set nodes = {twig-function}
     .status('disabled')
     .all() %}
 ```
 
-```php
+```php PHP
 // Fetch disabled nodes
 $nodes = \verbb\navigation\elements\Node::find()
     ->status('disabled')
@@ -792,14 +792,14 @@ $nodes = \verbb\navigation\elements\Node::find()
 Narrows the query results based on the nodes’ UIDs.
 
 ::: code
-```twig
+```twig Twig
 {# Fetch the node by its UID #}
 {% set node = craft.navigation.nodes()
     .uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
     .one() %}
 ```
 
-```php
+```php PHP
 // Fetch the node by its UID
 $node = \verbb\navigation\elements\Node::find()
     ->uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
