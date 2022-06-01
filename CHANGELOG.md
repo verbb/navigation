@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.2 - 2022-06-01
+
+### Fixed
+- Fix an error when migrating non-multisites from Craft 3.
+- Fix incorect permission check for structure items, when editing nodes.
+- Fix an error when trying to fetch parent nodes for a non-multi-site install when editing nodes.
+
 ## 2.0.1 - 2022-05-18
 
 ### Added
