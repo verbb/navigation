@@ -3,6 +3,7 @@ namespace verbb\navigation\migrations;
 
 use craft\db\Migration;
 use craft\db\Query;
+use craft\helpers\Db;
 use craft\helpers\Json;
 
 class m220427_000000_navs_site_settings extends Migration
@@ -37,8 +38,6 @@ class m220427_000000_navs_site_settings extends Migration
             ->from('{{%sites}}')
             ->pairs($this->db);
 
-        $insert = [];
-
         foreach ($navs as $nav) {
             if (isset($nav['siteSettings'])) {
                 $siteSettings = Json::decode($nav['siteSettings']) ??[];
@@ -47,14 +46,16 @@ class m220427_000000_navs_site_settings extends Migration
                     $siteId = $sites[$siteUid] ?? null;
 
                     if ($siteId) {
-                        $insert[] = [$siteId, $nav['id'], (bool)$enabled];
+                        Db::upsert('{{%navigation_navs_sites}}', [
+                            'siteId' => $siteId,
+                            'navId' => $nav['id'],
+                            'enabled' => (bool)$enabled,
+                        ]);
                     }
                 }
             }
         }
 
-        $this->batchInsert('{{%navigation_navs_sites}}', ['siteId', 'navId', 'enabled'], $insert);
-        
         if ($this->db->columnExists('{{%navigation_navs}}', 'siteSettings')) {
             $this->dropColumn('{{%navigation_navs}}', 'siteSettings');
         }
