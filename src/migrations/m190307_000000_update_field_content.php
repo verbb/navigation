@@ -57,7 +57,7 @@ class m190307_000000_update_field_content extends Migration
                 $this->update('{{%content}}', [$column => $value], ['id' => $id], [], false);
             }
         }
-    
+
         return true;
     }
 

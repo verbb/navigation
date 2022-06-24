@@ -10,7 +10,7 @@ class m180827_000000_propagate_nav_setting_additional extends Migration
         if (!$this->db->columnExists('{{%navigation_navs}}', 'propagateNodes')) {
             $this->addColumn('{{%navigation_navs}}', 'propagateNodes', $this->boolean()->after('sortOrder')->notNull()->defaultValue(false));
         }
-    
+
         return true;
     }
 

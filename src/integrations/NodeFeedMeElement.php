@@ -56,9 +56,9 @@ class NodeFeedMeElement extends Element
             ->anyStatus()
             ->navId($settings['elementGroup'][Node::class])
             ->siteId(Hash::get($settings, 'siteId') ?: Craft::$app->getSites()->getPrimarySite()->id);
-        
+
         Craft::configure($query, $params);
-        
+
         return $query;
     }
 

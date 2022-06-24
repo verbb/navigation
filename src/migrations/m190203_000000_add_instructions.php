@@ -15,7 +15,7 @@ class m190203_000000_add_instructions extends Migration
         if (!$this->db->columnExists('{{%navigation_navs}}', 'instructions')) {
             $this->addColumn('{{%navigation_navs}}', 'instructions', $this->text()->after('handle'));
         }
-    
+
         return true;
     }
 

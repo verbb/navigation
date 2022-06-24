@@ -15,7 +15,7 @@ class m200108_000000_add_attributes extends Migration
         if (!$this->db->columnExists('{{%navigation_nodes}}', 'customAttributes')) {
             $this->addColumn('{{%navigation_nodes}}', 'customAttributes', $this->text()->after('classes'));
         }
-    
+
         return true;
     }
 

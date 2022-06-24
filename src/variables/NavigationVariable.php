@@ -59,14 +59,14 @@ class NavigationVariable
     {
         $nodes = $this->nodes($criteria)->all();
 
-        Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_CP);
+        Craft::$app->getView()->setTemplateMode(View::TEMPLATE_MODE_CP);
 
-        echo Craft::$app->view->renderTemplate('navigation/_special/render', [
+        echo Craft::$app->getView()->renderTemplate('navigation/_special/render', [
             'nodes' => $nodes,
             'options' => $options,
         ]);
         
-        Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_SITE);
+        Craft::$app->getView()->setTemplateMode(View::TEMPLATE_MODE_SITE);
     }
 
     public function breadcrumbs()

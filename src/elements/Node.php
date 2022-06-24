@@ -293,7 +293,7 @@ class Node extends Element
         $object = $this->_getObject();
 
         $classes = $this->classes ?
-            Craft::$app->view->renderObjectTemplate($this->classes, $object) : null;
+            Craft::$app->getView()->renderObjectTemplate($this->classes, $object) : null;
 
         $attributes = [
             'href' => $this->getUrl(),
@@ -307,7 +307,7 @@ class Node extends Element
                 $key = $attribute['attribute'];
                 $val = $attribute['value'];
 
-                $attributes[$key] = Craft::$app->view->renderObjectTemplate($val, $object);
+                $attributes[$key] = Craft::$app->getView()->renderObjectTemplate($val, $object);
             }
         }
 

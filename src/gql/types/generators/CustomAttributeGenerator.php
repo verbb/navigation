@@ -32,7 +32,7 @@ class CustomAttributeGenerator implements GeneratorInterface, SingleGeneratorInt
             'name' => $typeName,
             'fields' => function() use ($contentFields) {
                 return $contentFields;
-            }
+            },
         ]));
     }
 }

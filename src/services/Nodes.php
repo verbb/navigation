@@ -39,7 +39,7 @@ class Nodes extends Component
         if (Craft::$app->getIsInMaintenanceMode()) {
             return;
         }
-        
+
         $element = $event->element;
         $isNew = $event->isNew;
 
@@ -56,7 +56,7 @@ class Nodes extends Component
         $nodes = NodeElement::find()
             ->elementId($element->id)
             ->siteId($element->siteId)
-            ->slug((string) $element->siteId)
+            ->slug((string)$element->siteId)
             ->status(null)
             ->type(get_class($element))
             ->all();
@@ -122,7 +122,7 @@ class Nodes extends Component
 
         $parentOptions[] = [
             'label' => '',
-            'value' => 0
+            'value' => 0,
         ];
 
         foreach ($nodes as $node) {

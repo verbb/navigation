@@ -20,7 +20,7 @@ class Breadcrumbs extends Component
     public function getBreadcrumbs()
     {
         $elements = [];
-        $segments = Craft::$app->request->getSegments();
+        $segments = Craft::$app->getRequest()->getSegments();
 
         $element = Craft::$app->elements->getElementByUri('__home__');
 

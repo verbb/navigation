@@ -161,7 +161,7 @@ class Navs extends Component
             }
 
             $configData['fieldLayouts'] = [
-                $layoutUid => $fieldLayoutConfig
+                $layoutUid => $fieldLayoutConfig,
             ];
         }
 
@@ -312,7 +312,7 @@ class Navs extends Component
                     'elementType' => Node::class,
                     'criteria' => [
                         'id' => $nodes,
-                    ]
+                    ],
                 ]));
             }
 
@@ -375,7 +375,7 @@ class Navs extends Component
         // Fire a 'beforeDeleteNav' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_NAV)) {
             $this->trigger(self::EVENT_BEFORE_DELETE_NAV, new NavEvent([
-                'nav' => $nav
+                'nav' => $nav,
             ]));
         }
 
@@ -442,7 +442,7 @@ class Navs extends Component
         // Fire an 'afterDeleteNav' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_NAV)) {
             $this->trigger(self::EVENT_AFTER_DELETE_NAV, new NavEvent([
-                'nav' => $nav
+                'nav' => $nav,
             ]));
         }
     }
@@ -480,7 +480,7 @@ class Navs extends Component
 
         $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements();
         $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
-        
+
         foreach ($registeredElements as $key => $registeredElement) {
             $enabled = $nav->permissions[$registeredElement['type']]['enabled'] ?? $registeredElement['default'] ?? false;
             $permissions = $nav->permissions[$registeredElement['type']]['permissions'] ?? '*';
@@ -535,7 +535,7 @@ class Navs extends Component
                 'elementType' => Node::class,
                 'criteria' => [
                     'id' => $nodes,
-                ]
+                ],
             ]));
         } else {
             $nodesToDelete = [];
@@ -626,7 +626,7 @@ class Navs extends Component
                 // Append it to the duplicate of $element's parent
                 $structuresService->append($element->structureId, $duplicate, $newParent);
             }
-            
+
             $children = $element->getChildren()->anyStatus()->all();
             $this->_duplicateElements($children, $newAttributes, $duplicatedElementIds, $duplicate);
         }

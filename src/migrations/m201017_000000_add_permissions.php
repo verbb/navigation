@@ -15,7 +15,7 @@ class m201017_000000_add_permissions extends Migration
         if (!$this->db->columnExists('{{%navigation_navs}}', 'permissions')) {
             $this->addColumn('{{%navigation_navs}}', 'permissions', $this->text()->after('maxNodes'));
         }
-    
+
         return true;
     }
 

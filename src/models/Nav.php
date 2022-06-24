@@ -73,8 +73,8 @@ class Nav extends Model
             'navFieldLayout' => [
                 'class' => FieldLayoutBehavior::class,
                 'elementType' => Node::class,
-                'idAttribute' => 'fieldLayoutId'
-            ]
+                'idAttribute' => 'fieldLayoutId',
+            ],
         ];
     }
 

@@ -109,7 +109,7 @@ class NodesController extends Controller
     {
         $this->requireAcceptsJson();
         $this->requirePostRequest();
-       
+
         $request = Craft::$app->getRequest();
         $nodesService = Navigation::$plugin->getNodes();
 
@@ -118,7 +118,7 @@ class NodesController extends Controller
         $nodeIds = $request->getRequiredParam('nodeIds');
 
         $node = Navigation::$plugin->nodes->getNodeById($nodeIds[0], $siteId);
-        
+
         // We need to go against `deleteElement()` which will kick up any child elements in the structure
         // to be attached to the parent - not what we want in this case, it'd be pandemonium.
         foreach ($nodeIds as $nodeId) {
@@ -133,7 +133,7 @@ class NodesController extends Controller
             $nodes = $nodesService->getNodesForNav($nav->id, $siteId);
             $parentOptions = $nodesService->getParentOptions($nodes, $nav);
         }
-                
+
         return $this->asJson([
             'success' => true,
             'parentOptions' => $parentOptions,
