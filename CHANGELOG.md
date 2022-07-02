@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.3 - 2022-07-02
+
+### Added
+- Changes from 1.4.27.
+
 ## 2.0.2 - 2022-06-01
 
 ### Fixed
@@ -68,7 +73,6 @@
 
 ### Removed
 - Removed `NodeType::hasClasses()` and `NodeType::hasAttributes()` which are now controlled by native fields.
-
 
 ## 1.4.27 - 2022-07-02
 
