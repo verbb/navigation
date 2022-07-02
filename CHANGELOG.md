@@ -3,7 +3,7 @@
 ## 1.4.27 - 2022-07-02
 
 ### Fixed
-- Fix parial URLs incorrectly marked as active `/newsletter` and `/news`.
+- Fix partial URLs incorrectly marked as active `/newsletter` and `/news`.
 - Fix duplicated nodes when not propagating nodes, when a new site is enabled in the nav settings, and existing nodes already exist.
 
 ## 1.4.26 - 2022-04-23
