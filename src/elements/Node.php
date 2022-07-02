@@ -708,8 +708,8 @@ class Node extends Element
                 }
             }
 
-            // If `$currentUrl` string equals `$nodeUrl` string, zero is returned - if this happens, a match is found.
-            if (strpos($currentUrl, $nodeUrl) === 0) {
+            // If the URLs match exactly
+            if ($currentUrl === $nodeUrl) {
                 // Make sure we're not on the homepage (unless this node is for the homepage)
                 if ($nodeUrl !== $siteUrl) {
                     $isActive = true;
