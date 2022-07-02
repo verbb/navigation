@@ -6,7 +6,7 @@
     {% set title = craft.navigation.getPluginName() %}
 {% endif %}
 
-{% set content %}
+{% block content %}
     {% block blockContent %}
 
     {% endblock %}
@@ -34,4 +34,4 @@
             </a>
         </div>
     </div>
-{% endset %}
+{% endblock %}
