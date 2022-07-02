@@ -140,7 +140,7 @@ class Navigation extends Plugin
 
     private function _registerTwigExtensions(): void
     {
-        Craft::$app->view->registerTwigExtension(new Extension);
+        Craft::$app->getView()->registerTwigExtension(new Extension);
     }
 
     private function _registerCpRoutes(): void

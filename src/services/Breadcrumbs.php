@@ -12,9 +12,9 @@ class Breadcrumbs extends Component
     public function getBreadcrumbs(): array
     {
         $elements = [];
-        $segments = Craft::$app->request->getSegments();
+        $segments = Craft::$app->getRequest()->getSegments();
 
-        $element = Craft::$app->elements->getElementByUri('__home__');
+        $element = Craft::$app->getElements()->getElementByUri('__home__');
 
         if ($element) {
             $elements[] = $element;
@@ -25,7 +25,7 @@ class Breadcrumbs extends Component
             $segmentString = $segments[0];
 
             while ($count < count($segments)) {
-                $element = Craft::$app->elements->getElementByUri($segmentString);
+                $element = Craft::$app->getElements()->getElementByUri($segmentString);
 
                 if ($element) {
                     $elements[] = $element;

@@ -461,7 +461,7 @@ class Node extends Element
     {
         $object = $this->_getObject();
 
-        $classes = $this->classes ? Craft::$app->view->renderObjectTemplate($this->classes, $object) : null;
+        $classes = $this->classes ? Craft::$app->getView()->renderObjectTemplate($this->classes, $object) : null;
 
         $attributes = [
             'href' => $this->getUrl(),
@@ -474,7 +474,7 @@ class Node extends Element
             $key = $attribute['attribute'];
             $val = $attribute['value'];
 
-            $attributes[$key] = Craft::$app->view->renderObjectTemplate($val, $object);
+            $attributes[$key] = Craft::$app->getView()->renderObjectTemplate($val, $object);
         }
 
         if (is_array($extraAttributes)) {
@@ -940,8 +940,8 @@ class Node extends Element
                 }
             }
 
-            // If `$currentUrl` string equals `$nodeUrl` string, zero is returned - if this happens, a match is found.
-            if (str_starts_with($currentUrl, $nodeUrl)) {
+            // If the URLs match exactly
+            if ($currentUrl === $nodeUrl) {
                 // Make sure we're not on the homepage (unless this node is for the homepage)
                 if ($nodeUrl !== $siteUrl) {
                     $isActive = true;
