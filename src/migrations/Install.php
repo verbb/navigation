@@ -5,6 +5,7 @@ use verbb\navigation\models\Nav;
 
 use Craft;
 use craft\db\Migration;
+use craft\helpers\MigrationHelper;
 
 class Install extends Migration
 {
@@ -17,16 +18,13 @@ class Install extends Migration
         $this->createIndexes();
         $this->addForeignKeys();
 
-        // See if we should migrate from A&M Nav
-        // $migration = new AmNavPlugin();
-        // $migration->safeUp();
-
         return true;
     }
 
     public function safeDown(): bool
     {
-        $this->removeTables();
+        $this->dropForeignKeys();
+        $this->dropTables();
         $this->dropProjectConfig();
 
         return true;
@@ -107,11 +105,26 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%navigation_navs_sites}}', ['navId'], '{{%navigation_navs}}', ['id'], 'CASCADE', null);
     }
 
-    public function removeTables(): void
+    public function dropTables(): void
     {
         $this->dropTableIfExists('{{%navigation_nodes}}');
         $this->dropTableIfExists('{{%navigation_navs}}');
         $this->dropTableIfExists('{{%navigation_navs_sites}}');
+    }
+
+    public function dropForeignKeys(): void
+    {
+        if ($this->db->tableExists('{{%navigation_nodes}}')) {
+            MigrationHelper::dropAllForeignKeysOnTable('{{%navigation_nodes}}', $this);
+        }
+
+        if ($this->db->tableExists('{{%navigation_navs}}')) {
+            MigrationHelper::dropAllForeignKeysOnTable('{{%navigation_navs}}', $this);
+        }
+
+        if ($this->db->tableExists('{{%navigation_navs_sites}}')) {
+            MigrationHelper::dropAllForeignKeysOnTable('{{%navigation_navs_sites}}', $this);
+        }
     }
 
     public function dropProjectConfig(): void
