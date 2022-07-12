@@ -24,6 +24,6 @@ class UrlSuffixField extends TextField
 
     public function instructions(ElementInterface $element = null, bool $static = false): ?string
     {
-        return Craft::t('navigation', 'Additional content appended to the element\'s URL.');
+        return Craft::t('navigation', 'Additional content appended to the element‘s URL.');
     }
 }

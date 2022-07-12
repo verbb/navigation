@@ -8,7 +8,7 @@ return [
     'Navigation saved.' => 'Navigation enregistrée.',
 
     // vendor/verbb/navigation/src/controllers/NodesController.php
-    'No node with the ID “{id}”' => 'Aucun nœud avec l\'ID “{id}”',
+    'No node with the ID “{id}”' => 'Aucun nœud avec l‘ID “{id}”',
 
     // vendor/verbb/navigation/src/elements/Node.php
     'Navigation Node' => 'Nœud de navigation',
@@ -27,14 +27,14 @@ return [
     'Parent' => 'Parent',
     'Select a navigation item as the parent.' => 'Sélectionnez un élément de navigation comme parent.',
     'Open in new window' => 'Ouvrir dans une nouvelle fenêtre',
-    'Whether to open this navigation item in a new window.' => 'Indique s\'il faut ouvrir cet élément de navigation dans une nouvelle fenêtre.',
+    'Whether to open this navigation item in a new window.' => 'Indique s‘il faut ouvrir cet élément de navigation dans une nouvelle fenêtre.',
     'Custom URL' => 'URL personnalisée',
     'Title' => 'Titre',
     'Name of this node in the navigation.' => 'Nom de ce nœud dans la navigation.',
     'URL' => 'URL',
-    'The URL of this node.' => 'L\'URL de ce nœud.',
+    'The URL of this node.' => 'L‘URL de ce nœud.',
     'Add' => 'Ajouter',
-    'There are no nodes yet.' => 'Il n\'y a pas encore de nœuds.',
+    'There are no nodes yet.' => 'Il n‘y a pas encore de nœuds.',
 
     // vendor/verbb/navigation/src/templates/navs/_edit.html
     'Create a new navigation' => 'Créer une nouvelle navigation',
@@ -45,7 +45,7 @@ return [
     // vendor/verbb/navigation/src/templates/navs/_editor.html:5
     'The title for this navigation item.' => 'Titre de cet élément de navigation.',
     'Custom title' => 'Titre personnalisé',
-    'Whether to set a custom title for this navigation item.' => 'S\'il faut définir un titre personnalisé pour cet élément de navigation.',
+    'Whether to set a custom title for this navigation item.' => 'S‘il faut définir un titre personnalisé pour cet élément de navigation.',
     'Linked to' => 'Lié à',
     'The URL for this navigation item.' => 'URL de cet élément de navigation.',
     'Enabled' => 'Activé',
@@ -56,14 +56,14 @@ return [
 
     // vendor/verbb/navigation/src/templates/navs/index.html
     'New navigation' => 'Nouvelle navigation',
-    'No navigations exist yet.' => 'Aucune navigation n\'existe encore.',
+    'No navigations exist yet.' => 'Aucune navigation n‘existe encore.',
     'Reorder' => 'Réorganiser',
 
     // vendor/verbb/navigation/src/templates/settings.html
-    'Plugin name for the end user.' => 'Nom du plugin pour l\'utilisateur final.',
+    'Plugin name for the end user.' => 'Nom du plugin pour l‘utilisateur final.',
 
     // vendor/verbb/navigation/src/services/Navs.php
-    'No navigation exists with the ID “{id}”.' => 'Aucune navigation n\'existe avec l\'ID “{id}”.',
+    'No navigation exists with the ID “{id}”.' => 'Aucune navigation n‘existe avec l‘ID “{id}”.',
 
     // Crumbs label - global
     'Navigations' => 'Navigations',

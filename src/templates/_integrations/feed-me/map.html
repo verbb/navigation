@@ -7,7 +7,7 @@
     {% set nav = craft.navigation.getNavById(navId) %}
 {% endif %}
 
-{% set types = [{ label: 'Don\'t import', value: '' }] %}
+{% set types = [{ label: 'Don‘t import', value: '' }] %}
 
 {% for tab in craft.navigation.getRegisteredElements() %}
     {% set types = types | merge([{ label: tab.label, value: tab.type }]) %}
@@ -74,7 +74,7 @@
     default: {
         type: 'select',
         options: [
-            { label: 'Don\'t import', value: '' },
+            { label: 'Don‘t import', value: '' },
             { label: 'Enabled', value: '1' },
             { label: 'Disabled', value: '0' },
         ],
