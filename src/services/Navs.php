@@ -558,6 +558,8 @@ class Navs extends Component
 
             $this->_duplicateElements($nodes, ['siteId' => $siteId]);
 
+            $elementsService = Craft::$app->getElements();
+
             foreach ($nodesToDelete as $nodeToDelete) {
                 $elementsService->deleteElement($nodeToDelete);
             }
