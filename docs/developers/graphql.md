@@ -1,5 +1,5 @@
 # GraphQL
-Navigation supports accessing [Node](docs:developers/node) objects via GraphQL. Be sure to read about [Craft's GraphQL support](https://docs.craftcms.com/v3/graphql.html).
+Navigation supports accessing [Node](docs:developers/node) objects via GraphQL. Be sure to read about [Craft's GraphQL support](https://craftcms.com/docs/4.x/graphql.html).
 
 ## Nodes
 
