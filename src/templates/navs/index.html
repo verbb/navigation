@@ -8,6 +8,12 @@
     { label: 'Navigations' | t('navigation'), url: url('navigation/navs') },
 ] %}
 
+{% set contextMenu %}
+    {% if craft.app.getIsMultiSite() %}
+        {% include '_elements/sitemenu' %}
+    {% endif %}
+{% endset %}
+
 {% block actionButton %}
     {% if editable and currentUser.can('navigation-createNavs') %}
         <div id="button-container">
@@ -77,18 +83,20 @@
         tableData: {{ tableData | json_encode | raw }},
     });
 
-    var sites = {{ siteHandles | json_encode | raw }};
+    // When changing the site select, navigate to the navigation index for that site.
+    var $siteMenuBtn = $('#header .sitemenubtn:first');
 
-    // Get the local storage and add the storedSiteid param to the URL's.
-    $('.nav-anchor').each(function() {
-        var $this = $(this);
-        var _href = $this.attr('href');
+    if (this.$siteMenuBtn.length) {
+        var siteMenu = $siteMenuBtn.menubtn().data('menubtn').menu;
 
-        var siteId = localStorage.getItem('Craft-' + Craft.systemUid + '.BaseElementIndex.siteId');
-        
-        if (siteId !== null && sites[siteId]) {
-            $this.attr('href', _href + '/' + sites[siteId]);
-        }
-    });
+        siteMenu.on('optionselect', function(ev) {
+            siteMenu.$options.removeClass('sel');
+            var $option = $(ev.selectedOption).addClass('sel');
+            $siteMenuBtn.html($option.html());
+            Craft.cp.setSiteId($option.data('site-id'));
+
+            location.reload();
+        });
+    }
 
 {% endjs %}

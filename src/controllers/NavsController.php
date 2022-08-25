@@ -28,19 +28,16 @@ class NavsController extends Controller
 
     public function actionIndex(): Response
     {
-        $navigations = Navigation::$plugin->getNavs()->getEditableNavs();
+        // Get the current site from the global query param
+        $siteHandle = Craft::$app->getRequest()->getParam('site', Craft::$app->getSites()->getPrimarySite()->handle);
+        $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
 
-        $siteHandles = [];
-
-        foreach (Craft::$app->getSites()->getEditableSites() as $site) {
-            $siteHandles[$site->id] = $site->handle;
-        }
+        $navigations = Navigation::$plugin->getNavs()->getEditableNavsForSite($site);
 
         $editable = Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
 
         return $this->renderTemplate('navigation/navs/index', [
             'navigations' => $navigations,
-            'siteHandles' => $siteHandles,
             'editable' => $editable,
         ]);
     }

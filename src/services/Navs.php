@@ -81,6 +81,23 @@ class Navs extends Component
         }, true, true, false);
     }
 
+    public function getEditableNavsForSite($site): array
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return $this->getAllNavs();
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$user) {
+            return [];
+        }
+
+        return ArrayHelper::where($this->getAllNavs(), function(NavModel $nav) use ($user, $site) {
+            return $user->can("navigation-manageNav:$nav->uid") && in_array($site->id, $nav->getSiteIds());
+        }, true, true, false);
+    }
+
     public function getEditableNavIds(): array
     {
         return ArrayHelper::getColumn($this->getEditableNavs(), 'id');
