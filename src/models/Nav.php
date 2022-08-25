@@ -148,7 +148,15 @@ class Nav extends Model
 
     public function getSiteIds(): array
     {
-        return array_keys($this->getSiteSettings());
+        $siteIds = [];
+
+        foreach ($this->getSiteSettings() as $siteSetting) {
+            if ($siteSetting->enabled) {
+                $siteIds[] = $siteSetting->siteId;
+            }
+        }
+
+        return $siteIds;
     }
 
     public function getConfig(): array
