@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.4 - 2022-08-25
+
+### Added
+- Add site dropdown to navigation index.
+- Add missing English Translations.
+
+### Fixed
+- Fix `getSiteIds()` not returning correctly for just the enabled sites.
+- Fix an error when uninstalling.
+
 ## 2.0.3 - 2022-07-02
 
 ### Added
