@@ -303,13 +303,13 @@ class Navigation extends Plugin
                 'action' => function(): int {
                     $controller = Craft::$app->controller;
 
-                    $query = Node::find();
+                    $criteria = [];
 
                     if ($controller->navId !== null) {
-                        $query->navId(explode(',', $controller->navId));
+                        $criteria['navId'] = explode(',', $controller->navId);
                     }
 
-                    return $controller->saveElements($query);
+                    return $controller->saveElements(Node::class, $criteria);
                 },
                 'options' => ['navId'],
                 'helpSummary' => 'Re-saves Navigation nodes.',
