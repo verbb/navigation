@@ -1,6 +1,7 @@
 <?php
 namespace verbb\navigation\migrations;
 
+use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Db;
@@ -40,10 +41,15 @@ class m220427_000000_navs_site_settings extends Migration
 
         foreach ($navs as $nav) {
             if (isset($nav['siteSettings'])) {
-                $siteSettings = Json::decode($nav['siteSettings']) ??[];
+                $siteSettings = Json::decode($nav['siteSettings']) ?? [];
 
                 foreach ($siteSettings as $siteUid => $enabled) {
                     $siteId = $sites[$siteUid] ?? null;
+
+                    // If a non-multisite install, assume it's enabled
+                    if ($enabled === null && !Craft::$app->getIsMultiSite()) {
+                        $enabled = true;
+                    }
 
                     if ($siteId) {
                         Db::upsert('{{%navigation_navs_sites}}', [
