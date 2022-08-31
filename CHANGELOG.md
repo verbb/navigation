@@ -2,6 +2,9 @@
 
 ## 2.0.5 - 2022-08-31
 
+### Added
+- Add migration to fix non-multi-site’s not being enabled.
+
 ### Fixed
 - Fix a Craft 3 migration issue where site-specific navigations weren’t marked as enabled.
 - Fix an error running `resave` console commands.
