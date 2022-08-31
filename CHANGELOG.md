@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.5 - 2022-08-31
+
+### Fixed
+- Fix a Craft 3 migration issue where site-specific navigations weren’t marked as enabled.
+- Fix an error running `resave` console commands.
+
 ## 2.0.4 - 2022-08-25
 
 ### Added
