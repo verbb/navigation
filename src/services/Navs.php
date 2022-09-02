@@ -611,10 +611,28 @@ class Navs extends Component
 
         $uidsByIds = Db::uidsByIds('{{%navigation_navs}}', $navIds);
 
+        /* @var Settings $settings */
+        $settings = Navigation::$plugin->getSettings();
+
         foreach ($navIds as $navOrder => $navId) {
             if (!empty($uidsByIds[$navId])) {
                 $navUid = $uidsByIds[$navId];
-                $projectConfig->set(self::CONFIG_NAV_KEY . '.' . $navUid . '.sortOrder', $navOrder + 1);
+
+                // There's some edge-cases where devs know what they're doing.
+                // See https://github.com/verbb/navigation/issues/88
+                if ($settings->bypassProjectConfig && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+                    $configData = $this->getNavById($navId)->getConfig();
+                    $configData['sortOrder'] = $navOrder + 1;
+
+                    $event = new ConfigEvent([
+                        'tokenMatches' => [$navUid],
+                        'newValue' => $configData,
+                    ]);
+
+                    $this->handleChangedNav($event);
+                } else {
+                    $projectConfig->set(self::CONFIG_NAV_KEY . '.' . $navUid . '.sortOrder', $navOrder + 1);
+                }
             }
         }
 
