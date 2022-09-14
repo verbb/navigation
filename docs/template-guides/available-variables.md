@@ -10,7 +10,7 @@ See [Node Queries](docs:getting-elements/node-queries)
 
 See [Rendering Nodes](docs:template-guides/rendering-nodes)
 
-### `craft.navigation.breadcrumbs()`
+### `craft.navigation.breadcrumbs(options)`
 
 See [Breadcrumbs](docs:template-guides/breadcrumbs)
 

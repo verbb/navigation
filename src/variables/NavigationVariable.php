@@ -83,9 +83,9 @@ class NavigationVariable
         return Template::raw($template);
     }
 
-    public function breadcrumbs(): array
+    public function breadcrumbs(array $options = []): array
     {
-        return Navigation::$plugin->getBreadcrumbs()->getBreadcrumbs();
+        return Navigation::$plugin->getBreadcrumbs()->getBreadcrumbs($options);
     }
 
     public function tree($criteria = null): array
