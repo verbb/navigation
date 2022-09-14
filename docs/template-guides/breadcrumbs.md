@@ -5,7 +5,7 @@ You can retrieve a list of breadcrumbs based on the current URL. They are not ba
 
 ```twig
 {% for crumb in craft.navigation.breadcrumbs() %}
-    {{ crumb.link }}
+    <a href="{{ crumb.url }}">{{ crumb.title }}</a>
 {% endfor %}
 ```
 
