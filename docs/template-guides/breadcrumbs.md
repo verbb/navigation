@@ -11,7 +11,7 @@ You can retrieve a list of breadcrumbs based on the current URL. They are not ba
 
 The `crumb` variable returned from the `breadcrumbs()` function will be an array with the following options. This will either contain information on a matched element, or information derived from the segment.
 
-### Available Options
+### Properties
 
 | Property | Description
 | - | -
