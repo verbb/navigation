@@ -1,6 +1,6 @@
 # Breadcrumbs
 
-## craft.navigation.breadcrumbs(options)
+## `craft.navigation.breadcrumbs(options)`
 You can retrieve a list of breadcrumbs based on the current URL. They are not based on your navigation items, and instead use the current URL segments. The function will look up any element that matches the URI for the segment. If not found, the segment itself will be used.
 
 ```twig
