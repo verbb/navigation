@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.6 - 2022-09-25
+
+### Changed
+- Revamp `breadcrumbs()` function to include non-elements.
+
+### Fixed
+- Fix incorrect node/list names for `gatsby-source-craft` plugin.
+- Fix reordering a navigation with `bypassProjectConfig` enabled.
+- Fix deleting a navigation with `bypassProjectConfig` enabled.
+- Fix a Craft 3 migration error when navigations contain no site settings.
+
 ## 2.0.5 - 2022-08-31
 
 ### Added
