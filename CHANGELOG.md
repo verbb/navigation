@@ -104,6 +104,11 @@
 ### Removed
 - Removed `NodeType::hasClasses()` and `NodeType::hasAttributes()` which are now controlled by native fields.
 
+## 1.4.28 - 2022-07-15
+
+### Fixed
+- Fix an error when resaving nodes for a site.
+
 ## 1.4.27 - 2022-07-02
 
 ### Fixed
