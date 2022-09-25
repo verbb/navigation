@@ -272,8 +272,8 @@ class Navigation extends Plugin
             Event::on(SourceNodes::class, SourceNodes::EVENT_REGISTER_SOURCE_NODE_TYPES, function(RegisterSourceNodeTypesEvent $event) {
                 if (GqlHelper::canQueryNavigation()) {
                     $event->types[NodeInterface::getName()] = [
-                        'node' => 'node',
-                        'list' => 'nodes',
+                        'node' => 'navigationNode',
+                        'list' => 'navigationNodes',
                         'filterArgument' => '',
                         'filterTypeExpression' => '(.+)_Node',
                         'targetInterface' => NodeInterface::getName(),
