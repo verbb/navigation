@@ -231,6 +231,14 @@
     }
 }
 
+// Hide some of the element info for the toast notifications
+#notifications .notification-body {
+    .node-info-icons,
+    .node-edit-btn {
+        display: none;
+    }
+}
+
 // ==========================================================================
 // Settings
 // ==========================================================================
