@@ -730,6 +730,9 @@ class Node extends Element
         $record->data = $this->data;
         $record->newWindow = $this->newWindow;
 
+        // Capture the dirty attributes from the record
+        $dirtyAttributes = array_keys($record->getDirtyAttributes());
+
         $record->save(false);
 
         $this->id = $record->id;
@@ -740,6 +743,8 @@ class Node extends Element
         if ($this->hasNewParent()) {
             $this->_placeInStructure($isNew, $nav);
         }
+
+        $this->setDirtyAttributes($dirtyAttributes);
 
         parent::afterSave($isNew);
     }
