@@ -4,6 +4,7 @@ namespace verbb\navigation\services;
 use Craft;
 use craft\base\Component;
 use craft\base\ElementInterface;
+use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
@@ -62,12 +63,17 @@ class Breadcrumbs extends Component
             }
         }
 
+        $url = UrlHelper::siteUrl($path);
+
         return [
             'title' => $title,
-            'url' => UrlHelper::siteUrl($path),
+            'url' => $url,
             'segment' => $segment,
             'isElement' => $isElement,
             'elementId' => $elementId,
+
+            // Only for backward compatibility. Remove at the next breakpoint.
+            'link' => Html::tag('a', $title, ['href' => $url]),
         ];
     }
 }
