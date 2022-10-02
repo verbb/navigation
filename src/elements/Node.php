@@ -873,6 +873,11 @@ class Node extends Element
         } else {
             $this->elementId = (int)$value;
         }
+
+        // Also check for `0` (string or int) and set correct value for type
+        if (!$this->elementId) {
+            $this->elementId = null;
+        }
     }
 
     public function _getActive($includeChildren = true): bool
