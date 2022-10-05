@@ -19,7 +19,9 @@ The `crumb` variable returned from the `breadcrumbs()` function will be an array
 | `url` | The absolute URL for the segment, for the current site.
 | `segment` | The segment portion of the current URL.
 | `isElement` | Whether the segment is an element or not.
+| `element` | The element object (if an element).
 | `elementId` | The ID of the element (if an element).
+| `elementType` | The type of element (if an element).
 
 You can also pass in options to the `breadcrumbs()` function. For example, you could limit the number of breadcrumb items returned.
 

@@ -51,11 +51,15 @@ class Breadcrumbs extends Component
         // Generate the title from the segment or element
         $title = StringHelper::titleize((string)$item);
         $isElement = false;
+        $element = null;
         $elementId = null;
+        $elementType = null;
 
         if ($item instanceof ElementInterface) {
             $isElement = true;
+            $element = $item;
             $elementId = $item->id;
+            $elementType = get_class($item);
 
             // Check if the element has titles setup
             if ($item->hasTitles()) {
@@ -70,7 +74,9 @@ class Breadcrumbs extends Component
             'url' => $url,
             'segment' => $segment,
             'isElement' => $isElement,
+            'element' => $element,
             'elementId' => $elementId,
+            'elementType' => $elementType,
 
             // Only for backward compatibility. Remove at the next breakpoint.
             'link' => Html::tag('a', $title, ['href' => $url]),
