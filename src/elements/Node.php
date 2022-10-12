@@ -2,6 +2,7 @@
 namespace verbb\navigation\elements;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\elements\conditions\NodeCondition;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\events\NodeActiveEvent;
 use verbb\navigation\models\Nav;
@@ -23,6 +24,7 @@ use craft\elements\actions\Duplicate;
 use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
+use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQuery;
 use craft\events\DefineElementInnerHtmlEvent;
 use craft\fields\data\ColorData;
@@ -100,6 +102,11 @@ class Node extends Element
     public static function find(): NodeQuery
     {
         return new NodeQuery(static::class);
+    }
+
+    public static function createCondition(): ElementConditionInterface
+    {
+        return Craft::createObject(NodeCondition::class, [static::class]);
     }
 
     public static function gqlTypeNameByContext(mixed $context): string
