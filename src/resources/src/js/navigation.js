@@ -173,9 +173,13 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
             .then((response) => {
                 Craft.cp.displayNotice(response.data.message);
 
+                var parentId = this.$form.find('[name="parentId"').val();
+
                 this.updateElements();
 
+                // Reset the form, but keep the parent set
                 this.$form[0].reset();
+                this.$form.find('[name="parentId"').val(parentId);
             })
             .catch((error) => {
                 const response = error.response;

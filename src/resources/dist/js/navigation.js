@@ -42,6 +42,9 @@ if (typeof Craft.Navigation === typeof undefined) {
 // to All/Enabled/Disabled status will trigger it back to the default Structure.
 Craft.setQueryParam('sort', null);
 
+Craft.Structure.baseIndent = 5;
+Craft.Structure.nestedIndent = 5;
+
 Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
     elementModals: [],
 
@@ -184,9 +187,13 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
             .then((response) => {
                 Craft.cp.displayNotice(response.data.message);
 
+                var parentId = this.$form.find('[name="parentId"').val();
+
                 this.updateElements();
 
+                // Reset the form, but keep the parent set
                 this.$form[0].reset();
+                this.$form.find('[name="parentId"').val(parentId);
             })
             .catch((error) => {
                 const response = error.response;
@@ -221,6 +228,11 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
 
     onUpdateElements: function() {
         this.updateParentSelect();
+
+        this.view.structureTableSort._basePadding = 5;
+        this.view.structureTableSort._helperMargin = 5;
+
+        console.log(this.view)
     },
 
     onSelectSite: function() {
