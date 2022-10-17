@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.7 - 2022-10-17
+
+### Added
+- Add the ability to set conditions on navigation field layout attributes and fields depending on node type.
+- Add `element` and `elementType` to breadcrumb items.
+- Add back `link` attribute for breadcrumbs.
+
+### Changed
+- Set dirty attributes for track changes when saving a node.
+
+### Fixed
+- Fix an error when saving a node, when switching its type.
+- Fix a formatting issue when saving nodes and the toast notification.
+- Fix the “Parent” value resetting after adding a node.
+
 ## 2.0.6 - 2022-09-25
 
 ### Changed
