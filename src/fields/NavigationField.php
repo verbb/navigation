@@ -2,6 +2,9 @@
 namespace verbb\navigation\fields;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\gql\arguments\NodeArguments;
+use verbb\navigation\gql\interfaces\NodeInterface;
+use verbb\navigation\gql\resolvers\NodeResolver;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -9,6 +12,8 @@ use craft\base\Field;
 use craft\helpers\Html;
 
 use yii\db\Schema;
+
+use GraphQL\Type\Definition\Type;
 
 class NavigationField extends Field
 {
@@ -61,6 +66,16 @@ class NavigationField extends Field
         return Craft::$app->getView()->renderTemplate('navigation/_field/settings', [
 
         ]);
+    }
+
+    public function getContentGqlType(): Type|array
+    {
+        return [
+            'name' => $this->handle,
+            'type' => Type::listOf(NodeInterface::getType()),
+            'args' => NodeArguments::getArguments(),
+            'resolve' => NodeResolver::class . '::resolve',
+        ];
     }
     
 

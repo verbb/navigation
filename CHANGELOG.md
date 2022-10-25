@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.8 - 2022-10-25
+
+### Added
+- Add support for GraphQL querying on Navigation field within other elements.
+
 ## 2.0.7 - 2022-10-17
 
 ### Added
@@ -118,6 +123,11 @@
 
 ### Removed
 - Removed `NodeType::hasClasses()` and `NodeType::hasAttributes()` which are now controlled by native fields.
+
+## 1.4.29 - 2022-10-25
+
+### Added
+- Add support for GraphQL querying on Navigation field within other elements.
 
 ## 1.4.28 - 2022-07-15
 
