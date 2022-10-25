@@ -19,7 +19,7 @@ class NodeResolver extends ElementResolver
         if ($source === null) {
             $query = Node::find();
         } else {
-            $query = $source->$fieldName;
+            $query = Node::find()->navHandle($source->$fieldName);
         }
 
         if (is_array($query)) {
