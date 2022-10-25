@@ -42,6 +42,7 @@ class Nav extends Model
     public string $propagationMethod = self::PROPAGATION_METHOD_ALL;
     public ?int $maxNodes = null;
     public ?int $maxLevels = null;
+    public array $maxNodesSettings = [];
     public string $defaultPlacement = self::DEFAULT_PLACEMENT_END;
     public array $permissions = [];
     public ?string $uid = null;
@@ -182,8 +183,72 @@ class Nav extends Model
         );
     }
 
+    public function isOverMaxNodes($node): bool
+    {
+        if ($this->maxNodes) {
+            $nodesService = Navigation::$plugin->getNodes();
+
+            $nodes = $nodesService->getNodesForNav($this->id, $node->siteId);
+            $totalNodes = count($nodes) + 1;
+
+            if ($totalNodes > $this->maxNodes) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function isOverMaxLevel($node): bool
+    {
+        if ($this->maxNodesSettings) {
+            foreach ($this->maxNodesSettings as $maxNodesSetting) {
+                $level = $maxNodesSetting['level'] ?? null;
+                $max = $maxNodesSetting['max'] ?? null;
+
+                if ($level !== null && $max !== null && $node->level) {
+                    if ($node->level == $level) {
+                        // Get all nodes for the nav, at this level to compare
+                        $totalNodes = Node::find()
+                            ->navId($this->id)
+                            ->descendantOf($node->getParent())
+                            ->descendantDist(1)
+                            ->siteId($node->siteId)
+                            ->level($level)
+                            ->status(null)
+                            ->count() + 1;
+
+                        if ($totalNodes > $max) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     public function getConfig(): array
     {
+        if ($this->maxNodesSettings) {
+            $levels = [];
+
+            // Normalize some settings
+            foreach ($this->maxNodesSettings as $key => $maxNodesSetting) {
+                $level = $maxNodesSetting['level'] ?? null;
+                $max = $maxNodesSetting['max'] ?? null;
+
+                if (!$level || !$max || in_array($level, $levels)) {
+                    unset($this->maxNodesSettings[$key]);
+                }
+
+                $levels[] = $level;
+            }
+
+            $this->maxNodesSettings = array_values($this->maxNodesSettings);
+        }
+
         $config = [
             'name' => $this->name,
             'handle' => $this->handle,
@@ -194,6 +259,7 @@ class Nav extends Model
             'instructions' => $this->instructions,
             'propagationMethod' => $this->propagationMethod,
             'maxNodes' => $this->maxNodes,
+            'maxNodesSettings' => $this->maxNodesSettings,
             'sortOrder' => (int)$this->sortOrder,
             'permissions' => $this->permissions,
             'siteSettings' => [],

@@ -28,17 +28,6 @@ class NodesController extends Controller
         foreach ($nodesPost as $key => $nodePost) {
             $node = $this->_setNodeFromPost("nodes.{$key}.");
 
-            // Check for max nodes
-            if ($node->nav->maxNodes) {
-                $nodes = $nodesService->getNodesForNav($node->nav->id, $node->siteId);
-
-                $totalNodes = count($nodes) + 1;
-
-                if ($totalNodes > $node->nav->maxNodes) {
-                    return $this->asFailure(Craft::t('navigation', 'Exceeded maximum allowed nodes ({number}) for this nav.', ['number' => $node->nav->maxNodes]));
-                }
-            }
-
             if (!Craft::$app->getElements()->saveElement($node, true)) {
                 return $this->asModelFailure($node, Craft::t('navigation', 'Couldn’t add node.'), 'node');
             }

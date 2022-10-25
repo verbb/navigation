@@ -178,6 +178,7 @@ class NavsController extends Controller
         $nav->propagationMethod = $request->getBodyParam('propagationMethod', Nav::PROPAGATION_METHOD_ALL);
         $nav->maxLevels = (int)$request->getBodyParam('maxLevels') ?: null;
         $nav->maxNodes = (int)$request->getBodyParam('maxNodes') ?: null;
+        $nav->maxNodesSettings = $request->getBodyParam('maxNodesSettings');
         $nav->permissions = $request->getBodyParam('permissions');
         $nav->defaultPlacement = $request->getBodyParam('defaultPlacement') ?? $nav->defaultPlacement;
 

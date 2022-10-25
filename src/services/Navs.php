@@ -212,6 +212,7 @@ class Navs extends Component
             $navRecord->handle = $data['handle'];
             $navRecord->instructions = $data['instructions'];
             $navRecord->maxNodes = $data['maxNodes'] ?? '';
+            $navRecord->maxNodesSettings = $data['maxNodesSettings'] ?? [];
             $navRecord->permissions = $data['permissions'] ?? [];
             $navRecord->sortOrder = $data['sortOrder'];
             $navRecord->propagationMethod = $data['propagationMethod'] ?? NavModel::PROPAGATION_METHOD_ALL;
@@ -685,6 +686,7 @@ class Navs extends Component
                 'navs.sortOrder',
                 'navs.propagationMethod',
                 'navs.maxNodes',
+                'navs.maxNodesSettings',
                 'navs.permissions',
                 'navs.defaultPlacement',
                 'navs.uid',

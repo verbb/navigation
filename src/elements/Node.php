@@ -47,6 +47,7 @@ use yii\base\Event;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\helpers\BaseHtml;
+use yii\validators\Validator;
 
 use Twig\Markup;
 
@@ -983,6 +984,31 @@ class Node extends Element
         // Must be included to allow `setAttributes()` to work, and treat it as safe. This is so the element
         // slide-out can update the type for draft-changes.
         $rules[] = [['linkedElementId', 'url', 'urlSuffix', 'classes', 'newWindow', 'customAttributes', 'type', 'data', 'parentId'], 'safe'];
+
+        $rules[] = [
+            'level',
+            function($attribute, $params, Validator $validator): void {
+                $nav = $this->getNav();
+
+                // Check for max nodes
+                if ($nav->maxNodes) {
+                    if ($nav->isOverMaxNodes($this)) {
+                        $validator->addError($this, $attribute, Craft::t('navigation', 'Exceeded maximum allowed nodes ({number}) for this nav.', ['number' => $nav->maxNodes]));
+                    }
+                }
+
+                // Check for max nodes at level
+                if ($nav->maxNodesSettings) {
+                    // Populate the level, because it's not in POST data
+                    $this->level = $this->getParent() ? ($this->getParent()->level + 1) : 1;
+
+                    if ($nav->isOverMaxLevel($this)) {
+                        $validator->addError($this, $attribute, Craft::t('navigation', 'Exceeded maximum allowed nodes for this level.'));
+                    }
+                }
+            },
+            'on' => [self::SCENARIO_DEFAULT, self::SCENARIO_LIVE, self::SCENARIO_ESSENTIALS],
+        ];
 
         return $rules;
     }

@@ -145,13 +145,49 @@
         }) }}
 
         {{ forms.textField({
-            label: 'Max Nodes' | t('app'),
-            instructions: 'The maximum number of nodes this navigation can have. Leave blank for no limit.' | t('navigation'),
+            label: 'Max Nodes' | t('navigation'),
+            instructions: 'The maximum number of total nodes this navigation can have. Leave blank for no limit.' | t('navigation'),
             id: 'maxNodes',
             name: 'maxNodes',
             size: 5,
             value: (nav is defined ? nav.maxNodes : null),
             errors: (nav is defined ? nav.getErrors('maxNodes') : null),
+        }) }}
+
+        {% set maxNodesSettingsOptions = [] %}
+
+        {% for i in 1..20 %}
+            {% set maxNodesSettingsOptions = maxNodesSettingsOptions | merge([{
+                label: 'Level {level}' | t('navigation', { level: i }),
+                value: i,
+            }]) %}
+        {% endfor %}
+
+        {% set maxNodesSettingsRows = nav.maxNodesSettings %}
+        {% set maxNodesSettingsErrors = nav.getErrors('maxNodesSettings') %}
+
+        {{ forms.editableTableField({
+            label: 'Max Nodes per Level' | t('navigation'),
+            instructions: 'Create any level-specific limits for the maximum number of nodes.' | t('navigation'),
+            id: 'maxNodesSettings',
+            name: 'maxNodesSettings',
+            cols: {
+                level: {
+                    type: 'select',
+                    heading: 'Level' | t('app'),
+                    thin: true,
+                    options: maxNodesSettingsOptions,
+                },
+                max: {
+                    type: 'number',
+                    heading: 'Max Nodes' | t('navigation'),
+                },
+            } | filter,
+            rows: maxNodesSettingsRows,
+            fullWidth: false,
+            allowAdd: true,
+            allowDelete: true,
+            allowReorder: true,
         }) }}
 
         {{ forms.selectField({

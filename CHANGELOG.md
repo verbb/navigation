@@ -4,6 +4,7 @@
 
 ### Added
 - Add the ability to set "Propagation Method" on navigations, to include site group, or language-specific propagation settings.
+- Add “Max Nodes per Level” navigation setting to control the number of nodes per-level.
 
 ### Changed
 - Nodes are propagated to all enabled sites for the navigation by default (for multi-sites).

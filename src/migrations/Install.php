@@ -62,6 +62,7 @@ class Install extends Migration
             'sortOrder' => $this->smallInteger()->unsigned(),
             'propagationMethod' => $this->string()->defaultValue(Nav::PROPAGATION_METHOD_ALL)->notNull(),
             'maxNodes' => $this->integer(),
+            'maxNodesSettings' => $this->text(),
             'permissions' => $this->text(),
             'fieldLayoutId' => $this->integer(),
             'defaultPlacement' => $this->enum('defaultPlacement', [Nav::DEFAULT_PLACEMENT_BEGINNING, Nav::DEFAULT_PLACEMENT_END])->defaultValue('end')->notNull(),
