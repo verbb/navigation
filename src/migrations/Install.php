@@ -60,7 +60,7 @@ class Install extends Migration
             'handle' => $this->string()->notNull(),
             'instructions' => $this->text(),
             'sortOrder' => $this->smallInteger()->unsigned(),
-            'propagateNodes' => $this->boolean()->defaultValue(false),
+            'propagationMethod' => $this->string()->defaultValue(Nav::PROPAGATION_METHOD_ALL)->notNull(),
             'maxNodes' => $this->integer(),
             'permissions' => $this->text(),
             'fieldLayoutId' => $this->integer(),

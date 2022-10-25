@@ -26,6 +26,7 @@ use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQuery;
+use craft\errors\UnsupportedSiteException;
 use craft\events\DefineElementInnerHtmlEvent;
 use craft\fields\data\ColorData;
 use craft\helpers\App;
@@ -37,6 +38,7 @@ use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
+use craft\models\Site;
 use craft\services\Structures;
 
 use Throwable;
@@ -628,17 +630,29 @@ class Node extends Element
     {
         $nav = $this->getNav();
 
-        if (!$nav->propagateNodes) {
-            $siteIds = [$this->siteId];
-        } else {
-            $siteIds = $nav->getSiteIds();
-        }
+        /** @var Site[] $allSites */
+        $allSites = ArrayHelper::index(Craft::$app->getSites()->getAllSites(true), 'id');
+        $siteIds = [];
 
-        $siteIds = array_filter($siteIds);
+        foreach ($nav->getSiteSettings() as $siteSettings) {
+            switch ($nav->propagationMethod) {
+                case Nav::PROPAGATION_METHOD_NONE:
+                    $include = $siteSettings->siteId == $this->siteId;
+                    break;
+                case Nav::PROPAGATION_METHOD_SITE_GROUP:
+                    $include = $allSites[$siteSettings->siteId]->groupId == $allSites[$this->siteId]->groupId;
+                    break;
+                case Nav::PROPAGATION_METHOD_LANGUAGE:
+                    $include = $allSites[$siteSettings->siteId]->language == $allSites[$this->siteId]->language;
+                    break;
+                default:
+                    $include = true;
+                    break;
+            }
 
-        // Just an extra check in case there are no sites, for whatever reason
-        if (!$siteIds) {
-            $siteIds = Craft::$app->getSites()->getAllSiteIds();
+            if ($include) {
+                $siteIds[] = $siteSettings->siteId;
+            }
         }
 
         return $siteIds;
@@ -654,12 +668,22 @@ class Node extends Element
         /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
 
+        $nav = $this->getNav();
+
+        // Verify that the nav supports this site
+        $navSiteSettings = $nav->getSiteSettings();
+
+        if (!isset($navSiteSettings[$this->siteId])) {
+            throw new UnsupportedSiteException($this, $this->siteId, "The nav '$nav->name' is not enabled for the site '$this->siteId'");
+        }
+
         // Set the structure ID for Element::attributes() and afterSave()
-        $this->structureId = $this->getNav()->structureId;
+        $this->structureId = $nav->structureId;
 
         if (!$this->duplicateOf && $this->hasNewParent()) {
             if ($parentId = $this->getParentId()) {
-                $parentNode = Navigation::$plugin->getNodes()->getNodeById($parentId, $this->siteId, [
+                $parentNode = Navigation::$plugin->getNodes()->getNodeById($parentId, '*', [
+                    'preferSites' => [$this->siteId],
                     'drafts' => null,
                     'draftOf' => false,
                 ]);
@@ -675,17 +699,15 @@ class Node extends Element
         }
 
         // If this is propagating, we want to fetch the information for that site's linked element
-        if ($this->propagating && $this->isElement()) {
-            if ($this->elementId) {
-                $localeElement = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
+        if ($this->propagating && $this->isElement() && $this->elementId) {
+            $localeElement = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
 
-                if ($localeElement) {
-                    $this->elementSiteId = $localeElement->siteId;
+            if ($localeElement) {
+                $this->elementSiteId = $localeElement->siteId;
 
-                    // Only update the title if we haven't overridden it
-                    if (!$this->hasOverriddenTitle()) {
-                        $this->title = $localeElement->title;
-                    }
+                // Only update the title if we haven't overridden it
+                if (!$this->hasOverriddenTitle()) {
+                    $this->title = $localeElement->title;
                 }
             }
         }
@@ -715,43 +737,45 @@ class Node extends Element
 
     public function afterSave(bool $isNew): void
     {
-        // Get the node record
-        if (!$isNew) {
-            $record = NodeRecord::findOne($this->id);
+        if (!$this->propagating) {
+            $nav = $this->getNav();
 
-            if (!$record) {
-                throw new InvalidConfigException("Invalid node ID: $this->id");
+            // Get the node record
+            if (!$isNew) {
+                $record = NodeRecord::findOne($this->id);
+
+                if (!$record) {
+                    throw new InvalidConfigException("Invalid node ID: $this->id");
+                }
+            } else {
+                $record = new NodeRecord();
+                $record->id = (int)$this->id;
             }
-        } else {
-            $record = new NodeRecord();
-            $record->id = (int)$this->id;
+
+            $record->elementId = $this->elementId;
+            $record->navId = (int)$this->navId;
+            $record->url = $this->getRawUrl();
+            $record->type = $this->type;
+            $record->classes = $this->classes;
+            $record->urlSuffix = $this->urlSuffix;
+            $record->customAttributes = $this->customAttributes;
+            $record->data = $this->data;
+            $record->newWindow = $this->newWindow;
+
+            // Capture the dirty attributes from the record
+            $dirtyAttributes = array_keys($record->getDirtyAttributes());
+
+            $record->save(false);
+
+            if ($this->getIsCanonical()) {
+                // Has the parent changed?
+                if ($this->hasNewParent()) {
+                    $this->_placeInStructure($isNew, $nav);
+                }
+            }
+
+            $this->setDirtyAttributes($dirtyAttributes);
         }
-
-        $record->elementId = $this->elementId;
-        $record->navId = (int)$this->navId;
-        $record->url = $this->getRawUrl();
-        $record->type = $this->type;
-        $record->classes = $this->classes;
-        $record->urlSuffix = $this->urlSuffix;
-        $record->customAttributes = $this->customAttributes;
-        $record->data = $this->data;
-        $record->newWindow = $this->newWindow;
-
-        // Capture the dirty attributes from the record
-        $dirtyAttributes = array_keys($record->getDirtyAttributes());
-
-        $record->save(false);
-
-        $this->id = $record->id;
-
-        $nav = $this->getNav();
-
-        // Has the parent changed?
-        if ($this->hasNewParent()) {
-            $this->_placeInStructure($isNew, $nav);
-        }
-
-        $this->setDirtyAttributes($dirtyAttributes);
 
         parent::afterSave($isNew);
     }
@@ -769,7 +793,7 @@ class Node extends Element
         ];
 
         if ($this->structureId) {
-            // Remember the parent ID, in case the entry needs to be restored later
+            // Remember the parent ID, in case the node needs to be restored later
             $parentId = $this->getAncestors(1)
                 ->status(null)
                 ->select(['elements.id'])
@@ -789,19 +813,19 @@ class Node extends Element
 
     public function afterRestore(): void
     {
-        $structureId = $this->getNav()->structureId;
+        $nav = $this->getNav();
 
         // Add the node back into its structure
         $parent = self::find()
-            ->structureId($structureId)
+            ->structureId($nav->structureId)
             ->innerJoin(['j' => '{{%navigation_nodes}}'], '[[j.parentId]] = [[elements.id]]')
             ->andWhere(['j.id' => $this->id])
             ->one();
 
         if (!$parent) {
-            Craft::$app->getStructures()->appendToRoot($structureId, $this);
+            Craft::$app->getStructures()->appendToRoot($nav->structureId, $this);
         } else {
-            Craft::$app->getStructures()->append($structureId, $this, $parent);
+            Craft::$app->getStructures()->append($nav->structureId, $this, $parent);
         }
 
         parent::afterRestore();
@@ -810,49 +834,28 @@ class Node extends Element
     public function afterMoveInStructure(int $structureId): void
     {
         // Was the node moved within its group's structure?
-        if ($this->getNav()->structureId == $structureId) {
-            // Update its URI
+        $nav = $this->getNav();
+
+        if ($nav->structureId == $structureId) {
             Craft::$app->getElements()->updateElementSlugAndUri($this, true, true, true);
 
-            // Make sure that each of the node's ancestors are related wherever the node is related
-            $newRelationValues = [];
+            // If this is the canonical node, update its drafts
+            if ($this->getIsCanonical()) {
+                /** @var self[] $drafts */
+                $drafts = self::find()
+                    ->draftOf($this)
+                    ->status(null)
+                    ->site('*')
+                    ->unique()
+                    ->all();
 
-            $ancestorIds = $this->getAncestors()
-                ->status(null)
-                ->ids();
+                $structuresService = Craft::$app->getStructures();
+                $lastElement = $this;
 
-            $sources = (new Query())
-                ->select(['fieldId', 'sourceId', 'sourceSiteId'])
-                ->from([Table::RELATIONS])
-                ->where(['targetId' => $this->id])
-                ->all();
-
-            foreach ($sources as $source) {
-                $existingAncestorRelations = (new Query())
-                    ->select(['targetId'])
-                    ->from([Table::RELATIONS])
-                    ->where([
-                        'fieldId' => $source['fieldId'],
-                        'sourceId' => $source['sourceId'],
-                        'sourceSiteId' => $source['sourceSiteId'],
-                        'targetId' => $ancestorIds,
-                    ])
-                    ->column();
-
-                $missingAncestorRelations = array_diff($ancestorIds, $existingAncestorRelations);
-
-                foreach ($missingAncestorRelations as $categoryId) {
-                    $newRelationValues[] = [
-                        $source['fieldId'],
-                        $source['sourceId'],
-                        $source['sourceSiteId'],
-                        $categoryId,
-                    ];
+                foreach ($drafts as $draft) {
+                    $structuresService->moveAfter($nav->structureId, $draft, $lastElement);
+                    $lastElement = $draft;
                 }
-            }
-
-            if (!empty($newRelationValues)) {
-                Db::batchInsert(Table::RELATIONS, ['fieldId', 'sourceId', 'sourceSiteId', 'targetId'], $newRelationValues);
             }
         }
 
@@ -1107,7 +1110,7 @@ EOD;
             'draftOf' => false,
         ];
 
-        // Prevent the current entry, or any of its descendants, from being selected as a parent
+        // Prevent the current node, or any of its descendants, from being selected as a parent
         if ($this->id) {
             $excludeIds = self::find()
                 ->descendantOf($this)
@@ -1144,6 +1147,21 @@ EOD;
     {
         $parentId = $this->getParentId();
         $structuresService = Craft::$app->getStructures();
+
+        // If this is a provisional draft and its new parent matches the canonical node’s, just drop it from the structure
+        if ($this->isProvisionalDraft) {
+            $canonicalParentId = self::find()
+                ->select(['elements.id'])
+                ->ancestorOf($this->getCanonicalId())
+                ->ancestorDist(1)
+                ->status(null)
+                ->scalar();
+
+            if ($parentId == $canonicalParentId) {
+                $structuresService->remove($this->structureId, $this);
+                return;
+            }
+        }
 
         $mode = $isNew ? Structures::MODE_INSERT : Structures::MODE_AUTO;
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Add the ability to set "Propagation Method" on navigations, to include site group, or language-specific propagation settings.
+
+### Changed
+- Nodes are propagated to all enabled sites for the navigation by default (for multi-sites).
+- When changing the "Propagation Method" for navigations, nodes are now re-saved via a queue job, to assist with large navigations.
+
+### Fixed
+- Fix some issues with node propagation.
+
 ## 2.0.8 - 2022-10-25
 
 ### Added

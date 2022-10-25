@@ -23,6 +23,11 @@ class Nav extends Model
     public const DEFAULT_PLACEMENT_BEGINNING = 'beginning';
     public const DEFAULT_PLACEMENT_END = 'end';
 
+    public const PROPAGATION_METHOD_NONE = 'none';
+    public const PROPAGATION_METHOD_SITE_GROUP = 'siteGroup';
+    public const PROPAGATION_METHOD_LANGUAGE = 'language';
+    public const PROPAGATION_METHOD_ALL = 'all';
+
 
     // Properties
     // =========================================================================
@@ -34,7 +39,7 @@ class Nav extends Model
     public ?string $handle = null;
     public ?string $instructions = null;
     public ?int $sortOrder = null;
-    public bool $propagateNodes = false;
+    public string $propagationMethod = self::PROPAGATION_METHOD_ALL;
     public ?int $maxNodes = null;
     public ?int $maxLevels = null;
     public string $defaultPlacement = self::DEFAULT_PLACEMENT_END;
@@ -77,11 +82,20 @@ class Nav extends Model
         $rules[] = [['id', 'structureId', 'fieldLayoutId', 'maxLevels'], 'number', 'integerOnly' => true];
         $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']];
         $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => NavRecord::class];
-        $rules[] = [['name', 'handle', 'siteSettings'], 'required'];
+        $rules[] = [['name', 'handle', 'propagationMethod', 'siteSettings'], 'required'];
         $rules[] = [['name', 'handle'], 'string', 'max' => 255];
         $rules[] = [['defaultPlacement'], 'in', 'range' => [self::DEFAULT_PLACEMENT_BEGINNING, self::DEFAULT_PLACEMENT_END]];
         $rules[] = [['fieldLayout'], 'validateFieldLayout'];
         $rules[] = [['siteSettings'], 'validateSiteSettings'];
+
+        $rules[] = [
+            ['propagationMethod'], 'in', 'range' => [
+                self::PROPAGATION_METHOD_NONE,
+                self::PROPAGATION_METHOD_SITE_GROUP,
+                self::PROPAGATION_METHOD_LANGUAGE,
+                self::PROPAGATION_METHOD_ALL,
+            ],
+        ];
 
         return $rules;
     }
@@ -159,6 +173,15 @@ class Nav extends Model
         return $siteIds;
     }
 
+    public function getHasMultiSiteNodes(): bool
+    {
+        return (
+            Craft::$app->getIsMultiSite() &&
+            count($this->getSiteSettings()) > 1 &&
+            $this->propagationMethod !== self::PROPAGATION_METHOD_NONE
+        );
+    }
+
     public function getConfig(): array
     {
         $config = [
@@ -169,7 +192,7 @@ class Nav extends Model
                 'maxLevels' => (int)$this->maxLevels ?: null,
             ],
             'instructions' => $this->instructions,
-            'propagateNodes' => $this->propagateNodes,
+            'propagationMethod' => $this->propagationMethod,
             'maxNodes' => $this->maxNodes,
             'sortOrder' => (int)$this->sortOrder,
             'permissions' => $this->permissions,

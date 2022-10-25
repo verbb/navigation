@@ -27,7 +27,6 @@ class NodesController extends Controller
 
         foreach ($nodesPost as $key => $nodePost) {
             $node = $this->_setNodeFromPost("nodes.{$key}.");
-            $propagateNodes = (bool)$node->nav->propagateNodes;
 
             // Check for max nodes
             if ($node->nav->maxNodes) {
@@ -40,7 +39,7 @@ class NodesController extends Controller
                 }
             }
 
-            if (!Craft::$app->getElements()->saveElement($node, true, $propagateNodes)) {
+            if (!Craft::$app->getElements()->saveElement($node, true)) {
                 return $this->asModelFailure($node, Craft::t('navigation', 'Couldn’t add node.'), 'node');
             }
         }

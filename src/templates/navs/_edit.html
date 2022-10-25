@@ -12,7 +12,7 @@
 {% set permissionsClass = '' %}
 
 {% if nav is defined %}
-    {% if nav.getErrors('name') or nav.getErrors('handle') or nav.getErrors('instructions') or nav.getErrors('maxLevels') or nav.getErrors('maxNodes') or nav.getErrors('propagateNodes') or nav.getErrors('siteSettings') %}
+    {% if nav.getErrors('name') or nav.getErrors('handle') or nav.getErrors('instructions') or nav.getErrors('maxLevels') or nav.getErrors('maxNodes') or nav.getErrors('propagationMethod') or nav.getErrors('siteSettings') %}
         {% set settingsClass = 'error' %}
     {% endif %}
 {% endif %}
@@ -72,47 +72,7 @@
             errors: (nav is defined ? nav.getErrors('instructions') : null),
         }) }}
 
-        {{ forms.textField({
-            label: 'Max Levels' | t('app'),
-            instructions: 'The maximum number of levels this navigation can have. Leave blank for no limit.' | t('navigation'),
-            id: 'maxLevels',
-            name: 'maxLevels',
-            size: 5,
-            value: (nav is defined ? nav.maxLevels : null),
-            errors: (nav is defined ? nav.getErrors('maxLevels') : null),
-        }) }}
-
-        {{ forms.textField({
-            label: 'Max Nodes' | t('app'),
-            instructions: 'The maximum number of nodes this navigation can have. Leave blank for no limit.' | t('navigation'),
-            id: 'maxNodes',
-            name: 'maxNodes',
-            size: 5,
-            value: (nav is defined ? nav.maxNodes : null),
-            errors: (nav is defined ? nav.getErrors('maxNodes') : null),
-        }) }}
-
-        {{ forms.selectField({
-            label: 'Default {type} Placement' | t('navigation', { type: 'Node' | t('navigation') }),
-            instructions: 'Where new {type} should be placed by default in the structure.' | t('navigation', { type: 'nodes' | t('navigation') }),
-            id: 'default-placement',
-            name: 'defaultPlacement',
-            options: [
-                { label: 'Before other {type}' | t('navigation', { type: 'nodes' | t('navigation') }), value: 'beginning'},
-                { label: 'After other {type}' | t('navigation', { type: 'nodes' | t('navigation') }), value: 'end'},
-            ],
-            value: nav.defaultPlacement,
-        }) }}
-
         {% if craft.app.getIsMultiSite() %}
-            {{ forms.lightswitchField({
-                label: 'Propagate nodes across all enabled sites?' | t('navigation'),
-                instructions: 'Whether nodes in this navigation should be propagated across all the sites the available is enabled in. If this is disabled, each node will only belong to the site it was created in.' | t('navigation'),
-                id: 'propagateNodes',
-                name: 'propagateNodes',
-                on: nav.propagateNodes,
-            }) }}
-
             {% set siteRows = [] %}
             {% set siteErrors = nav.getErrors('siteSettings') %}
 
@@ -157,7 +117,54 @@
                 allowReorder: false,
                 errors: siteErrors | unique,
             }) }}
+
+            {{ forms.selectField({
+                label: 'Propagation Method' | t('navigation'),
+                instructions: 'Of the enabled sites above, which sites should nodes in this navigation be saved to?' | t('navigation'),
+                warning: nav.id and nav.propagationMethod != 'none' and nav.siteSettings | length > 1 ? 'Changing this may result in data loss.' | t('navigation'),
+                id: 'propagationMethod',
+                name: 'propagationMethod',
+                options: [
+                    { value: 'none', label: 'Only save nodes to the site they were created in' | t('navigation') },
+                    { value: 'siteGroup', label: 'Save nodes to other sites in the same site group' | t('navigation') },
+                    { value: 'language', label: 'Save nodes to other sites with the same language' | t('navigation') },
+                    { value: 'all', label: 'Save nodes to all sites enabled for this navigation' | t('navigation') },
+                ],
+                value: nav.propagationMethod,
+            }) }}
         {% endif %}
+
+        {{ forms.textField({
+            label: 'Max Levels' | t('app'),
+            instructions: 'The maximum number of levels this navigation can have. Leave blank for no limit.' | t('navigation'),
+            id: 'maxLevels',
+            name: 'maxLevels',
+            size: 5,
+            value: (nav is defined ? nav.maxLevels : null),
+            errors: (nav is defined ? nav.getErrors('maxLevels') : null),
+        }) }}
+
+        {{ forms.textField({
+            label: 'Max Nodes' | t('app'),
+            instructions: 'The maximum number of nodes this navigation can have. Leave blank for no limit.' | t('navigation'),
+            id: 'maxNodes',
+            name: 'maxNodes',
+            size: 5,
+            value: (nav is defined ? nav.maxNodes : null),
+            errors: (nav is defined ? nav.getErrors('maxNodes') : null),
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Default {type} Placement' | t('navigation', { type: 'Node' | t('navigation') }),
+            instructions: 'Where new {type} should be placed by default in the structure.' | t('navigation', { type: 'nodes' | t('navigation') }),
+            id: 'default-placement',
+            name: 'defaultPlacement',
+            options: [
+                { label: 'Before other {type}' | t('navigation', { type: 'nodes' | t('navigation') }), value: 'beginning'},
+                { label: 'After other {type}' | t('navigation', { type: 'nodes' | t('navigation') }), value: 'end'},
+            ],
+            value: nav.defaultPlacement,
+        }) }}
     </div>
 
     <div id="node-fields" class="hidden">

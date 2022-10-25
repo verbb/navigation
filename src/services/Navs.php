@@ -28,6 +28,7 @@ use craft\helpers\Queue;
 use craft\helpers\StringHelper;
 use craft\i18n\Translation;
 use craft\models\Structure;
+use craft\queue\jobs\ApplyNewPropagationMethod;
 use craft\queue\jobs\ResaveElements;
 
 use Throwable;
@@ -210,15 +211,15 @@ class Navs extends Component
             $navRecord->name = $data['name'];
             $navRecord->handle = $data['handle'];
             $navRecord->instructions = $data['instructions'];
-            $navRecord->propagateNodes = $data['propagateNodes'];
             $navRecord->maxNodes = $data['maxNodes'] ?? '';
             $navRecord->permissions = $data['permissions'] ?? [];
             $navRecord->sortOrder = $data['sortOrder'];
+            $navRecord->propagationMethod = $data['propagationMethod'] ?? NavModel::PROPAGATION_METHOD_ALL;
             $navRecord->defaultPlacement = $data['defaultPlacement'] ?? NavModel::DEFAULT_PLACEMENT_END;
+
             $navRecord->uid = $navUid;
 
-            $oldPropagateNodes = $navRecord->getOldAttribute('propagateNodes');
-            $propagationMethodChanged = $navRecord->propagateNodes != $oldPropagateNodes;
+            $propagationMethodChanged = $navRecord->propagationMethod != $navRecord->getOldAttribute('propagationMethod');
 
             // Structure
             $structuresService = Craft::$app->getStructures();
@@ -318,74 +319,16 @@ class Navs extends Component
             if (!$isNewNav && $resaveNodes) {
                 // If the propagation method just changed, we definitely need to update nodes for that
                 if ($propagationMethodChanged) {
-                    $elementsService = Craft::$app->getElements();
-                    $nodesToDelete = [];
-
-                    $primarySiteId = Craft::$app->getSites()->getPrimarySite()->id;
-                    $nav = $this->getNavById($navRecord->id);
-
-                    // If we've turned off propagating, we need to propagate nodes
-                    if (!$navRecord->propagateNodes && $oldPropagateNodes) {
-                        $nodes = Node::find()
-                            ->navId($navRecord->id)
-                            ->siteId($primarySiteId)
-                            ->level(1)
-                            ->orderBy(['structureelements.lft' => SORT_ASC])
-                            ->all();
-
-                        foreach ($nav->getSites() as $site) {
-                            // If we try and propagate nodes to another site's nav, which already
-                            // has nodes, we'll get duplicates. As there's no real way to compare
-                            // propagated and non-propagated nodes (effectively), we need to wipe all
-                            // enabled nav nodes first, before duplicating.
-                            $existingNodes = Node::find()->navId($navRecord->id)->siteId($site->id)->all();
-
-                            // But, we need to wait for all navigations to finish, before deleting.
-                            // Otherwise, we'll delete a node in one site navigation, and because we've
-                            // set to propagate, it'll delete it from all other navs instantly.
-                            foreach ($existingNodes as $existingNode) {
-                                $nodesToDelete[] = $existingNode;
-                            }
-
-                            $this->_duplicateElements($nodes, ['siteId' => $site->id]);
-                        }
-                    } else {
-                        // As we're switching **on** node propagation (where every node is the same across multiple sites) 
-                        // we need to empty the navs for all other sites, other than the primary site
-                        // Re-save all nodes, to prompt them to be propagated to all enabled sites
-                        foreach ($nav->getSites() as $site) {
-                            if ($site->id == $primarySiteId) {
-                                // Don't delete the primary site's nodes. They'll be propagated.
-                                continue;
-                            }
-
-                            $existingNodes = Node::find()->navId($navRecord->id)->siteId($site->id)->all();
-
-                            // But, we need to wait for all navigations to finish, before deleting.
-                            // Otherwise, we'll delete a node in one site navigation, and because we've
-                            // set to propagate, it'll delete it from all other navs instantly.
-                            foreach ($existingNodes as $existingNode) {
-                                $nodesToDelete[] = $existingNode;
-                            }
-                        }
-
-                        $nodes = Node::find()->navId($navRecord->id)->siteId($primarySiteId)->ids();
-
-                        // Re-save the primary sites' nodes, which will propagate to all other sites.
-                        Queue::push(new ResaveElements([
-                            'description' => Translation::prep('app', 'Resaving {nav} nodes', [
-                                'nav' => $navRecord->name,
-                            ]),
-                            'elementType' => Node::class,
-                            'criteria' => [
-                                'id' => $nodes,
-                            ],
-                        ]));
-                    }
-
-                    foreach ($nodesToDelete as $nodeToDelete) {
-                        $elementsService->deleteElement($nodeToDelete);
-                    }
+                    Queue::push(new ApplyNewPropagationMethod([
+                        'description' => Translation::prep('app', 'Applying new propagation method to {nav} nodes', [
+                            'nav' => $navRecord->name,
+                        ]),
+                        'elementType' => Node::class,
+                        'criteria' => [
+                            'navId' => $navRecord->id,
+                            'structureId' => $navRecord->structureId,
+                        ],
+                    ]));
                 } else if ($this->autoResaveNodes) {
                     Queue::push(new ResaveElements([
                         'description' => Translation::prep('app', 'Resaving {nav} nodes', [
@@ -740,7 +683,7 @@ class Navs extends Component
                 'navs.handle',
                 'navs.instructions',
                 'navs.sortOrder',
-                'navs.propagateNodes',
+                'navs.propagationMethod',
                 'navs.maxNodes',
                 'navs.permissions',
                 'navs.defaultPlacement',
