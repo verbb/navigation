@@ -6,6 +6,7 @@ use verbb\navigation\gql\arguments\NodeArguments;
 use verbb\navigation\gql\interfaces\NodeInterface as NodeInterfaceLocal;
 use verbb\navigation\gql\types\generators\CustomAttributeGenerator;
 use verbb\navigation\gql\types\generators\NodeGenerator;
+use verbb\navigation\helpers\Gql as GqlHelper;
 
 use Craft;
 use craft\gql\interfaces\Element;
@@ -139,6 +140,14 @@ class NodeInterface extends Structure
                 'name' => 'element',
                 'type' => Element::getType(),
                 'description' => 'The element the node links to.',
+                'resolve' => function($node) {
+                    // Ensure we have permission to query the element type, to prevent errors thrown
+                    if (GqlHelper::canQueryNodeElement($node)) {
+                        return $node->getElement();
+                    }
+
+                    return null;
+                },
             ],
         ]), self::getName());
     }
