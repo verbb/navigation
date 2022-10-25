@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.29 - 2022-10-25
+
+### Added
+- Add support for GraphQL querying on Navigation field within other elements.
+
 ## 1.4.28 - 2022-07-15
 
 ### Fixed
