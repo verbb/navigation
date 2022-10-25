@@ -733,11 +733,6 @@ class Node extends Element
             $this->elementSiteId = null;
         }
 
-        // If a non-element node, remove the suffix
-        if (!$this->isElement()) {
-            $this->urlSuffix = '';
-        }
-
         return parent::beforeSave($isNew);
     }
 
