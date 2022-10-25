@@ -42,9 +42,6 @@ if (typeof Craft.Navigation === typeof undefined) {
 // to All/Enabled/Disabled status will trigger it back to the default Structure.
 Craft.setQueryParam('sort', null);
 
-Craft.Structure.baseIndent = 5;
-Craft.Structure.nestedIndent = 5;
-
 Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
     elementModals: [],
 
@@ -228,11 +225,6 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
 
     onUpdateElements: function() {
         this.updateParentSelect();
-
-        this.view.structureTableSort._basePadding = 5;
-        this.view.structureTableSort._helperMargin = 5;
-
-        console.log(this.view)
     },
 
     onSelectSite: function() {
