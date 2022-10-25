@@ -722,39 +722,4 @@ class Navs extends Component
         $query->andWhere(['uid' => $uid]);
         return $query->one() ?? new NavRecord();
     }
-
-    private function _duplicateElements(array $elements, array $newAttributes = [], array &$duplicatedElementIds = [], ?ElementInterface $newParent = null): void
-    {
-        $elementsService = Craft::$app->getElements();
-        $structuresService = Craft::$app->getStructures();
-
-        foreach ($elements as $element) {
-            // Make sure this element wasn't already duplicated, which could
-            // happen if it's the descendant of a previously duplicated element
-            // and $this->deep == true.
-            if (isset($duplicatedElementIds[$element->id])) {
-                continue;
-            }
-
-            $duplicate = $elementsService->duplicateElement($element, $newAttributes);
-            $duplicatedElementIds[$element->id] = true;
-
-            if ($newParent) {
-                // Append it to the duplicate of $element’s parent
-                $structuresService->append($element->structureId, $duplicate, $newParent);
-            } else {
-                // Place it right next to the original element
-                $structuresService->moveAfter($element->structureId, $duplicate, $element);
-            }
-
-            $children = $element::find()
-                ->siteId($element->siteId)
-                ->descendantOf($element->id)
-                ->descendantDist(1)
-                ->status(null)
-                ->all();
-
-            $this->_duplicateElements($children, $newAttributes, $duplicatedElementIds, $duplicate);
-        }
-    }
 }

@@ -12,6 +12,7 @@ use verbb\navigation\models\Nav_SiteSettings;
 use verbb\navigation\models\Settings;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\models\FieldLayoutTab;
@@ -20,6 +21,8 @@ use craft\web\Controller;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
+
+use Throwable;
 
 class NavsController extends Controller
 {
@@ -242,6 +245,82 @@ class NavsController extends Controller
         Navigation::$plugin->getNavs()->deleteNavById($navId);
 
         return $this->asSuccess();
+    }
+
+    public function actionDuplicateNav(): ?Response
+    {
+        $navId = Craft::$app->getRequest()->getRequiredBodyParam('id');
+        $nav = Navigation::$plugin->getNavs()->getNavById($navId);
+
+        $newNav = clone $nav;
+        $newNav->id = null;
+        $newNav->handle = $newNav->handle . rand();
+        $newNav->structureId = null;
+        $newNav->uid = null;
+        $newNav->fieldLayoutId = null;
+        $newNav->setSiteSettings($nav->getSiteSettings());
+
+        if (!Navigation::$plugin->getNavs()->saveNav($newNav)) {
+            $this->setFailFlash(Craft::t('navigation', 'Unable to duplicate navigation.'));
+
+            return null;
+        }
+
+        $elements = NodeElement::find()
+            ->navId($nav->id)
+            ->level(1)
+            ->status(null)
+            ->all();;
+
+        $newAttributes = ['navId' => $newNav->id];
+        $this->_duplicateElements($elements, $newAttributes);
+
+        return $this->asSuccess();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _duplicateElements(array $elements, array $newAttributes = [], array &$duplicatedElementIds = [], ?ElementInterface $newParent = null): void
+    {
+        $elementsService = Craft::$app->getElements();
+        $structuresService = Craft::$app->getStructures();
+
+        foreach ($elements as $element) {
+            // Make sure this element wasn't already duplicated, which could
+            // happen if it's the descendant of a previously duplicated element
+            if (isset($duplicatedElementIds[$element->id])) {
+                continue;
+            }
+
+            try {
+                $duplicate = $elementsService->duplicateElement($element, $newAttributes);
+            } catch (Throwable) {
+                // Validation error
+                continue;
+            }
+
+            $duplicatedElementIds[$element->id] = true;
+
+            if ($newParent) {
+                // Append it to the duplicate of $element’s parent
+                $structuresService->append($element->structureId, $duplicate, $newParent);
+            } elseif ($element->structureId) {
+                // Place it right next to the original element
+                $structuresService->moveAfter($element->structureId, $duplicate, $element);
+            }
+
+            // Don't use $element->children() here in case its lft/rgt values have changed
+            $children = $element::find()
+                ->siteId($element->siteId)
+                ->descendantOf($element->id)
+                ->descendantDist(1)
+                ->status(null)
+                ->all();
+
+            $this->_duplicateElements($children, $newAttributes, $duplicatedElementIds, $duplicate);
+        }
     }
 
 }

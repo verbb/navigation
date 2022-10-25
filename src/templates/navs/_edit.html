@@ -27,6 +27,30 @@
 
 {% set isNewNav = (nav is not defined or not nav.id) %}
 
+{% set formActions = [
+    {
+        label: 'Save and continue editing' | t('app'),
+        redirect: 'navigation/navs/edit/{id}' | hash,
+        shortcut: true,
+        retainScroll: true,
+    },
+    not isNewNav ? {
+        label: 'Duplicate' | t('navigation'),
+        action: 'navigation/navs/duplicate-nav',
+        params: { id: nav.id },
+        redirect: 'navigation/navs' | hash,
+    },
+    not isNewNav ? {
+        label: 'Delete' | t('app'),
+        action: 'navigation/navs/delete',
+        redirect: 'navigation/navs' | hash,
+        destructive: true,
+        confirm: 'Are you sure you want to delete “{name}”?' | t('app', {
+            name: nav.name,
+        }),
+    },
+] | filter %}
+
 {% if isNewNav %}
     {% set title = 'Create a new navigation' | t('navigation') %}
 {% else %}
@@ -36,7 +60,7 @@
 {% block blockContent %}
     <input type="hidden" name="action" value="navigation/navs/save-nav">
     {% if not isNewNav %}<input type="hidden" name="navId" value="{{ nav.id }}">{% endif %}
-    {{ redirectInput('navigation/navs/edit/{id}') }}
+    {{ redirectInput('navigation/navs') }}
 
     <div id="settings">
         {{ forms.textField({
