@@ -510,6 +510,11 @@ class Node extends Element
             $this->type = '';
         }
 
+        // If a non-element node, remove the suffix
+        if (!$this->isElement()) {
+            $this->urlSuffix = '';
+        }
+
         return parent::beforeSave($isNew);
     }
 
