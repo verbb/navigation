@@ -14,6 +14,9 @@
 ### Fixed
 - Fix some issues with node propagation.
 
+### Removed
+- Removed A&M Nav and Navee Craft 2 migrations, as these are no longer applicable in Craft 4.
+
 ## 2.0.8 - 2022-10-25
 
 ### Added
