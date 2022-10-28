@@ -143,6 +143,11 @@
 ### Removed
 - Removed `NodeType::hasClasses()` and `NodeType::hasAttributes()` which are now controlled by native fields.
 
+## 1.4.30 - 2022-10-28
+
+### Fixed
+- Fix URL Suffix setting not being reset when changing from an element to non-element node type.
+
 ## 1.4.29 - 2022-10-25
 
 ### Added
