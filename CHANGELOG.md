@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.10 - 2022-10-28
+
+### Fixed
+- Fix an error when migrating from 2.0.8.
+
 ## 2.0.9 - 2022-10-28
 
 ### Added
