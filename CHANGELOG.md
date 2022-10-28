@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.9 - 2022-10-28
 
 ### Added
 - Add the ability to set "Propagation Method" on navigations, to include site group, or language-specific propagation settings.
@@ -14,6 +14,7 @@
 
 ### Fixed
 - Fix some issues with node propagation.
+- Fix element actions not appearing due to Craft 4.3 changes.
 
 ### Removed
 - Removed A&M Nav and Navee Craft 2 migrations, as these are no longer applicable in Craft 4.
