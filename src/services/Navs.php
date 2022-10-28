@@ -214,12 +214,9 @@ class Navs extends Component
             $navRecord->maxNodes = $data['maxNodes'] ?? '';
             $navRecord->sortOrder = $data['sortOrder'];
             $navRecord->defaultPlacement = $data['defaultPlacement'] ?? NavModel::DEFAULT_PLACEMENT_END;
+            $navRecord->permissions = $data['permissions'] ?? [];
 
             $schemaVersion = Craft::$app->getProjectConfig()->get('plugins.navigation.schemaVersion', true);
-
-            if (version_compare($schemaVersion, '2.0.2', '>=')) {
-                $navRecord->permissions = $data['permissions'] ?? [];
-            }
 
             if (version_compare($schemaVersion, '2.0.5', '>=')) {
                 $navRecord->propagationMethod = $data['propagationMethod'] ?? NavModel::PROPAGATION_METHOD_ALL;
@@ -700,6 +697,7 @@ class Navs extends Component
                 'navs.sortOrder',
                 'navs.maxNodes',
                 'navs.defaultPlacement',
+                'navs.permissions',
                 'navs.uid',
                 'structures.maxLevels',
             ])
@@ -713,10 +711,6 @@ class Navs extends Component
             ->orderBy(['sortOrder' => SORT_ASC]);
 
             $schemaVersion = Craft::$app->getProjectConfig()->get('plugins.navigation.schemaVersion', true);
-
-            if (version_compare($schemaVersion, '2.0.2', '>=')) {
-                $query->addSelect('navs.permissions');
-            }
 
             if (version_compare($schemaVersion, '2.0.5', '>=')) {
                 $query->addSelect('navs.propagationMethod');
