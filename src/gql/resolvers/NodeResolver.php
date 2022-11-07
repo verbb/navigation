@@ -4,6 +4,7 @@ namespace verbb\navigation\gql\resolvers;
 use verbb\navigation\elements\Node;
 use verbb\navigation\helpers\Gql as GqlHelper;
 
+use craft\elements\db\ElementQuery;
 use craft\gql\base\ElementResolver;
 use craft\helpers\Db;
 
@@ -12,15 +13,20 @@ class NodeResolver extends ElementResolver
     // Static Methods
     // =========================================================================
 
-    public static function prepareQuery(mixed $source, array $arguments, $fieldName = null): mixed
+    public static function prepareQuery(mixed $source, array $arguments, ?string $fieldName = null): mixed
     {
         if ($source === null) {
             $query = Node::find();
         } else {
+            // Protect against empty fields
+            if (!$source->$fieldName) {
+                return [];
+            }
+
             $query = Node::find()->navHandle($source->$fieldName);
         }
 
-        if (is_array($query)) {
+        if (!$query instanceof ElementQuery) {
             return $query;
         }
 
