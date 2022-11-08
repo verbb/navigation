@@ -57,6 +57,12 @@
     {% set title = nav.name %}
 {% endif %}
 
+{% set additionalButtons %}
+    {% if not isNewNav %}
+        <a href="{{ cpUrl('navigation/navs/build/' ~ nav.id) }}" class="btn" target="_blank" rel="noopener" data-icon-after="external">{{ 'Edit Nodes' | t('navigation') }}</a>
+    {% endif %}
+{% endset %}
+
 {% block blockContent %}
     <input type="hidden" name="action" value="navigation/navs/save-nav">
     {% if not isNewNav %}<input type="hidden" name="navId" value="{{ nav.id }}">{% endif %}
