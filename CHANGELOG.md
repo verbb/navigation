@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.11 - 2022-11-09
+
+### Added
+- Add “Edit Nodes” button when editing a navigation’s settings.
+
+### Fixed
+- Fix validation not working correctly when setting “Max Levels”, “Max Nodes” or “Max Nodes per Level”.
+- Fixed PHP errors that could occur when executing GraphQL queries.
+- Fix GraphQL queries on a Navigation field when no navigation is chosen returning incorrect nodes.
+
 ## 2.0.10 - 2022-10-28
 
 ### Fixed
