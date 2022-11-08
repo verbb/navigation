@@ -8,6 +8,8 @@ use craft\elements\db\ElementQuery;
 use craft\gql\base\ElementResolver;
 use craft\helpers\Db;
 
+use Illuminate\Support\Collection;
+
 class NodeResolver extends ElementResolver
 {
     // Static Methods
@@ -20,7 +22,7 @@ class NodeResolver extends ElementResolver
         } else {
             // Protect against empty fields
             if (!$source->$fieldName) {
-                return [];
+                return Collection::empty();
             }
 
             $query = Node::find()->navHandle($source->$fieldName);
@@ -37,7 +39,7 @@ class NodeResolver extends ElementResolver
         $pairs = GqlHelper::extractAllowedEntitiesFromSchema('read');
 
         if (!GqlHelper::canQueryNavigation()) {
-            return [];
+            return Collection::empty();
         }
 
         if (!GqlHelper::canSchema('navigationNavs.all')) {
