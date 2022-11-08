@@ -188,8 +188,9 @@ class Nav extends Model
         if ($this->maxNodes) {
             $nodesService = Navigation::$plugin->getNodes();
 
-            $nodes = $nodesService->getNodesForNav($this->id, $node->siteId);
-            $totalNodes = count($nodes) + 1;
+            // Get all saved nodes, and temp nodes we're trying to add
+            $nodes = $nodesService->getNodesForNav($this->id, $node->siteId, true);
+            $totalNodes = count($nodes);
 
             if ($totalNodes > $this->maxNodes) {
                 return true;
@@ -208,7 +209,7 @@ class Nav extends Model
 
                 if ($level !== null && $max !== null && $node->level) {
                     if ($node->level == $level) {
-                        // Get all nodes for the nav, at this level to compare
+                        // Get all saved nodes for the nav, at this level to compare
                         $totalNodes = Node::find()
                             ->navId($this->id)
                             ->descendantOf($node->getParent())
@@ -216,7 +217,10 @@ class Nav extends Model
                             ->siteId($node->siteId)
                             ->level($level)
                             ->status(null)
-                            ->count() + 1;
+                            ->count();
+
+                        // Add in any temp nodes we're trying to add
+                        $totalNodes += count(Navigation::$plugin->getNodes()->getTempNodes());
 
                         if ($totalNodes > $max) {
                             return true;

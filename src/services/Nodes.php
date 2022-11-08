@@ -12,6 +12,12 @@ use craft\helpers\ElementHelper;
 
 class Nodes extends Component
 {
+    // Properties
+    // =========================================================================
+
+    private array $_tempNodes = [];
+
+
     // Public Methods
     // =========================================================================
 
@@ -20,14 +26,20 @@ class Nodes extends Component
         return Craft::$app->getElements()->getElementById($id, NodeElement::class, $siteId, $criteria);
     }
 
-    public function getNodesForNav($navId, $siteId = null): array
+    public function getNodesForNav($navId, $siteId = null, $includeTemp = false): array
     {
-        return NodeElement::find()
+        $nodes = NodeElement::find()
             ->navId($navId)
             ->status(null)
             ->siteId($siteId)
             ->status(null)
             ->all();
+
+        if ($includeTemp) {
+            $nodes = array_merge($nodes, $this->_tempNodes);
+        }
+
+        return $nodes;
     }
 
     public function onSaveElement(ElementEvent $event): void
@@ -139,5 +151,15 @@ class Nodes extends Component
         }
 
         return $parentOptions;
+    }
+
+    public function setTempNodes(array $nodes): void
+    {
+        $this->_tempNodes = $nodes;
+    }
+
+    public function getTempNodes(): array
+    {
+        return $this->_tempNodes;
     }
 }

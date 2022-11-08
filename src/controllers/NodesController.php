@@ -28,6 +28,9 @@ class NodesController extends Controller
         foreach ($nodesPost as $key => $nodePost) {
             $node = $this->_setNodeFromPost("nodes.{$key}.");
 
+            // Add this new node to the nav, to assist with validation
+            $nodesService->setTempNodes([$node]);
+
             if (!Craft::$app->getElements()->saveElement($node, true)) {
                 return $this->asModelFailure($node, Craft::t('navigation', 'Couldn’t add node.'), 'node');
             }
