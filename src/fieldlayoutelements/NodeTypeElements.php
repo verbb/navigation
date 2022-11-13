@@ -56,6 +56,7 @@ class NodeTypeElements extends BaseField
                 'elementType' => $element->type,
                 'sources' => '*',
                 'showSiteMenu' => true,
+                'required' => true,
                 'limit' => 1,
                 'modalStorageKey' => 'navigation.linkedElementId',
             ]);

@@ -881,6 +881,11 @@ class Node extends Element
         return $object;
     }
 
+    public function getLinkedElementId(): ?int
+    {
+        return $this->elementId;
+    }
+
     public function setLinkedElementId($value): void
     {
         // This is a required proxy variable when editing a node, due to a conflicting `elementId`.
@@ -1009,6 +1014,14 @@ class Node extends Element
             },
             'on' => [self::SCENARIO_DEFAULT, self::SCENARIO_LIVE, self::SCENARIO_ESSENTIALS],
         ];
+
+        $rules[] = ['elementId', function($attribute, $params, Validator $validator): void {
+            if ($this->isElement() && empty($this->elementId)) {
+                // Add to both attributes as the element slide-out uses `linkedElementId`
+                $validator->addError($this, 'elementId', Craft::t('navigation', 'Element ID is required.'));
+                $validator->addError($this, 'linkedElementId', Craft::t('navigation', 'Linked Element ID is required.'));
+            }
+        }, 'skipOnEmpty' => false];
 
         return $rules;
     }
