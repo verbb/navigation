@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.31 - 2022-11-21
+
+### Fixed
+- Fix an issue where empty custom attributes would create invalid HTML.
+
 ## 1.4.30 - 2022-10-28
 
 ### Fixed
