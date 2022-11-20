@@ -292,14 +292,13 @@ class Node extends Element
     {
         $object = $this->_getObject();
 
-        $classes = $this->classes ?
-            Craft::$app->getView()->renderObjectTemplate($this->classes, $object) : null;
+        $classes = $this->classes ? Craft::$app->getView()->renderObjectTemplate($this->classes, $object) : null;
 
         $attributes = [
             'href' => $this->getUrl(),
             'target' => $this->newWindow ? '_blank' : null,
             'rel' => $this->newWindow ? 'noopener' : null,
-            'class' => [ $classes ],
+            'class' => $classes,
         ];
 
         if (is_array($this->customAttributes)) {
@@ -311,8 +310,11 @@ class Node extends Element
             }
         }
 
+        // Filter out any values
+        $attributes = array_filter($attributes);
+
         if (is_array($extraAttributes)) {
-            $attributes = array_merge_recursive($attributes, $extraAttributes);
+            $attributes = array_merge_recursive($attributes, array_filter($extraAttributes));
         }
 
         return Template::raw(BaseHtml::renderTagAttributes($attributes));
@@ -641,7 +643,7 @@ class Node extends Element
             }
         }
 
-        return $object;
+        return array_filter($object);
     }
 
 
