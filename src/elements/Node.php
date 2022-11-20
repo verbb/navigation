@@ -477,7 +477,7 @@ class Node extends Element
             'href' => $this->getUrl(),
             'target' => $this->newWindow ? '_blank' : null,
             'rel' => $this->newWindow ? 'noopener' : null,
-            'class' => [$classes],
+            'class' => $classes,
         ];
 
         foreach ($this->customAttributes as $attribute) {
@@ -487,8 +487,11 @@ class Node extends Element
             $attributes[$key] = Craft::$app->getView()->renderObjectTemplate($val, $object);
         }
 
+        // Filter out any values
+        $attributes = array_filter($attributes);
+
         if (is_array($extraAttributes)) {
-            $attributes = array_merge_recursive($attributes, $extraAttributes);
+            $attributes = array_merge_recursive($attributes, array_filter($extraAttributes));
         }
 
         return Template::raw(BaseHtml::renderTagAttributes($attributes));
@@ -878,7 +881,7 @@ class Node extends Element
             $object[$attribute['attribute']] = $attribute['value'];
         }
 
-        return $object;
+        return array_filter($object);
     }
 
     public function getLinkedElementId(): ?int
