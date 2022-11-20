@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.12 - 2022-11-21
+
+### Changed
+- Element nodes now throw a validation error when a linked element is not selected.
+
+### Fixed
+- Fix an issue where empty custom attributes would create invalid HTML.
+
 ## 2.0.11 - 2022-11-09
 
 ### Added
