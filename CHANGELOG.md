@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.13 - 2022-11-22
+
+### Fixed
+- Fix an issue where `navigation_sites` database entries weren’t being created correctly for Craft 3 > Craft 4 upgrades.
+
 ## 2.0.12 - 2022-11-21
 
 ### Changed
