@@ -59,6 +59,12 @@ class m220427_000000_navs_site_settings extends Migration
                         ]);
                     }
                 }
+
+                if (!$siteSettings) {
+                    $this->createDefaultSites($nav);
+                }
+            } else {
+                $this->createDefaultSites($nav);
             }
         }
 
@@ -73,6 +79,17 @@ class m220427_000000_navs_site_settings extends Migration
     {
         echo "m220427_000000_navs_site_settings cannot be reverted.\n";
         return false;
+    }
+
+    private function createDefaultSites($nav)
+    {
+        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            Db::upsert('{{%navigation_navs_sites}}', [
+                'siteId' => $site->id,
+                'navId' => $nav['id'],
+                'enabled' => true,
+            ]);
+        }
     }
 }
 
