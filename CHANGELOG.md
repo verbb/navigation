@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.14 - 2022-12-03
+
+### Fixed
+- Fix an issue where `navigation_sites` database entries weren’t being created correctly.
+
 ## 2.0.13 - 2022-11-22
 
 ### Fixed
