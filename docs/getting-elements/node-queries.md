@@ -763,16 +763,13 @@ Possible values include:
 
 | Value | Fetches nodes…
 | - | -
-| `'live'` _(default)_ | that are live.
-| `'pending'` | that are pending (enabled with a Post Date in the future).
-| `'expired'` | that are expired (enabled with an Expiry Date in the past).
+| `'enabled'` _(default)_ | that are enabled.
 | `'disabled'` | that are disabled.
-| `['live', 'pending']` | that are live or pending.
 
 ::: code
 ```twig Twig
 {# Fetch disabled nodes #}
-{% set nodes = {twig-function}
+{% set nodes = craft.navigation.nodes()
     .status('disabled')
     .all() %}
 ```
