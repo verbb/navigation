@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.15 - 2022-12-14
+
+### Fixed
+- Fix an error when switching node types to non-elements.
+
 ## 2.0.14 - 2022-12-03
 
 ### Fixed
