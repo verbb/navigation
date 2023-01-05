@@ -1,6 +1,9 @@
 {% extends 'navigation/_layouts' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
+
+{% requireAdmin %}
 
 {% set crumbs = [
     { label: craft.navigation.getPluginName(), url: url('navigation/settings') },
