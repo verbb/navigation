@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.16 - 2023-01-06
+
+### Changed
+- Only admins are now allowed to access plugin settings.
+
+### Fixed
+- Fix a Craft 3 > Craft 4 migration.
+
 ## 2.0.15 - 2022-12-14
 
 ### Fixed
