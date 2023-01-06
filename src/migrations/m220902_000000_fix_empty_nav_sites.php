@@ -9,6 +9,9 @@ use craft\db\Query;
 use craft\db\Migration;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
+use craft\helpers\StringHelper;
+
+use DateTime;
 
 class m220902_000000_fix_empty_nav_sites extends Migration
 {
@@ -33,6 +36,9 @@ class m220902_000000_fix_empty_nav_sites extends Migration
                         'siteId' => $site->id,
                         'navId' => $nav['id'],
                         'enabled' => true,
+                        'dateCreated' => Db::prepareDateForDb(new DateTime()),
+                        'dateUpdated' => Db::prepareDateForDb(new DateTime()),
+                        'uid' => StringHelper::UUID(),
                     ]);
                 }
             }

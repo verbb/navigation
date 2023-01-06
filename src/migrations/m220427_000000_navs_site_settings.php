@@ -6,6 +6,9 @@ use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
+
+use DateTime;
 
 class m220427_000000_navs_site_settings extends Migration
 {
@@ -56,6 +59,9 @@ class m220427_000000_navs_site_settings extends Migration
                             'siteId' => $siteId,
                             'navId' => $nav['id'],
                             'enabled' => (bool)$enabled,
+                            'dateCreated' => Db::prepareDateForDb(new DateTime()),
+                            'dateUpdated' => Db::prepareDateForDb(new DateTime()),
+                            'uid' => StringHelper::UUID(),
                         ]);
                     }
                 }
@@ -88,6 +94,9 @@ class m220427_000000_navs_site_settings extends Migration
                 'siteId' => $site->id,
                 'navId' => $nav['id'],
                 'enabled' => true,
+                'dateCreated' => Db::prepareDateForDb(new DateTime()),
+                'dateUpdated' => Db::prepareDateForDb(new DateTime()),
+                'uid' => StringHelper::UUID(),
             ]);
         }
     }
