@@ -51,7 +51,7 @@
                 } %}
 
                 <li {{ attr(attributes) }}>
-                    <a id="tab-{{ tabId }}" class="tab{% if selected %} sel{% endif %}" href="#pane-{{ tabId }}" title="{{ tab.label }}">
+                    <a id="tab-{{ tabId }}" class="tab{% if selected %} sel{% endif %}" href="#pane-{{ tabId }}" data-href="#pane-{{ tabId }}" title="{{ tab.label }}">
                         {{ tab.label }}
                     </a>
 

@@ -233,10 +233,10 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
         // which only need to contain the hash to toggle tabs. So put them back!
         $('.navigation-nodes-sidebar a.tab').each(function(index, element) {
             var $a = $(element);
-            var href = $a.attr('href');
-            var parts = href.split('#');
 
-            $a.attr('href', '#' + parts[1]);
+            // The original, non-site hash is stored in `data-href`. Note a separate attribute to help with special chars
+            // see https://github.com/verbb/navigation/issues/342
+            $a.attr('href', $a.data('href'));
         });
     },
 
