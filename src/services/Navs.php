@@ -710,7 +710,7 @@ class Navs extends Component
             ->where(['navs.dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);
 
-            $schemaVersion = Craft::$app->getProjectConfig()->get('plugins.navigation.schemaVersion', true);
+            $schemaVersion = Craft::$app->getProjectConfig()->get('plugins.navigation.schemaVersion');
 
             if (version_compare($schemaVersion, '2.0.5', '>=')) {
                 $query->addSelect('navs.propagationMethod');
