@@ -113,6 +113,8 @@
 
 // Hide toolbar items. Required to exist for element index
 .body-navigation-nodes-index #toolbar {
+    .search-container,
+    .search-container + section,
     .search,
     .search + div {
         display: none;
