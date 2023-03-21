@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.17 - 2023-03-21
+
+### Changed
+- Improve querying nodes performanc for large sites (with a large project config).
+
+### Fixed
+- Fix an error when adding new nodes for large navigations.
+- Fix search and sort filters showing when editing a navigation.
+- Fix a JS error for users with the control panel set to a language containing special characters, and when switching sites when editing nodes.
+- Fix being unable to delete a navigation from the edit screen.
+
 ## 2.0.16 - 2023-01-06
 
 ### Changed
