@@ -904,6 +904,13 @@ class Node extends Element
         }
     }
 
+    public function setLinkedElementSiteId($value): void
+    {
+        if ($value) {
+            $this->elementSiteId = (int)$value;
+        }
+    }
+
     public function _getActive($includeChildren = true): bool
     {
         if ($this->_isActive && $includeChildren) {
@@ -991,7 +998,7 @@ class Node extends Element
 
         // Must be included to allow `setAttributes()` to work, and treat it as safe. This is so the element
         // slide-out can update the type for draft-changes.
-        $rules[] = [['linkedElementId', 'url', 'urlSuffix', 'classes', 'newWindow', 'customAttributes', 'type', 'data', 'parentId'], 'safe'];
+        $rules[] = [['linkedElementId', 'linkedElementSiteId', 'url', 'urlSuffix', 'classes', 'newWindow', 'customAttributes', 'type', 'data', 'parentId'], 'safe'];
 
         $rules[] = [
             'level',

@@ -5,6 +5,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\fieldlayoutelements\BaseField;
 use craft\helpers\Cp;
+use craft\helpers\Html;
 
 class NodeTypeElements extends BaseField
 {
@@ -47,7 +48,12 @@ class NodeTypeElements extends BaseField
             $classNameParts = explode('\\', $element->type);
             $typeClass = array_pop($classNameParts);
 
-            return Cp::elementSelectFieldHtml([
+            $siteId = $element->getElement()->siteId ?? null;
+            $html = Html::hiddenInput('linkedElementSiteId', $siteId, [
+                'id' => 'linkedElementSiteId',
+            ]);
+
+            $html .= Cp::elementSelectFieldHtml([
                 'label' => Craft::t('navigation', 'Linked to {element}', ['element' => $typeClass]),
                 'instructions' => Craft::t('navigation', 'The element this node is linked to.'),
                 'id' => 'linkedElementId',
@@ -60,6 +66,12 @@ class NodeTypeElements extends BaseField
                 'limit' => 1,
                 'modalStorageKey' => 'navigation.linkedElementId',
             ]);
+
+            $namespace = Craft::$app->getView()->getNamespace();
+
+            $html .= "<script>new Craft.Navigation.ElementSelect('#" . $namespace ."-linkedElementId', '#" . $namespace ."-linkedElementSiteId')</script>";
+
+            return $html;
         }
 
         if ($nodeType = $element->nodeType()) {

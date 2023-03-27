@@ -255,4 +255,25 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
 Craft.registerElementIndexClass('verbb\\navigation\\elements\\Node', Craft.Navigation.NodeIndex);
 
 
+Craft.Navigation.ElementSelect = Garnish.Base.extend({
+    init(elementSelect, siteId) {
+        const $elementSelect = $(elementSelect);
+        const $siteId = $(siteId);
+
+        if ($elementSelect.length) {
+            setTimeout(function() {
+                const elementSelect = $elementSelect.data('elementSelect');
+
+                if (elementSelect) {
+                    elementSelect.on('selectElements', (event) => {
+                        if (event.elements && event.elements.length) {
+                            $siteId.val(event.elements[0].siteId);
+                        }
+                    });
+                }
+            }, 100)
+        }
+    },
+});
+
 })(jQuery);
