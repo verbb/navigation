@@ -784,6 +784,34 @@ $nodes = \verbb\navigation\elements\Node::find()
 
 
 
+### `type`
+
+Narrows the query results based on the nodes’ type.
+
+::: code
+```twig Twig
+{# Fetch the node by its UID #}
+{% set node = craft.navigation.nodes()
+    .type('craft\\elements\\Entry')
+    .all() %}
+```
+
+```php PHP
+// Fetch entry nodes
+$node = \verbb\navigation\elements\Node::find()
+    ->type('craft\\elements\\Entry')
+    ->all();
+```
+:::
+
+Available values:
+- `verbb\navigation\nodetypes\CustomType`
+- `verbb\navigation\nodetypes\PassiveType`
+- `verbb\navigation\nodetypes\SiteType`
+- Any Craft native element class
+
+
+
 ### `uid`
 
 Narrows the query results based on the nodes’ UIDs.
