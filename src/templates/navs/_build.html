@@ -239,19 +239,21 @@
 
     {% embed '_elements/structure' %}
         {% block element %}
-            {% include '_elements/element' %}
+            <div class="node-row">
+                {% include '_elements/element' %}
 
-            <div class="node-type">
-                <span class="node-type-{{ element.getNodeTypeLabel() | kebab }}" title="{{ element.url }}">{{ element.getNodeTypeLabel() }}</span>
+                <span class="node-custom-title edit icon {{ element.hasOverriddenTitle ? '' : 'hidden' }}" title="{{ 'Custom Title' | t('navigation') }}"></span>
+                <span class="node-new-window fa fa-external-link {{ element.newWindow ? '' : 'hidden' }}" title="{{ 'New Window' | t('navigation') }}"></span>
+                <span class="node-classes classes {{ element.classes | length ? '' : 'hidden' }}">.{{ element.classes }}</span>
+
+                <a class="move icon" title="{{ 'Move' | t('app') }}"></a>
+                <a class="settings icon" title="{{ 'Settings' | t('app') }}"></a>
+                <a class="delete icon" title="{{ 'Delete' | t('app') }}"></a>
+
+                <div class="node-type">
+                    <span class="node-type-{{ element.getNodeTypeLabel() | kebab }}" title="{{ element.url }}">{{ element.getNodeTypeLabel() }}</span>
+                </div>
             </div>
-
-            <span class="node-custom-title edit icon {{ element.hasOverriddenTitle ? '' : 'hidden' }}" title="{{ 'Custom Title' | t('navigation') }}"></span>
-            <span class="node-new-window fa fa-external-link {{ element.newWindow ? '' : 'hidden' }}" title="{{ 'New Window' | t('navigation') }}"></span>
-            <span class="node-classes classes {{ element.classes | length ? '' : 'hidden' }}">.{{ element.classes }}</span>
-
-            <a class="move icon" title="{{ 'Move' | t('app') }}"></a>
-            <a class="settings icon" title="{{ 'Settings' | t('app') }}"></a>
-            <a class="delete icon" title="{{ 'Delete' | t('app') }}"></a>
         {% endblock %}
     {% endembed %}
 </div>
@@ -263,18 +265,20 @@
 <script id="js-node-template" type="text/template">
     <li data-level="__level__">
         <div class="row">
-            <div class="element small hasstatus" data-type="verbb\navigation\elements\Node" data-id="__id__" data-site-id="__siteId__" data-status="__status__" data-label="__title__" data-url="__url__" data-level="__level__">
-                <span class="status __status__"></span>
-                <div class="label"><span class="title">__title__</span></div>
-            </div>
+            <div class="node-row">
+                <div class="element small hasstatus" data-type="verbb\navigation\elements\Node" data-id="__id__" data-site-id="__siteId__" data-status="__status__" data-label="__title__" data-url="__url__" data-level="__level__">
+                    <span class="status __status__"></span>
+                    <div class="label"><span class="title">__title__</span></div>
+                </div>
 
-            <div class="node-type">
-                <span class="node-type-__typeclass__" title="__url__">__type__</span>
-            </div>
+                <a class="move icon" title="{{ 'Move' | t('app') }}"></a>
+                <a class="settings icon" title="{{ 'Settings' | t('app') }}"></a>
+                <a class="delete icon" title="{{ 'Delete' | t('app') }}"></a>
 
-            <a class="move icon" title="{{ 'Move' | t('app') }}"></a>
-            <a class="settings icon" title="{{ 'Settings' | t('app') }}"></a>
-            <a class="delete icon" title="{{ 'Delete' | t('app') }}"></a>
+                <div class="node-type">
+                    <span class="node-type-__typeclass__" title="__url__">__type__</span>
+                </div>
+            </div>
         </div>
     </li>
 </script>
