@@ -30,9 +30,10 @@
 {% endif %}
 
 {% set form = node.getFieldLayout().createForm(node) %}
+{% set formHtml = form.render() %}
 
-{% if form.render() %}
+{% if formHtml %}
     <hr>
 
-    {{ form.render() | raw }}
+    {{ formHtml | raw }}
 {% endif %}
