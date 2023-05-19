@@ -53,6 +53,9 @@ class NodeTypeElements extends BaseField
                 'id' => 'linkedElementSiteId',
             ]);
 
+            $nav = $element->getNav();
+            $sources = $nav->permissions[$element->type]['permissions'] ?? '*';
+
             $html .= Cp::elementSelectFieldHtml([
                 'label' => Craft::t('navigation', 'Linked to {element}', ['element' => $typeClass]),
                 'instructions' => Craft::t('navigation', 'The element this node is linked to.'),
@@ -60,7 +63,7 @@ class NodeTypeElements extends BaseField
                 'name' => 'linkedElementId',
                 'elements' => [$element->getElement()],
                 'elementType' => $element->type,
-                'sources' => '*',
+                'sources' => $sources,
                 'showSiteMenu' => true,
                 'required' => true,
                 'limit' => 1,
