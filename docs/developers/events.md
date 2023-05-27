@@ -37,7 +37,7 @@ use verbb\navigation\events\NavEvent;
 use verbb\navigation\services\Navs;
 use yii\base\Event;
 
-Event::on(Navs::class, Navs::EVENT_BEFORE_DELETE_NAV, function(NavEvent $e) {
+Event::on(Navs::class, Navs::EVENT_BEFORE_DELETE_NAV, function(NavEvent $event) {
     // Do something
 });
 ```
@@ -50,7 +50,7 @@ use verbb\navigation\events\NavEvent;
 use verbb\navigation\services\Navs;
 use yii\base\Event;
 
-Event::on(Navs::class, Navs::EVENT_AFTER_DELETE_NAV, function(NavEvent $e) {
+Event::on(Navs::class, Navs::EVENT_AFTER_DELETE_NAV, function(NavEvent $event) {
     // Do something
 });
 ```
@@ -66,9 +66,9 @@ use craft\events\ModelEvent;
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Node::class, Node::EVENT_BEFORE_SAVE, function(ModelEvent $e) {
-    $node = $e->sender;
-    $e->isValid = false;
+Event::on(Node::class, Node::EVENT_BEFORE_SAVE, function(ModelEvent $event) {
+    $node = $event->sender;
+    $event->isValid = false;
 });
 ```
 
@@ -80,8 +80,8 @@ use craft\events\ModelEvent;
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Node::class, Node::EVENT_AFTER_SAVE, function(ModelEvent $e) {
-    $node = $e->sender;
+Event::on(Node::class, Node::EVENT_AFTER_SAVE, function(ModelEvent $event) {
+    $node = $event->sender;
 });
 ```
 
@@ -92,9 +92,9 @@ Plugins can modify the active state of a node.
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Node::class, Node::EVENT_NODE_ACTIVE, function(Event $e) {
-    $node = $e->node;
-    $e->isActive = true;
+Event::on(Node::class, Node::EVENT_NODE_ACTIVE, function(Event $event) {
+    $node = $event->node;
+    $event->isActive = true;
 });
 ```
 

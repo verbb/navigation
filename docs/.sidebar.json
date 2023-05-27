@@ -6,7 +6,6 @@
             "get-started/installation-setup",
             "get-started/requirements",
             "get-started/configuration",
-            "get-started/credit-thanks",
             "get-started/upgrading-from-v1"
         ]
     },
@@ -14,9 +13,7 @@
         "title": "Feature Tour",
         "collapsable": false,
         "children": [
-            "feature-tour/overview",
-            "feature-tour/a-m-nav-migration",
-            "feature-tour/navee-migration"
+            "feature-tour/overview"
         ]
     },
     {
