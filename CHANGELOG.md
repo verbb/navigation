@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.32 - 2023-05-27
+
+### Fixed
+- Fix disabled node border color.
+- Fix alignment issues with node builder.
+
 ## 1.4.31 - 2022-11-21
 
 ### Fixed
