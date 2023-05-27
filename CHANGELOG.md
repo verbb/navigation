@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.18 - 2023-05-27
+
+### Fixed
+- Fix incorrect sources for element nodes in the element slide-out.
+- Fix when editing an existing navigation, being unable to pick site-specific elements (for element nodes)
+.
 ## 2.0.17 - 2023-03-21
 
 ### Changed
