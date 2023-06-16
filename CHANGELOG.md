@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.33 - 2023-06-16
+
+### Fixed
+- Fix an error when moving nodes.
+
 ## 1.4.32 - 2023-05-27
 
 ### Fixed
