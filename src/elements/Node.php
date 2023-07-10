@@ -736,6 +736,11 @@ class Node extends Element
             $this->elementSiteId = null;
         }
 
+        // Allow node types to hook into things
+        if ($this->nodeType()) {
+            $this->nodeType()->beforeSaveNode($isNew);
+        }
+
         return parent::beforeSave($isNew);
     }
 

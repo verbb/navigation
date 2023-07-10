@@ -65,4 +65,9 @@ abstract class NodeType extends Component implements NodeTypeInterface
     {
         return static::displayName();
     }
+
+    public function beforeSaveNode(bool $isNew): bool
+    {
+        return true;
+    }
 }
