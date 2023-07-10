@@ -718,7 +718,7 @@ class Node extends Element
 
         // If no title is set (for a custom node type for instance), generate one.
         if (!$this->title && $this->nodeType()) {
-            $this->title = $this->nodeType()->displayName();
+            $this->title = $this->nodeType()->getDefaultTitle();
         }
 
         // Save the linked element's site id to the slug - again, our hacky way...

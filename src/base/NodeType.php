@@ -60,4 +60,9 @@ abstract class NodeType extends Component implements NodeTypeInterface
     {
         return null;
     }
+
+    public function getDefaultTitle(): string
+    {
+        return static::displayName();
+    }
 }
