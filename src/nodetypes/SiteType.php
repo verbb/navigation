@@ -2,8 +2,10 @@
 namespace verbb\navigation\nodetypes;
 
 use verbb\navigation\base\NodeType;
+use verbb\navigation\elements\Node;
 
 use Craft;
+use craft\models\Site;
 
 class SiteType extends NodeType
 {
@@ -51,7 +53,33 @@ class SiteType extends NodeType
         return Craft::$app->getView()->renderTemplate('navigation/_types/site/settings');
     }
 
+    public function getDefaultTitle(): string
+    {
+        if ($site = $this->_getSite()) {
+            if ($site->hasUrls) {
+                return $site->name;
+            }
+        }
+
+        return parent::getDefaultTitle();
+    }
+
     public function getUrl(): ?string
+    {
+        if ($site = $this->_getSite()) {
+            if ($site->hasUrls) {
+                return rtrim($site->getBaseUrl(), '/');
+            }
+        }
+
+        return null;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getSite(): ?Site
     {
         $data = $this->node->data ?? [];
 
@@ -59,9 +87,7 @@ class SiteType extends NodeType
             $siteId = $data['siteId'] ?? null;
 
             if ($siteId && $site = Craft::$app->getSites()->getSiteById($siteId)) {
-                if ($site->hasUrls) {
-                    return rtrim($site->getBaseUrl(), '/');
-                }
+                return $site;
             }
         }
 
