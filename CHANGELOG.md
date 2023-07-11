@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.19 - 2023-07-11
+
+### Added
+- Add `NodeType::beforeSaveNode`.
+- Add `NodeType::getDefaultTitle`.
+
+### Fixed
+- Fix Site not not using the site name as the default title.
+
 ## 2.0.18 - 2023-05-27
 
 ### Fixed
