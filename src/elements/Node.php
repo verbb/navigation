@@ -377,6 +377,11 @@ class Node extends Element
         return '';
     }
 
+    public function getCurrent(): bool
+    {
+        return $this->_getActive(false);
+    }
+
     public function getActive($includeChildren = true): ?bool
     {
         $isActive = $this->_getActive($includeChildren);
