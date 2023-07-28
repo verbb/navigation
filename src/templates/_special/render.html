@@ -12,6 +12,7 @@
 {% set aClass = options.aClass is defined ? [options.aClass] : [] %}
 {% set aAttributes = aAttributes | merge({ class: aClass }) %}
 
+{% set currentClass = options.currentClass ?? 'current' %}
 {% set activeClass = options.activeClass ?? 'active' %}
 {% set hasChildrenClass = options.hasChildrenClass ?? 'has-children' %}
 
@@ -34,6 +35,11 @@
         {% if node.active %}
             {% set aClasses = aNodeAttributes.class | merge([activeClass]) | filter %}
             {% set aNodeAttributes = aNodeAttributes | merge({ class: aClasses }) %}
+        {% endif %}
+
+        {% if node.getCurrent() %}
+            {% set aClasses = aNodeAttributes.class | merge([currentClass]) | filter %}
+            {% set aNodeAttributes = aNodeAttributes | merge({ class: aClasses, 'aria-current': 'page' }) %}
         {% endif %}
 
         <li {{ attr(liNodeAttributes) }}>
