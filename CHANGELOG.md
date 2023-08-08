@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.20 - 2023-08-09
+
+### Added
+- Add `aria-current=“page”` to `craft.navigation.render()`.
+- Add `Node::getCurrent()`.
+
+### Fixed
+- Fix an error when running `resave/navigation-nodes`.
+
 ## 2.0.19 - 2023-07-11
 
 ### Added
