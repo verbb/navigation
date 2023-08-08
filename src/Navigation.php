@@ -309,7 +309,7 @@ class Navigation extends Plugin
                         $criteria['navId'] = explode(',', $controller->navId);
                     }
 
-                    return $controller->saveElements(Node::class, $criteria);
+                    return $controller->resaveElements(Node::class, $criteria);
                 },
                 'options' => ['navId'],
                 'helpSummary' => 'Re-saves Navigation nodes.',
