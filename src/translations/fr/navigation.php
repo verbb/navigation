@@ -6,6 +6,7 @@ return [
 	'Custom URL' => 'URL personnalisée',
 	'URL Suffix' => 'Suffixe URL',
 	'Additional content appended to the element' => 'Contenu supplémentaire ajouté à l\'élément',
+    'Additional content appended to the element‘s URL.' => 'Contenu supplémentaire ajouté à l\'URL de l\'élément.',
 	'Classes' => 'Classes',
 	'Additional CSS classes for this navigation item.' => 'Classes CSS supplémentaires pour cet élément de navigation.',
 	'Node Type Fields' => 'Champs de type de nœud',
