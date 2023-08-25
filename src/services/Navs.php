@@ -381,7 +381,7 @@ class Navs extends Component
                 ->trashed()
                 ->site('*')
                 ->unique()
-                ->andWhere(['nodes.deletedWithNav' => true])
+                ->andWhere(['navigation_nodes.deletedWithNav' => true])
                 ->all();
 
             Craft::$app->getElements()->restoreElements($nodes);
