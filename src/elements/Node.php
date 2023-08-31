@@ -77,6 +77,11 @@ class Node extends Element
         return 'node';
     }
 
+    public static function trackChanges(): bool
+    {
+        return true;
+    }
+
     public static function hasContent(): bool
     {
         return true;
