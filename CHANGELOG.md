@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.21 - 2023-09-08
+
+### Added
+- Add the ability to use `NodeQuery` objects in all `craft.navigation.*` Twig calls.
+- Add missing french translations. (thanks @pascalminator).
+
+### Fixed
+- Fix element fields not saving correctly in Craft 4.4+.
+- Fix some custom field values not saving correctly.
+- Fix an error when restoring a deleted nav.
+
 ## 2.0.20 - 2023-08-09
 
 ### Added
