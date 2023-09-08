@@ -330,6 +330,28 @@ $nodes = \verbb\navigation\elements\Node::find()
 
 
 
+### `handle`
+
+Narrows the query results based on the `handle` of the navigation.
+
+::: code
+```twig Twig
+{# Fetch nodes that have descendants #}
+{% set nodes = craft.navigation.nodes()
+    .handle('mainMenu')
+    .all() %}
+```
+
+```php PHP
+// Fetch nodes for the `mainMenu` navigation
+$nodes = \verbb\navigation\elements\Node::find()
+    ->handle('mainMenu')
+    ->all();
+```
+:::
+
+
+
 ### `hasDescendants`
 
 Narrows the query results based on whether the nodes have any descendants.
