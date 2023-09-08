@@ -336,7 +336,7 @@ Narrows the query results based on the `handle` of the navigation.
 
 ::: code
 ```twig Twig
-{# Fetch nodes that have descendants #}
+{# Fetch nodes for the `mainMenu` navigation #}
 {% set nodes = craft.navigation.nodes()
     .handle('mainMenu')
     .all() %}
