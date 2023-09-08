@@ -46,21 +46,20 @@ The `params` parameter can be either a string for the [Nav](docs:developers/nav)
 See [Rendering Nodes](docs:template-guides/rendering-nodes)
 
 ### `craft.navigation.breadcrumbs(options)`
-
 See [Breadcrumbs](docs:template-guides/breadcrumbs)
 
-### `craft.navigation.getActiveNode(nodeQuery, includeChildren)`
+### `craft.navigation.getActiveNode(params, includeChildren)`
+The `params` parameter can be either a string for the [Nav](docs:developers/nav) handle, an object of [NodeQuery](docs:getting-elements/node-queries) params or a [NodeQuery](docs:getting-elements/node-queries) itself.
 
 See [Rendering Nodes](docs:template-guides/rendering-nodes)
 
-### `craft.navigation.tree(nodeQuery)`
-
+### `craft.navigation.tree(params)`
 Returns a full tree structure of nodes as a nested array.
 
-### `craft.navigation.getNavById(id)`
+The `params` parameter can be either a string for the [Nav](docs:developers/nav) handle, an object of [NodeQuery](docs:getting-elements/node-queries) params or a [NodeQuery](docs:getting-elements/node-queries) itself.
 
+### `craft.navigation.getNavById(id)`
 Returns the navigation for the provided id.
 
 ### `craft.navigation.getNavByHandle(handle)`
-
 Returns the navigation for the provided handle.
