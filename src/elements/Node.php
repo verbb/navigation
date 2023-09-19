@@ -182,6 +182,11 @@ class Node extends Element
             return;
         }
 
+        // Only show this when editing the nav, in case these elements are listed by third parties
+        if (Craft::$app->getRequest()->getSegments() !== ['actions', 'element-indexes', 'get-elements']) {
+            return;
+        }
+
         $title = $element->hasOverriddenTitle();
         $newWindow = $element->newWindow;
         $classes = $element->classes ? '.' . str_replace(' ', ' .', $element->classes) : '';
@@ -572,6 +577,20 @@ class Node extends Element
         $classNameParts = explode('\\', $this->type);
 
         return array_pop($classNameParts);
+    }
+
+    public function getTypeLabelHtml(): string
+    {
+        $classNameParts = explode('\\', $this->type);
+        $className = array_pop($classNameParts);
+
+        // Convert Hex to RGB
+        $color = '--node-type-color: ' . $this->getTypeColor() . ';';
+
+        $type = 'node-type-' . StringHelper::toKebabCase($className);
+        $item = Html::tag('span', $this->getTypeLabel(), ['class' => $type, 'title' => $this->url]);
+
+        return Html::tag('div', $item, ['class' => 'node-type', 'style' => $color]);
     }
 
     public function getTypeColor()
@@ -1061,16 +1080,7 @@ class Node extends Element
     {
         switch ($attribute) {
             case 'typeLabel': {
-                $classNameParts = explode('\\', $this->type);
-                $className = array_pop($classNameParts);
-
-                // Convert Hex to RGB
-                $color = '--node-type-color: ' . $this->getTypeColor() . ';';
-
-                $type = 'node-type-' . StringHelper::toKebabCase($className);
-                $item = Html::tag('span', $this->getTypeLabel(), ['class' => $type, 'title' => $this->url]);
-
-                return Html::tag('div', $item, ['class' => 'node-type', 'style' => $color]);
+                return $this->getTypeLabelHtml();
             }
             case 'actions': {
                 $tags = Html::tag('a', null, ['class' => 'settings icon', 'title' => 'Settings']) . Html::tag('a', null, ['class' => 'delete icon', 'title' => 'Delete']);
