@@ -1,5 +1,5 @@
 # Upgrading from v1
-While the [changelog](https://github.com/verbb/navigation/blob/craft-4/CHANGELOG.md) is the most comprehensive list of changes, this guide provides high-level overview and organizes changes by category.
+While the [changelog](https://github.com/verbb/navigation/blob/craft-5/CHANGELOG.md) is the most comprehensive list of changes, this guide provides high-level overview and organizes changes by category.
 
 ## Plugin Settings
 We've removed `disabledElements` and `propagateSiteElements` as they are no longer required.

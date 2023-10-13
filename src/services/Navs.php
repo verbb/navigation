@@ -1,8 +1,6 @@
 <?php
 namespace verbb\navigation\services;
 
-use craft\models\FieldLayout;
-use verbb\navigation\models\Nav;
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 use verbb\navigation\events\NavEvent;
@@ -27,6 +25,7 @@ use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\Queue;
 use craft\helpers\StringHelper;
 use craft\i18n\Translation;
+use craft\models\FieldLayout;
 use craft\models\Structure;
 use craft\queue\jobs\ApplyNewPropagationMethod;
 use craft\queue\jobs\ResaveElements;
@@ -145,7 +144,7 @@ class Navs extends Component
         }
 
         if ($runValidation && !$nav->validate()) {
-            Craft::info('Navigation not saved due to validation error.', __METHOD__);
+            Navigation::info('Navigation not saved due to validation error.');
             return false;
         }
 

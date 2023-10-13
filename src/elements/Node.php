@@ -27,7 +27,6 @@ use craft\elements\actions\SetStatus;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQuery;
 use craft\errors\UnsupportedSiteException;
-use craft\events\DefineElementInnerHtmlEvent;
 use craft\events\MoveElementEvent;
 use craft\fields\data\ColorData;
 use craft\helpers\App;
@@ -79,11 +78,6 @@ class Node extends Element
     }
 
     public static function trackChanges(): bool
-    {
-        return true;
-    }
-
-    public static function hasContent(): bool
     {
         return true;
     }
@@ -171,34 +165,6 @@ class Node extends Element
         return [
             'typeLabel',
         ];
-    }
-
-    public static function getNodeElementTitleHtml(DefineElementInnerHtmlEvent $event)
-    {
-        $element = $event->element;
-        $context = $event->context;
-        $elementHtml = $event->innerHtml;
-
-        if (($context !== 'index') || !($element instanceof self)) {
-            return;
-        }
-
-        // Only show this when editing the nav, in case these elements are listed by third parties
-        if (Craft::$app->getRequest()->getSegments() !== ['actions', 'element-indexes', 'get-elements']) {
-            return;
-        }
-
-        $title = $element->hasOverriddenTitle();
-        $newWindow = $element->newWindow;
-        $classes = $element->classes ? '.' . str_replace(' ', ' .', $element->classes) : '';
-
-        $html = implode(' ', array_filter([
-            $title ? Html::tag('span', '', ['class' => 'node-custom-title edit icon']) : false,
-            $newWindow ? Html::tag('span', '', ['class' => 'node-new-window fa fa-external-link']) : false,
-            $classes ? Html::tag('span', $classes, ['class' => 'node-classes classes code']) : false,
-        ]));
-
-        $event->innerHtml = $elementHtml . ($html ? Html::tag('span', $html, ['class' => 'node-info-icons']) : '') . Html::tag('a', Craft::t('navigation', 'Edit'), ['class' => 'btn small icon edit node-edit-btn']);
     }
 
     protected static function defineActions(string $source): array
@@ -1102,25 +1068,19 @@ class Node extends Element
         return $rules;
     }
 
-    protected function tableAttributeHtml(string $attribute): string
+    protected function attributeHtml(string $attribute): string
     {
-        switch ($attribute) {
-            case 'typeLabel': {
-                return $this->getTypeLabelHtml();
-            }
-            case 'actions': {
-                $tags = Html::tag('a', null, ['class' => 'settings icon', 'title' => 'Settings']) . Html::tag('a', null, ['class' => 'delete icon', 'title' => 'Delete']);
+        if ($attribute == 'typeLabel') {
+            return $this->getTypeLabelHtml();
+        } else if ($attribute == 'actions') {
+            $tags = Html::tag('a', null, ['class' => 'settings icon', 'title' => 'Settings']) . Html::tag('a', null, ['class' => 'delete icon', 'title' => 'Delete']);
 
-                return Html::tag('div', $tags);
-            }
+            return Html::tag('div', $tags);
         }
 
-        return parent::tableAttributeHtml($attribute);
+        return parent::attributeHtml($attribute);
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function metaFieldsHtml(bool $static): string
     {
         $fields = [];

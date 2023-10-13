@@ -66,41 +66,6 @@ class Nav extends Model
         ];
     }
 
-    protected function defineBehaviors(): array
-    {
-        return [
-            'fieldLayout' => [
-                'class' => FieldLayoutBehavior::class,
-                'elementType' => Node::class,
-            ],
-        ];
-    }
-
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['id', 'structureId', 'fieldLayoutId', 'maxLevels'], 'number', 'integerOnly' => true];
-        $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']];
-        $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => NavRecord::class];
-        $rules[] = [['name', 'handle', 'propagationMethod', 'siteSettings'], 'required'];
-        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
-        $rules[] = [['defaultPlacement'], 'in', 'range' => [self::DEFAULT_PLACEMENT_BEGINNING, self::DEFAULT_PLACEMENT_END]];
-        $rules[] = [['fieldLayout'], 'validateFieldLayout'];
-        $rules[] = [['siteSettings'], 'validateSiteSettings'];
-
-        $rules[] = [
-            ['propagationMethod'], 'in', 'range' => [
-                self::PROPAGATION_METHOD_NONE,
-                self::PROPAGATION_METHOD_SITE_GROUP,
-                self::PROPAGATION_METHOD_LANGUAGE,
-                self::PROPAGATION_METHOD_ALL,
-            ],
-        ];
-
-        return $rules;
-    }
-
     public function validateFieldLayout(): void
     {
         $fieldLayout = $this->getFieldLayout();
@@ -287,6 +252,47 @@ class Nav extends Model
         }
 
         return $config;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['id', 'structureId', 'fieldLayoutId', 'maxLevels'], 'number', 'integerOnly' => true];
+        $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']];
+        $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => NavRecord::class];
+        $rules[] = [['name', 'handle', 'propagationMethod', 'siteSettings'], 'required'];
+        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [['defaultPlacement'], 'in', 'range' => [self::DEFAULT_PLACEMENT_BEGINNING, self::DEFAULT_PLACEMENT_END]];
+        $rules[] = [['fieldLayout'], 'validateFieldLayout'];
+        $rules[] = [['siteSettings'], 'validateSiteSettings'];
+
+        $rules[] = [
+            ['propagationMethod'], 'in', 'range' => [
+                self::PROPAGATION_METHOD_NONE,
+                self::PROPAGATION_METHOD_SITE_GROUP,
+                self::PROPAGATION_METHOD_LANGUAGE,
+                self::PROPAGATION_METHOD_ALL,
+            ],
+        ];
+
+        return $rules;
+    }
+
+    protected function defineBehaviors(): array
+    {
+        $behaviors = parent::defineBehaviors();
+
+        $behaviors['fieldLayout'] = [
+            'class' => FieldLayoutBehavior::class,
+            'elementType' => Node::class,
+        ];
+
+        return $behaviors;
     }
 
 }

@@ -7,35 +7,40 @@ use verbb\navigation\services\Elements;
 use verbb\navigation\services\Navs;
 use verbb\navigation\services\Nodes;
 use verbb\navigation\services\NodeTypes;
-use verbb\base\BaseHelper;
 
-use Craft;
-
-use yii\log\Logger;
+use verbb\base\LogTrait;
+use verbb\base\helpers\Plugin;
 
 trait PluginTrait
 {
     // Properties
     // =========================================================================
 
-    public static Navigation $plugin;
+    public static ?Navigation $plugin = null;
 
+
+    // Traits
+    // =========================================================================
+
+    use LogTrait;
+    
 
     // Static Methods
     // =========================================================================
 
-    public static function log(string $message, array $params = []): void
+    public static function config(): array
     {
-        $message = Craft::t('navigation', $message, $params);
+        Plugin::bootstrapPlugin('navigation');
 
-        Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'navigation');
-    }
-
-    public static function error(string $message, array $params = []): void
-    {
-        $message = Craft::t('navigation', $message, $params);
-
-        Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'navigation');
+        return [
+            'components' => [
+                'breadcrumbs' => Breadcrumbs::class,
+                'elements' => Elements::class,
+                'navs' => Navs::class,
+                'nodes' => Nodes::class,
+                'nodeTypes' => NodeTypes::class,
+            ],
+        ];
     }
 
 
@@ -65,28 +70,6 @@ trait PluginTrait
     public function getNodeTypes(): NodeTypes
     {
         return $this->get('nodeTypes');
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private function _registerComponents(): void
-    {
-        $this->setComponents([
-            'breadcrumbs' => Breadcrumbs::class,
-            'elements' => Elements::class,
-            'navs' => Navs::class,
-            'nodes' => Nodes::class,
-            'nodeTypes' => NodeTypes::class,
-        ]);
-
-        BaseHelper::registerModule();
-    }
-
-    private function _registerLogTarget(): void
-    {
-        BaseHelper::setFileLogging('navigation');
     }
 
 }

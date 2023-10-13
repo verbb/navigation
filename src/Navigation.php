@@ -82,12 +82,9 @@ class Navigation extends Plugin
 
         self::$plugin = $this;
 
-        $this->_registerComponents();
-        $this->_registerLogTarget();
         $this->_registerVariables();
-        $this->_registerCraftEventListeners();
-        $this->_registerProjectConfigEventListeners();
-        $this->_registerTwigExtensions();
+        $this->_registerEventHandlers();
+        $this->_registerProjectConfigEventHandlers();
         $this->_registerFieldTypes();
         $this->_registerElementTypes();
         $this->_registerGraphQl();
@@ -119,10 +116,17 @@ class Navigation extends Plugin
 
     public function getCpNavItem(): ?array
     {
-        $navItem = parent::getCpNavItem();
-        $navItem['label'] = $this->getPluginName();
+        $nav = parent::getCpNavItem();
+        $nav['label'] = $this->getPluginName();
 
-        return $navItem;
+        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $nav['subnav']['settings'] = [
+                'label' => Craft::t('navigation', 'Settings'),
+                'url' => 'navigation/settings',
+            ];
+        }
+
+        return $nav;
     }
 
 
@@ -137,11 +141,6 @@ class Navigation extends Plugin
 
     // Private Methods
     // =========================================================================
-
-    private function _registerTwigExtensions(): void
-    {
-        Craft::$app->getView()->registerTwigExtension(new Extension);
-    }
 
     private function _registerCpRoutes(): void
     {
@@ -164,7 +163,7 @@ class Navigation extends Plugin
         });
     }
 
-    private function _registerCraftEventListeners(): void
+    private function _registerEventHandlers(): void
     {
         // Allow elements to update our nodes
         Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT, [$this->getNodes(), 'onSaveElement']);
@@ -180,7 +179,7 @@ class Navigation extends Plugin
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_INNER_HTML, [Node::class, 'getNodeElementTitleHtml']);
     }
 
-    private function _registerProjectConfigEventListeners(): void
+    private function _registerProjectConfigEventHandlers(): void
     {
         Craft::$app->getProjectConfig()->onAdd(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleChangedNav'])
             ->onUpdate(Navs::CONFIG_NAV_KEY . '.{uid}', [$this->getNavs(), 'handleChangedNav'])

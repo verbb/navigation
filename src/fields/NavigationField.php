@@ -30,16 +30,16 @@ class NavigationField extends Field
         return Craft::t('navigation', 'Select a navigation');
     }
 
-
-    // Public Methods
-    // =========================================================================
-
-    public function getContentColumnType(): array|string
+    public static function dbType(): array|string
     {
         return Schema::TYPE_TEXT;
     }
 
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+
+    // Public Methods
+    // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         $navs = Navigation::$plugin->getNavs()->getAllNavs();
 

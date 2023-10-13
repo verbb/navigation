@@ -130,6 +130,6 @@ class Install extends Migration
 
     public function dropProjectConfig(): void
     {
-        Craft::$app->projectConfig->remove('navigation');
+        Craft::$app->getProjectConfig()->remove('navigation');
     }
 }
