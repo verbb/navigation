@@ -50,7 +50,7 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
             });
         }
 
-        // Move the instructions to below the nav title, because we can't with Twig along
+        // Move the instructions to below the nav title, because we can't with Twig alone
         var $instructions = $('#js-navigation-nodes-instructions');
 
         if ($instructions.length) {
