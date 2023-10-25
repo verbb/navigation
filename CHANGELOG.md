@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.22 - 2023-10-25
+
+### Added
+- Add Markdown support for navigation intstructions.
+
+### Fixed
+- Fix being able to circumvent max nodes level settings when moving nodes in the structure.
+- Fix custom UI for element index showing when viewing Nodes outside of Navigation.
+
 ## 2.0.21 - 2023-09-08
 
 ### Added
