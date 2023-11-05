@@ -7,6 +7,7 @@ use verbb\navigation\elements\Node as NodeElement;
 use Craft;
 use craft\base\Component;
 use craft\events\ElementEvent;
+use craft\events\MoveElementEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\ElementHelper;
 
@@ -122,6 +123,26 @@ class Nodes extends Component
 
         foreach ($nodes as $nodeId) {
             Craft::$app->getElements()->deleteElementById($nodeId);
+        }
+    }
+
+    public function onMoveElement(MoveElementEvent $event): void
+    {
+        if (!($event->element instanceof NodeElement)) {
+            return;
+        }
+
+        $nav = $event->element->getNav();
+
+        // Check for max nodes at level. This was only added in Craft 4.5, so check
+        if (property_exists($event, 'targetElementId')) {
+            if ($nav->maxNodesSettings && $node = $event->getTargetElement()) {
+                Navigation::$plugin->getNodes()->setTempNodes([$node]);
+
+                if ($nav->isOverMaxLevel($node)) {
+                    $event->isValid = false;
+                }
+            }
         }
     }
 

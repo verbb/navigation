@@ -44,6 +44,7 @@ use craft\services\Fields;
 use craft\services\Gql;
 use craft\services\ProjectConfig;
 use craft\services\Sites;
+use craft\services\Structures;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
@@ -178,6 +179,9 @@ class Navigation extends Plugin
 
         // Modify the element's HTML for the element index
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_INNER_HTML, [Node::class, 'getNodeElementTitleHtml']);
+
+        // Handle validation of max levels when dragging items across levels in structure
+        Event::on(Structures::class, Structures::EVENT_BEFORE_MOVE_ELEMENT, [$this->getNodes(), 'onMoveElement']);
     }
 
     private function _registerProjectConfigEventListeners(): void
