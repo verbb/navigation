@@ -134,14 +134,11 @@ class Nodes extends Component
 
         $nav = $event->element->getNav();
 
-        // Check for max nodes at level. This was only added in Craft 4.5, so check
-        if (property_exists($event, 'targetElementId')) {
-            if ($nav->maxNodesSettings && $node = $event->getTargetElement()) {
-                Navigation::$plugin->getNodes()->setTempNodes([$node]);
+        if ($nav->maxNodesSettings) {
+            Navigation::$plugin->getNodes()->setTempNodes([$event->element]);
 
-                if ($nav->isOverMaxLevel($node)) {
-                    $event->isValid = false;
-                }
+            if ($nav->isOverMaxLevel($event->element)) {
+                $event->isValid = false;
             }
         }
     }

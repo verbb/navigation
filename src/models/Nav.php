@@ -217,12 +217,18 @@ class Nav extends Model
                             ->siteId($node->siteId)
                             ->level($level)
                             ->status(null)
-                            ->count();
+                            ->ids();
+                        
+                        $totalNodeCount = count($totalNodes);
 
-                        // Add in any temp nodes we're trying to add
-                        $totalNodes += count(Navigation::$plugin->getNodes()->getTempNodes());
+                        // Add in any temp nodes we're trying to add (but for the same level and not already counted)
+                        foreach (Navigation::$plugin->getNodes()->getTempNodes() as $tempNode) {
+                            if ($tempNode->level == $level && !in_array($tempNode->id, $totalNodes)) {
+                                $totalNodeCount++;
+                            }
+                        }
 
-                        if ($totalNodes > $max) {
+                        if ($totalNodeCount > $max) {
                             return true;
                         }
                     }
