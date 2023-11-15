@@ -102,14 +102,17 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
         this.nodeElementType = $saveBtn.data('element-type');
         this.nodeElementSources = $saveBtn.data('sources');
 
+        var cacheKey = this.nodeElementType + '__' + this.siteId;
+        var modal = this.elementModals[cacheKey];
+
         // Cache element modals, so we don't create new ones each time
-        if (!this.elementModals[this.nodeElementType]) {
-            this.elementModals[this.nodeElementType] = this.createModal();
+        if (!modal) {
+            this.elementModals[cacheKey] = this.createModal();
         } else {
-            this.elementModals[this.nodeElementType].show();
+            modal.show();
 
             // De-select any previously selected items
-            this.elementModals[this.nodeElementType].elementIndex.view.deselectAllElements();
+            modal.elementIndex.view.deselectAllElements();
         }
     },
 
