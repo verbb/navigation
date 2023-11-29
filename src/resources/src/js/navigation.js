@@ -131,8 +131,10 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
         for (var i = 0; i < elements.length; i++) {
             var element = elements[i];
 
+            var cacheKey = this.nodeElementType + '__' + this.siteId;
+
             // Unselect element in modal
-            this.elementModals[this.nodeElementType].$body.find('tr[data-id="' + element.id + '"]').removeClass('sel');
+            this.elementModals[cacheKey].$body.find('tr[data-id="' + element.id + '"]').removeClass('sel');
 
             var nodeData = this.$form.serializeJSON();
             nodeData.navId = this.navId;
