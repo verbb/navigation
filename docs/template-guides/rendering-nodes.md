@@ -79,7 +79,7 @@ If you'd rather not use the `{% nav %}` functionality, you can create your own r
     <li>
         {{ node.link }}
 
-        {% if node.hasDescendants %}
+        {% if node.children %}
             <ul>
                 {% for subnode in node.children %}
                     {{ macros.navigationNodes(subnode) }}
