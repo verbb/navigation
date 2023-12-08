@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.23 - 2023-12-08
+
+### Added
+- Add `navigation/navs/fix-sites` console command to fix missing `navigation_navs_sites` entries for failed Craft 3 > 4 migrations.
+
+### Changed
+- Change max-level check when moving elements to base-plugin for performance.
+- Swap `hasDescendants` with `children` to make use of eager-loading performance.
+
+### Fixed
+- Fix element node modal’s site not changing to the same site as the navigation.
+- Fix validation checks when moving nodes between levels.
+- Fix an error when adding elements to a navigation.
+
 ## 2.0.22 - 2023-10-25
 
 ### Added
