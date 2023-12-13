@@ -13,6 +13,7 @@
 - Fix element node modal’s site not changing to the same site as the navigation.
 - Fix validation checks when moving nodes between levels.
 - Fix an error when adding elements to a navigation.
+- Fix the “Edit” button on nodes not appearing after saving a node.
 
 ## 2.0.22 - 2023-10-25
 
