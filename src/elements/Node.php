@@ -185,7 +185,10 @@ class Node extends Element
 
         // Only show this when editing the nav, in case these elements are listed by third parties
         if (Craft::$app->getRequest()->getSegments() !== ['actions', 'element-indexes', 'get-elements']) {
-            return;
+            // Watch out for ajax requests when saving the nav and refreshing the HTML
+            if (!Craft::$app->getRequest()->getIsAjax()) {
+                return;
+            }
         }
 
         $title = $element->hasOverriddenTitle();
