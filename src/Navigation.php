@@ -174,9 +174,6 @@ class Navigation extends Plugin
 
         // Prune deleted sites from site settings
         Event::on(Sites::class, Sites::EVENT_AFTER_DELETE_SITE, [$this->getNavs(), 'pruneDeletedSite']);
-
-        // Modify the element's HTML for the element index
-        Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_INNER_HTML, [Node::class, 'getNodeElementTitleHtml']);
     }
 
     private function _registerProjectConfigEventHandlers(): void
