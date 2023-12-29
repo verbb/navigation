@@ -161,9 +161,8 @@ class NavsController extends Controller
     public function actionSaveNav(): ?Response
     {
         $this->requirePostRequest();
-        $request = Craft::$app->getRequest();
 
-        $navId = $request->getBodyParam('navId');
+        $navId = $this->request->getBodyParam('navId');
 
         if ($navId) {
             $nav = Navigation::$plugin->getNavs()->getNavById($navId);
@@ -175,20 +174,20 @@ class NavsController extends Controller
             $nav = new Nav();
         }
 
-        $nav->name = $request->getBodyParam('name');
-        $nav->handle = $request->getBodyParam('handle');
-        $nav->instructions = $request->getBodyParam('instructions');
-        $nav->propagationMethod = $request->getBodyParam('propagationMethod', Nav::PROPAGATION_METHOD_ALL);
-        $nav->maxLevels = (int)$request->getBodyParam('maxLevels') ?: null;
-        $nav->maxNodes = (int)$request->getBodyParam('maxNodes') ?: null;
-        $nav->maxNodesSettings = $request->getBodyParam('maxNodesSettings') ?: [];
-        $nav->permissions = $request->getBodyParam('permissions');
-        $nav->defaultPlacement = $request->getBodyParam('defaultPlacement') ?? $nav->defaultPlacement;
+        $nav->name = $this->request->getBodyParam('name');
+        $nav->handle = $this->request->getBodyParam('handle');
+        $nav->instructions = $this->request->getBodyParam('instructions');
+        $nav->propagationMethod = $this->request->getBodyParam('propagationMethod', Nav::PROPAGATION_METHOD_ALL);
+        $nav->maxLevels = (int)$this->request->getBodyParam('maxLevels') ?: null;
+        $nav->maxNodes = (int)$this->request->getBodyParam('maxNodes') ?: null;
+        $nav->maxNodesSettings = $this->request->getBodyParam('maxNodesSettings') ?: [];
+        $nav->permissions = $this->request->getBodyParam('permissions');
+        $nav->defaultPlacement = $this->request->getBodyParam('defaultPlacement') ?? $nav->defaultPlacement;
 
         $allSiteSettings = [];
 
         foreach (Craft::$app->getSites()->getAllSites() as $site) {
-            $postedSettings = $request->getBodyParam('sites.' . $site->handle);
+            $postedSettings = $this->request->getBodyParam('sites.' . $site->handle);
 
             $siteSettings = new Nav_SiteSettings();
             $siteSettings->siteId = $site->id;

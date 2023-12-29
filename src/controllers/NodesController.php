@@ -20,10 +20,9 @@ class NodesController extends Controller
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
-        $request = Craft::$app->getRequest();
         $nodesService = Navigation::$plugin->getNodes();
 
-        $nodesPost = $request->getRequiredParam('nodes');
+        $nodesPost = $this->request->getRequiredParam('nodes');
 
         foreach ($nodesPost as $key => $nodePost) {
             $node = $this->_setNodeFromPost("nodes.{$key}.");
@@ -44,10 +43,9 @@ class NodesController extends Controller
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
-        $request = Craft::$app->getRequest();
         $nodesService = Navigation::$plugin->getNodes();
-        $navId = $request->getRequiredParam('navId');
-        $siteId = $request->getParam('siteId');
+        $navId = $this->request->getRequiredParam('navId');
+        $siteId = $this->request->getParam('siteId');
 
         $nodes = $nodesService->getNodesForNav($navId, $siteId);
 
@@ -68,14 +66,12 @@ class NodesController extends Controller
     {
         // Because adding multiple nodes and saving a single node use this same function, we have to jump
         // through some hoops to get the correct post params properties.
-        $request = Craft::$app->getRequest();
-
         $node = new Node();
-        $node->title = $request->getParam("{$prefix}title", $node->title);
-        $node->enabled = (bool)$request->getParam("{$prefix}enabled", $node->enabled);
-        $node->enabledForSite = (bool)$request->getParam("{$prefix}enabledForSite", $node->enabledForSite);
+        $node->title = $this->request->getParam("{$prefix}title", $node->title);
+        $node->enabled = (bool)$this->request->getParam("{$prefix}enabled", $node->enabled);
+        $node->enabledForSite = (bool)$this->request->getParam("{$prefix}enabledForSite", $node->enabledForSite);
 
-        $elementId = $request->getParam("{$prefix}elementId", $node->elementId);
+        $elementId = $this->request->getParam("{$prefix}elementId", $node->elementId);
 
         // Handle elementselect field
         if (is_array($elementId)) {
@@ -83,18 +79,18 @@ class NodesController extends Controller
         }
 
         $node->elementId = $elementId;
-        $node->elementSiteId = $request->getParam("{$prefix}elementSiteId", $node->elementSiteId);
-        $node->siteId = $request->getParam("{$prefix}siteId", $node->siteId);
-        $node->navId = $request->getParam("{$prefix}navId", $node->navId);
-        $node->url = $request->getParam("{$prefix}url", $node->url);
-        $node->type = $request->getParam("{$prefix}type", $node->type);
-        $node->classes = $request->getParam("{$prefix}classes", $node->classes);
-        $node->urlSuffix = $request->getParam("{$prefix}urlSuffix", $node->urlSuffix);
-        $node->customAttributes = Json::decodeIfJson($request->getParam("{$prefix}customAttributes")) ?? $node->customAttributes;
-        $node->data = Json::decodeIfJson($request->getParam("{$prefix}data")) ?? $node->data;
-        $node->newWindow = (bool)$request->getParam("{$prefix}newWindow", $node->newWindow);
+        $node->elementSiteId = $this->request->getParam("{$prefix}elementSiteId", $node->elementSiteId);
+        $node->siteId = $this->request->getParam("{$prefix}siteId", $node->siteId);
+        $node->navId = $this->request->getParam("{$prefix}navId", $node->navId);
+        $node->url = $this->request->getParam("{$prefix}url", $node->url);
+        $node->type = $this->request->getParam("{$prefix}type", $node->type);
+        $node->classes = $this->request->getParam("{$prefix}classes", $node->classes);
+        $node->urlSuffix = $this->request->getParam("{$prefix}urlSuffix", $node->urlSuffix);
+        $node->customAttributes = Json::decodeIfJson($this->request->getParam("{$prefix}customAttributes")) ?? $node->customAttributes;
+        $node->data = Json::decodeIfJson($this->request->getParam("{$prefix}data")) ?? $node->data;
+        $node->newWindow = (bool)$this->request->getParam("{$prefix}newWindow", $node->newWindow);
 
-        $node->parentId = $request->getParam("{$prefix}parentId");
+        $node->parentId = $this->request->getParam("{$prefix}parentId");
 
         // Set field values.
         $node->setFieldValuesFromRequest('fields');
