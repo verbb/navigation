@@ -550,11 +550,6 @@ class Navs extends Component
             }
         }
 
-        // Nuke all the layout fields from the DB
-        Db::delete(Table::FIELDLAYOUTFIELDS, [
-            'fieldId' => $field->id,
-        ]);
-
         // Allow events again
         $projectConfig->muteEvents = false;
     }
