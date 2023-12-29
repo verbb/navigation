@@ -2,21 +2,27 @@
 namespace verbb\navigation\console\controllers;
 
 use Craft;
+use craft\console\Controller;
 use craft\db\Query;
+use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\StringHelper;
 
-use yii\console\Controller;
 use yii\console\ExitCode;
-use yii\helpers\Console;
 
 use DateTime;
 
+/**
+ * Manages Navigations.
+ */
 class NavsController extends Controller
 {
     // Public Methods
     // =========================================================================
 
+    /**
+     * Fix a Craft 3 > Craft 4 migration issue with empty sites.
+     */
     public function actionFixSites(): int
     {
         $navs = (new Query())
