@@ -50,7 +50,7 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
             });
         }
 
-        // Move the instructions to below the nav title, because we can't with Twig along
+        // Move the instructions to below the nav title, because we can't with Twig alone
         var $instructions = $('#js-navigation-nodes-instructions');
 
         if ($instructions.length) {
@@ -102,14 +102,17 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
         this.nodeElementType = $saveBtn.data('element-type');
         this.nodeElementSources = $saveBtn.data('sources');
 
+        var cacheKey = this.nodeElementType + '__' + this.siteId;
+        var modal = this.elementModals[cacheKey];
+
         // Cache element modals, so we don't create new ones each time
-        if (!this.elementModals[this.nodeElementType]) {
-            this.elementModals[this.nodeElementType] = this.createModal();
+        if (!modal) {
+            this.elementModals[cacheKey] = this.createModal();
         } else {
-            this.elementModals[this.nodeElementType].show();
+            modal.show();
 
             // De-select any previously selected items
-            this.elementModals[this.nodeElementType].elementIndex.view.deselectAllElements();
+            modal.elementIndex.view.deselectAllElements();
         }
     },
 
@@ -128,8 +131,10 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
         for (var i = 0; i < elements.length; i++) {
             var element = elements[i];
 
+            var cacheKey = this.nodeElementType + '__' + this.siteId;
+
             // Unselect element in modal
-            this.elementModals[this.nodeElementType].$body.find('tr[data-id="' + element.id + '"]').removeClass('sel');
+            this.elementModals[cacheKey].$body.find('tr[data-id="' + element.id + '"]').removeClass('sel');
 
             var nodeData = this.$form.serializeJSON();
             nodeData.navId = this.navId;

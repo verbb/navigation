@@ -44,6 +44,7 @@ use craft\services\Fields;
 use craft\services\Gql;
 use craft\services\ProjectConfig;
 use craft\services\Sites;
+use craft\services\Structures;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
@@ -174,6 +175,9 @@ class Navigation extends Plugin
 
         // Prune deleted sites from site settings
         Event::on(Sites::class, Sites::EVENT_AFTER_DELETE_SITE, [$this->getNavs(), 'pruneDeletedSite']);
+
+        // Handle validation of max levels when dragging items across levels in structure
+        Event::on(Structures::class, Structures::EVENT_BEFORE_MOVE_ELEMENT, [$this->getNodes(), 'onMoveElement']);
     }
 
     private function _registerProjectConfigEventHandlers(): void

@@ -4,6 +4,8 @@
 You can add your own custom elements to be compatible with Navigation by using the provided events. The below shows an example of how entries are set up.
 
 ```php
+namespace modules\sitemodule;
+
 use verbb\navigation\services\Elements;
 use verbb\navigation\events\RegisterElementEvent;
 use yii\base\Event;
@@ -24,7 +26,7 @@ You'll need to first create a class to implement your node type. Here's an examp
 
 ```php
 <?php
-namespace modules;
+namespace modules\sitemodule;
 
 use verbb\navigation\base\NodeType;
 

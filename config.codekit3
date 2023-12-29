@@ -431,6 +431,14 @@
       "oAP" : "\/src\/base",
       "oF" : 0
     },
+    "\/src\/console\/controllers\/NavsController.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/console\/controllers\/NavsController.php",
+      "oF" : 0
+    },
     "\/src\/controllers" : {
       "ft" : 65536,
       "oA" : 1,

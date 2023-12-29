@@ -596,8 +596,8 @@ class Navs extends Component
             $nodeTree[$key]['target'] = $node->getTarget();
             $nodeTree[$key]['element'] = $node->getElement() ? $node->getElement()->toArray() : null;
 
-            if ($node->hasDescendants) {
-                $this->buildNavTree($node->children->all(), $nodeTree[$key]['children']);
+            if ($children = $node->children->all()) {
+                $this->buildNavTree($children, $nodeTree[$key]['children']);
             }
         }
     }
