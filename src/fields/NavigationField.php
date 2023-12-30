@@ -39,6 +39,27 @@ class NavigationField extends Field
     // Public Methods
     // =========================================================================
 
+    public function getSettingsHtml(): ?string
+    {
+        return Craft::$app->getView()->renderTemplate('navigation/_field/settings', [
+
+        ]);
+    }
+
+    public function getContentGqlType(): Type|array
+    {
+        return [
+            'name' => $this->handle,
+            'type' => Type::listOf(NodeInterface::getType()),
+            'args' => NodeArguments::getArguments(),
+            'resolve' => NodeResolver::class . '::resolve',
+        ];
+    }
+    
+
+    // Protected Methods
+    // =========================================================================
+
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         $navs = Navigation::$plugin->getNavs()->getAllNavs();
@@ -60,27 +81,6 @@ class NavigationField extends Field
             'options' => $options,
         ]);
     }
-
-    public function getSettingsHtml(): ?string
-    {
-        return Craft::$app->getView()->renderTemplate('navigation/_field/settings', [
-
-        ]);
-    }
-
-    public function getContentGqlType(): Type|array
-    {
-        return [
-            'name' => $this->handle,
-            'type' => Type::listOf(NodeInterface::getType()),
-            'args' => NodeArguments::getArguments(),
-            'resolve' => NodeResolver::class . '::resolve',
-        ];
-    }
-    
-
-    // Protected Methods
-    // =========================================================================
 
     protected function optionsSettingLabel(): string
     {
