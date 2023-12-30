@@ -77,8 +77,6 @@ class Breadcrumbs extends Component
             'element' => $element,
             'elementId' => $elementId,
             'elementType' => $elementType,
-
-            // Only for backward compatibility. Remove at the next breakpoint.
             'link' => Html::tag('a', $title, ['href' => $url]),
         ];
     }
