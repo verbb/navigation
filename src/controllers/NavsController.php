@@ -31,13 +31,16 @@ class NavsController extends Controller
 
     public function actionIndex(): Response
     {
+        /* @var Settings $settings */
+        $settings = Navigation::$plugin->getSettings();
+        
         // Get the current site from the global query param
         $siteHandle = Craft::$app->getRequest()->getParam('site', Craft::$app->getSites()->getPrimarySite()->handle);
         $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
 
         $navigations = Navigation::$plugin->getNavs()->getEditableNavsForSite($site);
 
-        $editable = Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+        $editable = $settings->bypassProjectConfig || Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
 
         return $this->renderTemplate('navigation/navs/index', [
             'navigations' => $navigations,
@@ -144,7 +147,7 @@ class NavsController extends Controller
 
         Craft::$app->getSession()->authorize('editStructure:' . $nav->structureId);
 
-        $editable = Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+        $editable = $settings->bypassProjectConfig || Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
 
         return $this->renderTemplate('navigation/navs/_build', [
             'navId' => $navId,

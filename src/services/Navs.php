@@ -169,7 +169,7 @@ class Navs extends Component
 
         // There's some edge-cases where devs know what they're doing.
         // See https://github.com/verbb/navigation/issues/88
-        if ($settings->bypassProjectConfig && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+        if ($settings->bypassProjectConfig && !Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $event = new ConfigEvent([
                 'tokenMatches' => [$nav->uid],
                 'newValue' => $configData,
@@ -426,7 +426,7 @@ class Navs extends Component
 
         // There's some edge-cases where devs know what they're doing.
         // See https://github.com/verbb/navigation/issues/88
-        if ($settings->bypassProjectConfig && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+        if ($settings->bypassProjectConfig && !Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $event = new ConfigEvent([
                 'tokenMatches' => [$nav->uid],
             ]);
@@ -575,7 +575,7 @@ class Navs extends Component
 
                 // There's some edge-cases where devs know what they're doing.
                 // See https://github.com/verbb/navigation/issues/88
-                if ($settings->bypassProjectConfig && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+                if ($settings->bypassProjectConfig && !Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
                     $configData = $this->getNavById($navId)->getConfig();
                     $configData['sortOrder'] = $navOrder + 1;
 
