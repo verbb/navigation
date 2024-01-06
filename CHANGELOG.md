@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.24 - 2024-01-01
+## 2.0.24 - 2024-01-06
 
 ### Fixed
 - Fix not being able to manage navigations with `bypassProjectConfig` enabled.
