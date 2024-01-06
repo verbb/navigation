@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.24 - 2024-01-01
+
+### Fixed
+- Fix not being able to manage navigations with `bypassProjectConfig` enabled.
+- Fix the “Edit” button on nodes not appearing after saving a node.
+
 ## 2.0.23 - 2023-12-08
 
 ### Added
