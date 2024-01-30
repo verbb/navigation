@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.25 - 2024-01-30
+
+### Added
+- Add support for active node state when using non-query string pagination.
+
+### Fixed
+- Fix icon alignment for nodes when new window or title override is set.
+
 ## 2.0.24 - 2024-01-06
 
 ### Fixed
