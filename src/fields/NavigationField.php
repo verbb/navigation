@@ -25,6 +25,11 @@ class NavigationField extends Field
         return Craft::t('navigation', 'Navigation');
     }
 
+    public static function icon(): string
+    {
+        return '@verbb/navigation/icon-mask.svg';
+    }
+
     public static function defaultSelectionLabel(): string
     {
         return Craft::t('navigation', 'Select a navigation');
