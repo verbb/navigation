@@ -23,9 +23,9 @@ class Install extends Migration
 
     public function safeDown(): bool
     {
+        $this->dropProjectConfig();
         $this->dropForeignKeys();
         $this->dropTables();
-        $this->dropProjectConfig();
 
         return true;
     }

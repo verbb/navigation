@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.26 - 2024-03-04
+
+### Fixed
+- Fix order of operations when uninstalling the plugin.
+
+## 2.0.25 - 2024-01-30
+
+### Added
+- Add support for active node state when using non-query string pagination.
+
+### Fixed
+- Fix icon alignment for nodes when new window or title override is set.
+
+## 2.0.24 - 2024-01-06
+
+### Fixed
+- Fix not being able to manage navigations with `bypassProjectConfig` enabled.
+- Fix the “Edit” button on nodes not appearing after saving a node.
+
 ## 2.0.23 - 2023-12-08
 
 ### Added

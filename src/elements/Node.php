@@ -944,6 +944,7 @@ class Node extends Element
         }
 
         $request = Craft::$app->getRequest();
+        $pageTrigger = Craft::$app->getConfig()->getGeneral()->getPageTrigger();
 
         // Don't run the for console requests. This is called when populating the Node element
         if ($request->getIsConsoleRequest()) {
@@ -965,6 +966,17 @@ class Node extends Element
 
         // Remove the query string from the URL - not needed to compare
         $currentUrl = preg_replace('/\?.*/', '', $currentUrl);
+
+        // Is this a paginated request? If non-query string pagination, then cleanup currentUrl
+        if (!str_starts_with($pageTrigger, '?')) {
+            // Match against the entire path string as opposed to just the last segment so that we can support
+            // "/page/2"-style pagination URLs
+            $pageTrigger = preg_quote($pageTrigger, '/');
+
+            if (preg_match("/^(?:(.*)\/)?$pageTrigger(\d+)$/", $currentUrl, $match)) {
+                $currentUrl = $match[1];
+            }
+        }
 
         // Convert a root-relative node's URL to its absolute equivalent. Note we're not using the site URL,
         // because the node's URL will likely already contain that.
