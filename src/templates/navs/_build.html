@@ -16,17 +16,9 @@
 {# Enforce a single source #}
 {% set sources = sources | filter(n => n.key == 'nav:' ~ nav.uid) %}
 
-{% block actionButton %}
-    {% if editable and currentUser.can('navigation-editNav:' ~ nav.uid) %}
-        <div class="btngroup submit">
-            <a class="btn settings icon" href="{{ cpUrl('navigation/navs/edit/' ~ nav.id) }}">
-                {{ 'Settings' | t('navigation') }}
-            </a>
-        </div>
-    {% endif %}
-{% endblock %}
+{% block pageTitle %}
+    <h1 class="screen-title" title="{{ title }}">{{ title }}</h1>
 
-{% block contextMenu %}
     <div id="toolbar" class="flex">
         {% include '_elements/toolbar' with {
             showSiteMenu: true,
@@ -35,9 +27,16 @@
 
     {# Required to prevent element index errors #}
     <div class="main"></div>
+{% endblock %}
 
-    <div id="actions-container" class="flex"></div>
-
+{% block actionButton %}
+    {% if editable and currentUser.can('navigation-editNav:' ~ nav.uid) %}
+        <div class="btngroup submit">
+            <a class="btn settings icon" href="{{ cpUrl('navigation/navs/edit/' ~ nav.id) }}">
+                {{ 'Settings' | t('navigation') }}
+            </a>
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block details %}
