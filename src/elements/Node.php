@@ -332,6 +332,34 @@ class Node extends Element
         return true;
     }
 
+    public function getChipLabelHtml(): string
+    {
+        // Detect if this is the element index
+        $isElementIndex = Craft::$app->getRequest()->getParam('viewState.mode') === 'table';
+
+        // When reloading nodes, get the modified HTML
+        if (Craft::$app->getRequest()->getSegments() === ['actions', 'element-indexes', 'element-table-html']) {
+            $isElementIndex = true;
+        }
+
+        // Only show this when editing the nav, in case these elements are listed by third parties
+        if (!$isElementIndex) {
+            return parent::getChipLabelHtml();
+        }
+
+        $title = $this->hasOverriddenTitle();
+        $newWindow = $this->newWindow;
+        $classes = $this->classes ? '.' . str_replace(' ', ' .', $this->classes) : '';
+
+        $html = implode(' ', array_filter([
+            $title ? Html::tag('span', '', ['class' => 'node-custom-title edit icon']) : false,
+            $newWindow ? Html::tag('span', '', ['class' => 'node-new-window fa fa-external-link']) : false,
+            $classes ? Html::tag('span', $classes, ['class' => 'node-classes classes code']) : false,
+        ]));
+
+        return parent::getChipLabelHtml() . ($html ? Html::tag('span', $html, ['class' => 'node-info-icons']) : '') . Html::tag('a', Craft::t('navigation', 'Edit'), ['class' => 'btn small icon edit node-edit-btn']);
+    }
+
     public function getElement(): ?ElementInterface
     {
         if ($this->_element !== null) {
