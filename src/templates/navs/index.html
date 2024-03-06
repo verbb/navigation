@@ -8,11 +8,17 @@
     { label: 'Navigations' | t('navigation'), url: url('navigation/navs') },
 ] %}
 
-{% set contextMenu %}
-    {% if craft.app.getIsMultiSite() %}
-        {% include '_elements/sitemenu' %}
-    {% endif %}
-{% endset %}
+{% if craft.app.getIsMultiSite() %}
+    {% set crumbs = crumbs | unshift({
+        id: 'site-crumb',
+        icon: 'world',
+        label: requestedSite.name | t('site'),
+        menu: {
+            items: siteMenuItems(null, requestedSite),
+            label: 'Select site' | t('site')
+        },
+    }) %}
+{% endif %}
 
 {% block actionButton %}
     {% if editable and currentUser.can('navigation-createNavs') %}

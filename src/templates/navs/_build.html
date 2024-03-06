@@ -8,6 +8,18 @@
     { label: 'Navigations' | t('navigation'), url: url('navigation/navs') },
 ] %}
 
+{% if craft.app.getIsMultiSite() %}
+    {% set crumbs = crumbs | unshift({
+        id: 'site-crumb',
+        icon: 'world',
+        label: requestedSite.name | t('site'),
+        menu: {
+            items: siteMenuItems(null, requestedSite),
+            label: 'Select site' | t('site')
+        },
+    }) %}
+{% endif %}
+
 {% set title = nav.name %}
 {% set elementType = 'verbb\\navigation\\elements\\Node' %}
 {% set elementInstance = craft.app.elements.createElement(elementType) %}
@@ -21,7 +33,7 @@
 
     <div id="toolbar" class="flex">
         {% include '_elements/toolbar' with {
-            showSiteMenu: true,
+            showSiteMenu: false,
         } %}
     </div>
 

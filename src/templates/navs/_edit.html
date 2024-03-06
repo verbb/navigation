@@ -7,6 +7,18 @@
     { label: 'Navigations' | t('navigation'), url: url('navigation/navs') },
 ] %}
 
+{% if craft.app.getIsMultiSite() %}
+    {% set crumbs = crumbs | unshift({
+        id: 'site-crumb',
+        icon: 'world',
+        label: requestedSite.name | t('site'),
+        menu: {
+            items: siteMenuItems(null, requestedSite),
+            label: 'Select site' | t('site')
+        },
+    }) %}
+{% endif %}
+
 {% set settingsClass = '' %}
 {% set fieldsClass = '' %}
 {% set permissionsClass = '' %}
