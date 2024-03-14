@@ -183,12 +183,17 @@ class Node extends Element
             return;
         }
 
+        // Detect if this is the element index
+        $isElementIndex = Craft::$app->getRequest()->getParam('viewState.mode') === 'table';
+
+        // When reloading nodes, get the modified HTML
+        if (Craft::$app->getRequest()->getSegments() === ['actions', 'element-indexes', 'element-table-html']) {
+            $isElementIndex = true;
+        }
+
         // Only show this when editing the nav, in case these elements are listed by third parties
-        if (Craft::$app->getRequest()->getSegments() !== ['actions', 'element-indexes', 'get-elements']) {
-            // Watch out for ajax requests when saving the nav and refreshing the HTML
-            if (!Craft::$app->getRequest()->getIsAjax()) {
-                return;
-            }
+        if (!$isElementIndex) {
+            return;
         }
 
         $title = $element->hasOverriddenTitle();
