@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.27 - 2024-03-18
+
+### Fixed
+-  Fix an issue with Node elements not being correctly displayed in element indexes, outside of navigation-editing contexts.
+
 ## 2.0.26 - 2024-03-04
 
 ### Fixed
