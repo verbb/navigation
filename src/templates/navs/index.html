@@ -52,7 +52,7 @@
         handle: navigation.handle,
         _showDelete: canDelete,
         settings: {
-            label: 'Edit Settings' | t('app') | e,
+            label: 'Edit Settings' | t('navigation') | e,
             url: currentUser.can('navigation-editNav:' ~ navigation.uid) ? url('navigation/navs/edit/' ~ navigation.id),
         },
     }]) %}
