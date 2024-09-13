@@ -157,10 +157,10 @@
         padding-bottom: 7px;
     }
 
-    table.data th:nth-child(3),
-    table.data td:nth-child(3) {
-        width: 1px;
-        white-space: nowrap;
+    table.data th[data-attribute="typeLabel"],
+    table.data td[data-attr="typeLabel"] {
+        // width: 1px;
+        // white-space: nowrap;
         text-align: right;
     }
 
