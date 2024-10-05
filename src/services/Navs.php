@@ -612,10 +612,7 @@ class Navs extends Component
     {
         $tabs = [];
 
-        $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements();
-        $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
-
-        foreach ($registeredElements as $registeredElement) {
+        foreach (Navigation::$plugin->getElements()->getRegisteredElements() as $registeredElement) {
             $enabled = $nav->permissions[$registeredElement['type']]['enabled'] ?? $registeredElement['default'] ?? false;
             $permissions = $nav->permissions[$registeredElement['type']]['permissions'] ?? '*';
 
@@ -629,7 +626,7 @@ class Navs extends Component
             }
         }
 
-        foreach ($registeredNodeTypes as $nodeType) {
+        foreach (Navigation::$plugin->getNodeTypes()->getAllNodeTypes() as $nodeType) {
             $enabled = $nav->permissions[get_class($nodeType)]['enabled'] ?? true;
 
             if ($enabled) {

@@ -43,14 +43,11 @@ class TypeConditionRule extends BaseMultiSelectConditionRule implements ElementC
     {
         $options = [];
 
-        $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements();
-        $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
-
-        foreach ($registeredElements as $registeredElement) {
+        foreach (Navigation::$plugin->getElements()->getRegisteredElements() as $registeredElement) {
             $options[$registeredElement['type']] = $registeredElement['label'];
         }
 
-        foreach ($registeredNodeTypes as $nodeType) {
+        foreach (Navigation::$plugin->getNodeTypes()->getAllNodeTypes() as $nodeType) {
             $options[get_class($nodeType)] = $nodeType->displayName();
         }
 

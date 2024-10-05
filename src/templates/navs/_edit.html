@@ -280,7 +280,7 @@
                 {% endif %}
             {% endfor %}
 
-            {% for nodeType in craft.navigation.getRegisteredNodeTypes() %}
+            {% for nodeType in craft.navigation.getAllNodeTypes() %}
                 {% if loop.first %}
                     <hr>
                 {% endif %}

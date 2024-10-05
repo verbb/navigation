@@ -13,7 +13,7 @@
     {% set types = types | merge([{ label: tab.label, value: tab.type }]) %}
 {% endfor %}
 
-{% for nodeType in craft.navigation.getRegisteredNodeTypes() %}
+{% for nodeType in craft.navigation.getAllNodeTypes() %}
     {% set types = types | merge([{ label: nodeType.displayName, value: className(nodeType) }]) %}
 {% endfor %}
 

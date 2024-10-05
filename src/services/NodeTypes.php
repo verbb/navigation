@@ -3,9 +3,7 @@ namespace verbb\navigation\services;
 
 use verbb\navigation\base\NodeTypeInterface;
 use verbb\navigation\events\RegisterNodeTypeEvent;
-use verbb\navigation\nodetypes\CustomType;
-use verbb\navigation\nodetypes\PassiveType;
-use verbb\navigation\nodetypes\SiteType;
+use verbb\navigation\nodetypes as types;
 
 use Craft;
 use craft\base\Component;
@@ -22,40 +20,96 @@ class NodeTypes extends Component
     // Public Methods
     // =========================================================================
 
-    public function init(): void
-    {
-        parent::init();
+    // public function init(): void
+    // {
+    //     parent::init();
 
-        $this->getRegisteredNodeTypes();
-    }
+    //     $this->getRegisteredNodeTypes();
+    // }
 
     public function getRegisteredNodeTypes(): array
     {
         $nodeTypes = [
-            PassiveType::class,
+            types\PassiveType::class,
         ];
 
         if (Craft::$app->getIsMultiSite()) {
-            $nodeTypes[] = SiteType::class;
+            $nodeTypes[] = types\SiteType::class;
         }
 
         $event = new RegisterNodeTypeEvent([
             'types' => $nodeTypes,
         ]);
-
         $this->trigger(self::EVENT_REGISTER_NODE_TYPES, $event);
 
-        $nodeTypes = $event->types;
-
         // Always add custom node at the end
-        $nodeTypes[] = CustomType::class;
+        $event->types[] = types\CustomType::class;
 
+        // Ensure that we filter out only supported node types
+        return $this->_filterSupportedNodeTypes($event->types);
+    }
+
+    public function getAllNodeTypes(): array
+    {
         $types = [];
 
-        foreach ($nodeTypes as $type) {
-            $types[] = ComponentHelper::createComponent([
-                'type' => $type,
-            ], NodeTypeInterface::class);
+        foreach ($this->getRegisteredNodeTypes() as $type) {
+            $types[] = $this->createNodeType($type);
+        }
+
+        return $types;
+    }
+
+    public function createNodeType(mixed $config): NodeTypeInterface
+    {
+        if (is_string($config)) {
+            $config = ['type' => $config];
+        }
+
+        try {
+            $nodeType = ComponentHelper::createComponent($config, NodeTypeInterface::class);
+        } catch (MissingComponentException $e) {
+            $config['errorMessage'] = $e->getMessage();
+            $config['expectedType'] = $config['type'];
+            unset($config['type']);
+
+            $nodeType = new nodetypes\MissingNodeType($config);
+        }
+
+        return $nodeType;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _filterSupportedNodeTypes(array $types): array
+    {
+        foreach ($types as $nodeTypeKey => $nodeType) {
+            // foreach ($nodeType::getRequiredPlugins() as $handle) {
+            //     $version = 0;
+
+            //     if (is_array($handle)) {
+            //         $version = $handle['version'] ?? $version;
+            //         $handle = $handle['handle'] ?? '';
+            //     }
+
+            //     if (!Navigation::$plugin->getService()->isPluginInstalledAndEnabled($handle)) {
+            //         unset($event->types[$nodeTypeKey]);
+            //         continue;
+            //     }
+
+            //     $plugin = Craft::$app->getPlugins()->getPlugin($handle);
+
+            //     if (!$plugin) {
+            //         unset($event->types[$nodeTypeKey]);
+            //         continue;
+            //     }
+
+            //     if (version_compare($plugin->getVersion(), $version, '<')) {
+            //         unset($event->types[$nodeTypeKey]);
+            //     }
+            // }
         }
 
         return $types;

@@ -29,7 +29,14 @@ class NavigationVariable
 
     public function getRegisteredNodeTypes(): array
     {
-        return Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
+        Craft::$app->getDeprecator()->log(__METHOD__, "`craft.navigation.getRegisteredNodeTypes()` is deprecated. Use `craft.navigation.getAllNodeTypes()` instead.");
+
+        return Navigation::$plugin->getNodeTypes()->getAllNodeTypes();
+    }
+
+    public function getAllNodeTypes(): array
+    {
+        return Navigation::$plugin->getNodeTypes()->getAllNodeTypes();
     }
 
     public function getActiveNode($criteria = null, $includeChildren = false): ?NodeElement

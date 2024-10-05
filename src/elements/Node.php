@@ -558,13 +558,11 @@ class Node extends Element
             return $_nodeType;
         }
 
-        $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
+        foreach (Navigation::$plugin->getNodeTypes()->getAllNodeTypes() as $nodeType) {
+            if ($this->type === $nodeType::class) {
+                $nodeType->node = $this;
 
-        foreach ($registeredNodeTypes as $registeredNodeType) {
-            if ($this->type === $registeredNodeType::class) {
-                $registeredNodeType->node = $this;
-
-                return $this->_nodeTypes[$this->type] = $registeredNodeType;
+                return $this->_nodeTypes[$this->type] = $nodeType;
             }
         }
 
