@@ -683,27 +683,29 @@ class Node extends Element
         $nav = $this->getNav();
 
         /** @var Site[] $allSites */
-        $allSites = ArrayHelper::index(Craft::$app->getSites()->getAllSites(true), 'id');
+        $allSites = ArrayHelper::index($nav->getSites(), 'id');
         $siteIds = [];
 
         foreach ($nav->getSiteSettings() as $siteSettings) {
-            switch ($nav->propagationMethod) {
-                case Nav::PROPAGATION_METHOD_NONE:
-                    $include = $siteSettings->siteId == $this->siteId;
-                    break;
-                case Nav::PROPAGATION_METHOD_SITE_GROUP:
-                    $include = $allSites[$siteSettings->siteId]->groupId == $allSites[$this->siteId]->groupId;
-                    break;
-                case Nav::PROPAGATION_METHOD_LANGUAGE:
-                    $include = $allSites[$siteSettings->siteId]->language == $allSites[$this->siteId]->language;
-                    break;
-                default:
-                    $include = true;
-                    break;
-            }
+            if ($siteSettings->enabled) {
+                switch ($nav->propagationMethod) {
+                    case Nav::PROPAGATION_METHOD_NONE:
+                        $include = $siteSettings->siteId == $this->siteId;
+                        break;
+                    case Nav::PROPAGATION_METHOD_SITE_GROUP:
+                        $include = $allSites[$siteSettings->siteId]->groupId == $allSites[$this->siteId]->groupId;
+                        break;
+                    case Nav::PROPAGATION_METHOD_LANGUAGE:
+                        $include = $allSites[$siteSettings->siteId]->language == $allSites[$this->siteId]->language;
+                        break;
+                    default:
+                        $include = true;
+                        break;
+                }
 
-            if ($include) {
-                $siteIds[] = $siteSettings->siteId;
+                if ($include) {
+                    $siteIds[] = $siteSettings->siteId;
+                }
             }
         }
 

@@ -14,7 +14,7 @@
         icon: 'world',
         label: requestedSite.name | t('site'),
         menu: {
-            items: siteMenuItems(null, requestedSite),
+            items: siteMenuItems(nav.getSites(), requestedSite),
             label: 'Select site' | t('site')
         },
     }) %}
