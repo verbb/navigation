@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.5 - 2024-10-20
+
+### Added
+- Added Dutch translations. (thanks @jeroenlammerts).
+
+### Fixed
+- Fix nodes not respecting the enabled sites for the navigation for multi-site installs.
+- Fix an alignment issue when re-ordering nodes.
+
 ## 3.0.4 - 2024-09-07
 
 ### Changed
