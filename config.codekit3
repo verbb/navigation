@@ -760,6 +760,14 @@
       "oAP" : "\/src\/translations\/hu\/navigation.php",
       "oF" : 0
     },
+    "\/src\/translations\/nl\/navigation.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/translations\/nl\/navigation.php",
+      "oF" : 0
+    },
     "\/src\/variables" : {
       "ft" : 65536,
       "oA" : 1,
