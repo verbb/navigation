@@ -192,8 +192,9 @@ class Navs extends Component
         $navUid = $event->tokenMatches[0];
         $data = $event->newValue;
 
-        // Make sure sites are processed
+        // Make sure fields and sites are processed
         ProjectConfigHelper::ensureAllSitesProcessed();
+        ProjectConfigHelper::ensureAllFieldsProcessed();
 
         $db = Craft::$app->getDb();
         $transaction = $db->beginTransaction();
