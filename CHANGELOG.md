@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.6 - 2025-02-05
+
+### Fixed
+- Fix navigation settings not adhering to project config changes for fields.
+- Fix a button alignment issue on Craft 5.5+.
+
 ## 3.0.5 - 2024-10-20
 
 ### Added
