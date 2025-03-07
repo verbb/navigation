@@ -337,7 +337,7 @@ class Node extends Element
         $isElementIndex = Craft::$app->getRequest()->getParam('viewState.mode') === 'table';
 
         // When reloading nodes, get the modified HTML
-        if (Craft::$app->getRequest()->getSegments() === ['actions', 'element-indexes', 'element-table-html']) {
+        if (Craft::$app->getRequest()->getSegments() === ['actions', 'app', 'render-elements']) {
             $isElementIndex = true;
         }
 

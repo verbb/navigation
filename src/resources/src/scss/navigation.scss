@@ -173,8 +173,12 @@
         background: transparent;
         opacity: 0;
         transition: opacity 0.2s ease;
-        margin-left: 7px;
-        margin-top: 0;
+        margin-block: 0;
+        margin-inline: 7px 0;
+    }
+
+    tr.sel .node-edit-btn {
+        border: 1px rgba(255, 255, 255, 0.25) solid;
     }
 
     tr:hover .node-edit-btn {
