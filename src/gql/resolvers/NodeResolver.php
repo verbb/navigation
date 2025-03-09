@@ -5,10 +5,9 @@ use verbb\navigation\elements\Node;
 use verbb\navigation\helpers\Gql as GqlHelper;
 
 use craft\elements\db\ElementQuery;
+use craft\elements\ElementCollection;
 use craft\gql\base\ElementResolver;
 use craft\helpers\Db;
-
-use Illuminate\Support\Collection;
 
 class NodeResolver extends ElementResolver
 {
@@ -22,7 +21,7 @@ class NodeResolver extends ElementResolver
         } else {
             // Protect against empty fields
             if (!$source->$fieldName) {
-                return Collection::empty();
+                return ElementCollection::empty();
             }
 
             $query = Node::find()->navHandle($source->$fieldName);
@@ -39,7 +38,7 @@ class NodeResolver extends ElementResolver
         $pairs = GqlHelper::extractAllowedEntitiesFromSchema('read');
 
         if (!GqlHelper::canQueryNavigation()) {
-            return Collection::empty();
+            return ElementCollection::empty();
         }
 
         if (!GqlHelper::canSchema('navigationNavs.all')) {
