@@ -933,6 +933,11 @@ class Node extends Element
         $object = [];
 
         foreach ($this->customAttributes as $attribute) {
+            // Normalize some attributes
+            if ($attribute['attribute'] === 'class' && !is_array($attribute['value'])) {
+                $attribute['value'] = [$attribute['value']];
+            }
+
             $object[$attribute['attribute']] = $attribute['value'];
         }
 
