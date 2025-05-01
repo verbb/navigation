@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.7 - 2025-05-01
+
+### Changed
+- Update GraphQL resolvers to use `ElementCollection` correctly.
+
+### Fixed
+- Fix an error when merging node class attributes when set from various locations, using `craft.navigation.render()`.
+- Fix some visual issues in Craft 5.6+.
+
 ## 3.0.6 - 2025-02-05
 
 ### Fixed
