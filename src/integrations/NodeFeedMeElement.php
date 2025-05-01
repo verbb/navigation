@@ -6,6 +6,7 @@ use verbb\navigation\elements\Node;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\db\Query;
 use craft\helpers\Json;
 
 use craft\feedme\Plugin;
