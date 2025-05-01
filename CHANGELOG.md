@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.8 - 2025-05-01
+
+### Fixed
+- Fix an error when importing nodes using FeedMe. (thanks @yakmoose).
+
 ## 3.0.7 - 2025-05-01
 
 ### Changed
