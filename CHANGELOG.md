@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.9 - 2025-07-10
+
+### Fixed
+- Fix an error for Craft 5.8+ and custom entry source headings.
+
 ## 3.0.8 - 2025-05-01
 
 ### Fixed
