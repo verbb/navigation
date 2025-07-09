@@ -263,7 +263,7 @@
                 {% set elementOptions = [] %}
 
                 {% for source in element.sources %}
-                    {% if source.key is defined %}
+                    {% if source.key is defined and source.label is defined %}
                         {% set elementOptions = [{ value: source.key, label: source.label | e }] | merge(elementOptions) %}
                     {% endif %}
                 {% endfor %}
