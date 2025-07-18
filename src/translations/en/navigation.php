@@ -56,6 +56,7 @@ return [
   'Node Type' => 'Node Type',
   'Node Type Fields' => 'Node Type Fields',
   'Node{plural} added.' => 'Node{plural} added.',
+  'No navigations exist yet.' => 'No navigations exist yet.',
   'Of the enabled sites above, which sites should nodes in this navigation be saved to?' => 'Of the enabled sites above, which sites should nodes in this navigation be saved to?',
   'Only save nodes to the site they were created in' => 'Only save nodes to the site they were created in',
   'Open in new window' => 'Open in new window',

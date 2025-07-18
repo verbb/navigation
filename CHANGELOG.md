@@ -71,6 +71,11 @@
 - Now requires Craft `5.0.0+`.
 - Update site menu to use breadcrumb.
 
+## 2.1.3 - 2025-07-16
+
+### Changed
+- Update English translations.
+
 ## 2.1.2 - 2025-05-01
 
 ### Fixed
