@@ -142,6 +142,25 @@ class Node extends Element
         return $sources;
     }
 
+    protected static function defineFieldLayouts(?string $source): array
+    {
+        if ($source === null || $source === '*') {
+            $navs = Navigation::$plugin->getNavs()->getEditableNavs();
+        } else {
+            $navs = [];
+
+            if (preg_match('/^nav:(.+)$/', $source, $matches)) {
+                $nav = Navigation::$plugin->getNavs()->getNavByUid($matches[1]);
+                
+                if ($nav) {
+                    $navs[] = $nav;
+                }
+            }
+        }
+
+        return array_map(fn(Nav $nav) => $nav->getFieldLayout(), $navs);
+    }
+
     protected static function defineSortOptions(): array
     {
         // We must override the sort options, otherwise any in `defineTableAttributes` will be added.
