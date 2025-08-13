@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.11 - 2025-08-13
+
+### Fixed
+- Fix field layout fields for nodes, when editing a navigation.
+
 ## 3.0.10 - 2025-07-18
 
 ### Changed
