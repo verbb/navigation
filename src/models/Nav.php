@@ -169,8 +169,8 @@ class Nav extends Model
     {
         if ($this->maxNodesSettings) {
             foreach ($this->maxNodesSettings as $maxNodesSetting) {
-                $level = $maxNodesSetting['level'] ?? null;
-                $max = $maxNodesSetting['max'] ?? null;
+                $level = isset($maxNodesSetting['level']) ? (int)$maxNodesSetting['level'] : null;
+                $max = isset($maxNodesSetting['max']) ? (int)$maxNodesSetting['max'] : null;
 
                 if ($level !== null && $max !== null && $node->level) {
                     if ($node->level == $level) {

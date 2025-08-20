@@ -156,9 +156,15 @@ class Nodes extends Component
 
         $nav = $event->element->getNav();
 
-        // The element we've moving won't have its destination level set yet, 
+        // The element we're moving won't have its destination level set yet, 
         // so use the target element (where we're moving to) to deduce that.
         $event->element->level = $event->getTargetElement()->level ?? $event->element->level;
+
+        // Check if we are adding a new node to a parent. It's more complicated than it should
+        // as `getTargetElement()` doesn't report the new level.
+        if ($event->getTargetElement() && $event->action === 'prepend' && $event->getTargetElement()->getChildren()->count() === 0) {
+            $event->element->level++;
+        }
 
         if ($nav->maxNodesSettings) {
             Navigation::$plugin->getNodes()->setTempNodes([$event->element]);
