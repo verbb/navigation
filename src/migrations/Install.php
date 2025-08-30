@@ -38,7 +38,7 @@ class Install extends Migration
             'elementId' => $this->integer(),
             'navId' => $this->integer()->notNull(),
             'parentId' => $this->integer(),
-            'url' => $this->string(255),
+            'url' => $this->text(),
             'type' => $this->string(255),
             'classes' => $this->string(255),
             'urlSuffix' => $this->string(255),
