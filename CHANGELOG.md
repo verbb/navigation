@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.12 - 2025-09-02
+
+### Added
+- Add support for long URLs for nodes.
+
+### Fixed
+- Fix an issue when enforcing max level nodes.
+
 ## 3.0.11 - 2025-08-13
 
 ### Fixed
