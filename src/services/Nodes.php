@@ -48,7 +48,7 @@ class Nodes extends Component
     public function onSaveElement(ElementEvent $event): void
     {
         // Skip this when updating Craft is currently in progress
-        if (Craft::$app->getIsInMaintenanceMode()) {
+        if (Craft::$app->getUpdates()->getAreMigrationsPending()) {
             return;
         }
 
