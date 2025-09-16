@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.13 - 2025-09-16
+
+### Changed
+- Update migration-mode check.
+
 ## 3.0.12 - 2025-09-02
 
 ### Added
