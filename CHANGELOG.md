@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.4 - 2025-09-16
+
+### Changed
+- Update migration-mode check.
+
 ## 2.1.3 - 2025-07-16
 
 ### Changed
