@@ -16,7 +16,7 @@ use craft\base\ElementInterface;
 use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\db\Table;
-use craft\events\ConfigEvent;
+use CraftCms\Cms\ProjectConfig\Events\ItemAdded;
 use craft\events\DeleteSiteEvent;
 use craft\events\FieldEvent;
 use craft\helpers\ArrayHelper;
@@ -169,7 +169,7 @@ class Navs extends Component
         // There's some edge-cases where devs know what they're doing.
         // See https://github.com/verbb/navigation/issues/88
         if ($settings->bypassProjectConfig && !Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $event = new ConfigEvent([
+            $event = new ItemAdded([
                 'tokenMatches' => [$nav->uid],
                 'newValue' => $configData,
             ]);
@@ -187,7 +187,7 @@ class Navs extends Component
         return true;
     }
 
-    public function handleChangedNav(ConfigEvent $event): void
+    public function handleChangedNav($event): void
     {
         $navUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -427,7 +427,7 @@ class Navs extends Component
         // There's some edge-cases where devs know what they're doing.
         // See https://github.com/verbb/navigation/issues/88
         if ($settings->bypassProjectConfig && !Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $event = new ConfigEvent([
+            $event = new ItemAdded([
                 'tokenMatches' => [$nav->uid],
             ]);
 
@@ -439,7 +439,7 @@ class Navs extends Component
         return true;
     }
 
-    public function handleDeletedNav(ConfigEvent $event): void
+    public function handleDeletedNav($event): void
     {
         $uid = $event->tokenMatches[0];
         $navRecord = $this->_getNavRecord($uid);
@@ -574,7 +574,7 @@ class Navs extends Component
                     $configData = $this->getNavById($navId)->getConfig();
                     $configData['sortOrder'] = $navOrder + 1;
 
-                    $event = new ConfigEvent([
+                    $event = new ItemAdded([
                         'tokenMatches' => [$navUid],
                         'newValue' => $configData,
                     ]);

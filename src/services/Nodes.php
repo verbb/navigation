@@ -10,6 +10,7 @@ use craft\events\ElementEvent;
 use craft\events\MoveElementEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\ElementHelper;
+use CraftCms\Cms\Updates\Updates;
 
 use yii\base\UserException;
 
@@ -48,7 +49,7 @@ class Nodes extends Component
     public function onSaveElement(ElementEvent $event): void
     {
         // Skip this when updating Craft is currently in progress
-        if (Craft::$app->getUpdates()->getAreMigrationsPending()) {
+        if (app(Updates::class)->areMigrationsPending()) {
             return;
         }
 
