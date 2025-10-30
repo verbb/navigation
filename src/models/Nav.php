@@ -165,7 +165,7 @@ class Nav extends Model
         return false;
     }
 
-    public function isOverMaxLevel(Node $node): bool
+    public function isOverMaxLevel(Node $node, ?Node $targetElement = null): bool
     {
         if ($this->maxNodesSettings) {
             foreach ($this->maxNodesSettings as $maxNodesSetting) {
@@ -174,10 +174,12 @@ class Nav extends Model
 
                 if ($level !== null && $max !== null && $node->level) {
                     if ($node->level == $level) {
+                        $parent = $node->getParent() ?? $targetElement->getParent() ?? null;
+
                         // Get all saved nodes for the nav, at this level to compare
                         $totalNodes = Node::find()
                             ->navId($this->id)
-                            ->descendantOf($node->getParent())
+                            ->descendantOf($parent)
                             ->descendantDist(1)
                             ->siteId($node->siteId)
                             ->level($level)

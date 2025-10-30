@@ -296,7 +296,7 @@ class Node extends Element
                 if ($nav->maxNodesSettings && $node = $event->getTargetElement()) {
                     Navigation::$plugin->getNodes()->setTempNodes([$node]);
 
-                    if ($nav->isOverMaxLevel($node)) {
+                    if ($nav->isOverMaxLevel($node, $event->getTargetElement())) {
                         $event->isValid = false;
                     }
                 }

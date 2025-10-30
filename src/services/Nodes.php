@@ -169,7 +169,7 @@ class Nodes extends Component
         if ($nav->maxNodesSettings) {
             Navigation::$plugin->getNodes()->setTempNodes([$event->element]);
 
-            if ($nav->isOverMaxLevel($event->element)) {
+            if ($nav->isOverMaxLevel($event->element, $event->getTargetElement())) {
                 throw new UserException('Unable to move node due to the maximum nodes per level.');
             }
         }
