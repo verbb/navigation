@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.14 - 2025-11-06
+
+### Fixed
+- Fix an error when moving nodes with a limit to other levels, when there are multiple nodes.
+
 ## 3.0.13 - 2025-09-16
 
 ### Changed
