@@ -174,7 +174,7 @@ class Nav extends Model
 
                 if ($level !== null && $max !== null && $node->level) {
                     if ($node->level == $level) {
-                        $parent = $node->getParent() ?? $targetElement->getParent() ?? null;
+                        $parent = $node->getParent() ?? $targetElement?->getParent() ?? null;
 
                         // Get all saved nodes for the nav, at this level to compare
                         $totalNodes = Node::find()
