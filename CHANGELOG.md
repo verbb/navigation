@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.15 - 2025-11-08
+
+### Fixed
+- Fix an error determining node parents for max nodes limits.
+
 ## 3.0.14 - 2025-11-06
 
 ### Fixed
