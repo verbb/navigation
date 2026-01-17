@@ -162,7 +162,7 @@ class Nodes extends Component
 
         // Check if we are adding a new node to a parent. It's more complicated than it should
         // as `getTargetElement()` doesn't report the new level.
-        if ($event->getTargetElement() && $event->action === 'prepend' && $event->getTargetElement()->getChildren()->count() === 0) {
+        if ($event->getTargetElement() && $event->action === 'prepend') {
             $event->element->level++;
         }
 
