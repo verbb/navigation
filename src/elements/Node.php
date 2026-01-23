@@ -1152,6 +1152,8 @@ class Node extends Element
 
     protected function metaFieldsHtml(bool $static): string
     {
+        $nav = $this->getNav();
+        
         $fields = [];
 
         // Type
@@ -1187,37 +1189,39 @@ EOD;
             ]);
         })();
 
-        $fields[] = (function() use ($static) {
-            if ($parentId = $this->getParentId()) {
-                $parent = Navigation::$plugin->getNodes()->getNodeById($parentId, $this->siteId);
-            } else {
-                // If the node already has structure data, use it. Otherwise, use its canonical node
-                /** @var self|null $parent */
-                $parent = self::find()
-                    ->siteId($this->siteId)
-                    ->ancestorOf($this->lft ? $this : ($this->getIsCanonical() ? $this->id : $this->getCanonical(true)))
-                    ->ancestorDist(1)
-                    ->drafts(null)
-                    ->draftOf(false)
-                    ->status(null)
-                    ->one();
-            }
+        if ($nav->maxLevels !== 1) {
+            $fields[] = (function() use ($static) {
+                if ($parentId = $this->getParentId()) {
+                    $parent = Navigation::$plugin->getNodes()->getNodeById($parentId, $this->siteId);
+                } else {
+                    // If the node already has structure data, use it. Otherwise, use its canonical node
+                    /** @var self|null $parent */
+                    $parent = self::find()
+                        ->siteId($this->siteId)
+                        ->ancestorOf($this->lft ? $this : ($this->getIsCanonical() ? $this->id : $this->getCanonical(true)))
+                        ->ancestorDist(1)
+                        ->drafts(null)
+                        ->draftOf(false)
+                        ->status(null)
+                        ->one();
+                }
 
-            $nav = $this->getNav();
+                $nav = $this->getNav();
 
-            return Cp::elementSelectFieldHtml([
-                'label' => Craft::t('app', 'Parent'),
-                'id' => 'parentId',
-                'name' => 'parentId',
-                'elementType' => self::class,
-                'selectionLabel' => Craft::t('app', 'Choose'),
-                'sources' => ["nav:$nav->uid"],
-                'criteria' => $this->_parentOptionCriteria($nav),
-                'limit' => 1,
-                'elements' => $parent ? [$parent] : [],
-                'disabled' => $static,
-            ]);
-        })();
+                return Cp::elementSelectFieldHtml([
+                    'label' => Craft::t('app', 'Parent'),
+                    'id' => 'parentId',
+                    'name' => 'parentId',
+                    'elementType' => self::class,
+                    'selectionLabel' => Craft::t('app', 'Choose'),
+                    'sources' => ["nav:$nav->uid"],
+                    'criteria' => $this->_parentOptionCriteria($nav),
+                    'limit' => 1,
+                    'elements' => $parent ? [$parent] : [],
+                    'disabled' => $static,
+                ]);
+            })();
+        }
 
         $fields[] = parent::metaFieldsHtml($static);
 
