@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.16 - 2026-01-23
+
+### Fixed
+- Fix parent selector showing on element slide-out for nodes when max levels was set to 1.
+- Fix an error with max level validation and prepending to a level.
+- Fix an error that displayed all sites when user only had access to a couple.
+
 ## 3.0.15 - 2025-11-08
 
 ### Fixed
