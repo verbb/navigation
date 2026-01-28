@@ -186,6 +186,7 @@ class NavsController extends Controller
         $nav->maxNodesSettings = $this->request->getBodyParam('maxNodesSettings') ?: [];
         $nav->permissions = $this->request->getBodyParam('permissions');
         $nav->defaultPlacement = $this->request->getBodyParam('defaultPlacement') ?? $nav->defaultPlacement;
+        $nav->showSiteMenu = $this->request->getBodyParam('showSiteMenu');
 
         $allSiteSettings = [];
 

@@ -45,6 +45,7 @@ class Nav extends Model
     public array $maxNodesSettings = [];
     public string $defaultPlacement = self::DEFAULT_PLACEMENT_END;
     public array $permissions = [];
+    public bool $showSiteMenu = true;
     public ?string $uid = null;
 
     private array $_siteSettings;
@@ -241,6 +242,7 @@ class Nav extends Model
             'permissions' => $this->permissions,
             'siteSettings' => [],
             'defaultPlacement' => $this->defaultPlacement ?? self::DEFAULT_PLACEMENT_END,
+            'showSiteMenu' => $this->showSiteMenu,
         ];
 
         $fieldLayout = $this->getFieldLayout();

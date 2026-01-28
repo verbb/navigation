@@ -204,6 +204,7 @@
         toolbarSelector: '#toolbar',
         canHaveDrafts: false,
         hideSidebar: true,
+        showSiteMenu: {{ nav.showSiteMenu | json_encode }},
         navId: {{ nav.id }},
         enabledSiteIds: {{ nav.getSiteIds() | json_encode }},
     });

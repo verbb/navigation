@@ -226,6 +226,10 @@ class Navs extends Component
                 $navRecord->maxNodesSettings = $data['maxNodesSettings'] ?? [];
             }
 
+            if (version_compare($schemaVersion, '2.1.2', '>=')) {
+                $navRecord->showSiteMenu = $data['showSiteMenu'] ?? true;
+            }
+
             $navRecord->uid = $navUid;
             $propagationMethodChanged = false;
 
@@ -713,6 +717,10 @@ class Navs extends Component
 
             if (version_compare($schemaVersion, '2.0.6', '>=')) {
                 $query->addSelect('navs.maxNodesSettings');
+            }
+
+            if (version_compare($schemaVersion, '2.1.2', '>=')) {
+                $query->addSelect('navs.showSiteMenu');
             }
 
         return $query;

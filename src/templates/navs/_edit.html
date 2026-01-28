@@ -243,6 +243,13 @@
             ],
             value: nav.defaultPlacement,
         }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Show Site Menu' | t('navigation'),
+            instructions: 'Whether to show the site menu for element-select modals.' | t('navigation'),
+            name: 'showSiteMenu',
+            on: nav.showSiteMenu,
+        }) }}
     </div>
 
     <div id="node-fields" class="hidden">

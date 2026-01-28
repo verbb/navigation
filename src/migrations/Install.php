@@ -66,6 +66,7 @@ class Install extends Migration
             'permissions' => $this->text(),
             'fieldLayoutId' => $this->integer(),
             'defaultPlacement' => $this->enum('defaultPlacement', [Nav::DEFAULT_PLACEMENT_BEGINNING, Nav::DEFAULT_PLACEMENT_END])->defaultValue('end')->notNull(),
+            'showSiteMenu' => $this->boolean()->defaultValue(true),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'dateDeleted' => $this->dateTime()->null(),

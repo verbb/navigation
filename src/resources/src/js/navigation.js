@@ -35,7 +35,9 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
     elementModals: [],
 
     init: function(elementType, $container, settings) {
+        this.settings = settings;
         this.navId = settings.navId;
+        console.log(settings)
         this.$navSidebar = $('.navigation-nodes-sidebar');
 
         this.base(elementType, $container, settings);
@@ -121,6 +123,7 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
             defaultSiteId: this.siteId,
             sources: this.nodeElementSources,
             multiSelect: true,
+            showSiteMenu: this.settings.showSiteMenu,
             onSelect: $.proxy(this, 'onElementModalSelect'),
         });
     },
