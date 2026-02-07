@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.17 - 2026-02-07
+
+### Added
+- Add “Show Site Menu” setting for nav’s to prevent the site menu from showing when selecting an element for a node.
+
 ## 3.0.16 - 2026-01-23
 
 ### Fixed
