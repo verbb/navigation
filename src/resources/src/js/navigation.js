@@ -144,7 +144,7 @@ Craft.Navigation.NodeIndex = Craft.BaseElementIndex.extend({
             nodeData.siteId = this.siteId;
             nodeData.elementId = element.id;
             nodeData.elementSiteId = element.siteId;
-            nodeData.title = element.label;
+            
             nodeData.url = element.url;
 
             data.push(nodeData);
