@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.18 - 2026-03-15
+
+### Fixed
+- Fix node titles for element-based nodes using the “UI Label” value.
+
 ## 3.0.17 - 2026-02-07
 
 ### Added
