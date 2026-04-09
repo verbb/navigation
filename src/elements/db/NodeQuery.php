@@ -211,13 +211,15 @@ class NodeQuery extends ElementQuery
     protected function afterPrepare(): bool
     {
         if (Craft::$app->getDb()->getIsMysql()) {
-            $sql = 'CAST([[elements_sites.slug]] AS UNSIGNED)';
+            $sql = 'CAST([[element_item_sites.siteId]] AS CHAR) COLLATE ' . Craft::$app->getDb()->getSchema()->getTableSchema('{{%elements_sites}}')->getColumn('slug')->collation;
         } else {
-            $sql = 'CAST([[elements_sites.slug]] AS INTEGER)';
+            $sql = 'CAST([[element_item_sites.siteId]] AS TEXT)';
         }
 
-        // Join the element sites table (again) for the linked element
-        $this->query->leftJoin('{{%elements_sites}} element_item_sites', '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND ' . $sql . ' = [[element_item_sites.siteId]]');
+        $this->query->leftJoin(
+            '{{%elements_sites}} element_item_sites',
+            '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND [[elements_sites.slug]] = ' . $sql
+        );
 
         return parent::afterPrepare();
     }
