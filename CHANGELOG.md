@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.19 - 2026-04-11
+
+### Fixed
+- Fix MySQL join by casting siteId to slug type with dynamic collation to preserve index usage and avoid collation errors.
+
 ## 3.0.18 - 2026-03-15
 
 ### Fixed
