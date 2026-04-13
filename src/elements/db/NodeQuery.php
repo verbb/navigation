@@ -211,7 +211,11 @@ class NodeQuery extends ElementQuery
     protected function afterPrepare(): bool
     {
         if (Craft::$app->getDb()->getIsMysql()) {
-            $sql = 'CAST([[element_item_sites.siteId]] AS CHAR) COLLATE ' . Craft::$app->getDb()->getSchema()->getTableSchema('{{%elements_sites}}')->getColumn('slug')->collation;
+            $slugColumn = Craft::$app->getDb()->getSchema()->getTableSchema('{{%elements_sites}}')?->getColumn('slug');
+            $collation = $slugColumn?->collation ?? 'utf8mb4_unicode_ci';
+            // CAST uses the connection charset; COLLATE must use the same charset as [[elements_sites.slug]].
+            $charset = $slugColumn?->charset ?? (preg_match('/^([A-Za-z0-9]+)_/', $collation, $m) ? $m[1] : 'utf8mb4');
+            $sql = 'CAST([[element_item_sites.siteId]] AS CHAR CHARACTER SET ' . $charset . ') COLLATE ' . $collation;
         } else {
             $sql = 'CAST([[element_item_sites.siteId]] AS TEXT)';
         }
