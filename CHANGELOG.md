@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.20 - 2026-04-16
+
+### Fixed
+- Fix a MySQL collation/charset error.
+
 ## 3.0.19 - 2026-04-11
 
 ### Fixed
