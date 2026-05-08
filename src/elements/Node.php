@@ -490,7 +490,16 @@ class Node extends Element
 
     public function setUrl($value): void
     {
-        $this->_url = $value;
+        if ($value === null || $value === '') {
+            $this->_url = null;
+
+            return;
+        }
+
+        // Leading/trailing whitespace breaks Craft CP’s `Html::_namespaceAttributes()` on preview
+        // menu links (it splits `href` on whitespace; an empty first segment triggers a PHP notice).
+        $trimmed = trim((string)$value);
+        $this->_url = $trimmed !== '' ? $trimmed : null;
     }
 
     public function getElementUrl()
