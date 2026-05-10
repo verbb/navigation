@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.21 - 2026-05-10
+
+### Fixed
+- Fix an issue with custom URLs and whitespace characters.
+
 ## 3.0.20 - 2026-04-16
 
 ### Fixed
