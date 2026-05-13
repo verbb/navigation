@@ -83,17 +83,15 @@ class Nodes extends Component
             $nav = Navigation::$plugin->getNavs()->getNavById($node->navId);
 
             if (!$nav) {
-                return;
+                continue;
             }
 
-            // Check if the element is propagating, and in the allowed sites
-            if ($element->propagating) {
-                $supportedSites = ElementHelper::supportedSitesForElement($node);
-                $supportedSiteIds = ArrayHelper::getColumn($supportedSites, 'siteId');
+            // Do not sync nodes for sites where this nav is disabled (avoids UnsupportedSiteException)
+            $supportedSites = ElementHelper::supportedSitesForElement($node);
+            $supportedSiteIds = ArrayHelper::getColumn($supportedSites, 'siteId');
 
-                if (!in_array($node->siteId, $supportedSiteIds, false)) {
-                    return;
-                }
+            if (!in_array($node->siteId, $supportedSiteIds, false)) {
+                continue;
             }
 
             $currentElement = Craft::$app->getElements()->getElementById($element->id, get_class($element), $element->siteId);

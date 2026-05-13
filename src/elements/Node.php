@@ -755,7 +755,9 @@ class Node extends Element
         // Verify that the nav supports this site
         $navSiteSettings = $nav->getSiteSettings();
 
-        if (!isset($navSiteSettings[$this->siteId])) {
+        $navSiteSetting = $navSiteSettings[$this->siteId] ?? null;
+
+        if (!$navSiteSetting || !($navSiteSetting->enabled ?? false)) {
             throw new UnsupportedSiteException($this, $this->siteId, "The nav '$nav->name' is not enabled for the site '$this->siteId'");
         }
 
