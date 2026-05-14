@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.22 - 2026-05-14
+
+### Fixed
+- Fix entry save crash when nav is disabled for site by skipping unsupported node sync and validating nav site `enabled` in `Node::beforeSave`.
+
 ## 3.0.21 - 2026-05-10
 
 ### Fixed
