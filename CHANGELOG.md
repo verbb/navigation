@@ -945,7 +945,7 @@
 - Allow swapping of an element in the HUD for a node, once the node has been created.
 - Add feature to switch node type for existing nodes. Makes it easy to switch from Entry to Custom URL.
 - Add GraphQL support. See [docs](https://verbb.io/craft-plugins/navigation/docs/developers/graphql).
-- Add custom node types. The ability to define your own custom type of nodes. See [docs](https://verbb.io/craft-plugins/navigation/docs/developers/extending-elements#node-types).
+- Add custom node types. The ability to define your own custom type of nodes. See [docs](docs/developers/extensibility#node-types).
 - Add custom attributes for nodes. Define your own attributes (think `data-scroll`, etc) attached to the anchor tag for each node.
 - Add URL suffix for nodes - in case you want to add `#example` or `?some-query=value` to element URLs.
 - Add max nodes option for navs to limit the number of nodes in a nav.
