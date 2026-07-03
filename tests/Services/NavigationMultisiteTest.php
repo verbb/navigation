@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Tests\Support\Fixtures\NavigationFixtureFactory;
+use Tests\Support\WebRequestSimulator;
 use craft\base\Field;
 use verbb\navigation\elements\Node;
 use verbb\navigation\models\MenuSettings;
@@ -102,6 +103,29 @@ it('preserves hierarchy when copying nodes to another site with descendants', fu
     expect($copiedParent)->not->toBeNull();
     expect($copiedChild)->not->toBeNull();
     expect($copiedChild->getParent()?->id)->toBe($copiedParent->id);
+
+    $roots = (new NavigationVariable())
+        ->nodes(['handle' => $nav->handle, 'siteId' => $secondarySite->id])
+        ->level(1)
+        ->all();
+
+    expect($roots)->toHaveCount(1);
+    expect($roots[0]->getChildren())->toHaveCount(1);
+    expect($roots[0]->getChildren()[0]->title)->toBe('Child');
+
+    WebRequestSimulator::withAbsoluteUrl(
+        $secondarySite->getBaseUrl(),
+        function() use ($nav, $secondarySite) {
+            $roots = (new NavigationVariable())
+                ->nodes(['handle' => $nav->handle, 'siteId' => $secondarySite->id])
+                ->level(1)
+                ->all();
+
+            expect($roots)->toHaveCount(1);
+            expect($roots[0]->getChildren())->toHaveCount(1);
+            expect($roots[0]->children->count())->toBe(1);
+        },
+    );
 });
 
 it('remaps parent relationships when copying a parent-child selection to another site', function() {

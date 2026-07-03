@@ -29,7 +29,12 @@ class NodeRead extends Component
 
         if ($cachedNodes !== null) {
             if ($query->shouldWireNodeHierarchy()) {
-                $cachedNodes = $this->assembleNodeHierarchy($cachedNodes, false, $query->shouldProjectChildren());
+                $cachedNodes = $this->assembleNodeHierarchyForQueryResult(
+                    $query,
+                    $cachedNodes,
+                    false,
+                    $query->shouldProjectChildren(),
+                );
             }
 
             Navigation::$plugin->getActiveMatcher()->resolve($cachedNodes);
@@ -204,6 +209,13 @@ class NodeRead extends Component
         $nodeStack = [];
         $childrenByParentId = [];
         $childrenPlan = new EagerLoadPlan(['handle' => 'children', 'alias' => 'children']);
+        $nodesById = [];
+
+        foreach ($nodes as $node) {
+            if ($node instanceof NodeElement) {
+                $nodesById[$node->id] = $node;
+            }
+        }
 
         foreach ($nodes as $node) {
             if (!$node instanceof NodeElement) {
@@ -219,8 +231,20 @@ class NodeRead extends Component
                 $node->setParent($parent);
                 $childrenByParentId[$parent->id][] = $node;
             } else {
-                $node->setParent(null);
-                $level = 1;
+                $parent = $node->getParent();
+
+                if (
+                    $parent instanceof NodeElement
+                    && (int)$parent->siteId === (int)$node->siteId
+                    && isset($nodesById[$parent->id])
+                ) {
+                    $node->setParent($parent);
+                    $childrenByParentId[$parent->id][] = $node;
+                    $level = (int)$parent->level + 1;
+                } else {
+                    $node->setParent(null);
+                    $level = 1;
+                }
             }
 
             $nodeStack[$level] = $node;

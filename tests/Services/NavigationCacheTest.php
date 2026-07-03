@@ -76,6 +76,26 @@ it('invalidates cached nav reads when nav settings are saved', function() {
     });
 });
 
+it('preserves children on cached level-scoped front-end reads', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $parent = NavigationFixtureFactory::customNode($nav, 'Parent', '/parent');
+    NavigationFixtureFactory::customNode($nav, 'Child', '/parent/child', $parent);
+
+    $siteUrl = Craft::$app->getSites()->getPrimarySite()->getBaseUrl();
+    $criteria = ['handle' => $nav->handle, 'siteId' => Craft::$app->getSites()->getPrimarySite()->id];
+
+    WebRequestSimulator::withAbsoluteUrl($siteUrl, function() use ($criteria) {
+        $variable = new NavigationVariable();
+        $variable->nodes($criteria)->level(1)->all();
+
+        $roots = $variable->nodes($criteria)->level(1)->all();
+
+        expect($roots)->toHaveCount(1);
+        expect($roots[0]->getChildren())->toHaveCount(1);
+        expect($roots[0]->getChildren()[0]->title)->toBe('Child');
+    });
+});
+
 it('preserves standard profile custom field values from cache', function() {
     $nav = NavigationFixtureFactory::menu();
     $field = NavigationFixtureFactory::addPlainTextFieldToMenu($nav);

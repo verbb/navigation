@@ -745,6 +745,10 @@ class Nodes extends Component
                 }
             }
 
+            // Cross-site duplicates inherit the source node's structure position. Drop that
+            // before re-placing the copy on the target site so children survive a reload.
+            $structuresService->remove($structureId, $duplicate);
+
             if ($structureParent) {
                 $structuresService->append($structureId, $duplicate, $structureParent);
             } else {
