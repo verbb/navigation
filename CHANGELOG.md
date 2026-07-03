@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.2 - 2026-07-03
 
 ### Added
 - Added **Enabled On Other Sites By Default** menu setting and per-node **Enabled on other sites** control in the builder when nodes propagate across sites ([#400](https://github.com/verbb/navigation/issues/400)).
