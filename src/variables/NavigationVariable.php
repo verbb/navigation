@@ -52,7 +52,7 @@ class NavigationVariable
 
         if ($criteria) {
             if (is_string($criteria)) {
-                $criteria = ['menuHandle' => $criteria];
+                $criteria = ['handle' => $criteria];
             } elseif (is_array($criteria)) {
                 $criteria = $this->normalizeDeprecatedNodeCriteria($criteria);
             }
