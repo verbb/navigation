@@ -510,31 +510,70 @@ class Nodes extends Component
         ];
     }
 
+    public function copyNodesToSite(
+        int $menuId,
+        int $sourceSiteId,
+        array $nodeIds,
+        int $targetSiteId,
+        bool $deep = false,
+    ): array {
+        $nodeIds = array_values(array_unique(array_map('intval', $nodeIds)));
+
+        if ($nodeIds === []) {
+            return [
+                'successCount' => 0,
+                'failCount' => 0,
+                'copiedNodeIds' => [],
+            ];
+        }
+
+        $query = NodeElement::find()
+            ->id($nodeIds)
+            ->menuId($menuId)
+            ->siteId($sourceSiteId)
+            ->status(null);
+
+        if ($deep) {
+            $query->orderBy(['structureelements.lft' => SORT_ASC]);
+        }
+
+        $successCount = 0;
+        $failCount = 0;
+        $copiedSourceToTargetIds = [];
+        $copiedNodeIds = [];
+
+        $this->_copyNodesToSiteQuery(
+            $query,
+            $targetSiteId,
+            $successCount,
+            $failCount,
+            $copiedSourceToTargetIds,
+            $copiedNodeIds,
+            null,
+            $deep,
+        );
+
+        return [
+            'successCount' => $successCount,
+            'failCount' => $failCount,
+            'copiedNodeIds' => $copiedNodeIds,
+        ];
+    }
+
     public function copyNodeToSite(NodeElement $node, int $targetSiteId): ?NodeElement
     {
-        $duplicate = Craft::$app->getElements()->duplicateElement($node, [
-            'siteId' => $targetSiteId,
-        ]);
+        $result = $this->copyNodesToSite(
+            (int)$node->menuId,
+            (int)$node->siteId,
+            [(int)$node->id],
+            $targetSiteId,
+        );
 
-        if (!$duplicate instanceof NodeElement) {
+        if ($result['successCount'] === 0 || $result['copiedNodeIds'] === []) {
             return null;
         }
 
-        $sourceSettings = Navigation::$plugin->getNodeSites()->getSettings($node->id, $node->siteId);
-
-        if ($sourceSettings) {
-            $targetSettings = new \verbb\navigation\models\NodeSiteSettings([
-                'nodeId' => $duplicate->id,
-                'siteId' => $targetSiteId,
-                'linkedElementSiteId' => $sourceSettings->linkedElementSiteId,
-                'url' => $sourceSettings->url,
-                'urlSuffix' => $sourceSettings->urlSuffix,
-            ]);
-
-            Navigation::$plugin->getNodeSites()->saveSettings($targetSettings);
-        }
-
-        return $duplicate;
+        return $this->getNodeById($result['copiedNodeIds'][0], $targetSiteId);
     }
 
 
@@ -650,6 +689,107 @@ class Nodes extends Component
                 );
             }
         }
+    }
+
+    private function _copyNodesToSiteQuery(
+        ElementQueryInterface $query,
+        int $targetSiteId,
+        int &$successCount,
+        int &$failCount,
+        array &$copiedSourceToTargetIds,
+        array &$copiedNodeIds,
+        ?NodeElement $newParent = null,
+        bool $deep = false,
+    ): void {
+        $elementsService = Craft::$app->getElements();
+        $structuresService = Craft::$app->getStructures();
+
+        foreach (Db::each($query) as $element) {
+            if (!$element instanceof NodeElement) {
+                continue;
+            }
+
+            if (isset($copiedSourceToTargetIds[$element->id])) {
+                continue;
+            }
+
+            try {
+                $duplicate = $elementsService->duplicateElement($element, [
+                    'siteId' => $targetSiteId,
+                ]);
+            } catch (Throwable) {
+                $failCount++;
+                continue;
+            }
+
+            if (!$duplicate instanceof NodeElement) {
+                $failCount++;
+                continue;
+            }
+
+            $this->_copyNodeSiteSettings($element, $duplicate, $targetSiteId);
+
+            $successCount++;
+            $copiedSourceToTargetIds[$element->id] = $duplicate;
+            $copiedNodeIds[] = (int)$duplicate->id;
+
+            $nav = Navigation::$plugin->getMenus()->getMenuById($element->menuId);
+            $structureId = (int)$nav->structureId;
+            $structureParent = $newParent;
+
+            if (!$structureParent) {
+                $sourceParentId = $element->getParentId();
+
+                if ($sourceParentId && isset($copiedSourceToTargetIds[$sourceParentId])) {
+                    $structureParent = $copiedSourceToTargetIds[$sourceParentId];
+                }
+            }
+
+            if ($structureParent) {
+                $structuresService->append($structureId, $duplicate, $structureParent);
+            } else {
+                $structuresService->appendToRoot($structureId, $duplicate);
+            }
+
+            if ($deep) {
+                $childQuery = NodeElement::find()
+                    ->siteId($element->siteId)
+                    ->menuId($element->menuId)
+                    ->descendantOf($element->id)
+                    ->descendantDist(1)
+                    ->status(null);
+
+                $this->_copyNodesToSiteQuery(
+                    $childQuery,
+                    $targetSiteId,
+                    $successCount,
+                    $failCount,
+                    $copiedSourceToTargetIds,
+                    $copiedNodeIds,
+                    $duplicate,
+                    true,
+                );
+            }
+        }
+    }
+
+    private function _copyNodeSiteSettings(NodeElement $source, NodeElement $duplicate, int $targetSiteId): void
+    {
+        $sourceSettings = Navigation::$plugin->getNodeSites()->getSettings($source->id, $source->siteId);
+
+        if (!$sourceSettings) {
+            return;
+        }
+
+        $targetSettings = new \verbb\navigation\models\NodeSiteSettings([
+            'nodeId' => $duplicate->id,
+            'siteId' => $targetSiteId,
+            'linkedElementSiteId' => $sourceSettings->linkedElementSiteId,
+            'url' => $sourceSettings->url,
+            'urlSuffix' => $sourceSettings->urlSuffix,
+        ]);
+
+        Navigation::$plugin->getNodeSites()->saveSettings($targetSettings);
     }
 
     private function _duplicateAttributesForBuilder(NodeElement $element, bool $deferPublish): array

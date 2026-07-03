@@ -93,6 +93,21 @@ export async function unstageDelete(
   return response.data as { nodes?: BuilderNode[]; changeCount?: number };
 }
 
+export async function copyNodesToSite(
+  menuId: number,
+  sourceSiteId: number,
+  nodeIds: number[],
+  targetSiteId: number,
+  deep = false,
+): Promise<{ nodeId?: number; copiedNodeIds?: number[]; message?: string }> {
+  const response = await getCraft().sendActionRequest('POST', 'navigation/nodes/copy-to-site', {
+    data: { menuId, sourceSiteId, nodeIds, siteId: targetSiteId, deep },
+  });
+
+  return response.data as { nodeId?: number; copiedNodeIds?: number[]; message?: string };
+}
+
+/** @deprecated Use {@see copyNodesToSite} instead. */
 export async function copyNodeToSite(
   nodeId: number,
   targetSiteId: number,

@@ -10,7 +10,7 @@ import {
   unstageDelete,
   setNodeStatus,
   duplicateNodes,
-  copyNodeToSite,
+  copyNodesToSite as copyNodesToSiteApi,
   displayError,
   t,
 } from './api';
@@ -95,7 +95,7 @@ type BuilderStore = {
   setSelectedNodesStatus: (status: 'enabled' | 'disabled') => Promise<void>;
   duplicateNode: (nodeId: number, deep?: boolean) => Promise<void>;
   duplicateSelectedNodes: (deep?: boolean) => Promise<void>;
-  copyNodesToSite: (nodeIds: number[], targetSiteId: number) => Promise<void>;
+  copyNodesToSite: (nodeIds: number[], targetSiteId: number, deep?: boolean) => Promise<void>;
   restoreNode: (nodeId: number) => Promise<void>;
   applyServerNodes: (nodes: BuilderNode[]) => void;
   isDirty: () => boolean;
@@ -498,26 +498,21 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     }
   },
 
-  copyNodesToSite: async (nodeIds, targetSiteId) => {
+  copyNodesToSite: async (nodeIds, targetSiteId, deep = false) => {
     if (!nodeIds.length) {
       return;
     }
 
+    const { menuId, siteId } = get();
+
     try {
-      let lastMessage = t('Node copied to site.');
-
-      for (const nodeId of nodeIds) {
-        const data = await copyNodeToSite(nodeId, targetSiteId);
-
-        if (data.message) {
-          lastMessage = data.message;
-        }
-      }
+      const data = await copyNodesToSiteApi(menuId, siteId, nodeIds, targetSiteId, deep);
 
       getCraft().cp.displayNotice(
-        nodeIds.length === 1
-          ? lastMessage
-          : t('{count} nodes copied to site.', { count: nodeIds.length }),
+        data.message
+          ?? (nodeIds.length === 1
+            ? t('Node copied to site.')
+            : t('{count} nodes copied to site.', { count: nodeIds.length })),
       );
     } catch (error) {
       displayError(error);

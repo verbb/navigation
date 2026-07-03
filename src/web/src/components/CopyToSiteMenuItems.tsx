@@ -1,5 +1,6 @@
 import {
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -12,10 +13,18 @@ import { t } from '../api';
 type Props = {
   nodeIds: number[];
   disabled?: boolean;
+  includeDeepOption?: boolean;
+  showIcon?: boolean;
   onCopied?: () => void;
 };
 
-export function CopyToSiteMenuItems({ nodeIds, disabled = false, onCopied }: Props) {
+export function CopyToSiteMenuItems({
+  nodeIds,
+  disabled = false,
+  includeDeepOption = false,
+  showIcon = true,
+  onCopied,
+}: Props) {
   const canCopyToSite = useBuilderStore((s) => s.state?.canCopyToSite ?? false);
   const copyToSiteTargets = useBuilderStore((s) => s.state?.copyToSiteTargets ?? []);
   const copyNodesToSite = useBuilderStore((s) => s.copyNodesToSite);
@@ -24,25 +33,36 @@ export function CopyToSiteMenuItems({ nodeIds, disabled = false, onCopied }: Pro
     return null;
   }
 
+  const handleCopy = (targetSiteId: number, deep: boolean) => {
+    void copyNodesToSite(nodeIds, targetSiteId, deep).then(() => {
+      onCopied?.();
+    });
+  };
+
+  const siteItems = (deep: boolean) =>
+    copyToSiteTargets.map((site) => (
+      <DropdownMenuItem key={`${deep ? 'deep' : 'shallow'}-${site.id}`} onClick={() => handleCopy(site.id, deep)}>
+        {site.name}
+      </DropdownMenuItem>
+    ));
+
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger disabled={disabled || nodeIds.length === 0}>
-        <FontAwesomeIcon icon={faCopy} />
+        {showIcon && <FontAwesomeIcon icon={faCopy} />}
         {t('Copy to site')}
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent className="min-w-44">
-        {copyToSiteTargets.map((site) => (
-          <DropdownMenuItem
-            key={site.id}
-            onClick={() => {
-              void copyNodesToSite(nodeIds, site.id).then(() => {
-                onCopied?.();
-              });
-            }}
-          >
-            {site.name}
-          </DropdownMenuItem>
-        ))}
+        {siteItems(false)}
+        {includeDeepOption && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>{t('With descendants')}</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="min-w-44">{siteItems(true)}</DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </>
+        )}
       </DropdownMenuSubContent>
     </DropdownMenuSub>
   );

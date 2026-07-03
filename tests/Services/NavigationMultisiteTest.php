@@ -77,6 +77,74 @@ it('copies a node to another site when propagation is none', function() {
         ->toBe(['Primary Item']);
 });
 
+it('preserves hierarchy when copying nodes to another site with descendants', function() {
+    $secondarySite = NavigationFixtureFactory::existingSecondarySite();
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $nav = NavigationFixtureFactory::menu(null, MenuSettings::PROPAGATION_METHOD_NONE);
+
+    $parent = NavigationFixtureFactory::customNode($nav, 'Parent', '/parent', null, $primarySite->id);
+    NavigationFixtureFactory::customNode($nav, 'Child', '/parent/child', $parent, $primarySite->id);
+
+    $result = Navigation::$plugin->getNodes()->copyNodesToSite(
+        $nav->id,
+        $primarySite->id,
+        [$parent->id],
+        $secondarySite->id,
+        true,
+    );
+
+    expect($result['successCount'])->toBe(2);
+    expect($result['copiedNodeIds'])->toHaveCount(2);
+
+    $copiedParent = Node::find()->id($result['copiedNodeIds'][0])->siteId($secondarySite->id)->status(null)->one();
+    $copiedChild = Node::find()->id($result['copiedNodeIds'][1])->siteId($secondarySite->id)->status(null)->one();
+
+    expect($copiedParent)->not->toBeNull();
+    expect($copiedChild)->not->toBeNull();
+    expect($copiedChild->getParent()?->id)->toBe($copiedParent->id);
+});
+
+it('remaps parent relationships when copying a parent-child selection to another site', function() {
+    $secondarySite = NavigationFixtureFactory::existingSecondarySite();
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $nav = NavigationFixtureFactory::menu(null, MenuSettings::PROPAGATION_METHOD_NONE);
+
+    $parent = NavigationFixtureFactory::customNode($nav, 'Parent', '/parent', null, $primarySite->id);
+    $child = NavigationFixtureFactory::customNode($nav, 'Child', '/parent/child', $parent, $primarySite->id);
+
+    $result = Navigation::$plugin->getNodes()->copyNodesToSite(
+        $nav->id,
+        $primarySite->id,
+        [$parent->id, $child->id],
+        $secondarySite->id,
+    );
+
+    expect($result['successCount'])->toBe(2);
+
+    $copiedParentId = null;
+
+    foreach ($result['copiedNodeIds'] as $copiedNodeId) {
+        $copiedNode = Node::find()->id($copiedNodeId)->siteId($secondarySite->id)->status(null)->one();
+
+        if ($copiedNode?->title === 'Parent') {
+            $copiedParentId = $copiedNode->id;
+            expect($copiedNode->getParent())->toBeNull();
+        }
+    }
+
+    expect($copiedParentId)->not->toBeNull();
+
+    $copiedChild = Node::find()
+        ->menuId($nav->id)
+        ->siteId($secondarySite->id)
+        ->title('Child')
+        ->status(null)
+        ->one();
+
+    expect($copiedChild)->not->toBeNull();
+    expect($copiedChild->getParent()?->id)->toBe($copiedParentId);
+});
+
 it('creates matching node titles on propagated sites', function() {
     $secondarySite = NavigationFixtureFactory::existingSecondarySite();
     $primarySite = Craft::$app->getSites()->getPrimarySite();

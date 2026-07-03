@@ -16,6 +16,7 @@ import { useBuilderStore } from '../store';
 import type { NodeStatusFilter } from '../types';
 import { NodeTreeViewPopover } from './NodeTreeViewPopover';
 import { CopyToSiteMenuItems } from './CopyToSiteMenuItems';
+import { DescendantScopeMenuItems } from './DescendantScopeMenuItems';
 import { openNodeEditor } from '../utils/craft';
 import { t } from '../api';
 
@@ -145,38 +146,25 @@ export function NodeTreeToolbar() {
               <CopyToSiteMenuItems
                 nodeIds={selectedNodes.filter((node) => !node.pendingDelete).map((node) => node.id)}
                 disabled={!hasActionableSelection}
+                includeDeepOption={allowNestedActions}
+                showIcon={false}
               />
-              <DropdownMenuItem
+              <DescendantScopeMenuItems
+                label={t('Duplicate')}
                 disabled={!hasActionableSelection}
-                onClick={() => void duplicateSelectedNodes(false)}
-              >
-                {t('Duplicate')}
-              </DropdownMenuItem>
-              {allowNestedActions && (
-                <DropdownMenuItem
-                  disabled={!hasActionableSelection}
-                  onClick={() => void duplicateSelectedNodes(true)}
-                >
-                  {t('Duplicate (with descendants)')}
-                </DropdownMenuItem>
-              )}
+                includeDeepOption={allowNestedActions}
+                deepAsSubmenu
+                onAction={(deep) => void duplicateSelectedNodes(deep)}
+              />
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
+              <DescendantScopeMenuItems
+                label={t('Delete')}
                 disabled={!hasActionableSelection}
-                onClick={() => void deleteSelectedNodes(false)}
-              >
-                {t('Delete')}
-              </DropdownMenuItem>
-              {allowNestedActions && (
-                <DropdownMenuItem
-                  variant="destructive"
-                  disabled={!hasActionableSelection}
-                  onClick={() => void deleteSelectedNodes(true)}
-                >
-                  {t('Delete (with descendants)')}
-                </DropdownMenuItem>
-              )}
+                includeDeepOption={allowNestedActions}
+                deepAsSubmenu
+                variant="destructive"
+                onAction={(deep) => void deleteSelectedNodes(deep)}
+              />
             </DropdownMenuContent>
           </DropdownMenu>
         </>

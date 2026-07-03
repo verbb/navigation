@@ -10,6 +10,7 @@
 - Category-linked nodes are disabled when their source category group is deleted, matching single-category soft-delete behaviour ([#385](https://github.com/verbb/navigation/issues/385)).
 
 ### Fixed
+- Fixed hierarchical structure being lost when copying nodes to another site ([#452](https://github.com/verbb/navigation/issues/452)).
 - Fixed an install error around `ProjectConfig::onDelete`. (thanks @bramnijssen)
 - Fixed `craft.navigation.nodes()` string shorthand and deprecated node query criteria keys setting an unknown `menuHandle` property on `NodeQuery`. (thanks @bramnijssen)
 

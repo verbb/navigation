@@ -24,6 +24,7 @@ import { useBuilderStore } from '../store';
 import { openNodeEditor } from '../utils/craft';
 import { getNodeMoveCapabilities } from '../utils/nodeMoveActions';
 import { CopyToSiteMenuItems } from './CopyToSiteMenuItems';
+import { DescendantScopeMenuItems } from './DescendantScopeMenuItems';
 import { t } from '../api';
 
 type Props = {
@@ -76,18 +77,17 @@ export function NodeRowActionsMenu({ node, isDragSession = false, className }: P
           <CopyToSiteMenuItems
             nodeIds={[node.id]}
             disabled={node.pendingDelete}
+            includeDeepOption={allowNestedActions && node.hasDescendants}
             onCopied={() => setIsOpen(false)}
           />
-          <DropdownMenuItem onClick={() => void duplicateNode(node.id, false)}>
-            <FontAwesomeIcon icon={faClone} />
-            {t('Duplicate')}
-          </DropdownMenuItem>
-          {allowNestedActions && node.hasDescendants && (
-            <DropdownMenuItem onClick={() => void duplicateNode(node.id, true)}>
-              <FontAwesomeIcon icon={faClone} />
-              {t('Duplicate (with descendants)')}
-            </DropdownMenuItem>
-          )}
+          <DescendantScopeMenuItems
+            label={t('Duplicate')}
+            icon={faClone}
+            includeDeepOption={allowNestedActions && node.hasDescendants}
+            deepAsSubmenu={allowNestedActions && node.hasDescendants}
+            shallowLabel={t('This node')}
+            onAction={(deep) => void duplicateNode(node.id, deep)}
+          />
 
           <DropdownMenuSeparator />
 
@@ -126,22 +126,15 @@ export function NodeRowActionsMenu({ node, isDragSession = false, className }: P
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem
-            className="text-error focus:text-error"
-            onClick={() => void deleteNode(node.id, false)}
-          >
-            <FontAwesomeIcon icon={faXmark} />
-            {t('Delete')}
-          </DropdownMenuItem>
-          {allowNestedActions && node.hasDescendants && (
-            <DropdownMenuItem
-              className="text-error focus:text-error"
-              onClick={() => void deleteNode(node.id, true)}
-            >
-              <FontAwesomeIcon icon={faXmark} />
-              {t('Delete (with descendants)')}
-            </DropdownMenuItem>
-          )}
+          <DescendantScopeMenuItems
+            label={t('Delete')}
+            icon={faXmark}
+            includeDeepOption={allowNestedActions && node.hasDescendants}
+            deepAsSubmenu={allowNestedActions && node.hasDescendants}
+            shallowLabel={t('This node')}
+            variant="destructive"
+            onAction={(deep) => void deleteNode(node.id, deep)}
+          />
 
         </DropdownMenuContent>
       </DropdownMenu>

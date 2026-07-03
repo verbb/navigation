@@ -107,29 +107,49 @@ class NodesController extends Controller
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
-        $nodeId = (int)$this->request->getRequiredBodyParam('nodeId');
         $targetSiteId = (int)$this->request->getRequiredBodyParam('siteId');
-        $node = Node::find()->id($nodeId)->status(null)->site('*')->unique()->one();
+        $deep = (bool)$this->request->getBodyParam('deep', false);
+        $nodeIds = $this->_normalizeCopyNodeIds();
 
-        if (!$node) {
+        $firstNode = Node::find()->id($nodeIds[0])->status(null)->site('*')->unique()->one();
+
+        if (!$firstNode) {
             return $this->asFailure(Craft::t('navigation', 'Node not found.'));
         }
 
-        $nav = Navigation::$plugin->getMenus()->getMenuById($node->menuId);
+        $menuId = (int)($this->request->getBodyParam('menuId') ?? $firstNode->menuId);
+        $sourceSiteId = (int)($this->request->getBodyParam('sourceSiteId') ?? $firstNode->siteId);
+
+        $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
         $this->requirePermission('navigation-manageMenu:' . $nav->uid);
 
         if ($nav->propagationMethod !== MenuSettings::PROPAGATION_METHOD_NONE) {
             return $this->asFailure(Craft::t('navigation', 'Nodes in this menu are propagated automatically. Switch sites to edit them instead of copying.'));
         }
 
-        $duplicate = Navigation::$plugin->getNodes()->copyNodeToSite($node, $targetSiteId);
+        if ($deep && (int)$nav->maxLevels === 1) {
+            throw new BadRequestHttpException('This menu does not support nested nodes.');
+        }
 
-        if (!$duplicate) {
+        $result = Navigation::$plugin->getNodes()->copyNodesToSite(
+            $menuId,
+            $sourceSiteId,
+            $nodeIds,
+            $targetSiteId,
+            $deep,
+        );
+
+        if ($result['successCount'] === 0) {
             return $this->asFailure(Craft::t('navigation', 'Couldn’t copy node to site.'));
         }
 
-        return $this->asSuccess(Craft::t('navigation', 'Node copied to site.'), [
-            'nodeId' => $duplicate->id,
+        $message = $result['successCount'] === 1
+            ? Craft::t('navigation', 'Node copied to site.')
+            : Craft::t('navigation', '{count} nodes copied to site.', ['count' => $result['successCount']]);
+
+        return $this->asSuccess($message, [
+            'nodeId' => $result['copiedNodeIds'][0] ?? null,
+            'copiedNodeIds' => $result['copiedNodeIds'],
         ]);
     }
 
@@ -238,6 +258,27 @@ class NodesController extends Controller
         }
 
         return $node;
+    }
+
+    private function _normalizeCopyNodeIds(): array
+    {
+        $nodeIds = $this->request->getBodyParam('nodeIds');
+
+        if ($nodeIds === null) {
+            return [(int)$this->request->getRequiredBodyParam('nodeId')];
+        }
+
+        if (!is_array($nodeIds)) {
+            throw new BadRequestHttpException('Invalid node IDs payload.');
+        }
+
+        $nodeIds = array_values(array_unique(array_map('intval', $nodeIds)));
+
+        if ($nodeIds === []) {
+            throw new BadRequestHttpException('No nodes selected.');
+        }
+
+        return $nodeIds;
     }
 
 }
