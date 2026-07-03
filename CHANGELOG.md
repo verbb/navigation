@@ -9,6 +9,8 @@
 - Entry-linked nodes are disabled when their source section is deleted, matching single-entry soft-delete behaviour ([#385](https://github.com/verbb/navigation/issues/385)).
 - Category-linked nodes are disabled when their source category group is deleted, matching single-category soft-delete behaviour ([#385](https://github.com/verbb/navigation/issues/385)).
 
+### Fixed
+- Fixed an install error around `ProjectConfig::onDelete`. (thanks @bramnijssen)
 
 ## 4.0.0-beta.1 - 2026-07-03
 
