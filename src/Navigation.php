@@ -402,7 +402,7 @@ class Navigation extends Plugin
             return;
         }
 
-        Craft::$app->getProjectConfig()->onDelete('commerce.productTypes.{uid}', function(ConfigEvent $event): void {
+        Craft::$app->getProjectConfig()->onRemove('commerce.productTypes.{uid}', function(ConfigEvent $event): void {
             $uid = $event->tokenMatches[0] ?? null;
 
             if (!$uid) {
