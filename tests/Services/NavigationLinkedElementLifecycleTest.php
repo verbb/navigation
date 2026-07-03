@@ -83,6 +83,65 @@ it('removes dynamic section nodes when the source section is deleted', function(
     expect($node->type)->toBe(Dynamic::class);
 });
 
+it('disables linked entry nodes when the source section is deleted', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $section = NavigationFixtureFactory::entrySection();
+    $entry = NavigationFixtureFactory::entries(1, $section)[0];
+    $node = NavigationFixtureFactory::entryNode($nav, $entry);
+    $nodeId = $node->id;
+
+    expect(nodeIsVisibleOnSite($node))->toBeTrue();
+
+    Craft::$app->getEntries()->deleteSection($section);
+
+    $reloaded = Node::find()->id($nodeId)->status(null)->one();
+
+    expect($reloaded)->not->toBeNull();
+    expect(nodeIsVisibleOnSite($reloaded))->toBeFalse();
+    expect($reloaded->getIsDisabledByLinkedElement())->toBeTrue();
+});
+
+it('disables linked category nodes when the source category group is deleted', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $group = NavigationFixtureFactory::categoryGroup();
+    $category = NavigationFixtureFactory::categories(1, $group)[0];
+    $node = NavigationFixtureFactory::categoryNode($nav, $category);
+    $nodeId = $node->id;
+
+    expect(nodeIsVisibleOnSite($node))->toBeTrue();
+
+    Craft::$app->getCategories()->deleteGroup($group);
+
+    $reloaded = Node::find()->id($nodeId)->status(null)->one();
+
+    expect($reloaded)->not->toBeNull();
+    expect(nodeIsVisibleOnSite($reloaded))->toBeFalse();
+    expect($reloaded->getIsDisabledByLinkedElement())->toBeTrue();
+});
+
+it('restores linked entry nodes when a deleted section is restored', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $section = NavigationFixtureFactory::entrySection();
+    $entry = NavigationFixtureFactory::entries(1, $section)[0];
+    $node = NavigationFixtureFactory::entryNode($nav, $entry);
+    $nodeId = $node->id;
+    $sectionUid = $section->uid;
+    $sectionConfig = Craft::$app->getProjectConfig()->get("sections.$sectionUid");
+
+    Craft::$app->getEntries()->deleteSection($section);
+
+    $disabled = Node::find()->id($nodeId)->status(null)->one();
+    expect(nodeIsVisibleOnSite($disabled))->toBeFalse();
+
+    Craft::$app->getProjectConfig()->set("sections.$sectionUid", $sectionConfig);
+
+    $reloaded = Node::find()->id($nodeId)->status(null)->one();
+
+    expect($reloaded)->not->toBeNull();
+    expect(nodeIsVisibleOnSite($reloaded))->toBeTrue();
+    expect($reloaded->getIsDisabledByLinkedElement())->toBeFalse();
+});
+
 it('removes dynamic category group nodes when the source group is deleted', function() {
     $nav = NavigationFixtureFactory::menu();
     $group = NavigationFixtureFactory::categoryGroup();

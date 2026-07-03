@@ -293,22 +293,22 @@ class Nodes extends Component
 
     public function onDeleteSection(SectionEvent $event): void
     {
-        $this->onDeleteDynamicSource(DynamicSourceTypes::SECTION, (int)$event->section->id);
+        $this->_handleSourceDelete(DynamicSourceTypes::SECTION, (int)$event->section->id);
     }
 
     public function onDeleteCategoryGroup(CategoryGroupEvent $event): void
     {
-        $this->onDeleteDynamicSource(DynamicSourceTypes::CATEGORY_GROUP, (int)$event->categoryGroup->id);
+        $this->_handleSourceDelete(DynamicSourceTypes::CATEGORY_GROUP, (int)$event->categoryGroup->id);
     }
 
     public function onDeleteVolume(VolumeEvent $event): void
     {
-        $this->onDeleteDynamicSource(DynamicSourceTypes::VOLUME, (int)$event->volume->id);
+        $this->_handleSourceDelete(DynamicSourceTypes::VOLUME, (int)$event->volume->id);
     }
 
     public function onDeleteProductType(int $productTypeId): void
     {
-        $this->onDeleteDynamicSource(DynamicSourceTypes::PRODUCT_TYPE, $productTypeId);
+        $this->_handleSourceDelete(DynamicSourceTypes::PRODUCT_TYPE, $productTypeId);
     }
 
     public function onDeleteDynamicSource(string $sourceType, int $sourceId): void
@@ -542,6 +542,39 @@ class Nodes extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _handleSourceDelete(string $sourceType, int $sourceId): void
+    {
+        $this->onDeleteDynamicSource($sourceType, $sourceId);
+
+        foreach (Navigation::$plugin->getNodeTypes()->getRegisteredElementNodeTypeClasses() as $typeClass) {
+            $elementIds = $typeClass::getBulkSoftDeletedElementIds($sourceType, $sourceId);
+
+            if ($elementIds === null) {
+                continue;
+            }
+
+            $this->_disableLinkedElementNodes($typeClass, $elementIds);
+        }
+    }
+
+    private function _disableLinkedElementNodes(string $typeClass, array $elementIds): void
+    {
+        if (!$elementIds) {
+            return;
+        }
+
+        $nodes = NodeElement::find()
+            ->type($typeClass::getStoredTypeValues())
+            ->elementId($elementIds)
+            ->status(null)
+            ->site('*')
+            ->all();
+
+        foreach ($nodes as $node) {
+            $this->disableNodeForLinkedElement($node);
+        }
+    }
 
     private function _duplicateNodesQuery(
         ElementQueryInterface $query,

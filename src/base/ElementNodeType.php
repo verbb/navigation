@@ -54,6 +54,28 @@ abstract class ElementNodeType extends NodeType
         return [NodeTypeSchemaFields::newWindowField()];
     }
 
+    /**
+     * Node type values stored in `navigation_nodes.type` (4.x class + legacy element FQCN).
+     */
+    public static function getStoredTypeValues(): array
+    {
+        return array_values(array_unique([
+            static::class,
+            static::getElementType(),
+        ]));
+    }
+
+    /**
+     * Element IDs bulk-soft-deleted when Craft removes a source without per-element delete events.
+     * Return null when this node type does not handle the source type.
+     *
+     * Matching nodes are disabled (not deleted) so they can be restored when the source is restored.
+     */
+    public static function getBulkSoftDeletedElementIds(string $sourceType, int $sourceId): ?array
+    {
+        return null;
+    }
+
 
     // Public Methods
     // =========================================================================

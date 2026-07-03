@@ -3,6 +3,7 @@ namespace verbb\navigation\nodetypes;
 
 use verbb\navigation\base\ElementNodeType;
 use verbb\navigation\helpers\EntryPickerSettings;
+use verbb\navigation\helpers\DynamicSourceTypes;
 
 use Craft;
 use craft\elements\Entry as EntryElement;
@@ -25,6 +26,19 @@ class Entry extends ElementNodeType
     public static function getColor(): string
     {
         return '#5e5378';
+    }
+
+    public static function getBulkSoftDeletedElementIds(string $sourceType, int $sourceId): ?array
+    {
+        if ($sourceType !== DynamicSourceTypes::SECTION) {
+            return null;
+        }
+
+        return EntryElement::find()
+            ->sectionId($sourceId)
+            ->status(null)
+            ->trashed(null)
+            ->ids();
     }
 
 
