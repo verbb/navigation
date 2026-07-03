@@ -2,8 +2,6 @@
 namespace verbb\navigation\controllers;
 
 use verbb\navigation\Navigation;
-use verbb\navigation\migrations\AmNavPlugin;
-use verbb\navigation\migrations\NaveePlugin;
 use verbb\navigation\models\Settings;
 
 use Craft;
@@ -20,9 +18,16 @@ class BaseController extends Controller
     {
         /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
+        $segment = Craft::$app->getRequest()->getSegment(3);
+        $template = $segment === 'performance'
+            ? 'navigation/settings/performance'
+            : 'navigation/settings/index';
 
-        return $this->renderTemplate('navigation/settings', [
+        return $this->renderTemplate($template, [
             'settings' => $settings,
+            'selectedSubnavItem' => 'settings',
+            'importError' => Craft::$app->getUrlManager()->getRouteParams()['importError'] ?? null,
+            'exportError' => Craft::$app->getUrlManager()->getRouteParams()['exportError'] ?? null,
         ]);
     }
 

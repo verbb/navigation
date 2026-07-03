@@ -1,0 +1,111 @@
+{% extends 'navigation/_layouts' %}
+{% import '_includes/forms' as forms %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
+
+{% set title = 'Menus' | t('navigation') %}
+{% set selectedSubnavItem = 'menus' %}
+
+{% set crumbs = [
+    { label: craft.navigation.getPluginName(), url: url('navigation/menus') },
+    { label: 'Menus' | t('navigation'), url: url('navigation/menus') },
+] %}
+
+{% if craft.app.getIsMultiSite() and requestedSite %}
+    {% set crumbs = crumbs | unshift({
+        id: 'site-crumb',
+        icon: 'world',
+        label: requestedSite.name | t('site'),
+        menu: {
+            items: siteMenuItems(null, requestedSite),
+            label: 'Select site' | t('site')
+        },
+    }) %}
+{% endif %}
+
+{% block actionButton %}
+    {% if editable and currentUser.can('navigation-createMenus') %}
+        <div id="button-container">
+            <div class="btngroup submit">
+                <a class="btn submit add icon" href="{{ url('navigation/menus/new') }}">
+                    {{ 'New menu' | t('navigation') }}
+                </a>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block blockContent %}
+    <div id="navigations-vue-admin-table"></div>
+{% endblock %}
+
+{% set tableData = [] %}
+{% set editableNavs = 0 %}
+
+{% set canReorder = currentUser.can('navigation-createMenus') ? true : false %}
+
+{% for navigation in navigations %}
+    {% set canDelete = currentUser.can('navigation-deleteMenu:' ~ navigation.uid) ? true : false %}
+
+    {% set tableData = tableData | merge([{
+        id: navigation.id,
+        title: navigation.name | t('site'),
+        url: url('navigation/menus/build/' ~ navigation.id),
+        name: navigation.name | t('site') | e,
+        handle: navigation.handle,
+        _showDelete: canDelete,
+        settings: {
+            label: 'Edit Settings' | t('navigation') | e,
+            url: currentUser.can('navigation-editMenu:' ~ navigation.uid) ? url('navigation/menus/edit/' ~ navigation.id),
+        },
+    }]) %}
+
+    {% if currentUser.can('navigation-editMenu:' ~ navigation.uid) %}
+        {% set editableNavs = editableNavs + 1 %}
+    {% endif %}
+{% endfor %}
+
+{% js %}
+    var columns = [
+        { name: '__slot:title', title: Craft.t('app', 'Name') },
+        { name: '__slot:handle', title: Craft.t('app', 'Handle') },
+
+        {% if editable and editableNavs %}
+            { name: 'settings', title: Craft.t('app', 'Settings'),
+                callback: function(value) {
+                    if (value.url) {
+                        return '<a href="' + value.url + '">' + value.label + '</a>';
+                    }
+
+                    return '';
+                }
+            },
+        {% endif %}
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#navigations-vue-admin-table',
+        deleteAction: '{{ editable ? 'navigation/menus/delete-menu' : '' }}',
+        emptyMessage: Craft.t('navigation', 'No menus exist yet.'),
+        reorderAction: '{{ navigations | length > 1 and canReorder ? 'navigation/menus/reorder-menu' : '' }}',
+        tableData: {{ tableData | json_encode | raw }},
+    });
+
+    // When changing the site select, navigate to the navigation index for that site.
+    var $siteMenuBtn = $('#header .sitemenubtn:first');
+
+    if (this.$siteMenuBtn.length) {
+        var siteMenu = $siteMenuBtn.menubtn().data('menubtn').menu;
+
+        siteMenu.on('optionselect', function(ev) {
+            siteMenu.$options.removeClass('sel');
+            var $option = $(ev.selectedOption).addClass('sel');
+            $siteMenuBtn.html($option.html());
+            Craft.cp.setSiteId($option.data('site-id'));
+
+            location.reload();
+        });
+    }
+
+{% endjs %}

@@ -25,7 +25,7 @@ class NewWindowField extends BaseNativeField
 
     public function instructions(ElementInterface $element = null, bool $static = false): ?string
     {
-        return Craft::t('navigation', 'Whether to open this navigation item in a new window.');
+        return Craft::t('navigation', 'Whether to open this node in a new window.');
     }
 
     public function inputHtml(?ElementInterface $element = null, bool $static = false): ?string

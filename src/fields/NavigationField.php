@@ -32,7 +32,7 @@ class NavigationField extends Field
 
     public static function defaultSelectionLabel(): string
     {
-        return Craft::t('navigation', 'Select a navigation');
+        return Craft::t('navigation', 'Select a menu');
     }
 
     public static function dbType(): array|string
@@ -67,10 +67,10 @@ class NavigationField extends Field
 
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
-        $navs = Navigation::$plugin->getNavs()->getAllNavs();
+        $navs = Navigation::$plugin->getMenus()->getAllMenus();
 
         $options = [
-            '' => Craft::t('navigation', 'Select a navigation'),
+            '' => Craft::t('navigation', 'Select a menu'),
         ];
 
         foreach ($navs as $nav) {

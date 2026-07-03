@@ -1,0 +1,14 @@
+{% import '_includes/forms' as forms %}
+
+<div id="js-menu-content-form" class="navigation-menu-content-form">
+    {{ hiddenInput('siteId', site.id) }}
+    {{ hiddenInput('fieldsLocation', 'fields') }}
+
+    {% for menuTab in menuContentTabs %}
+        <div id="{{ menuTab.id }}" class="navigation-menu-content-pane hidden">
+            <div class="flex-fields">
+                {{ menuTab.html | raw }}
+            </div>
+        </div>
+    {% endfor %}
+</div>

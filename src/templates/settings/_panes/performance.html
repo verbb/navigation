@@ -1,0 +1,41 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ forms.selectField({
+    id: 'cacheMode',
+    name: 'cacheMode',
+    label: 'Cache Mode' | t('navigation'),
+    instructions: 'Controls plugin-managed tree caching for front-end navigation reads.' | t('navigation'),
+    warning: macros.configWarning('cacheMode', 'navigation'),
+    value: settings.cacheMode,
+    options: {
+        off: 'Off' | t('navigation'),
+        auto: 'Auto (tagged invalidation)' | t('navigation'),
+        static: 'Static (longer TTL + tagged invalidation)' | t('navigation'),
+        manual: 'Manual (opt-in per query)' | t('navigation'),
+    },
+}) }}
+
+{{ forms.selectField({
+    id: 'cacheProfile',
+    name: 'cacheProfile',
+    label: 'Cache Profile' | t('navigation'),
+    instructions: 'Standard includes node custom fields. Linked element snapshots are not cached by default.' | t('navigation'),
+    warning: macros.configWarning('cacheProfile', 'navigation'),
+    value: settings.cacheProfile,
+    options: {
+        lite: 'Lite (core node metadata only)' | t('navigation'),
+        standard: 'Standard (recommended)' | t('navigation'),
+        full: 'Full (includes linked element snapshots)' | t('navigation'),
+    },
+}) }}
+
+{{ forms.textField({
+    id: 'cacheDuration',
+    name: 'cacheDuration',
+    label: 'Static Cache Duration (seconds)' | t('navigation'),
+    instructions: 'Used when cache mode is Static.' | t('navigation'),
+    warning: macros.configWarning('cacheDuration', 'navigation'),
+    value: settings.cacheDuration,
+    size: 10,
+}) }}

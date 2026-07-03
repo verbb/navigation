@@ -1,13 +1,9 @@
 <?php
 namespace verbb\navigation\migrations;
 
-use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node;
+use craft\db\Migration;
 
-use craft\db\Query;
-use craft\migrations\BaseContentRefactorMigration;
-
-class m250830_000000_url_size extends BaseContentRefactorMigration
+class m250830_000000_url_size extends Migration
 {
     // Public Methods
     // =========================================================================

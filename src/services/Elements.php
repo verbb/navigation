@@ -1,19 +1,21 @@
 <?php
 namespace verbb\navigation\services;
 
-use Craft;
-use craft\base\Component;
-
 use verbb\navigation\Navigation;
 use verbb\navigation\events\RegisterElementEvent;
 
+use Craft;
+use craft\base\Component;
 use craft\elements\Asset;
-use craft\elements\Entry;
 use craft\elements\Category;
+use craft\elements\Entry;
 use craft\helpers\ArrayHelper;
 
 use craft\commerce\elements\Product;
 
+/**
+ * @deprecated in 4.0.0. Use {@see NodeTypes} and {@see RegisterNodeTypeEvent} instead.
+ */
 class Elements extends Component
 {
     // Constants
@@ -31,7 +33,7 @@ class Elements extends Component
         $elements = [
             [
                 'label' => Craft::t('site', Entry::pluralDisplayName()),
-                'button' => Craft::t('navigation', 'Add an Entry'),
+                'button' => Craft::t('navigation', 'Add {name}', ['name' => mb_strtolower(Craft::t('site', Entry::pluralDisplayName()))]),
                 'type' => Entry::class,
                 'sources' => [],
                 'default' => true,
@@ -39,7 +41,7 @@ class Elements extends Component
             ],
             [
                 'label' => Craft::t('site', Category::pluralDisplayName()),
-                'button' => Craft::t('navigation', 'Add a Category'),
+                'button' => Craft::t('navigation', 'Add {name}', ['name' => mb_strtolower(Craft::t('site', Category::pluralDisplayName()))]),
                 'type' => Category::class,
                 'sources' => [],
                 'default' => true,
@@ -47,7 +49,7 @@ class Elements extends Component
             ],
             [
                 'label' => Craft::t('site', Asset::pluralDisplayName()),
-                'button' => Craft::t('navigation', 'Add an Asset'),
+                'button' => Craft::t('navigation', 'Add {name}', ['name' => mb_strtolower(Craft::t('site', Asset::pluralDisplayName()))]),
                 'type' => Asset::class,
                 'sources' => [],
                 'default' => true,
@@ -58,7 +60,7 @@ class Elements extends Component
         if (Craft::$app->getPlugins()->isPluginEnabled('commerce') && class_exists(Product::class)) {
             $elements[] = [
                 'label' => Craft::t('site', Product::pluralDisplayName()),
-                'button' => Craft::t('navigation', 'Add a Product'),
+                'button' => Craft::t('navigation', 'Add {name}', ['name' => mb_strtolower(Craft::t('site', Product::pluralDisplayName()))]),
                 'type' => Product::class,
                 'sources' => [],
                 'default' => true,
@@ -72,7 +74,9 @@ class Elements extends Component
             if ($elementType::hasUris() && !in_array($elementType, $addedElementTypes)) {
                 $elements[] = [
                     'label' => Craft::t('site', $elementType::pluralDisplayName()),
-                    'button' => Craft::t('navigation', 'Add a {name}', ['name' => $elementType::displayName()]),
+                    'button' => Craft::t('navigation', 'Add {name}', [
+                        'name' => mb_strtolower($elementType::pluralDisplayName()),
+                    ]),
                     'type' => $elementType,
                     'sources' => [],
                 ];
@@ -97,5 +101,4 @@ class Elements extends Component
 
         return $event->elements;
     }
-
 }

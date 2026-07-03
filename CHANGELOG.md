@@ -1,5 +1,104 @@
 # Changelog
 
+## 4.0.0-beta.1 - 2026-07-03
+
+### Added
+- Added `Menu` Craft element for menu-level fields and public menu queries (`craft.navigation.menu()`, `getMenuByHandle()`, `getAllMenus()`).
+- Added **Menu Fields** field layout tab and **Menu Content** tab in menu settings CP (layout via project config; values saved on the `Menu` element).
+- Added React CP **menu builder** (`src/web/`) replacing the legacy Garnish build UI.
+- Added **build session** staging (`BuildSessions` service, `navigation_build_sessions` table) with publish/discard workflow for structure moves, staged node adds/deletes, and menu content drafts.
+- Added builder JSON API: `navigation/builder/get-state`, `save-draft`, `stage-delete`, `menu-content-form`, `save-menu-content`, `menu-content-slideout`; plus `navigation/build-sessions/publish` and `discard`.
+- Added `BuilderState`, `BuilderSchemaHelper`, and `BuilderUi` helpers for builder bootstrap JSON and dynamic add-node forms.
+- Added `MenuContentFieldLayout` helper and **menu content** editing in the builder via Craft CP slide-out (field layout configured on the Menu Fields tab).
+- Added CP asset bundles **`NavigationCpAsset`** (shared Navigation CP layout) and **`BuilderAsset`** (React builder).
+- Added `NodeType::getAddNodeSchema()` and `NodeType::getAddNodeDefaultData()` so each node type owns its builder quick-add fields; `BuilderSchemaHelper` only adds the shared parent field and compiles schema.
+- Added `NodeType::getEditorHtml()` for slide-out editor fields.
+- Added `NodeTypeSchemaFields`, `SiteSettings`, and consolidated Dynamic node slide-out rendering in PHP helpers ([#413](https://github.com/verbb/navigation/issues/413)).
+- Added element actions **Stage delete** and **Unstage delete** for builder staged deletions.
+- Added explicit node type classes: `Entry`, `Category`, `Asset`, `Product`, `GroupColumn`, `Dynamic`, `Custom`, `Passive`, and `Site` in `verbb\navigation\nodetypes\` (Hyper-style short names).
+- Added **Group/column** structural node type (`GroupColumn`) ([#416](https://github.com/verbb/navigation/issues/416)).
+- Added unified **Dynamic** node type with pluggable **dynamic sources** (`DynamicSources` service, `RegisterDynamicSourceEvent`); built-in sources: `entrySection`, `categoryGroup`, `assetVolume`, and `productType` (Commerce).
+- Added read-time **`ProjectedNode`** projection for Dynamic nodes (stored children first, projected appended) ([#413](https://github.com/verbb/navigation/issues/413)).
+- Added Dynamic node **source picker** in the builder add panel (searchable combobox) and node editor slide-out; configured source name shown in the node type label ([#413](https://github.com/verbb/navigation/issues/413)).
+- Added Dynamic node slide-out settings: **entry conditions** (Craft condition builder), **sort order**, and searchable source picker ([#413](https://github.com/verbb/navigation/issues/413)).
+- Added `Node::getTag()` for passive/group structural nodes ([#369](https://github.com/verbb/navigation/issues/369)).
+- Added `navigation_nodes_sites` table for per-site link settings (`url`, `urlSuffix`, `linkedElementSiteId`) ([#405](https://github.com/verbb/navigation/issues/405), [#360](https://github.com/verbb/navigation/issues/360)).
+- Added menu **Title Translation Method** settings (matching entry types) so node title overrides propagate across sites by site, site group, language, or custom key ([#394](https://github.com/verbb/navigation/issues/394)).
+- Added **copy node to site** API (`Nodes::copyNodeToSite`, `navigation/nodes/copy-to-site`) ([#425](https://github.com/verbb/navigation/issues/425)).
+- Added **auto-enable new sites** plugin setting ([#428](https://github.com/verbb/navigation/issues/428)).
+- Added Feed Me mapping for `linkedElementSiteId` on node imports ([#405](https://github.com/verbb/navigation/issues/405)).
+- Added **Context API** — `craft.navigation.context(handle)` with `siblings()`, `branch()`, `ancestors()`, etc. ([Discussion #368](https://github.com/verbb/navigation/discussions/368)).
+- Added **menu breadcrumbs** — `craft.navigation.menuBreadcrumbs(handle)` ([#335](https://github.com/verbb/navigation/issues/335)).
+- Added `craft.navigation.urlBreadcrumbs()` for URL-segment breadcrumbs.
+- Added `NodeRead` service for batched linked-element hydration, in-memory hierarchy wiring, and tree assembly ([#341](https://github.com/verbb/navigation/issues/341), [#412](https://github.com/verbb/navigation/issues/412)).
+- Added `NavigationCache` service with tagged tree caching for front-end nav reads (`off`, `auto`, `static`, `manual` modes; `lite`, `standard`, and `full` profiles).
+- Added **Performance** plugin settings (cache mode, cache profile, static cache duration).
+- Added `craft.navigation.invalidateCache()` Twig/PHP helper and `NavigationCache::EVENT_INVALIDATE` for custom cache-busting integrations (e.g. Blitz) ([#367](https://github.com/verbb/navigation/issues/367)).
+- Added `withMenu()` node query flag to batch-hydrate parent Menu elements (including custom fields) on node reads.
+- Added `withLinkedElements()` query flag to batch-hydrate linked Craft elements after a node query executes (explicit opt-in).
+- Added smart auto `withNodeHierarchy()` behaviour for nav-scoped front-end reads; use `withNodeHierarchy(false)` to opt out, or `withNodeHierarchy(true)` to force on ([#341](https://github.com/verbb/navigation/issues/341)).
+- Added `withProjectedChildren(false)` node query flag to skip Dynamic node read-time projections ([#413](https://github.com/verbb/navigation/issues/413)).
+- Added `withNavigationCache()` query flag for manual cache mode opt-in.
+- Added `craft.navigation.tree()` options: `withLinkedElements` for opt-in linked element hydration in tree output.
+- Added `navigation:section:{uid}` (and related source) cache tags for Dynamic nodes; invalidated when source elements are saved or deleted ([#413](https://github.com/verbb/navigation/issues/413)).
+- Added `ActiveMatcher` service for single-pass active-state resolution.
+- Added `craft.navigation.getActiveNodes()` and `craft.navigation.getCurrentNodes()` helpers ([#418](https://github.com/verbb/navigation/issues/418)).
+- Added `current` and `hasActiveChild` keys to `craft.navigation.tree()` output.
+- Added GraphQL `{handle}_Menu`, `navigationContext`, and `navigationMenuBreadcrumbs` queries ([#325](https://github.com/verbb/navigation/issues/325), [#335](https://github.com/verbb/navigation/issues/335), [Discussion #368](https://github.com/verbb/navigation/discussions/368)).
+- Added GraphQL `withMenu`, `withProjectedChildren`, `withLinkedElements`, and `withNodeHierarchy` arguments for node queries ([#413](https://github.com/verbb/navigation/issues/413), [#422](https://github.com/verbb/navigation/issues/422)).
+- Added GraphQL `isProjected` field, `ProjectedNavigationNode` type, and in-memory `children` resolution for projected nodes ([#413](https://github.com/verbb/navigation/issues/413)).
+- Added Pest integration and performance test harness with Craft fixture factories.
+- Added Pest coverage for build sessions, builder state, menu content saves, Dynamic node builder schema ([#413](https://github.com/verbb/navigation/issues/413)), linked-element lifecycle, and active-state edge cases.
+- Added plugin documentation for node query cache/hydration flags, active-state helpers, GraphQL site/language contract, linked-element lifecycle, and cache invalidation ([#426](https://github.com/verbb/navigation/issues/426)).
+
+### Changed
+- Renamed **`Navs` service** to **`Menus`** (`getMenus()`, `saveMenu()`, etc.); `getNavs()` and related methods remain as deprecated shims.
+- Renamed DB tables **`navigation_navs`** → **`navigation_menus`**, **`navigation_navs_sites`** → **`navigation_menus_sites`**; node FK column **`navId`** → **`menuId`**; **`deletedWithNav`** → **`deletedWithMenu`**.
+- Renamed project config path **`navigation.navs`** → **`navigation.menus`** (migrated on upgrade).
+- Renamed user permissions **`navigation-manageNav:{uid}`** → **`navigation-manageMenu:{uid}`** (and related create/edit/delete permissions).
+- Renamed GraphQL schema components **`navigationNavs.*`** → **`navigationMenus.*`**.
+- Renamed internal settings model to **`MenuSettings`** (distinct from the **`Menu`** element).
+- CP routes and templates moved from **`navigation/navs`** to **`navigation/menus`** (legacy navs URLs redirect to menus controller).
+- Renamed **`craft.navigation.breadcrumbs()`** to **`urlBreadcrumbs()`** (v3 shim retained).
+- Node `type` values are now node type class names in `verbb\navigation\nodetypes\` (e.g. `Entry`) instead of Craft element FQCNs (migrated on upgrade).
+- Menu **Permissions** settings are keyed by node type class names (migrated on upgrade; legacy keys normalized on load/save).
+- Dynamic nodes are removed when their source section, category group, volume, or product type is deleted ([#385](https://github.com/verbb/navigation/issues/385)).
+- Improved linked-element lifecycle hooks to resolve 4.x node type classes and per-site `linkedElementSiteId` instead of the legacy slug hack ([#386](https://github.com/verbb/navigation/issues/386)).
+- Linked-element **soft-delete** now disables nodes (preserving prior enabled state) instead of deleting them; **restore** re-enables nodes ([#386](https://github.com/verbb/navigation/issues/386)); **hard-delete** removes nodes.
+- Linked entry title sync respects per-site node title overrides via `hasOverriddenTitle()` ([#230](https://github.com/verbb/navigation/issues/230), [#394](https://github.com/verbb/navigation/issues/394)).
+- Active-state matching now includes per-site `urlSuffix` and is skipped for CP, console, and preview requests ([#360](https://github.com/verbb/navigation/issues/360), [#384](https://github.com/verbb/navigation/issues/384)).
+- Improved active-state matching for entry-backed nodes to compare joined element URIs, avoiding mismatches with path-style site URLs ([#408](https://github.com/verbb/navigation/issues/408)).
+- Improved site-type nodes to be active for sub-pages on the same site ([#435](https://github.com/verbb/navigation/issues/435)).
+- Improved `craft.navigation.getActiveNode()` to return the deepest exact URL match (current page) rather than the first branch-active node in structure order; may return a different (deeper) node when multiple nodes match the current URL branch ([#418](https://github.com/verbb/navigation/issues/418)).
+- Improved `node.hasActiveChild()` to use resolved in-memory state instead of querying all descendants; now returns a `bool` instead of `?bool`.
+- Improved `craft.navigation.render()` and `craft.navigation.tree()` to build nested output in a single pass via `NodeRead` instead of recursive structure queries.
+- Improved cache invalidation on menu save/delete, node save/delete/move, with menu/node cache tags alongside existing Craft element cache invalidation; active / ancestor state is always applied after cache hits, never stored in cached payloads.
+- Passive/group nodes may render as `<span>` instead of `<a>` via `getTag()`; update custom templates that assume all nodes are anchors ([#369](https://github.com/verbb/navigation/issues/369)).
+- Restructured plugin docs: Menus, Templates, Frontend, GraphQL, Reference, and Integrations sections.
+
+### Fixed
+- Fixed an error when restoring a soft-deleted menu via project config ([#415](https://github.com/verbb/navigation/issues/415)).
+- Fixed N+1 query patterns when accessing `node.children` on front-end menu reads without hierarchy wiring ([#341](https://github.com/verbb/navigation/issues/341)).
+- Fixed N+1 query patterns when accessing `node.element` without `withLinkedElements()` ([#412](https://github.com/verbb/navigation/issues/412)).
+- Fixed ancestor active-state propagation firing additional structure queries per nested node ([#412](https://github.com/verbb/navigation/issues/412)).
+- Fix per-site custom URLs and link settings are stored in `navigation_nodes_sites`, not `navigation_nodes.url` / slug hack ([#405](https://github.com/verbb/navigation/issues/405), [#360](https://github.com/verbb/navigation/issues/360)).
+
+### Deprecated
+- **Twig / PHP variable API** (`NavigationVariableDeprecations`): `craft.navigation.nav()`, `getNavByHandle()`, `getNavById()`, `getAllNavs()`, `breadcrumbs()`, `getRegisteredElements()`. Canonical replacements: `menu()`, `getMenuByHandle()`, `getMenuById()`, `getAllMenus()`, `urlBreadcrumbs()`, `getRegisteredNodeTypes()`.
+- **Node element** (`NodeDeprecations`): `getNav()`, `getIsActive()`, `setIsActive()`. Use `getMenu()`, `getActive()`, and `getActiveState()` instead.
+- **Menu element** (`MenuDeprecations`): `getNav()`. Use the `Menu` element API or `getMenuHandle()` instead.
+- **NodeQuery** (`NodeQueryDeprecations`): `nav()`, `navHandle()`, `navId()`, `elementSiteId()`. Use `menu()`, `menuHandle()` / `handle()`, `menuId()`, and per-site link settings instead.
+- **Node query criteria** (Twig `craft.navigation.nodes()`, context criteria): `navHandle`, `nav`, and `navId` keys are normalized to `menuHandle` / `menuId` with deprecation notices.
+- **GraphQL node queries**: `nav`, `navHandle`, and `navId` arguments normalize to `menuHandle` / `menuId`. Node fields `navId`, `navHandle`, and `navName` remain available; use `menuId`, `menuHandle`, and `menuName` instead.
+- **Plugin API** (`MenusDeprecations`, `PluginTrait::getNavs()`): `getAllNavs()`, `getNavByHandle()`, `getNavById()`, `saveNav()`, `deleteNav()`, etc. Use `getMenus()` and the `*Menu*` equivalents.
+- **Events**: `NavEvent` → `MenuEvent`; `EVENT_BEFORE_SAVE_NAV` → `EVENT_BEFORE_SAVE_MENU`, etc. Legacy class aliases and `$event->nav` shims added in 4.0.0 — prefer `MenuEvent` / `$event->menu`.
+- **`Elements` service** and **`RegisterElementEvent`**: use `NodeTypes` and `RegisterNodeTypeEvent` with `ElementNodeType` subclasses instead.
+- **`builderLiveStructure`** plugin setting: structure changes are staged via build sessions by default; the live-save opt-out will be removed in a future release.
+
+### Removed
+- Removed plugin settings `disabledElements` and `propagateSiteElements`.
+- Removed legacy `_types/*/modal.html` Twig templates for Site, Custom URL, and Dynamic nodes; slide-out fields render via PHP helpers ([#413](https://github.com/verbb/navigation/issues/413)).
+
 ## 3.0.22 - 2026-05-14
 
 ### Fixed

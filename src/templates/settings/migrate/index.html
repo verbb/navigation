@@ -1,0 +1,72 @@
+{% extends 'navigation/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+
+{% set bodyClass = 'navigation-settings-migrate' %}
+{% set selectedTab = 'migrate/' ~ sourceId %}
+{% set fullPageForm = outputs is not defined %}
+
+{% set menuLabels = {} %}
+{% for menu in menus %}
+    {% set menuLabels = menuLabels | merge({ (menu.handle): menu.label }) %}
+{% endfor %}
+
+{% block actionButton %}
+    {% if outputs is not defined and menus %}
+        <button type="submit" class="btn submit">{{ 'Migrate Menus' | t('navigation') }}</button>
+    {% endif %}
+{% endblock %}
+
+{% block blockContent %}
+
+    {% if outputs is not defined %}
+        {{ actionInput('navigation/migrate/run') }}
+        {{ hiddenInput('sourceId', sourceId) }}
+        {{ redirectInput('navigation/settings/migrate/' ~ sourceId) }}
+    {% endif %}
+
+    <h2>{{ 'Migrate {source}' | t('navigation', { source: source.label }) }}</h2>
+
+    {% if outputs is not defined %}
+        <p>{{ 'Select the menus you wish to migrate from {source}. This will migrate menu settings, site availability, and the full node tree. Depending on how many nodes the selected menus have, this could take some time.' | t('navigation', {
+            source: source.label,
+        }) }}</p>
+
+        <p class="light">{{ 'Your original {source} menus will remain untouched.' | t('navigation', {
+            source: source.label,
+        }) }}</p>
+    {% endif %}
+
+    {% if outputs is defined %}
+        {% for handle, output in outputs %}
+            <h3>{{ menuLabels[handle] ?? handle }}</h3>
+
+            {{ output | raw }}
+        {% endfor %}
+
+        <hr>
+
+        <a class="btn" href="{{ url('navigation/settings/migrate/' ~ sourceId) }}">{{ 'Done' | t('navigation') }}</a>
+    {% elseif menus %}
+        {{ forms.checkboxSelectField({
+            label: 'Menus' | t('navigation'),
+            name: 'menuHandles',
+            showAllOption: true,
+            options: menus | map(menu => {
+                label: menu.label,
+                value: menu.handle,
+            }),
+        }) }}
+
+        {{ forms.checkboxField({
+            label: 'Skip existing handles' | t('navigation'),
+            instructions: 'Do not migrate when a Navigation menu with the same handle already exists.' | t('navigation'),
+            id: 'skipExisting-' ~ sourceId,
+            name: 'skipExisting',
+            value: 1,
+        }) }}
+    {% else %}
+        <p class="light">{{ 'No menus were found in {source}.' | t('navigation', { source: source.label }) }}</p>
+    {% endif %}
+
+{% endblock %}

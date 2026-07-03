@@ -2,19 +2,15 @@
 {% import 'feed-me/_macros' as feedMeMacro %}
 
 {% if feed.elementGroup %}
-    {% set navId = feed.elementGroup[feed.elementType] %}
+    {% set menuId = feed.elementGroup[feed.elementType] %}
 
-    {% set nav = craft.navigation.getNavById(navId) %}
+    {% set nav = craft.navigation.getMenuById(menuId) %}
 {% endif %}
 
 {% set types = [{ label: 'Don‘t import', value: '' }] %}
 
-{% for tab in craft.navigation.getRegisteredElements() %}
-    {% set types = types | merge([{ label: tab.label, value: tab.type }]) %}
-{% endfor %}
-
 {% for nodeType in craft.navigation.getRegisteredNodeTypes() %}
-    {% set types = types | merge([{ label: nodeType.displayName, value: className(nodeType) }]) %}
+    {% set types = types | merge([{ label: nodeType.displayName(), value: className(nodeType) }]) %}
 {% endfor %}
 
 {% set fields = [{
@@ -35,6 +31,13 @@
     name: 'Element',
     handle: 'elementId',
     instructions: 'The element this node links to.' | t('feed-me'),
+    default: {
+        type: 'text',
+    },
+}, {
+    name: 'Linked Element Site ID',
+    handle: 'linkedElementSiteId',
+    instructions: 'The site ID of the linked element locale. Defaults to the import site when omitted.' | t('navigation'),
     default: {
         type: 'text',
     },

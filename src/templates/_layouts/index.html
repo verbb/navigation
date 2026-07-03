@@ -1,6 +1,6 @@
 {% extends '_layouts/cp' %}
 
-{% do view.registerAssetBundle("verbb\\navigation\\assetbundles\\NavigationAsset") %}
+{% do view.registerAssetBundle('verbb\\navigation\\web\\assets\\cp\\NavigationCpAsset') %}
 
 {% if title is not defined %}
     {% set title = craft.navigation.getPluginName() %}

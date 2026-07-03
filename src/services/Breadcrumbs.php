@@ -46,6 +46,10 @@ class Breadcrumbs extends Component
         return $breadcrumbs;
     }
 
+
+    // Private Methods
+    // =========================================================================
+
     private function _getBreadcrumbItem($item, $segment, $path = ''): array
     {
         // Generate the title from the segment or element

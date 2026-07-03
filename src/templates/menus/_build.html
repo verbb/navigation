@@ -1,0 +1,120 @@
+{% set bodyClass = 'body-navigation-builder' %}
+
+{# Formie-style: extend Craft CP directly so title/actions sit in #header-container, not content-pane. #}
+{% extends '_layouts/cp' %}
+
+{% set selectedSubnavItem = 'menus' %}
+
+{% set crumbs = [
+    { label: craft.navigation.getPluginName(), url: url('navigation/menus') },
+    { label: 'Menus' | t('navigation'), url: url('navigation/menus') },
+] %}
+
+{% if craft.app.getIsMultiSite() and requestedSite %}
+    {% set crumbs = crumbs | unshift({
+        id: 'site-crumb',
+        icon: 'world',
+        label: requestedSite.name | t('site'),
+        menu: {
+            items: siteMenuItems(null, requestedSite),
+            label: 'Select site' | t('site')
+        },
+    }) %}
+{% endif %}
+
+{% set title = nav.name %}
+
+{% block pageTitle %}
+    <h1 id="page-heading" class="screen-title" title="{{ nav.name }}">{{ nav.name }}</h1>
+    <div id="navigation-builder-header-root"></div>
+    <div id="navigation-builder-instructions-root"></div>
+{% endblock %}
+
+{% block actionButton %}
+    <div
+        id="navigation-builder-actions-root"
+        class="btngroup submit"
+        data-settings-url="{{ cpUrl('navigation/menus/edit/' ~ nav.id) }}"
+        data-can-edit-settings="{{ (editable and currentUser.can('navigation-editMenu:' ~ nav.uid)) ? '1' : '0' }}"
+    ></div>
+{% endblock %}
+
+{% block details %}
+    <div id="navigation-builder-sidebar-root" class="navigation-builder-sidebar navigation-nodes-sidebar"></div>
+{% endblock %}
+
+{% block content %}
+{# Styles target Craft CP DOM outside the React shadow root. #}
+<style>
+    .body-navigation-builder #sidebar,
+    .body-navigation-builder #content-container > #sidebar {
+        display: none;
+    }
+
+    .body-navigation-builder #page-title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .body-navigation-builder #page-title > #navigation-builder-header-root {
+        display: flex;
+        flex: 1 1 auto;
+        align-items: center;
+        gap: 0.75rem;
+        min-width: 0;
+    }
+
+    .body-navigation-builder #page-title > #navigation-builder-instructions-root {
+        flex-basis: 100%;
+        width: 100%;
+    }
+
+    .body-navigation-builder #content.content-pane {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding-top: 0;
+    }
+
+    .body-navigation-builder #content.content-pane:focus,
+    .body-navigation-builder #content.content-pane:focus-visible,
+    .body-navigation-builder #content-container:focus,
+    .body-navigation-builder #content-container:focus-visible {
+        box-shadow: none;
+        outline: none;
+    }
+
+    .body-navigation-builder #details .navigation-nodes-sidebar {
+        margin: 0 -24px;
+    }
+
+    /* Craft renders the details toggle in HTML before React boots; hide until the builder is ready. */
+    .body-navigation-builder:not(.navigation-builder-ready) #details-toggle-wrapper,
+    .body-navigation-builder:not(.navigation-builder-ready) #details-container {
+        display: none !important;
+    }
+</style>
+
+<div
+    id="navigation-builder-app"
+    class="navigation-builder-app"
+    data-menu-id="{{ nav.id }}"
+    data-site-id="{{ site.id }}"
+    data-menu-name="{{ nav.name | e('html_attr') }}"
+    data-settings-url="{{ cpUrl('navigation/menus/edit/' ~ nav.id) }}"
+    data-can-edit-settings="{{ (editable and currentUser.can('navigation-editMenu:' ~ nav.uid)) ? '1' : '0' }}"
+></div>
+
+{% js %}
+    window.NavigationBuilderConfig = {
+        menuId: {{ nav.id }},
+        siteId: {{ site.id }},
+        csrfTokenName: {{ craft.app.config.general.csrfTokenName | json_encode | raw }},
+        csrfTokenValue: {{ craft.app.request.csrfToken | json_encode | raw }},
+    };
+{% endjs %}
+{% endblock %}

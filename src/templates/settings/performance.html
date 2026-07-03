@@ -1,0 +1,19 @@
+{% extends 'navigation/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+
+{% set selectedTab = 'performance' %}
+{% set fullPageForm = true %}
+
+{% block blockContent %}
+
+<input type="hidden" name="action" value="plugins/save-plugin-settings">
+<input type="hidden" name="pluginHandle" value="navigation">
+
+<h2>{{ 'Performance' | t('navigation') }}</h2>
+
+{% namespace 'settings' %}
+    {% include 'navigation/settings/_panes/performance' %}
+{% endnamespace %}
+
+{% endblock %}

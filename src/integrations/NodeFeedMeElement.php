@@ -5,16 +5,14 @@ use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\helpers\Json;
 
-use craft\feedme\Plugin;
+use Cake\Utility\Hash;
 use craft\feedme\base\Element;
 use craft\feedme\events\FeedProcessEvent;
+use craft\feedme\Plugin;
 use craft\feedme\services\Process;
-
-use Cake\Utility\Hash;
 
 use yii\base\Event;
 
@@ -25,11 +23,10 @@ class NodeFeedMeElement extends Element
 
     public static string $name = 'Navigation Node';
     public static string $class = Node::class;
-
     public $element = null;
 
 
-    // Templates
+    // Public Methods
     // =========================================================================
 
     public function getGroupsTemplate(): string
@@ -47,10 +44,6 @@ class NodeFeedMeElement extends Element
         return 'navigation/_integrations/feed-me/map';
     }
 
-
-    // Public Methods
-    // =========================================================================
-
     public function init(): void
     {
         parent::init();
@@ -64,14 +57,14 @@ class NodeFeedMeElement extends Element
 
     public function getGroups(): array
     {
-        return Navigation::$plugin->getNavs()->getAllNavs();
+        return Navigation::$plugin->getMenus()->getAllMenus();
     }
 
     public function getQuery($settings, array $params = []): mixed
     {
         $query = Node::find()
             ->status(null)
-            ->navId($settings['elementGroup'][Node::class])
+            ->menuId($settings['elementGroup'][Node::class])
             ->siteId(Hash::get($settings, 'siteId') ?: Craft::$app->getSites()->getPrimarySite()->id);
 
         Craft::configure($query, $params);
@@ -82,7 +75,7 @@ class NodeFeedMeElement extends Element
     public function setModel($settings): \craft\base\Element
     {
         $this->element = new Node();
-        $this->element->navId = $settings['elementGroup'][Node::class];
+        $this->element->menuId = $settings['elementGroup'][Node::class];
 
         $siteId = Hash::get($settings, 'siteId');
 
@@ -148,6 +141,20 @@ class NodeFeedMeElement extends Element
         return null;
     }
 
+    protected function parseLinkedElementSiteId($feedData, $fieldInfo): ?int
+    {
+        $value = $this->fetchSimpleValue($feedData, $fieldInfo);
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $siteId = (int)$value;
+        $this->element->setLinkedElementSiteId($siteId);
+
+        return $siteId;
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -185,5 +192,4 @@ class NodeFeedMeElement extends Element
             Plugin::$plugin->getProcess()->processFeed(-1, $event->feed, $processedElementIds, $newFeedData);
         }
     }
-
 }

@@ -2,18 +2,27 @@
 namespace verbb\navigation\elements;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\base\ElementNodeType;
+use verbb\navigation\deprecations\NodeDeprecations;
+use verbb\navigation\events\NodeActiveEvent;
 use verbb\navigation\elements\conditions\NodeCondition;
 use verbb\navigation\elements\db\NodeQuery;
-use verbb\navigation\events\NodeActiveEvent;
-use verbb\navigation\models\Nav;
+use verbb\navigation\elements\Menu;
+use verbb\navigation\elementactions\StageDelete;
+use verbb\navigation\elementactions\UnstageDelete;
+use verbb\navigation\helpers\NodeTypeHelper;
+use verbb\navigation\models\MenuSettings;
+use verbb\navigation\models\NodeActiveState;
 use verbb\navigation\models\Settings;
-use verbb\navigation\nodetypes\CustomType;
-use verbb\navigation\nodetypes\PassiveType;
-use verbb\navigation\nodetypes\SiteType;
+use verbb\navigation\nodetypes\Custom;
+use verbb\navigation\nodetypes\GroupColumn;
+use verbb\navigation\nodetypes\Passive;
+use verbb\navigation\nodetypes\Site as SiteNodeType;
 use verbb\navigation\records\Node as NodeRecord;
 
 use Craft;
 use craft\base\Element;
+use craft\base\Field;
 use craft\base\ElementInterface;
 use craft\controllers\ElementIndexesController;
 use craft\db\Query;
@@ -28,11 +37,11 @@ use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQuery;
 use craft\errors\UnsupportedSiteException;
 use craft\events\MoveElementEvent;
-use craft\fields\data\ColorData;
 use craft\helpers\App;
-use Craft\helpers\ArrayHelper;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
 use craft\helpers\Db;
+use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
@@ -53,12 +62,6 @@ use Twig\Markup;
 
 class Node extends Element
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_NODE_ACTIVE = 'modifyNodeActive';
-
-
     // Static Methods
     // =========================================================================
 
@@ -78,6 +81,11 @@ class Node extends Element
     }
 
     public static function trackChanges(): bool
+    {
+        return true;
+    }
+
+    public static function hasDrafts(): bool
     {
         return true;
     }
@@ -119,23 +127,36 @@ class Node extends Element
 
     public static function gqlScopesByContext(mixed $context): array
     {
-        return ['navigationNavs.' . $context->uid];
+        return ['navigationMenus.' . $context->uid];
+    }
+
+    public static function statuses(): array
+    {
+        return array_merge(parent::statuses(), [
+            self::STATUS_PENDING_ADD => Craft::t('navigation', 'Pending'),
+            self::STATUS_PENDING_DELETE => Craft::t('navigation', 'Pending deletion'),
+            self::STATUS_PENDING_EDIT => Craft::t('navigation', 'Pending edit'),
+        ]);
     }
 
     protected static function defineSources(string $context): array
     {
         $sources = [];
 
-        $navs = Navigation::$plugin->getNavs()->getEditableNavs();
+        $navs = Navigation::$plugin->getMenus()->getEditableMenus();
 
         foreach ($navs as $nav) {
+            // Structure UI (handles, nesting) whenever the user can manage the menu.
+            // Deferred vs live persistence is handled in JS (DeferredStructureTableSorter).
+            $structureEditable = Craft::$app->getUser()->checkPermission("navigation-manageMenu:$nav->uid");
+
             $sources[] = [
-                'key' => 'nav:' . $nav->uid,
+                'key' => 'menu:' . $nav->uid,
                 'label' => Craft::t('site', $nav->name),
                 'data' => ['handle' => $nav->handle],
-                'criteria' => ['navId' => $nav->id],
+                'criteria' => ['menuId' => $nav->id],
                 'structureId' => $nav->structureId,
-                'structureEditable' => Craft::$app->getUser()->checkPermission("navigation-manageNav:$nav->uid"),
+                'structureEditable' => $structureEditable,
             ];
         }
 
@@ -145,12 +166,12 @@ class Node extends Element
     protected static function defineFieldLayouts(?string $source): array
     {
         if ($source === null || $source === '*') {
-            $navs = Navigation::$plugin->getNavs()->getEditableNavs();
+            $navs = Navigation::$plugin->getMenus()->getEditableMenus();
         } else {
             $navs = [];
 
-            if (preg_match('/^nav:(.+)$/', $source, $matches)) {
-                $nav = Navigation::$plugin->getNavs()->getNavByUid($matches[1]);
+            if (preg_match('/^(?:nav|menu):(.+)$/', $source, $matches)) {
+                $nav = Navigation::$plugin->getMenus()->getMenuByUid($matches[1]);
                 
                 if ($nav) {
                     $navs[] = $nav;
@@ -158,7 +179,7 @@ class Node extends Element
             }
         }
 
-        return array_map(fn(Nav $nav) => $nav->getFieldLayout(), $navs);
+        return array_map(fn(MenuSettings $nav) => $nav->getFieldLayout(), $navs);
     }
 
     protected static function defineSortOptions(): array
@@ -192,17 +213,17 @@ class Node extends Element
         $controller = Craft::$app->controller;
 
         if ($controller instanceof ElementIndexesController) {
-            /** @var ElementQuery $elementQuery */
+            /* @var ElementQuery $elementQuery */
             $elementQuery = $controller->getElementQuery();
         } else {
             $elementQuery = null;
         }
 
         // Get the group we need to check permissions on
-        if (preg_match('/^nav:(\d+)$/', $source, $matches)) {
-            $nav = Navigation::$plugin->getNavs()->getNavById($matches[1]);
-        } else if (preg_match('/^nav:(.+)$/', $source, $matches)) {
-            $nav = Navigation::$plugin->getNavs()->getNavByUid($matches[1]);
+        if (preg_match('/^(?:nav|menu):(\d+)$/', $source, $matches)) {
+            $nav = Navigation::$plugin->getMenus()->getMenuById($matches[1]);
+        } else if (preg_match('/^(?:nav|menu):(.+)$/', $source, $matches)) {
+            $nav = Navigation::$plugin->getMenus()->getMenuByUid($matches[1]);
         }
 
         // Now figure out what we can do with it
@@ -230,13 +251,26 @@ class Node extends Element
             }
 
             // Delete
-            $actions[] = Delete::class;
+            if (self::_useBuilderStaging($source)) {
+                $actions[] = StageDelete::class;
 
-            if ($nav->maxLevels != 1) {
-                $actions[] = [
-                    'type' => Delete::class,
-                    'withDescendants' => true,
-                ];
+                if ($nav->maxLevels != 1) {
+                    $actions[] = [
+                        'type' => StageDelete::class,
+                        'withDescendants' => true,
+                    ];
+                }
+
+                $actions[] = UnstageDelete::class;
+            } else {
+                $actions[] = Delete::class;
+
+                if ($nav->maxLevels != 1) {
+                    $actions[] = [
+                        'type' => Delete::class,
+                        'withDescendants' => true,
+                    ];
+                }
             }
         }
 
@@ -251,6 +285,53 @@ class Node extends Element
         return $actions;
     }
 
+    private static function _useBuilderStaging(?string $source): bool
+    {
+        if (!Navigation::$plugin->getBuildSessions()->isStagingEnabled()) {
+            return false;
+        }
+
+        if (!Craft::$app->getRequest()->getIsCpRequest()) {
+            return false;
+        }
+
+        // Menu builder index always uses a menu:/nav: source key.
+        return $source !== null && preg_match('/^(?:nav|menu):/', $source);
+    }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_NODE_ACTIVE = 'modifyNodeActive';
+
+    /** Internal builder flag — node was bulk-added and awaits Publish menu. */
+    public const PENDING_PUBLISH_DATA_KEY = '_pendingPublish';
+
+    /** Internal builder flag — node is staged for deletion until Publish menu. */
+    public const PENDING_DELETE_DATA_KEY = '_pendingDelete';
+
+    /** Stored enabled state to restore when unstaging or recovering orphaned pending deletes. */
+    public const PENDING_DELETE_STATE_DATA_KEY = '_pendingDeleteState';
+
+    /** Internal builder flag — node has staged slide-out edits (4.2). */
+    public const PENDING_EDIT_DATA_KEY = '_pendingEdit';
+
+    /** Node was auto-disabled because its linked Craft element was soft-deleted. */
+    public const LINKED_ELEMENT_DISABLED_DATA_KEY = '_linkedElementDisabled';
+
+    /** Stored enabled state to restore when the linked element is restored. */
+    public const LINKED_ELEMENT_DISABLED_STATE_DATA_KEY = '_linkedElementDisabledState';
+
+    public const STATUS_PENDING_ADD = 'pending-add';
+    public const STATUS_PENDING_DELETE = 'pending-delete';
+    public const STATUS_PENDING_EDIT = 'pending-edit';
+
+    // Traits
+    // =========================================================================
+
+    use NodeDeprecations;
+
 
     // Properties
     // =========================================================================
@@ -258,26 +339,188 @@ class Node extends Element
     public ?int $id = null;
     public ?int $elementId = null;
     public ?int $siteId = null;
-    public ?int $navId = null;
+    public ?int $menuId = null;
     public ?string $type = null;
     public ?string $classes = null;
     public ?string $urlSuffix = null;
     public array $customAttributes = [];
     public array $data = [];
     public bool $newWindow = false;
-
     public ?string $uri = null;
-    public ?bool $deletedWithNav = false;
+    public ?bool $deletedWithMenu = false;
 
     private ?string $_url = null;
     private ?ElementInterface $_element = null;
     private array $_nodeTypes = [];
     private ?string $_elementUrl = null;
-    private ?bool $_isActive = null;
-
+    private ?NodeActiveState $_activeState = null;
+    private bool $_activeStateResolved = false;
+    private ?int $_linkedElementSiteId = null;
+    private ?Menu $_eagerLoadedMenu = null;
+    private bool $_eagerLoadedMenuResolved = false;
 
     // Public Methods
     // =========================================================================
+
+    public function getIsPendingPublish(): bool
+    {
+        return !empty($this->data[self::PENDING_PUBLISH_DATA_KEY]);
+    }
+
+    public function setPendingPublish(bool $value = true): void
+    {
+        if ($value) {
+            $this->data[self::PENDING_PUBLISH_DATA_KEY] = true;
+        } else {
+            unset($this->data[self::PENDING_PUBLISH_DATA_KEY]);
+        }
+    }
+
+    public function clearPendingPublish(): void
+    {
+        $this->setPendingPublish(false);
+    }
+
+    public function getIsPendingDelete(): bool
+    {
+        return !empty($this->data[self::PENDING_DELETE_DATA_KEY]);
+    }
+
+    public function setPendingDelete(bool $value = true): void
+    {
+        if ($value) {
+            $this->data[self::PENDING_DELETE_DATA_KEY] = true;
+        } else {
+            unset($this->data[self::PENDING_DELETE_DATA_KEY]);
+        }
+    }
+
+    public function clearPendingDelete(): void
+    {
+        $this->setPendingDelete(false);
+        unset($this->data[self::PENDING_DELETE_STATE_DATA_KEY]);
+    }
+
+    public function getPendingDeleteRestoreState(): array
+    {
+        $state = $this->data[self::PENDING_DELETE_STATE_DATA_KEY] ?? null;
+
+        if (is_array($state)) {
+            return [
+                'enabled' => (bool)($state['enabled'] ?? true),
+                'enabledForSite' => (bool)($state['enabledForSite'] ?? true),
+            ];
+        }
+
+        return [
+            'enabled' => true,
+            'enabledForSite' => true,
+        ];
+    }
+
+    public function setPendingDeleteRestoreState(bool $enabled, bool $enabledForSite): void
+    {
+        $this->data[self::PENDING_DELETE_STATE_DATA_KEY] = [
+            'enabled' => $enabled,
+            'enabledForSite' => $enabledForSite,
+        ];
+    }
+
+    public function getIsPendingEdit(): bool
+    {
+        return !empty($this->data[self::PENDING_EDIT_DATA_KEY]);
+    }
+
+    public function setPendingEdit(bool $value = true): void
+    {
+        if ($value) {
+            $this->data[self::PENDING_EDIT_DATA_KEY] = true;
+        } else {
+            unset($this->data[self::PENDING_EDIT_DATA_KEY]);
+        }
+    }
+
+    public function clearPendingEdit(): void
+    {
+        $this->setPendingEdit(false);
+    }
+
+    public function getIsDisabledByLinkedElement(): bool
+    {
+        return !empty($this->data[self::LINKED_ELEMENT_DISABLED_DATA_KEY]);
+    }
+
+    public function setDisabledByLinkedElement(bool $value = true): void
+    {
+        if ($value) {
+            $this->data[self::LINKED_ELEMENT_DISABLED_DATA_KEY] = true;
+        } else {
+            unset($this->data[self::LINKED_ELEMENT_DISABLED_DATA_KEY]);
+        }
+    }
+
+    public function getLinkedElementDisabledRestoreState(): array
+    {
+        $state = $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] ?? null;
+
+        if (is_array($state)) {
+            return [
+                'enabled' => (bool)($state['enabled'] ?? true),
+                'enabledForSite' => (bool)($state['enabledForSite'] ?? true),
+            ];
+        }
+
+        return [
+            'enabled' => true,
+            'enabledForSite' => true,
+        ];
+    }
+
+    public function setLinkedElementDisabledRestoreState(bool $enabled, bool $enabledForSite): void
+    {
+        $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] = [
+            'enabled' => $enabled,
+            'enabledForSite' => $enabledForSite,
+        ];
+    }
+
+    public function clearLinkedElementDisabledState(): void
+    {
+        $this->setDisabledByLinkedElement(false);
+        unset($this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY]);
+    }
+
+    /**
+     * Builder-only status indicator icon HTML for staged rows.
+     */
+    public function getBuilderPendingStatusIndicatorHtml(): ?string
+    {
+        $config = $this->_getBuilderPendingStatusConfig();
+
+        if (!$config) {
+            return null;
+        }
+
+        $classes = ['navigation-pending-status', 'navigation-pending-status--' . $config['key']];
+        $aria = [
+            'label' => sprintf('%s %s', Craft::t('app', 'Status:'), $config['label']),
+        ];
+
+        if (($config['iconType'] ?? 'craft') === 'fontawesome') {
+            return Html::tag('span', '', [
+                'class' => array_merge(['fa', 'fa-' . $config['icon']], $classes),
+                'role' => 'img',
+                'aria' => $aria,
+            ]);
+        }
+
+        return Html::tag('span', '', [
+            'data' => ['icon' => $config['icon']],
+            'class' => array_merge(['icon'], $classes),
+            'role' => 'img',
+            'aria' => $aria,
+        ]);
+    }
 
     public function init(): void
     {
@@ -289,7 +532,7 @@ class Node extends Element
                 return;
             }
 
-            $nav = $event->element->getNav();
+            $nav = $event->element->_getMenu();
 
             // Check for max nodes at level. This was only added in Craft 4.5, so check
             if (property_exists($event, 'targetElementId')) {
@@ -306,11 +549,11 @@ class Node extends Element
 
     public function createAnother(): ?self
     {
-        $nav = $this->getNav();
+        $nav = $this->_getMenu();
 
         $node = Craft::createObject([
             'class' => self::class,
-            'navId' => $this->navId,
+            'menuId' => $this->menuId,
             'siteId' => $this->siteId,
         ]);
 
@@ -332,22 +575,51 @@ class Node extends Element
 
     public function canSave(User $user): bool
     {
+        if ($this->getIsPendingDelete() && Navigation::$plugin->getBuildSessions()->isStagingEnabled()) {
+            return false;
+        }
+
         return true;
     }
 
     public function canDuplicate(User $user): bool
     {
+        if ($this->getIsPendingDelete() && Navigation::$plugin->getBuildSessions()->isStagingEnabled()) {
+            return false;
+        }
+
         return true;
     }
 
     public function canDelete(User $user): bool
     {
+        if ($this->getIsPendingDelete() && Navigation::$plugin->getBuildSessions()->isStagingEnabled()) {
+            return false;
+        }
+
         return true;
     }
 
     public function canCreateDrafts(User $user): bool
     {
         return true;
+    }
+
+    public function getStatus(): ?string
+    {
+        if ($this->getIsPendingPublish() && !$this->getIsDraft()) {
+            return self::STATUS_PENDING_ADD;
+        }
+
+        if ($this->getIsPendingDelete() && !$this->getIsDraft()) {
+            return self::STATUS_PENDING_DELETE;
+        }
+
+        if ($this->getIsPendingEdit() && !$this->getIsDraft()) {
+            return self::STATUS_PENDING_EDIT;
+        }
+
+        return parent::getStatus();
     }
 
     public function getChipLabelHtml(): string
@@ -375,7 +647,7 @@ class Node extends Element
             $classes ? Html::tag('span', $classes, ['class' => 'node-classes classes code']) : false,
         ]));
 
-        return parent::getChipLabelHtml() . ($html ? Html::tag('span', $html, ['class' => 'node-info-icons']) : '') . Html::tag('a', Craft::t('navigation', 'Edit'), ['class' => 'btn small icon edit node-edit-btn']);
+        return parent::getChipLabelHtml() . ($html ? Html::tag('span', $html, ['class' => 'node-info-icons']) : '') . $this->_getBuilderRowActionBtnHtml();
     }
 
     public function getElement(): ?ElementInterface
@@ -391,7 +663,17 @@ class Node extends Element
             return null;
         }
 
-        return $this->_element = Craft::$app->getElements()->getElementById($this->elementId, $this->type, $this->getElementSiteId());
+        $nodeType = $this->nodeType();
+
+        if (!$nodeType instanceof ElementNodeType) {
+            return null;
+        }
+
+        return $this->_element = Craft::$app->getElements()->getElementById(
+            $this->elementId,
+            $nodeType::getElementType(),
+            $this->getElementSiteId(),
+        );
     }
 
     public function setElement($element = null): void
@@ -401,19 +683,24 @@ class Node extends Element
 
     public function getElementSiteId(): ?int
     {
-        // Hijack the slug of the node element, because that's a 'free' column in the `elements_sites` table for the
-        // node. Otherwise, we'd have to create a `node_sites` table, which I wasn't keen on at the time...
-        // Pretty hacky though...
-        if ($this->slug) {
-            return (int)$this->slug;
+        if ($this->_linkedElementSiteId !== null) {
+            return $this->_linkedElementSiteId;
         }
 
-        return Craft::$app->getSites()->getCurrentSite()->id;
+        if ($this->id && $this->siteId) {
+            $settings = Navigation::$plugin->getNodeSites()->getSettings($this->id, $this->siteId);
+
+            if ($settings?->linkedElementSiteId) {
+                return $this->_linkedElementSiteId = $settings->linkedElementSiteId;
+            }
+        }
+
+        return $this->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
     }
 
     public function setElementSiteId($value): void
     {
-        $this->slug = $value;
+        $this->_linkedElementSiteId = $value ? (int)$value : null;
     }
 
     public function getElementSlug(): ?string
@@ -427,12 +714,13 @@ class Node extends Element
 
     public function getCurrent(): bool
     {
-        return $this->_getActive(false);
+        return Navigation::$plugin->getActiveMatcher()->isCurrent($this);
     }
 
     public function getActive($includeChildren = true): ?bool
     {
-        $isActive = $this->_getActive($includeChildren);
+        $matcher = Navigation::$plugin->getActiveMatcher();
+        $isActive = $includeChildren ? $matcher->isActive($this) : $matcher->isCurrent($this);
 
         // Allow plugins to modify this value
         $event = new NodeActiveEvent([
@@ -444,26 +732,70 @@ class Node extends Element
         return $event->isActive;
     }
 
-    public function setIsActive($value): void
+    public function getActiveState(): NodeActiveState
     {
-        $this->_isActive = $value;
+        return $this->_activeState ?? new NodeActiveState();
     }
 
-    public function hasActiveChild(): ?bool
+    public function hasResolvedActiveState(): bool
     {
-        if ($this->hasDescendants) {
-            $descendants = $this->descendants->all();
+        return $this->_activeStateResolved;
+    }
 
-            foreach ($descendants as $descendant) {
-                if ($descendant->getActive()) {
-                    $this->setIsActive(true);
+    public function setActiveState(NodeActiveState $state): void
+    {
+        $this->_activeState = $state;
+        $this->_activeStateResolved = true;
+    }
 
-                    return $this->getActive();
-                }
-            }
+    public function clearActiveState(): void
+    {
+        $this->_activeState = null;
+        $this->_activeStateResolved = false;
+    }
+
+    public function getTag(): string
+    {
+        $nodeType = $this->nodeType();
+
+        if ($nodeType) {
+            return $nodeType::getTag();
         }
 
-        return null;
+        return $this->getUrl() ? 'a' : 'span';
+    }
+
+    public function getMenu(): ?Menu
+    {
+        if ($this->menuId === null) {
+            return null;
+        }
+
+        if ($this->_eagerLoadedMenu !== null || ($this->_eagerLoadedMenuResolved ?? false)) {
+            return $this->_eagerLoadedMenu;
+        }
+
+        return Menu::find()
+            ->id($this->menuId)
+            ->siteId($this->siteId)
+            ->status(null)
+            ->one();
+    }
+
+    public function setEagerLoadedMenu(?Menu $menu): void
+    {
+        $this->_eagerLoadedMenu = $menu;
+        $this->_eagerLoadedMenuResolved = true;
+    }
+
+    public function getRawElementUrl(): ?string
+    {
+        return $this->_elementUrl;
+    }
+
+    public function hasActiveChild(): bool
+    {
+        return Navigation::$plugin->getActiveMatcher()->hasActiveChild($this);
     }
 
     public function getRawUrl(): ?string
@@ -486,6 +818,28 @@ class Node extends Element
         }
 
         return $url;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getPostEditUrl(): ?string
+    {
+        if (!$this->menuId) {
+            return null;
+        }
+
+        $params = [];
+
+        if (Craft::$app->getIsMultiSite()) {
+            $site = Craft::$app->getSites()->getSiteById($this->siteId);
+
+            if ($site) {
+                $params['site'] = $site->handle;
+            }
+        }
+
+        return UrlHelper::cpUrl('navigation/menus/build/' . $this->menuId, $params);
     }
 
     public function setUrl($value): void
@@ -569,29 +923,14 @@ class Node extends Element
         return $this->newWindow ? '_blank' : '';
     }
 
-    public function getNav(): Nav
-    {
-        if ($this->navId === null) {
-            throw new InvalidConfigException('Node is missing its navigation ID');
-        }
-
-        $nav = Navigation::$plugin->getNavs()->getNavById($this->navId);
-
-        if (!$nav) {
-            throw new InvalidConfigException('Invalid navigation ID: ' . $this->navId);
-        }
-
-        return $nav;
-    }
-
     // Don't use `getNodeType()` due to an infinite loop issue, when appling this to registered nodes
     public function nodeType()
     {
-        // Check if we've cached the node type. by sure to check by key to prevent cache
-        $_nodeType = $this->_nodeTypes[$this->type] ?? null;
+        $typeClass = NodeTypeHelper::resolveTypeClass($this->type) ?? $this->type;
+
+        $_nodeType = $this->_nodeTypes[$typeClass] ?? null;
 
         if ($_nodeType != null) {
-            // If a custom node type, be sure to send through this element
             $_nodeType->node = $this;
 
             return $_nodeType;
@@ -600,10 +939,10 @@ class Node extends Element
         $registeredNodeTypes = Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
 
         foreach ($registeredNodeTypes as $registeredNodeType) {
-            if ($this->type === $registeredNodeType::class) {
+            if ($typeClass === $registeredNodeType::class) {
                 $registeredNodeType->node = $this;
 
-                return $this->_nodeTypes[$this->type] = $registeredNodeType;
+                return $this->_nodeTypes[$typeClass] = $registeredNodeType;
             }
         }
 
@@ -613,6 +952,16 @@ class Node extends Element
     public function getTypeLabel()
     {
         try {
+            $nodeType = $this->nodeType();
+
+            if ($nodeType instanceof ElementNodeType) {
+                return Craft::t('site', $nodeType::getElementType()::displayName());
+            }
+
+            if ($nodeType) {
+                return $nodeType->getTypeLabel();
+            }
+
             if (class_exists($this->type)) {
                 return $this->type::displayName();
             }
@@ -630,73 +979,66 @@ class Node extends Element
     {
         $classNameParts = explode('\\', $this->type);
         $className = array_pop($classNameParts);
+        $hexColor = $this->getTypeColorHex();
 
-        // Convert Hex to RGB
-        $color = '--node-type-color: ' . $this->getTypeColor() . ';';
+        $style = sprintf(
+            '--node-type-color: %s; --node-type-text-color: %s;',
+            NodeTypeHelper::rgbTriplet($hexColor),
+            NodeTypeHelper::accessibleTextColorRgb($hexColor, 0.1),
+        );
 
         $type = 'node-type-' . StringHelper::toKebabCase($className);
         $item = Html::tag('span', $this->getTypeLabel(), ['class' => $type, 'title' => $this->url]);
 
-        return Html::tag('div', $item, ['class' => 'node-type', 'style' => $color]);
+        return Html::tag('div', $item, ['class' => 'node-type', 'style' => $style]);
     }
 
-    public function getTypeColor()
+    public function getTypeColor(): string
+    {
+        return NodeTypeHelper::rgbTriplet($this->getTypeColorHex());
+    }
+
+    public function getTypeColorHex(): string
     {
         $color = '#888888';
 
         try {
-            if ($this->isElement()) {
-                $registeredElementColor = $this->getRegisteredElement()['color'] ?? null;
+            $nodeType = $this->nodeType();
 
-                if ($registeredElementColor) {
-                    $color = $registeredElementColor;
-                }
-            } else {
+            if ($nodeType) {
+                $color = $nodeType::getColor();
+            } elseif (class_exists($this->type)) {
                 $color = $this->type::getColor();
             }
         } catch (Throwable $e) {
-            // This will throw an error if the class exists, but the plugin disabled/uninstalled,
-            // despite the check with `class_exists()` 
         }
-
-        // Convert to rgb to play nice with opacity alterations
-        $colorData = new ColorData($color);
-        $color = "{$colorData->getRed()},{$colorData->getGreen()},{$colorData->getBlue()}";
 
         return $color;
     }
 
-    public function getRegisteredElement(): mixed
-    {
-        $registeredElements = Navigation::$plugin->getElements()->getRegisteredElements(false);
-
-        foreach ($registeredElements as $registeredElement) {
-            if ($this->type == $registeredElement['type']) {
-                return $registeredElement;
-            }
-        }
-
-        return null;
-    }
-
     public function isElement(): bool
     {
-        return (bool)$this->getRegisteredElement();
+        return $this->nodeType() instanceof ElementNodeType;
     }
 
     public function isCustom(): bool
     {
-        return $this->type === CustomType::class;
+        return $this->type === Custom::class;
     }
 
     public function isPassive(): bool
     {
-        return $this->type === PassiveType::class;
+        return $this->type === Passive::class;
+    }
+
+    public function isGroupColumn(): bool
+    {
+        return $this->type === GroupColumn::class;
     }
 
     public function isSite(): bool
     {
-        return $this->type === SiteType::class;
+        return $this->type === SiteNodeType::class;
     }
 
     public function hasOverriddenTitle(): bool
@@ -706,24 +1048,45 @@ class Node extends Element
         return $element && $element->title !== $this->title;
     }
 
+    public function getIsTitleTranslatable(): bool
+    {
+        return $this->_getMenu()->titleTranslationMethod !== Field::TRANSLATION_METHOD_NONE;
+    }
+
+    public function getTitleTranslationDescription(): ?string
+    {
+        return ElementHelper::translationDescription($this->_getMenu()->titleTranslationMethod);
+    }
+
+    public function getTitleTranslationKey(): string
+    {
+        $menu = $this->_getMenu();
+
+        return ElementHelper::translationKey(
+            $this,
+            $menu->titleTranslationMethod,
+            $menu->titleTranslationKeyFormat,
+        );
+    }
+
     public function getSupportedSites(): array
     {
-        $nav = $this->getNav();
+        $nav = $this->_getMenu();
 
-        /** @var Site[] $allSites */
+        /* @var Site[] $allSites */
         $allSites = ArrayHelper::index($nav->getSites(), 'id');
         $siteIds = [];
 
         foreach ($nav->getSiteSettings() as $siteSettings) {
             if ($siteSettings->enabled) {
                 switch ($nav->propagationMethod) {
-                    case Nav::PROPAGATION_METHOD_NONE:
+                    case MenuSettings::PROPAGATION_METHOD_NONE:
                         $include = $siteSettings->siteId == $this->siteId;
                         break;
-                    case Nav::PROPAGATION_METHOD_SITE_GROUP:
+                    case MenuSettings::PROPAGATION_METHOD_SITE_GROUP:
                         $include = $allSites[$siteSettings->siteId]->groupId == $allSites[$this->siteId]->groupId;
                         break;
-                    case Nav::PROPAGATION_METHOD_LANGUAGE:
+                    case MenuSettings::PROPAGATION_METHOD_LANGUAGE:
                         $include = $allSites[$siteSettings->siteId]->language == $allSites[$this->siteId]->language;
                         break;
                     default:
@@ -742,23 +1105,36 @@ class Node extends Element
 
     public function getGqlTypeName(): string
     {
-        return static::gqlTypeNameByContext($this->getNav());
+        return static::gqlTypeNameByContext($this->_getMenu());
     }
 
     public function beforeSave(bool $isNew): bool
     {
+        if (
+            !$isNew
+            && !$this->propagating
+            && $this->getIsPendingDelete()
+            && Navigation::$plugin->getBuildSessions()->isStagingEnabled()
+        ) {
+            $existing = Craft::$app->getElements()->getElementById($this->id, self::class, $this->siteId);
+
+            if ($existing instanceof self && $existing->getIsPendingDelete()) {
+                return false;
+            }
+        }
+
         /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
 
-        $nav = $this->getNav();
+        $nav = $this->_getMenu();
 
-        // Verify that the nav supports this site
+        // Verify that the menu supports this site
         $navSiteSettings = $nav->getSiteSettings();
 
         $navSiteSetting = $navSiteSettings[$this->siteId] ?? null;
 
         if (!$navSiteSetting || !($navSiteSetting->enabled ?? false)) {
-            throw new UnsupportedSiteException($this, $this->siteId, "The nav '$nav->name' is not enabled for the site '$this->siteId'");
+            throw new UnsupportedSiteException($this, $this->siteId, "The menu '$nav->name' is not enabled for the site '$this->siteId'");
         }
 
         // Set the structure ID for Element::attributes() and afterSave()
@@ -782,14 +1158,21 @@ class Node extends Element
             $this->setParent($parentNode);
         }
 
+        $resolvedType = NodeTypeHelper::resolveTypeClass($this->type);
+
+        if ($resolvedType) {
+            $this->type = $resolvedType;
+        }
+
         // If this is propagating, we want to fetch the information for that site's linked element
         if ($this->propagating && $this->isElement() && $this->elementId) {
-            $localeElement = Craft::$app->getElements()->getElementById($this->elementId, null, $this->siteId);
+            $nodeType = $this->nodeType();
+            $elementType = $nodeType instanceof ElementNodeType ? $nodeType::getElementType() : null;
+            $localeElement = Craft::$app->getElements()->getElementById($this->elementId, $elementType, $this->siteId);
 
             if ($localeElement) {
-                $this->elementSiteId = $localeElement->siteId;
+                $this->setLinkedElementSiteId($localeElement->siteId);
 
-                // Only update the title if we haven't overridden it
                 if (!$this->hasOverriddenTitle()) {
                     $this->title = $localeElement->title;
                 }
@@ -801,22 +1184,11 @@ class Node extends Element
             $this->title = $this->nodeType()->getDefaultTitle();
         }
 
-        // Save the linked element's site id to the slug - again, our hacky way...
-        if ($this->getElementSiteId()) {
-            $this->slug = $this->elementSiteId = $this->getElementSiteId();
-        }
-
-        if ($this->isElement()) {
-            // Don't store the URL if it's an element. We should rely on its element URL.
-            $this->url = null;
-        } else {
-            // When swapping from an element type to node type, be sure to remove the element IDs. This ensures
-            // we don't incorrectly assume the type of node it is.
+        if (!$this->isElement()) {
             $this->elementId = null;
-            $this->elementSiteId = null;
+            $this->setLinkedElementSiteId(null);
         }
 
-        // Allow node types to hook into things
         if ($this->nodeType()) {
             $this->nodeType()->beforeSaveNode($isNew);
         }
@@ -827,7 +1199,7 @@ class Node extends Element
     public function afterSave(bool $isNew): void
     {
         if (!$this->propagating) {
-            $nav = $this->getNav();
+            $nav = $this->_getMenu();
 
             // Get the node record
             if (!$isNew) {
@@ -841,12 +1213,17 @@ class Node extends Element
                 $record->id = (int)$this->id;
             }
 
+            // Manual publish (slide-out or Save menu) clears the deferred-builder flag.
+            if ($this->enabled && $this->getEnabledForSite()) {
+                $this->clearPendingPublish();
+            }
+
             $record->elementId = $this->elementId;
-            $record->navId = (int)$this->navId;
-            $record->url = $this->getRawUrl();
+            $record->menuId = (int)$this->menuId;
+            $record->url = null;
             $record->type = $this->type;
             $record->classes = $this->classes;
-            $record->urlSuffix = $this->urlSuffix;
+            $record->urlSuffix = null;
             $record->customAttributes = $this->customAttributes;
             $record->data = $this->data;
             $record->newWindow = $this->newWindow;
@@ -856,8 +1233,9 @@ class Node extends Element
 
             $record->save(false);
 
-            if ($this->getIsCanonical()) {
-                // Has the parent changed?
+            Navigation::$plugin->getNodeSites()->saveFromNode($this);
+
+            if ($this->getIsCanonical() && !$this->getIsUnpublishedDraft()) {
                 if ($this->hasNewParent()) {
                     $this->_placeInStructure($isNew, $nav);
                 }
@@ -877,7 +1255,7 @@ class Node extends Element
 
         // Update the node record
         $data = [
-            'deletedWithNav' => $this->deletedWithNav,
+            'deletedWithMenu' => $this->deletedWithMenu,
             'parentId' => null,
         ];
 
@@ -902,20 +1280,39 @@ class Node extends Element
 
     public function afterRestore(): void
     {
-        $nav = $this->getNav();
+        $nav = $this->_getMenu();
+        $structureId = (int)$nav->structureId;
 
-        // Add the node back into its structure
-        $parent = self::find()
-            ->structureId($nav->structureId)
-            ->innerJoin(['j' => '{{%navigation_nodes}}'], '[[j.parentId]] = [[elements.id]]')
-            ->andWhere(['j.id' => $this->id])
-            ->one();
+        $parentId = (new Query())
+            ->select(['parentId'])
+            ->from(['{{%navigation_nodes}}'])
+            ->where(['id' => $this->id])
+            ->scalar();
 
-        if (!$parent) {
-            Craft::$app->getStructures()->appendToRoot($nav->structureId, $this);
-        } else {
-            Craft::$app->getStructures()->append($nav->structureId, $this, $parent);
+        $structuresService = Craft::$app->getStructures();
+
+        if ($parentId) {
+            $parentInStructure = (new Query())
+                ->from(['{{%structureelements}}'])
+                ->where([
+                    'structureId' => $structureId,
+                    'elementId' => $parentId,
+                ])
+                ->exists();
+
+            if ($parentInStructure) {
+                $parent = self::find()->id($parentId)->status(null)->one();
+
+                if ($parent) {
+                    $structuresService->append($structureId, $this, $parent);
+                    parent::afterRestore();
+
+                    return;
+                }
+            }
         }
+
+        $structuresService->appendToRoot($structureId, $this);
 
         parent::afterRestore();
     }
@@ -923,14 +1320,14 @@ class Node extends Element
     public function afterMoveInStructure(int $structureId): void
     {
         // Was the node moved within its group's structure?
-        $nav = $this->getNav();
+        $nav = $this->_getMenu();
 
         if ($nav->structureId == $structureId) {
             Craft::$app->getElements()->updateElementSlugAndUri($this, true, true, true);
 
             // If this is the canonical node, update its drafts
             if ($this->getIsCanonical()) {
-                /** @var self[] $drafts */
+                /* @var self[] $drafts */
                 $drafts = self::find()
                     ->draftOf($this)
                     ->status(null)
@@ -953,7 +1350,7 @@ class Node extends Element
 
     public function getFieldLayout(): ?FieldLayout
     {
-        $nav = $this->navId === null ? null : $this->getNav();
+        $nav = $this->menuId === null ? null : $this->_getMenu();
 
         return $nav ? $nav->getFieldLayout() : null;
     }
@@ -1003,100 +1400,104 @@ class Node extends Element
 
     public function _getActive($includeChildren = true): bool
     {
-        if ($this->_isActive && $includeChildren) {
-            return true;
-        }
+        $matcher = Navigation::$plugin->getActiveMatcher();
 
-        $request = Craft::$app->getRequest();
-        $pageTrigger = Craft::$app->getConfig()->getGeneral()->getPageTrigger();
-
-        // Don't run the for console requests. This is called when populating the Node element
-        if ($request->getIsConsoleRequest()) {
-            return false;
-        }
-
-        $siteUrl = trim(UrlHelper::siteUrl(), '/');
-        $nodeUrl = (string)$this->getUrl(false);
-
-        // If no URL and not a custom node, skip. Think passive nodes.
-        if ($nodeUrl === '' && !$this->isCustom()) {
-            return false;
-        }
-
-        // Get the full url to compare, this makes sure it works with any setup (either other domain per site or subdirs)
-        // Using `getUrl()` would return the site-relative path, which isn't what we want to compare with.
-        // Also trim the '/' and remove the query string to normalise for comparison.
-        $currentUrl = trim(urldecode($request->absoluteUrl), '/');
-
-        // Remove the query string from the URL - not needed to compare
-        $currentUrl = preg_replace('/\?.*/', '', $currentUrl);
-
-        // Compare things in lowercase, just in case
-        $currentUrl = strtolower($currentUrl);
-        $nodeUrl = strtolower($nodeUrl);
-
-        // Is this a paginated request? If non-query string pagination, then cleanup currentUrl
-        if (!str_starts_with($pageTrigger, '?')) {
-            // Match against the entire path string as opposed to just the last segment so that we can support
-            // "/page/2"-style pagination URLs
-            $pageTrigger = preg_quote($pageTrigger, '/');
-
-            if (preg_match("/^(?:(.*)\/)?$pageTrigger(\d+)$/", $currentUrl, $match)) {
-                $currentUrl = $match[1];
-            }
-        }
-
-        // Convert a root-relative node's URL to its absolute equivalent. Note we're not using the site URL,
-        // because the node's URL will likely already contain that.
-        if (UrlHelper::isRootRelativeUrl($nodeUrl)) {
-            $nodeUrl = $request->hostInfo . '/' . trim($nodeUrl, '/');
-        }
-
-        // A final check if the node is still not an absolute URL, make it (a site) one.
-        if (!UrlHelper::isAbsoluteUrl($nodeUrl)) {
-            $nodeUrl = UrlHelper::siteUrl($nodeUrl);
-        }
-
-        // Trim the node's url to normalise for comparison, after we've resolved it to an absolute URL.
-        $nodeUrl = trim($nodeUrl, '/');
-
-        // Stop straight away if this is the homepage entry
-        if ($this->_elementUrl === '__home__') {
-            return $currentUrl === $nodeUrl;
-        }
-
-        // Check if they match, easy enough!
-        $isActive = $currentUrl === $nodeUrl;
-
-        // Also check if any children are active
-        if ($includeChildren) {
-            // Then, provide a helper based purely on the URL structure.
-            // /example-page and /example-page/nested-page should both be active, even if both aren't nodes.
-
-            // Include trailing slashes to check if the parent has a child, otherwise we get partial matches
-            // for things like /some-entry and /some-entry-title - both would incorrectly match
-            if (str_starts_with($currentUrl, $nodeUrl . '/')) {
-                // Make sure we're not on the homepage (unless this node is for the homepage)
-                if ($nodeUrl !== $siteUrl) {
-                    $isActive = true;
-                }
-            }
-
-            // If the URLs match exactly
-            if ($currentUrl === $nodeUrl) {
-                // Make sure we're not on the homepage (unless this node is for the homepage)
-                if ($nodeUrl !== $siteUrl) {
-                    $isActive = true;
-                }
-            }
-        }
-
-        return $isActive;
+        return $includeChildren ? $matcher->isActive($this) : $matcher->isCurrent($this);
     }
-
 
     // Protected Methods
     // =========================================================================
+
+    protected function metadata(): array
+    {
+        $config = $this->_getBuilderPendingStatusConfig();
+
+        if (!$config || $this->getIsDraft()) {
+            return [];
+        }
+
+        return [
+            Craft::t('app', 'Status') => function() use ($config) {
+                return Html::tag('span', '', [
+                    'data' => ['icon' => $config['icon']],
+                    'class' => 'icon',
+                    'aria' => ['hidden' => 'true'],
+                ]) . Html::tag('span', $config['label']);
+            },
+        ];
+    }
+
+    protected function _getMenu(): MenuSettings
+    {
+        if ($this->menuId === null) {
+            throw new InvalidConfigException('Node is missing its menu ID');
+        }
+
+        $nav = Navigation::$plugin->getMenus()->getMenuById($this->menuId);
+
+        if (!$nav) {
+            throw new InvalidConfigException('Invalid menu ID: ' . $this->menuId);
+        }
+
+        return $nav;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function crumbs(): array
+    {
+        if ($this->menuId === null) {
+            return [];
+        }
+
+        $nav = Navigation::$plugin->getMenus()->getMenuById($this->menuId);
+
+        if (!$nav) {
+            return [];
+        }
+
+        $params = [];
+
+        if (Craft::$app->getIsMultiSite()) {
+            $site = Craft::$app->getSites()->getSiteById($this->siteId);
+
+            if ($site) {
+                $params['site'] = $site->handle;
+            }
+        }
+
+        return [
+            [
+                'label' => Craft::t('navigation', 'Menus'),
+                'url' => UrlHelper::cpUrl('navigation/menus'),
+            ],
+            [
+                'label' => Craft::t('site', $nav->name),
+                'url' => UrlHelper::cpUrl('navigation/menus/build/' . $nav->id, $params),
+            ],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function cpEditUrl(): ?string
+    {
+        return ElementHelper::elementEditorUrl($this, false);
+    }
+
+    /**
+     * Nodes resolve front-end URLs from linked elements or custom paths, not a dedicated
+     * node route. Craft’s default preview target would tokenize that URL and mislead the
+     * builder slide-out; full-page editing (and entry previews) belong on the CP edit screen.
+     *
+     * @inheritdoc
+     */
+    protected function previewTargets(): array
+    {
+        return [];
+    }
 
     protected function defineRules(): array
     {
@@ -1109,12 +1510,12 @@ class Node extends Element
         $rules[] = [
             'level',
             function($attribute, $params, Validator $validator): void {
-                $nav = $this->getNav();
+                $nav = $this->_getMenu();
 
                 // Check for max nodes
                 if ($nav->maxNodes) {
                     if ($nav->isOverMaxNodes($this)) {
-                        $validator->addError($this, $attribute, Craft::t('navigation', 'Exceeded maximum allowed nodes ({number}) for this nav.', ['number' => $nav->maxNodes]));
+                        $validator->addError($this, $attribute, Craft::t('navigation', 'Exceeded maximum allowed nodes ({number}) for this menu.', ['number' => $nav->maxNodes]));
                     }
                 }
 
@@ -1163,7 +1564,7 @@ class Node extends Element
 
     protected function metaFieldsHtml(bool $static): string
     {
-        $nav = $this->getNav();
+        $nav = $this->_getMenu();
         
         $fields = [];
 
@@ -1171,7 +1572,7 @@ class Node extends Element
         $fields[] = (function() use ($static) {
             $nodeTypeOptions = [];
 
-            foreach (Navigation::$plugin->getNavs()->getBuilderTabs($this->getNav()) as $tab) {
+            foreach (Navigation::$plugin->getMenus()->getBuilderTabs($this->_getMenu()) as $tab) {
                 $nodeTypeOptions[] = [
                     'label' => Craft::t('site', $tab['label']),
                     'value' => $tab['type'],
@@ -1183,10 +1584,20 @@ class Node extends Element
             $js = <<<EOD
 (() => {
 const \$typeInput = $('#$typeInputId');
-const editor = \$typeInput.closest('form').data('elementEditor');
-if (editor) {
-    editor.checkForm();
-}
+const getEditor = () => {
+    const \$editorContainer = \$typeInput.closest('[data-element-editor]');
+    if (\$editorContainer.length) {
+        return \$editorContainer.data('elementEditor');
+    }
+    return \$typeInput.closest('form').data('elementEditor');
+};
+
+\$typeInput.on('change', () => {
+    const editor = getEditor();
+    if (editor) {
+        editor.checkForm(true);
+    }
+});
 })();
 EOD;
             $view->registerJs($js);
@@ -1206,7 +1617,7 @@ EOD;
                     $parent = Navigation::$plugin->getNodes()->getNodeById($parentId, $this->siteId);
                 } else {
                     // If the node already has structure data, use it. Otherwise, use its canonical node
-                    /** @var self|null $parent */
+                    /* @var self|null $parent */
                     $parent = self::find()
                         ->siteId($this->siteId)
                         ->ancestorOf($this->lft ? $this : ($this->getIsCanonical() ? $this->id : $this->getCanonical(true)))
@@ -1217,7 +1628,7 @@ EOD;
                         ->one();
                 }
 
-                $nav = $this->getNav();
+                $nav = $this->_getMenu();
 
                 return Cp::elementSelectFieldHtml([
                     'label' => Craft::t('app', 'Parent'),
@@ -1225,7 +1636,7 @@ EOD;
                     'name' => 'parentId',
                     'elementType' => self::class,
                     'selectionLabel' => Craft::t('app', 'Choose'),
-                    'sources' => ["nav:$nav->uid"],
+                    'sources' => ["menu:$nav->uid"],
                     'criteria' => $this->_parentOptionCriteria($nav),
                     'limit' => 1,
                     'elements' => $parent ? [$parent] : [],
@@ -1243,6 +1654,47 @@ EOD;
     // Private Methods
     // =========================================================================
 
+    private function _getBuilderRowActionBtnHtml(): string
+    {
+        if ($this->getIsPendingDelete() && Navigation::$plugin->getBuildSessions()->isStagingEnabled()) {
+            return Html::tag('a', Craft::t('navigation', 'Restore'), [
+                'class' => 'btn small icon undo node-restore-btn',
+            ]);
+        }
+
+        return Html::tag('a', Craft::t('navigation', 'Edit'), ['class' => 'btn small icon edit node-edit-btn']);
+    }
+
+    private function _getBuilderPendingStatusConfig(): ?array
+    {
+        if ($this->getIsPendingPublish() && !$this->getIsDraft()) {
+            return [
+                'key' => 'add',
+                'icon' => 'plus-circle',
+                'iconType' => 'fontawesome',
+                'label' => Craft::t('navigation', 'Pending'),
+            ];
+        }
+
+        if ($this->getIsPendingDelete() && !$this->getIsDraft()) {
+            return [
+                'key' => 'delete',
+                'icon' => 'trash',
+                'label' => Craft::t('navigation', 'Pending deletion'),
+            ];
+        }
+
+        if ($this->getIsPendingEdit() && !$this->getIsDraft()) {
+            return [
+                'key' => 'edit',
+                'icon' => 'pen-circle',
+                'label' => Craft::t('navigation', 'Pending edit'),
+            ];
+        }
+
+        return null;
+    }
+
     private function _getObject(): array
     {
         return [
@@ -1250,11 +1702,11 @@ EOD;
         ];
     }
 
-    private function _parentOptionCriteria(Nav $nav): array
+    private function _parentOptionCriteria(MenuSettings $nav): array
     {
         $parentOptionCriteria = [
             'siteId' => $this->siteId,
-            'navId' => $nav->id,
+            'menuId' => $nav->id,
             'status' => null,
             'drafts' => null,
             'draftOf' => false,
@@ -1293,7 +1745,7 @@ EOD;
         return $parentOptionCriteria;
     }
 
-    private function _placeInStructure(bool $isNew, Nav $nav): void
+    private function _placeInStructure(bool $isNew, MenuSettings $nav): void
     {
         $parentId = $this->getParentId();
         $structuresService = Craft::$app->getStructures();
@@ -1316,13 +1768,13 @@ EOD;
         $mode = $isNew ? Structures::MODE_INSERT : Structures::MODE_AUTO;
 
         if (!$parentId) {
-            if ($nav->defaultPlacement === Nav::DEFAULT_PLACEMENT_BEGINNING) {
+            if ($nav->defaultPlacement === MenuSettings::DEFAULT_PLACEMENT_BEGINNING) {
                 $structuresService->prependToRoot($this->structureId, $this, $mode);
             } else {
                 $structuresService->appendToRoot($this->structureId, $this, $mode);
             }
         } else {
-            if ($nav->defaultPlacement === Nav::DEFAULT_PLACEMENT_BEGINNING) {
+            if ($nav->defaultPlacement === MenuSettings::DEFAULT_PLACEMENT_BEGINNING) {
                 $structuresService->prepend($this->structureId, $this, $this->getParent(), $mode);
             } else {
                 $structuresService->append($this->structureId, $this, $this->getParent(), $mode);

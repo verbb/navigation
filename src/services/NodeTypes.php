@@ -1,11 +1,18 @@
 <?php
 namespace verbb\navigation\services;
 
+use verbb\navigation\base\ElementNodeType;
 use verbb\navigation\base\NodeTypeInterface;
 use verbb\navigation\events\RegisterNodeTypeEvent;
-use verbb\navigation\nodetypes\CustomType;
-use verbb\navigation\nodetypes\PassiveType;
-use verbb\navigation\nodetypes\SiteType;
+use verbb\navigation\nodetypes\Asset;
+use verbb\navigation\nodetypes\Category;
+use verbb\navigation\nodetypes\Custom;
+use verbb\navigation\nodetypes\Dynamic;
+use verbb\navigation\nodetypes\Entry;
+use verbb\navigation\nodetypes\GroupColumn;
+use verbb\navigation\nodetypes\Passive;
+use verbb\navigation\nodetypes\Product;
+use verbb\navigation\nodetypes\Site;
 
 use Craft;
 use craft\base\Component;
@@ -32,11 +39,23 @@ class NodeTypes extends Component
     public function getRegisteredNodeTypes(): array
     {
         $nodeTypes = [
-            PassiveType::class,
+            Entry::class,
+            Category::class,
+            Asset::class,
         ];
 
+        if (Craft::$app->getPlugins()->isPluginEnabled('commerce') && class_exists(Product::class)) {
+            $nodeTypes[] = Product::class;
+        }
+
+        $nodeTypes = array_merge($nodeTypes, [
+            Passive::class,
+            GroupColumn::class,
+            Dynamic::class,
+        ]);
+
         if (Craft::$app->getIsMultiSite()) {
-            $nodeTypes[] = SiteType::class;
+            $nodeTypes[] = Site::class;
         }
 
         $event = new RegisterNodeTypeEvent([
@@ -48,7 +67,7 @@ class NodeTypes extends Component
         $nodeTypes = $event->types;
 
         // Always add custom node at the end
-        $nodeTypes[] = CustomType::class;
+        $nodeTypes[] = Custom::class;
 
         $types = [];
 
@@ -61,4 +80,16 @@ class NodeTypes extends Component
         return $types;
     }
 
+    public function getRegisteredElementNodeTypeClasses(): array
+    {
+        $classes = [];
+
+        foreach ($this->getRegisteredNodeTypes() as $nodeType) {
+            if ($nodeType instanceof ElementNodeType) {
+                $classes[] = $nodeType::class;
+            }
+        }
+
+        return $classes;
+    }
 }

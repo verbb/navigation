@@ -5,25 +5,36 @@
         "children": [
             "get-started/installation-setup",
             "get-started/requirements",
-            "get-started/configuration"
+            "get-started/configuration",
+            "get-started/upgrading-from-v3"
         ]
     },
     {
-        "title": "Feature Tour",
+        "title": "Menus",
         "collapsable": false,
         "children": [
-            "feature-tour/overview"
+            "menus/overview",
+            "menus/menu-fields",
+            "menus/node-types"
         ]
     },
     {
-        "title": "Template Guides",
+        "title": "Templates",
         "collapsable": false,
         "children": [
-            "template-guides/available-variables",
-            "template-guides/rendering-nodes",
-            "template-guides/breadcrumbs",
-            "template-guides/navigation-field",
-            "template-guides/eager-loading"
+            "templates/rendering-nodes",
+            "templates/active-state-and-context",
+            "templates/context-and-breadcrumbs",
+            "templates/navigation-field",
+            "templates/custom-rendering"
+        ]
+    },
+    {
+        "title": "Frontend",
+        "collapsable": false,
+        "children": [
+            "frontend/performance-and-caching",
+            "frontend/headless-trees"
         ]
     },
     {
@@ -34,14 +45,48 @@
         ]
     },
     {
+        "title": "GraphQL",
+        "collapsable": false,
+        "children": [
+            "graphql/query-nodes",
+            "graphql/context-and-breadcrumbs"
+        ]
+    },
+    {
+        "title": "Integrations",
+        "collapsable": false,
+        "children": [
+            "integrations/feed-me"
+        ]
+    },
+    {
         "title": "Developers",
         "collapsable": false,
         "children": [
-            "developers/node",
-            "developers/nav",
             "developers/events",
-            "developers/extensibility",
-            "developers/graphql"
+            "developers/node-types",
+            "developers/console-commands"
+        ]
+    },
+    {
+        "title": "Reference",
+        "collapsable": false,
+        "children": [
+            "reference/node",
+            "reference/menu",
+            "reference/projected-node",
+            "reference/menu-settings"
+        ]
+    },
+    {
+        "title": "Guides",
+        "collapsable": false,
+        "children": [
+            "guides/performance/index",
+            "guides/templating/index",
+            "guides/frontend-headless/index",
+            "guides/configuration/index",
+            "guides/migrations-upgrades/index"
         ]
     }
 ]

@@ -24,6 +24,6 @@ class ClassesField extends TextField
 
     public function instructions(ElementInterface $element = null, bool $static = false): ?string
     {
-        return Craft::t('navigation', 'Additional CSS classes for this navigation item.');
+        return Craft::t('navigation', 'Additional CSS classes for this node.');
     }
 }

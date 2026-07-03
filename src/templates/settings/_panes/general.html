@@ -11,3 +11,21 @@
     instructions: 'Plugin name for the end user.' | t('navigation'),
     warning: macros.configWarning('pluginName', 'navigation'),
 }) }}
+
+{{ forms.lightswitchField({
+    id: 'autoEnableNewSites',
+    name: 'autoEnableNewSites',
+    label: 'Auto-Enable New Sites' | t('navigation'),
+    instructions: 'Automatically enable all menus when a new site is created.' | t('navigation'),
+    warning: macros.configWarning('autoEnableNewSites', 'navigation'),
+    on: settings.autoEnableNewSites,
+}) }}
+
+{{ forms.lightswitchField({
+    id: 'builderLiveStructure',
+    name: 'builderLiveStructure',
+    label: 'Live Structure Saves' | t('navigation'),
+    instructions: 'When enabled, menu structure changes are saved immediately on drag-and-drop. When disabled, changes are staged in a build session until you save the menu. This setting is deprecated and will be removed in a future release.' | t('navigation'),
+    warning: macros.configWarning('builderLiveStructure', 'navigation'),
+    on: settings.builderLiveStructure,
+}) }}

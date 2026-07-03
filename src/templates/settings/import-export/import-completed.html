@@ -1,0 +1,14 @@
+{% extends 'navigation/_layouts/settings' %}
+
+{% set selectedTab = 'import-export' %}
+
+{% block blockContent %}
+
+<h2>{{ 'Import Completed' | t('navigation') }}</h2>
+
+<p>{{ 'Your menu “{name}” has been imported. <a href="{cpEditUrl}">Edit Menu</a>' | t('navigation', {
+    name: menu.name,
+    cpEditUrl: cpUrl('navigation/menus/build/' ~ menu.id),
+}) | raw }}</p>
+
+{% endblock %}

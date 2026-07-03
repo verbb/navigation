@@ -1,13 +1,17 @@
 <?php
 namespace verbb\navigation\controllers;
 
+use verbb\navigation\elements\Node;
+use verbb\navigation\Navigation;
+use verbb\navigation\models\MenuSettings;
+
 use Craft;
 use craft\helpers\Json;
 use craft\web\Controller;
 
-use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node;
+use Throwable;
 
+use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
 class NodesController extends Controller
@@ -21,8 +25,13 @@ class NodesController extends Controller
         $this->requireAcceptsJson();
 
         $nodesService = Navigation::$plugin->getNodes();
+        $buildSessions = Navigation::$plugin->getBuildSessions();
+        $deferPublish = $buildSessions->isStagingEnabled();
 
         $nodesPost = $this->request->getRequiredParam('nodes');
+        $menuId = null;
+        $siteId = null;
+        $addedNodeIds = [];
 
         foreach ($nodesPost as $key => $nodePost) {
             $node = $this->_setNodeFromPost("nodes.{$key}.");
@@ -30,12 +39,43 @@ class NodesController extends Controller
             // Add this new node to the nav, to assist with validation
             $nodesService->setTempNodes([$node]);
 
+            if ($deferPublish) {
+                // Staged in the builder until Publish menu applies changes and invalidates cache.
+                $node->enabled = false;
+                $node->enabledForSite = false;
+                $node->setPendingPublish(true);
+            }
+
             if (!Craft::$app->getElements()->saveElement($node, true)) {
                 return $this->asModelFailure($node, Craft::t('navigation', 'Couldn’t add node.'), 'node');
             }
+
+            $menuId ??= (int)$node->menuId;
+            $siteId ??= (int)$node->siteId;
+            $addedNodeIds[] = (int)$node->id;
         }
 
-        return $this->asSuccess(Craft::t('navigation', 'Node{plural} added.', ['plural' => count($nodesPost) > 1 ? 's' : '']));
+        if ($deferPublish && $menuId && $siteId) {
+            $session = $buildSessions->getOrCreate($menuId, $siteId);
+
+            foreach ($addedNodeIds as $nodeId) {
+                if (!in_array($nodeId, $session->addedNodeIds, true)) {
+                    $session->addedNodeIds[] = $nodeId;
+                }
+            }
+
+            $buildSessions->saveSession($session);
+        }
+
+        $message = $deferPublish
+            ? Craft::t('navigation', 'Node{plural} added. Save menu to apply.', ['plural' => count($nodesPost) > 1 ? 's' : ''])
+            : Craft::t('navigation', 'Node{plural} added.', ['plural' => count($nodesPost) > 1 ? 's' : '']);
+
+        return $this->asSuccess($message, [
+            'changeCount' => ($deferPublish && $menuId && $siteId)
+                ? $buildSessions->getChangeCount($menuId, $siteId)
+                : 0,
+        ]);
     }
 
     public function actionGetParentOptions(): Response
@@ -44,18 +84,112 @@ class NodesController extends Controller
         $this->requireAcceptsJson();
 
         $nodesService = Navigation::$plugin->getNodes();
-        $navId = $this->request->getRequiredParam('navId');
+        $buildSessions = Navigation::$plugin->getBuildSessions();
+        $menuId = (int)$this->request->getRequiredParam('menuId');
         $siteId = $this->request->getParam('siteId');
+        $siteId = $siteId ? (int)$siteId : null;
 
-        $nodes = $nodesService->getNodesForNav($navId, $siteId);
+        $nodes = $nodesService->getNodesForNav($menuId, $siteId);
 
         $options = [];
 
         if ($nodes) {
-            $options = $nodesService->getParentOptions($nodes, $nodes[0]->nav);
+            $options = $nodesService->getParentOptions($nodes, Navigation::$plugin->getMenus()->getMenuById($nodes[0]->menuId));
         }
 
-        return $this->asJson(['options' => $options]);
+        return $this->asJson([
+            'options' => $options,
+            'changeCount' => $buildSessions->isStagingEnabled()
+                ? $buildSessions->getChangeCount($menuId, $siteId)
+                : 0,
+        ]);
+    }
+
+    public function actionCopyToSite(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
+        $nodeId = (int)$this->request->getRequiredBodyParam('nodeId');
+        $targetSiteId = (int)$this->request->getRequiredBodyParam('siteId');
+        $node = Node::find()->id($nodeId)->status(null)->site('*')->unique()->one();
+
+        if (!$node) {
+            return $this->asFailure(Craft::t('navigation', 'Node not found.'));
+        }
+
+        $nav = Navigation::$plugin->getMenus()->getMenuById($node->menuId);
+        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+
+        if ($nav->propagationMethod !== MenuSettings::PROPAGATION_METHOD_NONE) {
+            return $this->asFailure(Craft::t('navigation', 'Nodes in this menu are propagated automatically. Switch sites to edit them instead of copying.'));
+        }
+
+        $duplicate = Navigation::$plugin->getNodes()->copyNodeToSite($node, $targetSiteId);
+
+        if (!$duplicate) {
+            return $this->asFailure(Craft::t('navigation', 'Couldn’t copy node to site.'));
+        }
+
+        return $this->asSuccess(Craft::t('navigation', 'Node copied to site.'), [
+            'nodeId' => $duplicate->id,
+        ]);
+    }
+
+    public function actionSaveStructure(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
+        $buildSessions = Navigation::$plugin->getBuildSessions();
+
+        if (!$buildSessions->isStagingEnabled()) {
+            throw new BadRequestHttpException('Builder staging is disabled.');
+        }
+
+        $menuId = (int)$this->request->getRequiredBodyParam('menuId');
+        $siteId = (int)$this->request->getRequiredBodyParam('siteId');
+        $applyStructure = (bool)$this->request->getBodyParam('applyStructure', false);
+        $moves = $this->request->getBodyParam('moves', []);
+
+        if (!is_array($moves)) {
+            throw new BadRequestHttpException('Invalid moves payload.');
+        }
+
+        $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
+
+        if (!$nav) {
+            throw new BadRequestHttpException("Invalid menu ID: $menuId");
+        }
+
+        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+
+        $session = $buildSessions->getOrCreate($menuId, $siteId);
+        $changeCount = $session->getChangeCount(false);
+
+        if ($applyStructure && $moves === []) {
+            throw new BadRequestHttpException('Invalid moves payload.');
+        }
+
+        if ($applyStructure && $moves !== []) {
+            $buildSessions->setStructureMoves($session, $moves);
+        }
+
+        try {
+            $result = $buildSessions->publish($session, $applyStructure, $applyStructure ? $moves : null);
+        } catch (BadRequestHttpException $e) {
+            return $this->asFailure($e->getMessage());
+        } catch (Throwable $e) {
+            Craft::error('Failed to save menu: ' . $e->getMessage(), __METHOD__);
+
+            return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu.'));
+        }
+
+        return $this->asSuccess(Craft::t('navigation', 'Menu saved.'), [
+            'changeCount' => 0,
+            'publishedCount' => $result['publishedCount'],
+            'deletedCount' => $result['deletedCount'],
+        ]);
     }
 
 
@@ -81,7 +215,7 @@ class NodesController extends Controller
         $node->elementId = $elementId;
         $node->elementSiteId = $this->request->getParam("{$prefix}elementSiteId", $node->elementSiteId);
         $node->siteId = $this->request->getParam("{$prefix}siteId", $node->siteId);
-        $node->navId = $this->request->getParam("{$prefix}navId", $node->navId);
+        $node->menuId = $this->request->getParam("{$prefix}menuId", $node->menuId);
         $node->url = $this->request->getParam("{$prefix}url", $node->url);
         $node->type = $this->request->getParam("{$prefix}type", $node->type);
         $node->classes = $this->request->getParam("{$prefix}classes", $node->classes);

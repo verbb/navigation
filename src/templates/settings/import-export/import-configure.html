@@ -1,0 +1,59 @@
+{% extends 'navigation/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+
+{% set selectedTab = 'import-export' %}
+
+{% block blockContent %}
+
+<h2>{{ 'Review Import' | t('navigation') }}</h2>
+
+{% if errors is defined %}
+    <p class="error">{{ 'Error' | t('app') }}: {{ errors | json_encode }}</p>
+{% endif %}
+
+<form method="post" accept-charset="UTF-8">
+    <input type="hidden" name="action" value="navigation/import-export/import-complete">
+    {{ redirectInput('navigation/settings/import-export/import-completed/{id}') }}
+    {{ hiddenInput('filename', filename) }}
+    {{ csrfInput() }}
+
+    {{ summary | raw }}
+
+    {% if existingMenu %}
+        <hr>
+
+        <p>{{ 'An existing menu was found with the “{handle}” handle. Choose how you’d like to handle importing.' | t('navigation', { handle: existingMenu.handle }) }}</p>
+
+        {{ forms.selectField({
+            label: 'Action' | t('navigation'),
+            instructions: 'Choose how to handle the duplicate menu.' | t('navigation'),
+            id: 'menuAction',
+            name: 'menuAction',
+            required: true,
+            toggle: true,
+            targetPrefix: 'action-',
+            options: [
+                { label: 'Select an option' | t('navigation'), value: '' },
+                { label: 'Create a new menu' | t('navigation'), value: 'create' },
+                { label: 'Update existing menu' | t('navigation'), value: 'update' },
+            ],
+        }) }}
+
+        <div id="action-create" class="hidden">
+            <p>{{ 'A new handle will be generated for you.' | t('navigation') }}</p>
+        </div>
+
+        <div id="action-update" class="hidden">
+            <p>{{ 'This will update the existing “{handle}” menu and completely replace its settings, node tree, and menu field values with the data you’re importing.' | t('navigation', { handle: existingMenu.handle }) }} <strong>{{ 'This action will be permanent.' | t('navigation') }}</strong></p>
+        </div>
+    {% else %}
+        <p class="log-label color-32">{{ 'Ready to import.' | t('navigation') }}</p>
+    {% endif %}
+
+    <hr>
+
+    <input type="submit" class="btn submit" value="{{ 'Import' | t('app') }}">
+</form>
+
+{% endblock %}

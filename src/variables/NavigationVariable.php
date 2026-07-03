@@ -2,9 +2,13 @@
 namespace verbb\navigation\variables;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\deprecations\NavigationVariableDeprecations;
 use verbb\navigation\elements\db\NodeQuery;
+use verbb\navigation\elements\Menu;
 use verbb\navigation\elements\Node as NodeElement;
-use verbb\navigation\models\Nav;
+use verbb\navigation\migrations\plugins\MigrationResult;
+use verbb\navigation\models\NavigationContext;
+use verbb\navigation\models\ProjectedNode;
 
 use Craft;
 use craft\helpers\Template;
@@ -14,6 +18,12 @@ use Twig\Markup;
 
 class NavigationVariable
 {
+    // Traits
+    // =========================================================================
+
+    use NavigationVariableDeprecations;
+
+
     // Public Methods
     // =========================================================================
 
@@ -22,27 +32,14 @@ class NavigationVariable
         return Navigation::$plugin->getPluginName();
     }
 
-    public function getRegisteredElements(): array
-    {
-        return Navigation::$plugin->getElements()->getRegisteredElements();
-    }
-
     public function getRegisteredNodeTypes(): array
     {
         return Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
     }
 
-    public function getActiveNode($criteria = null, $includeChildren = false): ?NodeElement
+    public function menu($handle): \verbb\navigation\elements\db\MenuQuery
     {
-        $nodes = $this->nodes($criteria)->all();
-
-        foreach ($nodes as $node) {
-            if ($node->getActive($includeChildren)) {
-                return $node;
-            }
-        }
-
-        return null;
+        return Menu::find()->handle($handle);
     }
 
     public function nodes($criteria = null): NodeQuery
@@ -55,7 +52,9 @@ class NavigationVariable
 
         if ($criteria) {
             if (is_string($criteria)) {
-                $criteria = ['handle' => $criteria];
+                $criteria = ['menuHandle' => $criteria];
+            } elseif (is_array($criteria)) {
+                $criteria = $this->normalizeDeprecatedNodeCriteria($criteria);
             }
 
             Craft::configure($query, $criteria);
@@ -66,18 +65,7 @@ class NavigationVariable
 
     public function render($criteria = null, array $options = []): Markup
     {
-        $query = $this->nodes($criteria);
-
-        // Add eager-loading in by default. Generate a map for `children.children.children.etc`
-        $eagerLoadingMap = [];
-
-        for ($i = 1; $i < 8; $i++) { 
-            $eagerLoadingMap[] = rtrim(str_repeat('children.', $i), '.');
-        }
-
-        $query->with($eagerLoadingMap);
-
-        $nodes = $query->all();
+        $nodes = $this->nodes($criteria)->all();
 
         $template = Craft::$app->getView()->renderTemplate('navigation/_special/render', [
             'nodes' => $nodes,
@@ -87,40 +75,110 @@ class NavigationVariable
         return Template::raw($template);
     }
 
-    public function breadcrumbs(array $options = []): array
+    /**
+     * URL-segment breadcrumbs (Craft element URIs along the request path).
+     */
+    public function urlBreadcrumbs(array $options = []): array
     {
         return Navigation::$plugin->getBreadcrumbs()->getBreadcrumbs($options);
     }
 
-    public function tree($criteria = null): array
+    public function menuBreadcrumbs(string $menuHandle): array
     {
-        $nodes = $this->nodes($criteria)->level(1)->all();
-
-        $nodeTree = [];
-
-        Navigation::$plugin->getNavs()->buildNavTree($nodes, $nodeTree);
-
-        return $nodeTree;
+        return Navigation::$plugin->getMenuBreadcrumbs()->getBreadcrumbs($menuHandle);
     }
 
-    public function getNavById($id): ?Nav
+    public function context(string $menuHandle, mixed $criteria = null): NavigationContext
     {
-        return Navigation::$plugin->getNavs()->getNavById($id);
+        return Navigation::$plugin->getContextResolver()->resolve($menuHandle, $criteria);
     }
 
-    public function getNavByHandle($handle): ?Nav
+    public function tree($criteria = null, array $options = []): array
     {
-        return Navigation::$plugin->getNavs()->getNavByHandle($handle);
+        $includeLinkedElements = (bool)($options['withLinkedElements'] ?? false);
+
+        return Navigation::$plugin->getNodeRead()->buildNodeTree(
+            $this->nodes($criteria)->withNodeHierarchy(true)->all(),
+            $includeLinkedElements,
+            true,
+        );
     }
 
-    public function getAllNavs(): array
+    public function getActiveNode($criteria = null, $includeChildren = false): NodeElement|ProjectedNode|null
     {
-        return Navigation::$plugin->getNavs()->getAllNavs();
+        return Navigation::$plugin->getActiveMatcher()->findActiveNode(
+            $this->nodes($criteria)->withNodeHierarchy()->all(),
+            $includeChildren,
+        );
+    }
+
+    public function getActiveNodes($criteria = null): array
+    {
+        return Navigation::$plugin->getActiveMatcher()->findActiveNodes(
+            $this->nodes($criteria)->withNodeHierarchy()->all(),
+        );
+    }
+
+    public function getCurrentNodes($criteria = null): array
+    {
+        return Navigation::$plugin->getActiveMatcher()->findCurrentNodes(
+            $this->nodes($criteria)->withNodeHierarchy()->all(),
+        );
+    }
+
+    public function getMenuByHandle($handle): ?Menu
+    {
+        return Menu::find()->handle($handle)->one();
+    }
+
+    public function getMenuById($id): ?Menu
+    {
+        return Menu::find()->id($id)->one();
+    }
+
+    public function getAllMenus(): array
+    {
+        return Menu::find()->all();
+    }
+
+    public function invalidateCache(?string $handle = null): void
+    {
+        Navigation::$plugin->getNavigationCache()->invalidateByHandle($handle);
     }
 
     public function getBuilderTabs($nav): array
     {
-        return Navigation::$plugin->getNavs()->getBuilderTabs($nav);
+        return Navigation::$plugin->getMenus()->getBuilderTabs($nav);
     }
 
+    public function getSettingsNavItems(): array
+    {
+        $navItems = [
+            'general' => ['title' => Craft::t('navigation', 'General Settings')],
+            'performance' => ['title' => Craft::t('navigation', 'Performance')],
+            'import-export' => ['title' => Craft::t('navigation', 'Import/Export')],
+        ];
+
+        $migrations = [];
+
+        foreach (Navigation::$plugin->getMigrations()->getSources() as $sourceId => $source) {
+            if (!($source['ready'] ?? false)) {
+                continue;
+            }
+
+            $migrations['migrate/' . $sourceId] = ['title' => $source['label']];
+        }
+
+        if ($migrations !== []) {
+            $navItems['migrations-heading'] = ['heading' => Craft::t('navigation', 'Migrations')];
+            $navItems = array_merge($navItems, $migrations);
+        }
+
+        return $navItems;
+    }
+
+    public function renderMigrationOutput(array $lines): Markup
+    {
+        return Template::raw(MigrationResult::renderLinesHtml($lines));
+    }
 }

@@ -2,7 +2,6 @@
 namespace verbb\navigation\migrations;
 
 use verbb\navigation\Navigation;
-use verbb\navigation\elements\Node;
 
 use craft\db\Query;
 use craft\migrations\BaseContentRefactorMigration;

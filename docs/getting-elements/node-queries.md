@@ -1,5 +1,6 @@
 # Node Queries
-You can fetch nodes in your templates or PHP code using **node queries**.
+
+You can fetch nodes in your templates or PHP code using **node queries**. The most common pattern is scoping by menu handle, then fetching with `.all()` or `.one()`.
 
 :::code
 ```twig Twig
@@ -13,32 +14,40 @@ $myQuery = \verbb\navigation\elements\Node::find();
 ```
 :::
 
-Once you’ve created a node query, you can set parameters on it to narrow down the results, and then execute it by calling `.all()`. An array of [Node](docs:developers/node) objects will be returned.
+Once you’ve created a node query, you can set parameters on it to narrow down the results, and then execute it by calling `.all()`. An array of [Node](/reference/node) objects will be returned.
 
 :::tip
-See Introduction to [Element Queries](https://craftcms.com/docs/4.x/element-queries/) in the Craft docs to learn about how element queries work.
+See [Element Queries](https://craftcms.com/docs/5.x/development/element-queries.html) in the Craft docs for standard parameters. For caching and hydration flags, see [Performance & Caching](/frontend/performance-and-caching).
 :::
 
-## Example
-We can display nodes for a given level by doing the following:
-
-1. Create a node query with `craft.navigation.nodes()`.
-2. Set the [level](#level), and [limit](#limit) parameters on it.
-3. Fetch all nodes with `.all()` and output.
-4. Loop through the nodes using a [for](https://twig.symfony.com/doc/2.x/tags/for.html) tag to output the contents.
+## Fetch nodes by menu handle
 
 ```twig
-{# Create a nodes query with the 'level', and 'limit' parameters #}
+{% set nodes = craft.navigation.nodes()
+    .handle('mainMenu')
+    .all() %}
+```
+
+```php
+$nodes = \verbb\navigation\elements\Node::find()
+    ->handle('mainMenu')
+    ->all();
+```
+
+## Example by level
+
+```twig
+{# Fetch nodes at level 1 #}
 {% set nodesQuery = craft.navigation.nodes()
     .level(1)
     .limit(10)%}
 
-{# Fetch the Comments #}
+{# Fetch the nodes #}
 {% set nodes = nodesQuery.all() %}
 
 {# Display their contents #}
 {% for node in nodes %}
-    <p>{{ node.node }}</p>
+    <p>{{ node.title }}</p>
 {% endfor %}
 ```
 
@@ -82,7 +91,7 @@ Possible values include:
 | Value | Fetches nodes…
 | - | -
 | `1` | above the node with an ID of 1.
-| a [Node](docs:developers/node) object | above the node represented by the object.
+| a [Node](/reference/node) object | above the node represented by the object.
 
 ::: code
 ```twig Twig
@@ -130,7 +139,7 @@ $nodes = \verbb\navigation\elements\Node::find()
 
 ### `asArray`
 
-Causes the query to return matching nodes as arrays of data, rather than [Node](docs:developers/node) objects.
+Causes the query to return matching nodes as arrays of data, rather than [Node](/reference/node) objects.
 
 ::: code
 ```twig Twig
@@ -253,7 +262,7 @@ Possible values include:
 | Value | Fetches nodes…
 | - | -
 | `1` | below the node with an ID of 1.
-| a [Node](docs:developers/node) object | below the node represented by the object.
+| a [Node](/reference/node) object | below the node represented by the object.
 
 ::: code
 ```twig Twig
@@ -542,7 +551,7 @@ Possible values include:
 | Value | Fetches the node…
 | - | -
 | `1` | after the node with an ID of 1.
-| a [Node](docs:developers/node) object | after the node represented by the object.
+| a [Node](/reference/node) object | after the node represented by the object.
 
 ::: code
 ```twig Twig
@@ -615,7 +624,7 @@ Possible values include:
 | Value | Fetches nodes…
 | - | -
 | `1` | after the node with an ID of 1.
-| a [Node](docs:developers/node) object | after the node represented by the object.
+| a [Node](/reference/node) object | after the node represented by the object.
 
 ::: code
 ```twig Twig
@@ -644,7 +653,7 @@ Possible values include:
 | Value | Fetches nodes…
 | - | -
 | `1` | before the node with an ID of 1.
-| a [Node](docs:developers/node) object | before the node represented by the object.
+| a [Node](/reference/node) object | before the node represented by the object.
 
 ::: code
 ```twig Twig
@@ -673,7 +682,7 @@ Possible values include:
 | Value | Fetches the node…
 | - | -
 | `1` | before the node with an ID of 1.
-| a [Node](docs:developers/node) object | before the node represented by the object.
+| a [Node](/reference/node) object | before the node represented by the object.
 
 ::: code
 ```twig Twig
@@ -702,7 +711,7 @@ Possible values include:
 | Value | Fetches nodes…
 | - | -
 | `1` | beside the node with an ID of 1.
-| a [Node](docs:developers/node) object | beside the node represented by the object.
+| a [Node](/reference/node) object | beside the node represented by the object.
 
 ::: code
 ```twig Twig
@@ -827,9 +836,9 @@ $node = \verbb\navigation\elements\Node::find()
 :::
 
 Available values:
-- `verbb\navigation\nodetypes\CustomType`
-- `verbb\navigation\nodetypes\PassiveType`
-- `verbb\navigation\nodetypes\SiteType`
+- `verbb\navigation\nodetypes\Custom`
+- `verbb\navigation\nodetypes\Passive`
+- `verbb\navigation\nodetypes\Site`
 - Any Craft native element class
 
 
@@ -851,6 +860,131 @@ Narrows the query results based on the nodes’ UIDs.
 $node = \verbb\navigation\elements\Node::find()
     ->uid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
     ->one();
+```
+:::
+
+
+
+### `withLinkedElements`
+
+Batch-loads linked Craft elements after the query executes. Use this when templates read `node.element` or linked element fields.
+
+Disables the plugin tree cache for that query.
+
+::: code
+```twig Twig
+{% set nodes = craft.navigation.nodes()
+    .handle('mainMenu')
+    .withLinkedElements()
+    .all() %}
+```
+
+```php PHP
+$nodes = \verbb\navigation\elements\Node::find()
+    ->handle('mainMenu')
+    ->withLinkedElements()
+    ->all();
+```
+:::
+
+
+
+### `withMenu`
+
+Batch-loads the parent Menu element (including menu-level custom fields) for each node.
+
+Disables the plugin tree cache for that query.
+
+::: code
+```twig Twig
+{% set nodes = craft.navigation.nodes()
+    .handle('mainMenu')
+    .withMenu()
+    .all() %}
+```
+
+```php PHP
+$nodes = \verbb\navigation\elements\Node::find()
+    ->handle('mainMenu')
+    ->withMenu()
+    ->all();
+```
+:::
+
+
+
+### `withNavigationCache`
+
+Opt in to the plugin tree cache when **Performance → Cache mode** is set to **Manual**. Ignored in **Auto** and **Static** modes for eligible queries.
+
+::: code
+```twig Twig
+{% set nodes = craft.navigation.nodes()
+    .handle('mainMenu')
+    .withNavigationCache()
+    .all() %}
+```
+
+```php PHP
+$nodes = \verbb\navigation\elements\Node::find()
+    ->handle('mainMenu')
+    ->withNavigationCache()
+    ->all();
+```
+:::
+
+
+
+### `withNodeHierarchy`
+
+Wires parent/child relationships in memory after the query executes.
+
+| Value | Behaviour |
+| --- | --- |
+| `null` (default) | Auto on front-end menu-scoped reads; off in the CP and console |
+| `true` | Force hierarchy wiring |
+| `false` | Opt out (children load on demand) |
+
+::: code
+```twig Twig
+{% set nodes = craft.navigation.nodes()
+    .handle('mainMenu')
+    .withNodeHierarchy(true)
+    .all() %}
+```
+
+```php PHP
+$nodes = \verbb\navigation\elements\Node::find()
+    ->handle('mainMenu')
+    ->withNodeHierarchy(true)
+    ->all();
+```
+:::
+
+
+
+### `withProjectedChildren`
+
+Controls whether Dynamic nodes append read-time projected children.
+
+| Value | Behaviour |
+| --- | --- |
+| `null` (default) | Project children |
+| `false` | Skip projection (stored children only) |
+
+::: code
+```twig Twig
+{% set nodes = craft.navigation.nodes()
+    .handle('mainMenu')
+    .withProjectedChildren(false)
+    .all() %}
+```
+
+```php PHP
+$nodes = \verbb\navigation\elements\Node::find()
+    ->handle('mainMenu')
+    ->withProjectedChildren(false)
+    ->all();
 ```
 :::
 

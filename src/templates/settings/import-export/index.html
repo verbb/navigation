@@ -1,0 +1,65 @@
+{% extends 'navigation/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+
+{% set selectedTab = 'import-export' %}
+
+{% block blockContent %}
+
+<h2>{{ 'Import Menu' | t('navigation') }}</h2>
+<p>{{ 'Select a Navigation-exported JSON file for the menu to import. You’ll be able to configure your import at the next step.' | t('navigation') }}</p>
+
+{% if importError %}
+    <p class="error">{{ 'Error' | t('app') }}: {{ importError }}</p>
+{% endif %}
+
+<form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="navigation/import-export/import">
+    {{ redirectInput('navigation/settings/import-export/import-configure/{filename}') }}
+    {{ csrfInput() }}
+
+    {{ forms.fileField({
+        label: 'Import File' | t('navigation'),
+        instructions: 'Upload the JSON file that’s been exported from Navigation.' | t('navigation'),
+        name: 'file',
+    }) }}
+
+    <hr>
+
+    <input type="submit" class="btn submit" value="{{ 'Review Import' | t('navigation') }}">
+</form>
+
+<hr>
+
+<h2>{{ 'Export Menu' | t('navigation') }}</h2>
+<p>{{ 'Select a menu to export as a JSON file. This will include menu settings, the full node tree, and menu field values. You’ll be able to import this file later on the same, or a different environment.' | t('navigation') }}</p>
+
+{% if exportError %}
+    <p class="error">{{ 'Error' | t('app') }}: {{ exportError }}</p>
+{% endif %}
+
+<form method="post" accept-charset="UTF-8">
+    <input type="hidden" name="action" value="navigation/import-export/export">
+    {{ csrfInput() }}
+
+    {% set menuOptions = [{ label: 'Select an option' | t('navigation'), value: '' }] %}
+
+    {% for menu in craft.navigation.getAllMenus() | sort((a, b) => a.title <=> b.title) %}
+        {% set menuOptions = menuOptions | merge([{ label: menu.title ~ ' (' ~ menu.handle ~ ')', value: menu.id }]) %}
+    {% endfor %}
+
+    {{ forms.selectField({
+        label: 'Menu' | t('navigation'),
+        instructions: 'Select a menu to export.' | t('navigation'),
+        id: 'menuId',
+        name: 'menuId',
+        required: true,
+        options: menuOptions,
+    }) }}
+
+    <hr>
+
+    <input type="submit" class="btn submit" value="{{ 'Export' | t('app') }}">
+</form>
+
+{% endblock %}

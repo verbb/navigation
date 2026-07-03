@@ -2,7 +2,7 @@
     "name": "verbb/navigation",
     "description": "Create navigation menus for your site.",
     "type": "craft-plugin",
-    "version": "3.0.22",
+    "version": "4.0.0-beta.1",
     "keywords": [
         "craft",
         "cms",
@@ -30,10 +30,36 @@
         "craftcms/cms": "^5.0.0",
         "verbb/base": "^3.0.0"
     },
+    "require-dev": {
+        "craftcms/cms": "^5.9",
+        "craftcms/generator": "^2.0.0",
+        "pestphp/pest": "^3.8",
+        "pestphp/pest-plugin": "^3.0",
+        "vlucas/phpdotenv": "^5.6",
+        "yiisoft/yii2-shell": "^2.0.3"
+    },
     "autoload": {
         "psr-4": {
             "verbb\\navigation\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "pestphp/pest-plugin": true,
+            "yiisoft/yii2-composer": true
+        }
+    },
+    "scripts": {
+        "test": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests/Services tests/Gql tests/Helpers --exclude-group=slow --exclude-group=perf",
+        "test:setup": "@php tests/bin/test-setup.php",
+        "test:perf": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests --group=perf",
+        "test:all": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests"
     },
     "extra": {
         "name": "Navigation",

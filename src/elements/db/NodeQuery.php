@@ -1,24 +1,30 @@
 <?php
 namespace verbb\navigation\elements\db;
 
-use verbb\navigation\elements\Node;
-use verbb\navigation\models\Nav as NavModel;
+use verbb\navigation\deprecations\NodeQueryDeprecations;
+use verbb\navigation\elements\Menu;
+use verbb\navigation\models\MenuSettings;
+use verbb\navigation\Navigation;
 
 use Craft;
-use craft\db\Query;
 use craft\elements\db\ElementQuery;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 
 class NodeQuery extends ElementQuery
 {
+    // Traits
+    // =========================================================================
+
+    use NodeQueryDeprecations;
+
+
     // Properties
     // =========================================================================
 
     public mixed $id = null;
     public mixed $elementId = null;
     public mixed $siteId = null;
-    public mixed $navId = null;
+    public mixed $menuId = null;
     public mixed $enabled = true;
     public mixed $type = null;
     public mixed $classes = null;
@@ -29,6 +35,14 @@ class NodeQuery extends ElementQuery
     public mixed $element = null;
     public mixed $handle = null;
     public mixed $hasUrl = false;
+    public bool $withLinkedElements = false;
+    public ?bool $withNodeHierarchy = null;
+    public bool $withMenu = false;
+    public ?bool $withProjectedChildren = null;
+    public bool $internalReadFetch = false;
+    public bool $bypassReadCache = false;
+    public bool $skipPostCacheProcessing = false;
+    public bool $useNavigationCache = false;
 
 
     // Public Methods
@@ -43,43 +57,38 @@ class NodeQuery extends ElementQuery
         parent::init();
     }
 
+    public function all($db = null): array
+    {
+        if (!$this->bypassReadCache && Navigation::$plugin->getNavigationCache()->shouldCacheQuery($this)) {
+            return Navigation::$plugin->getNodeRead()->fetchCachedAll($this);
+        }
+
+        return parent::all($db);
+    }
+
     public function elementId($value): static
     {
         $this->elementId = $value;
         return $this;
     }
 
-    public function elementSiteId($value): static
+    public function menuId($value): static
     {
-        $this->slug = $value;
+        $this->menuId = $value;
+
         return $this;
     }
 
-    public function navId($value): static
+    public function menu($value): static
     {
-        $this->navId = $value;
-        return $this;
-    }
-
-    public function navHandle($value): static
-    {
-        $this->handle = $value;
-        return $this;
-    }
-
-    public function nav($value): static
-    {
-        if ($value instanceof NavModel) {
+        if ($value instanceof MenuSettings || $value instanceof Menu) {
             $this->structureId = ($value->structureId ?: false);
-            $this->navId = $value->id;
+            $this->menuId = $value->id;
         } else if ($value !== null) {
-            $this->navId = (new Query())
-                ->select(['id'])
-                ->from('{{%navigation_navs}}')
-                ->where(Db::parseParam('handle', $value))
-                ->column();
+            $this->handle($value);
         } else {
-            $this->navId = null;
+            $this->menuId = null;
+            $this->handle = null;
         }
 
         return $this;
@@ -103,10 +112,94 @@ class NodeQuery extends ElementQuery
         return $this;
     }
 
+    public function menuHandle($value): static
+    {
+        return $this->handle($value);
+    }
+
     public function hasUrl(bool $value = false): static
     {
         $this->hasUrl = $value;
         return $this;
+    }
+
+    /**
+     * Batch-hydrates linked Craft elements after the node query executes.
+     */
+    public function withLinkedElements(bool $value = true): static
+    {
+        $this->withLinkedElements = $value;
+        return $this;
+    }
+
+    /**
+     * Wires parent/child relationships in memory after the node query executes.
+     *
+     * Pass `false` to opt out. Omit the argument (default null) for smart auto on nav-scoped front-end reads.
+     */
+    public function withNodeHierarchy(?bool $value = true): static
+    {
+        $this->withNodeHierarchy = $value;
+        return $this;
+    }
+
+    /**
+     * Opts this query into plugin tree caching when cache mode is `manual`.
+     */
+    public function withNavigationCache(bool $value = true): static
+    {
+        $this->useNavigationCache = $value;
+        return $this;
+    }
+
+    /**
+     * Batch-hydrates the parent Menu element (including custom fields) after the node query executes.
+     */
+    public function withMenu(bool $value = true): static
+    {
+        $this->withMenu = $value;
+        return $this;
+    }
+
+    /**
+     * Wires read-time Dynamic projections into hierarchy output.
+     *
+     * Pass `false` to skip projected children. Omit the argument (default null) to include projections.
+     */
+    public function withProjectedChildren(?bool $value = true): static
+    {
+        $this->withProjectedChildren = $value;
+        return $this;
+    }
+
+    public function shouldProjectChildren(): bool
+    {
+        return $this->withProjectedChildren !== false;
+    }
+
+    public function shouldWireNodeHierarchy(): bool
+    {
+        if ($this->withNodeHierarchy === false) {
+            return false;
+        }
+
+        if ($this->withNodeHierarchy === true) {
+            return true;
+        }
+
+        if ($this->internalReadFetch) {
+            return false;
+        }
+
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
+            return false;
+        }
+
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return false;
+        }
+
+        return (bool)($this->menuId || $this->handle);
     }
 
     // We set the active state on each node, however it gets trickier when trying to do things like settings the active
@@ -114,22 +207,73 @@ class NodeQuery extends ElementQuery
     // which quickly blow out queries. So instead, do this when the elements are populated
     public function populate($rows): array
     {
-        // Let the parent class handle this like normal
+        $siteDataByNodeId = [];
+
+        foreach ($rows as &$row) {
+            $siteDataByNodeId[(int)$row['id']] = [
+                'url' => $row['nodeSiteUrl'] ?? null,
+                'urlSuffix' => $row['nodeSiteUrlSuffix'] ?? null,
+                'linkedElementSiteId' => $row['nodeSiteLinkedElementSiteId'] ?? null,
+                'elementUrl' => $row['elementUrl'] ?? null,
+            ];
+
+            unset(
+                $row['nodeSiteUrl'],
+                $row['nodeSiteUrlSuffix'],
+                $row['nodeSiteLinkedElementSiteId'],
+                $row['elementUrl'],
+            );
+        }
+        unset($row);
+
         $rows = parent::populate($rows);
 
-        // Store all processed items by their ID, we need to lookup parents later
-        $processedRows = ArrayHelper::index($rows, 'id');
+        if ($rows) {
+            foreach ($rows as $node) {
+                $data = $siteDataByNodeId[$node->id] ?? null;
 
-        foreach ($rows as $row) {
-            // If the current node is active, and it has a parent, set its active state
-            if (is_a($row, Node::class) && $row->active) {
-                $ancestors = $row->ancestors->all();
-
-                foreach ($ancestors as $ancestor) {
-                    if (isset($processedRows[$ancestor->id])) {
-                        $processedRows[$ancestor->id]->isActive = true;
-                    }
+                if (!$data) {
+                    continue;
                 }
+
+                if ($data['url'] !== null) {
+                    $node->setUrl($data['url']);
+                }
+
+                if ($data['urlSuffix'] !== null) {
+                    $node->urlSuffix = $data['urlSuffix'];
+                }
+
+                if ($data['linkedElementSiteId']) {
+                    $node->setElementSiteId($data['linkedElementSiteId']);
+                }
+
+                if ($data['elementUrl'] !== null) {
+                    $node->setElementUrl($data['elementUrl']);
+                }
+            }
+        }
+
+        if ($this->shouldWireNodeHierarchy()) {
+            $rows = Navigation::$plugin->getNodeRead()->assembleNodeHierarchyForQueryResult(
+                $this,
+                $rows,
+                $this->withLinkedElements,
+                $this->shouldProjectChildren(),
+            );
+        } elseif ($this->withLinkedElements) {
+            Navigation::$plugin->getNodeRead()->eagerLoadLinkedElements($rows);
+        }
+
+        if ($this->withMenu) {
+            Navigation::$plugin->getNodeRead()->eagerLoadMenus($rows);
+        }
+
+        if (!$this->skipPostCacheProcessing && !Craft::$app->getRequest()->getIsCpRequest()) {
+            Navigation::$plugin->getActiveMatcher()->resolve($rows);
+
+            if ($this->shouldProjectChildren()) {
+                Navigation::$plugin->getActiveMatcher()->resolveProjections($rows);
             }
         }
 
@@ -143,21 +287,20 @@ class NodeQuery extends ElementQuery
     protected function beforePrepare(): bool
     {
         $this->joinElementTable('navigation_nodes');
-        $this->subQuery->innerJoin('{{%navigation_navs}} navigation_navs', '[[navigation_nodes.navId]] = [[navigation_navs.id]]');
+        $this->subQuery->innerJoin('{{%navigation_menus}} navigation_menus', '[[navigation_nodes.menuId]] = [[navigation_menus.id]]');
 
         $this->query->select([
             'navigation_nodes.id',
             'navigation_nodes.elementId',
-            'navigation_nodes.navId',
-            'navigation_nodes.url',
+            'navigation_nodes.menuId',
             'navigation_nodes.type',
             'navigation_nodes.classes',
             'navigation_nodes.newWindow',
             'navigation_nodes.customAttributes',
-            'navigation_nodes.urlSuffix',
             'navigation_nodes.data',
-
-            // Join the element's uri onto the same query
+            'node_sites.url AS nodeSiteUrl',
+            'node_sites.urlSuffix AS nodeSiteUrlSuffix',
+            'node_sites.linkedElementSiteId AS nodeSiteLinkedElementSiteId',
             'element_item_sites.uri AS elementUrl',
         ]);
 
@@ -169,8 +312,8 @@ class NodeQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('navigation_nodes.elementId', $this->elementId));
         }
 
-        if ($this->navId) {
-            $this->subQuery->andWhere(Db::parseParam('navigation_nodes.navId', $this->navId));
+        if ($this->menuId) {
+            $this->subQuery->andWhere(Db::parseParam('navigation_nodes.menuId', $this->menuId));
         }
 
         if ($this->type) {
@@ -182,7 +325,7 @@ class NodeQuery extends ElementQuery
         }
 
         if ($this->urlSuffix) {
-            $this->subQuery->andWhere(Db::parseParam('navigation_nodes.urlSuffix', $this->urlSuffix));
+            $this->subQuery->andWhere(Db::parseParam('node_sites.urlSuffix', $this->urlSuffix));
         }
 
         if ($this->customAttributes) {
@@ -198,33 +341,54 @@ class NodeQuery extends ElementQuery
         }
 
         if ($this->handle) {
-            $this->subQuery->andWhere(Db::parseParam('navigation_navs.handle', $this->handle));
+            $this->subQuery->andWhere(Db::parseParam('navigation_menus.handle', $this->handle));
         }
 
         if ($this->hasUrl) {
-            $this->subQuery->andWhere(['or', ['not', ['navigation_nodes.elementId' => null, 'navigation_nodes.elementId' => '']], ['not', ['navigation_nodes.url' => null, 'navigation_nodes.url' => '']]]);
-        }        
+            $this->subQuery->andWhere(['or',
+                ['not', ['navigation_nodes.elementId' => null]],
+                ['not', ['node_sites.url' => null]],
+                ['not', ['node_sites.url' => '']],
+            ]);
+        }
+
+        $siteId = $this->_resolveSiteId();
+
+        $this->subQuery->leftJoin(
+            '{{%navigation_nodes_sites}} node_sites',
+            '[[node_sites.nodeId]] = [[navigation_nodes.id]] AND [[node_sites.siteId]] = ' . (int)$siteId,
+        );
+
+        $this->query->leftJoin(
+            '{{%navigation_nodes_sites}} node_sites',
+            '[[node_sites.nodeId]] = [[navigation_nodes.id]] AND [[node_sites.siteId]] = ' . (int)$siteId,
+        );
 
         return parent::beforePrepare();
     }
 
     protected function afterPrepare(): bool
     {
-        if (Craft::$app->getDb()->getIsMysql()) {
-            $slugColumn = Craft::$app->getDb()->getSchema()->getTableSchema('{{%elements_sites}}')?->getColumn('slug');
-            $collation = $slugColumn?->collation ?? 'utf8mb4_unicode_ci';
-            // CAST uses the connection charset; COLLATE must use the same charset as [[elements_sites.slug]].
-            $charset = $slugColumn?->charset ?? (preg_match('/^([A-Za-z0-9]+)_/', $collation, $m) ? $m[1] : 'utf8mb4');
-            $sql = 'CAST([[element_item_sites.siteId]] AS CHAR CHARACTER SET ' . $charset . ') COLLATE ' . $collation;
-        } else {
-            $sql = 'CAST([[element_item_sites.siteId]] AS TEXT)';
-        }
+        $siteId = $this->_resolveSiteId();
 
         $this->query->leftJoin(
             '{{%elements_sites}} element_item_sites',
-            '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND [[elements_sites.slug]] = ' . $sql
+            '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND [[element_item_sites.siteId]] = COALESCE([[node_sites.linkedElementSiteId]], ' . (int)$siteId . ')',
         );
 
         return parent::afterPrepare();
+    }
+
+    protected function _resolveSiteId(): int
+    {
+        if ($this->siteId !== null && $this->siteId !== '*') {
+            if (is_array($this->siteId)) {
+                return (int)reset($this->siteId);
+            }
+
+            return (int)$this->siteId;
+        }
+
+        return Craft::$app->getSites()->getCurrentSite()->id;
     }
 }

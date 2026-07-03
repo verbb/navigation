@@ -1,0 +1,20 @@
+<nav class="navigation-settings-tabs">
+    <ul>
+        {% for handle, item in craft.navigation.getSettingsNavItems() %}
+            {% if item.heading is defined %}
+                <li class="heading"><span>{{ item.heading }}</span></li>
+            {% else %}
+                {% set itemUrl = handle == 'general'
+                    ? url('navigation/settings')
+                    : url('navigation/settings/' ~ handle)
+                %}
+
+                <li>
+                    <a href="{{ itemUrl }}"{% if selectedTab == handle %} class="sel"{% endif %}>
+                        {{ item.title }}
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
