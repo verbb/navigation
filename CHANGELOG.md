@@ -6,7 +6,9 @@
 - Added **Enabled On Other Sites By Default** menu setting and per-node **Enabled on other sites** control in the builder when nodes propagate across sites ([#400](https://github.com/verbb/navigation/issues/400)).
 
 ### Changed
-- Entry-linked nodes are disabled when their source section is deleted; category-linked nodes when their category group is deleted ([#385](https://github.com/verbb/navigation/issues/385)).
+- Entry-linked nodes are disabled when their source section is deleted, matching single-entry soft-delete behaviour ([#385](https://github.com/verbb/navigation/issues/385)).
+- Category-linked nodes are disabled when their source category group is deleted, matching single-category soft-delete behaviour ([#385](https://github.com/verbb/navigation/issues/385)).
+
 
 ## 4.0.0-beta.1 - 2026-07-03
 
@@ -71,8 +73,6 @@
 - Node `type` values are now node type class names in `verbb\navigation\nodetypes\` (e.g. `Entry`) instead of Craft element FQCNs (migrated on upgrade).
 - Menu **Permissions** settings are keyed by node type class names (migrated on upgrade; legacy keys normalized on load/save).
 - Dynamic nodes are removed when their source section, category group, volume, or product type is deleted ([#385](https://github.com/verbb/navigation/issues/385)).
-- Entry-linked nodes are disabled when their source section is deleted, matching single-entry soft-delete behaviour ([#385](https://github.com/verbb/navigation/issues/385)).
-- Category-linked nodes are disabled when their source category group is deleted, matching single-category soft-delete behaviour ([#385](https://github.com/verbb/navigation/issues/385)).
 - Improved linked-element lifecycle hooks to resolve 4.x node type classes and per-site `linkedElementSiteId` instead of the legacy slug hack ([#386](https://github.com/verbb/navigation/issues/386)).
 - Linked-element **soft-delete** now disables nodes (preserving prior enabled state) instead of deleting them; **restore** re-enables nodes ([#386](https://github.com/verbb/navigation/issues/386)); **hard-delete** removes nodes.
 - Linked entry title sync respects per-site node title overrides via `hasOverriddenTitle()` ([#230](https://github.com/verbb/navigation/issues/230), [#394](https://github.com/verbb/navigation/issues/394)).
