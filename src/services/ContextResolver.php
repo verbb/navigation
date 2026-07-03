@@ -20,7 +20,7 @@ class ContextResolver extends Component
 
         if ($criteria) {
             if (is_string($criteria)) {
-                $criteria = ['menuHandle' => $criteria];
+                $criteria = ['handle' => $criteria];
             } elseif (is_array($criteria)) {
                 $criteria = DeprecationHelper::normalizeNodeQueryCriteria($criteria);
             }

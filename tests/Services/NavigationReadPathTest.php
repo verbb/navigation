@@ -229,3 +229,23 @@ it('matches tree and render node counts for the same nav', function() {
     expect($flatNodes)->toHaveCount(12);
     expect(substr_count($html, '<li'))->toBe(12);
 });
+
+it('accepts a menu handle string shorthand for nodes()', function() {
+    $nav = NavigationFixtureFactory::menu();
+    NavigationFixtureFactory::flatCustomNodes($nav, 2);
+
+    $nodes = (new NavigationVariable())->nodes($nav->handle)->all();
+
+    expect($nodes)->toHaveCount(2);
+});
+
+it('normalizes deprecated node query criteria keys to handle', function() {
+    $nav = NavigationFixtureFactory::menu();
+    NavigationFixtureFactory::flatCustomNodes($nav, 2);
+
+    $variable = new NavigationVariable();
+
+    expect($variable->nodes(['navHandle' => $nav->handle])->all())->toHaveCount(2);
+    expect($variable->nodes(['nav' => $nav->handle])->all())->toHaveCount(2);
+    expect($variable->nodes(['menuHandle' => $nav->handle])->all())->toHaveCount(2);
+});

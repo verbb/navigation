@@ -103,7 +103,7 @@ Canonical **`craft.navigation.getMenuByHandle()`** returns a **`verbb\navigation
 | v3 | v4 |
 | --- | --- |
 | `.navHandle()` / `.nav()` / `.navId()` on node queries | `.handle()` / `.menu()` / `.menuId()` |
-| Criteria keys `navHandle`, `nav`, `navId` | `menuHandle`, `menuId` |
+| Criteria keys `navHandle`, `nav`, `navId` | `handle`, `menuId` |
 | `$node->navId` | `$node->menuId` |
 | `verbb\navigation\elements\Node::getNav()` | `verbb\navigation\elements\Node::getMenu()` |
 | `verbb\navigation\elements\Node::getIsActive()` | `verbb\navigation\elements\Node::getActive()` / `getActiveState()` |

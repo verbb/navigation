@@ -14,22 +14,27 @@ class DeprecationHelper
             // Deprecated in 4.0.0
             Craft::$app->getDeprecator()->log(
                 'navigation.nodeQuery.navHandle',
-                'The `navHandle` query param has been deprecated. Use `menuHandle` instead.',
+                'The `navHandle` query param has been deprecated. Use `handle` instead.',
             );
 
-            $criteria['menuHandle'] = $criteria['navHandle'];
+            $criteria['handle'] = $criteria['navHandle'];
             unset($criteria['navHandle']);
         }
 
-        if (array_key_exists('nav', $criteria) && !array_key_exists('menuHandle', $criteria)) {
+        if (array_key_exists('nav', $criteria) && !array_key_exists('handle', $criteria)) {
             // Deprecated in 4.0.0
             Craft::$app->getDeprecator()->log(
                 'navigation.nodeQuery.nav',
-                'The `nav` query param has been deprecated. Use `menuHandle` or `menu()` instead.',
+                'The `nav` query param has been deprecated. Use `handle` or `menu()` instead.',
             );
 
-            $criteria['menuHandle'] = $criteria['nav'];
+            $criteria['handle'] = $criteria['nav'];
             unset($criteria['nav']);
+        }
+
+        if (array_key_exists('menuHandle', $criteria) && !array_key_exists('handle', $criteria)) {
+            $criteria['handle'] = $criteria['menuHandle'];
+            unset($criteria['menuHandle']);
         }
 
         if (array_key_exists('navId', $criteria) && !array_key_exists('menuId', $criteria)) {

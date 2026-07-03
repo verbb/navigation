@@ -11,6 +11,7 @@
 
 ### Fixed
 - Fixed an install error around `ProjectConfig::onDelete`. (thanks @bramnijssen)
+- Fixed `craft.navigation.nodes()` string shorthand and deprecated node query criteria keys setting an unknown `menuHandle` property on `NodeQuery`. (thanks @bramnijssen)
 
 ## 4.0.0-beta.1 - 2026-07-03
 
@@ -100,7 +101,7 @@
 - **Node element** (`NodeDeprecations`): `getNav()`, `getIsActive()`, `setIsActive()`. Use `getMenu()`, `getActive()`, and `getActiveState()` instead.
 - **Menu element** (`MenuDeprecations`): `getNav()`. Use the `Menu` element API or `getMenuHandle()` instead.
 - **NodeQuery** (`NodeQueryDeprecations`): `nav()`, `navHandle()`, `navId()`, `elementSiteId()`. Use `menu()`, `menuHandle()` / `handle()`, `menuId()`, and per-site link settings instead.
-- **Node query criteria** (Twig `craft.navigation.nodes()`, context criteria): `navHandle`, `nav`, and `navId` keys are normalized to `menuHandle` / `menuId` with deprecation notices.
+- **Node query criteria** (Twig `craft.navigation.nodes()`, context criteria): `navHandle`, `nav`, and `navId` keys are normalized to `handle` / `menuId` with deprecation notices.
 - **GraphQL node queries**: `nav`, `navHandle`, and `navId` arguments normalize to `menuHandle` / `menuId`. Node fields `navId`, `navHandle`, and `navName` remain available; use `menuId`, `menuHandle`, and `menuName` instead.
 - **Plugin API** (`MenusDeprecations`, `PluginTrait::getNavs()`): `getAllNavs()`, `getNavByHandle()`, `getNavById()`, `saveNav()`, `deleteNav()`, etc. Use `getMenus()` and the `*Menu*` equivalents.
 - **Events**: `NavEvent` → `MenuEvent`; `EVENT_BEFORE_SAVE_NAV` → `EVENT_BEFORE_SAVE_MENU`, etc. Legacy class aliases and `$event->nav` shims added in 4.0.0 — prefer `MenuEvent` / `$event->menu`.
