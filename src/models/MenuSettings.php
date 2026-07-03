@@ -47,6 +47,7 @@ class MenuSettings extends Model
     public string $propagationMethod = self::PROPAGATION_METHOD_ALL;
     public string $titleTranslationMethod = Field::TRANSLATION_METHOD_SITE;
     public ?string $titleTranslationKeyFormat = null;
+    public bool $defaultEnabledForPropagatedSites = true;
     public ?int $maxNodes = null;
     public ?int $maxLevels = null;
     public array $maxNodesSettings = [];
@@ -267,6 +268,7 @@ class MenuSettings extends Model
             'propagationMethod' => $this->propagationMethod,
             'titleTranslationMethod' => $this->titleTranslationMethod,
             'titleTranslationKeyFormat' => $this->titleTranslationKeyFormat,
+            'defaultEnabledForPropagatedSites' => $this->defaultEnabledForPropagatedSites,
             'maxNodes' => $this->maxNodes,
             'maxNodesSettings' => $this->maxNodesSettings,
             'sortOrder' => (int)$this->sortOrder,
@@ -312,6 +314,7 @@ class MenuSettings extends Model
         $rules = parent::defineRules();
 
         $rules[] = [['id', 'structureId', 'fieldLayoutId', 'maxLevels'], 'number', 'integerOnly' => true];
+        $rules[] = [['defaultEnabledForPropagatedSites'], 'boolean'];
         $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']];
         $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => MenuRecord::class];
         $rules[] = [['name', 'handle', 'propagationMethod', 'siteSettings'], 'required'];

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added **Enabled On Other Sites By Default** menu setting and per-node **Enabled on other sites** control in the builder when nodes propagate across sites ([#400](https://github.com/verbb/navigation/issues/400)).
+
+### Changed
+- Entry-linked nodes are disabled when their source section is deleted; category-linked nodes when their category group is deleted ([#385](https://github.com/verbb/navigation/issues/385)).
+
 ## 4.0.0-beta.1 - 2026-07-03
 
 ### Added

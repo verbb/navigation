@@ -193,6 +193,7 @@ class ImportExportHelper
             'propagationMethod' => $menu->propagationMethod,
             'titleTranslationMethod' => $menu->titleTranslationMethod,
             'titleTranslationKeyFormat' => $menu->titleTranslationKeyFormat,
+            'defaultEnabledForPropagatedSites' => $menu->defaultEnabledForPropagatedSites,
             'maxNodes' => $menu->maxNodes,
             'maxLevels' => $menu->maxLevels,
             'maxNodesSettings' => $menu->maxNodesSettings,

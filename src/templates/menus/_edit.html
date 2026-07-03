@@ -211,6 +211,16 @@
                     }) }}
                 </div>
             </div>
+
+            {% if (nav.propagationMethod ?? 'all') != 'none' %}
+                {{ forms.lightswitchField({
+                    label: 'Enabled On Other Sites By Default' | t('navigation'),
+                    instructions: 'When adding a node, whether copies on other propagated sites should be enabled by default. Editors can override this per node in the menu builder.' | t('navigation'),
+                    id: 'defaultEnabledForPropagatedSites',
+                    name: 'defaultEnabledForPropagatedSites',
+                    on: nav.defaultEnabledForPropagatedSites ?? true,
+                }) }}
+            {% endif %}
         {% endif %}
 
         {{ forms.textField({

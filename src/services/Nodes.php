@@ -97,9 +97,7 @@ class Nodes extends Component
         $count = 0;
 
         foreach ($this->getPendingPublishNodes($menuId, $siteId) as $node) {
-            $node->enabled = true;
-            $node->setEnabledForSite(true);
-            $node->clearPendingPublish();
+            $node->publishPendingAdd();
 
             if (!$elementsService->saveElement($node)) {
                 throw new UserException(Craft::t('navigation', 'Couldn’t save menu.'));

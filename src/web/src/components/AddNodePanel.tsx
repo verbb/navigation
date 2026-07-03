@@ -23,6 +23,7 @@ function buildPayload(
     type: tab.type,
     parentId: parentId === '' || parentId === 0 || parentId === '0' || parentId == null ? null : parentId,
     newWindow: values.newWindow ?? false,
+    enabledForPropagatedSites: values.enabledForPropagatedSites ?? true,
     title: values.title ?? '',
     url: values.url ?? '',
     data: values.data ?? {},

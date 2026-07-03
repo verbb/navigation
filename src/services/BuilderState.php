@@ -69,6 +69,8 @@ class BuilderState extends Component
                 'structureId' => $nav->structureId,
                 'showSiteMenu' => (bool)$nav->showSiteMenu,
                 'propagationMethod' => $nav->propagationMethod,
+                'hasMultiSiteNodes' => $nav->getHasMultiSiteNodes(),
+                'defaultEnabledForPropagatedSites' => (bool)$nav->defaultEnabledForPropagatedSites,
             ],
             'site' => [
                 'id' => $site->id,
@@ -216,12 +218,13 @@ class BuilderState extends Component
                 $entry['hasNewWindow'] = $nodeType::hasNewWindow();
             }
 
-            $entry['schemaIndex'] = BuilderSchemaHelper::compileAddNodeSchema($entry, $showParent, $parentOptions);
+            $entry['schemaIndex'] = BuilderSchemaHelper::compileAddNodeSchema($entry, $showParent, $parentOptions, $nav);
             $entry['defaultValues'] = [
                 'parentId' => null,
                 'newWindow' => false,
                 'title' => '',
                 'url' => '',
+                'enabledForPropagatedSites' => (bool)$nav->defaultEnabledForPropagatedSites,
                 'data' => is_subclass_of($typeClass, NodeType::class)
                     ? $typeClass::getAddNodeDefaultData()
                     : [],

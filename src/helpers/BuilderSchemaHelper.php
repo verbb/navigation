@@ -2,18 +2,19 @@
 namespace verbb\navigation\helpers;
 
 use verbb\navigation\base\NodeType;
+use verbb\navigation\models\MenuSettings;
 
 class BuilderSchemaHelper
 {
     // Static Methods
     // =========================================================================
 
-    public static function compileAddNodeSchema(array $tab, bool $showParent, array $parentOptions): array
+    public static function compileAddNodeSchema(array $tab, bool $showParent, array $parentOptions, ?MenuSettings $menu = null): array
     {
-        return self::compileSchema(self::buildAddNodeSchema($tab, $showParent, $parentOptions));
+        return self::compileSchema(self::buildAddNodeSchema($tab, $showParent, $parentOptions, $menu));
     }
 
-    public static function buildAddNodeSchema(array $tab, bool $showParent, array $parentOptions): array
+    public static function buildAddNodeSchema(array $tab, bool $showParent, array $parentOptions, ?MenuSettings $menu = null): array
     {
         $fields = [];
 
@@ -25,6 +26,12 @@ class BuilderSchemaHelper
 
         if (is_string($typeClass) && is_subclass_of($typeClass, NodeType::class)) {
             $fields = array_merge($fields, $typeClass::getAddNodeSchema($tab));
+        }
+
+        if ($menu?->getHasMultiSiteNodes()) {
+            $fields[] = NodeTypeSchemaFields::enabledForPropagatedSitesField(
+                (bool)$menu->defaultEnabledForPropagatedSites,
+            );
         }
 
         return $fields;

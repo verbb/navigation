@@ -290,9 +290,7 @@ class BuildSessions extends Component
                     continue;
                 }
 
-                $node->enabled = true;
-                $node->setEnabledForSite(true);
-                $node->clearPendingPublish();
+                $node->publishPendingAdd();
 
                 if (!$elementsService->saveElement($node)) {
                     throw new UserException(Craft::t('navigation', 'Couldn’t save menu.'));

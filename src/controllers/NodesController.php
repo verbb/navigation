@@ -40,9 +40,6 @@ class NodesController extends Controller
             $nodesService->setTempNodes([$node]);
 
             if ($deferPublish) {
-                // Staged in the builder until Publish menu applies changes and invalidates cache.
-                $node->enabled = false;
-                $node->enabledForSite = false;
                 $node->setPendingPublish(true);
             }
 
@@ -223,6 +220,12 @@ class NodesController extends Controller
         $node->customAttributes = Json::decodeIfJson($this->request->getParam("{$prefix}customAttributes")) ?? $node->customAttributes;
         $node->data = Json::decodeIfJson($this->request->getParam("{$prefix}data")) ?? $node->data;
         $node->newWindow = (bool)$this->request->getParam("{$prefix}newWindow", $node->newWindow);
+
+        $enabledForPropagatedSites = $this->request->getParam("{$prefix}enabledForPropagatedSites");
+
+        if ($enabledForPropagatedSites !== null) {
+            $node->setEnabledForPropagatedSitesPreference((bool)$enabledForPropagatedSites);
+        }
 
         $node->parentId = $this->request->getParam("{$prefix}parentId");
 

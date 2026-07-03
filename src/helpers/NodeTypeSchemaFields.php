@@ -43,6 +43,16 @@ class NodeTypeSchemaFields
         ]);
     }
 
+    public static function enabledForPropagatedSitesField(bool $default = true): array
+    {
+        return self::_lightswitchField([
+            'name' => 'enabledForPropagatedSites',
+            'label' => Craft::t('navigation', 'Enabled on other sites'),
+            'instructions' => Craft::t('navigation', 'Whether this node should be enabled on other sites this menu propagates to.'),
+            'defaultValue' => $default,
+        ]);
+    }
+
     public static function titleField(): array
     {
         return self::_textField([

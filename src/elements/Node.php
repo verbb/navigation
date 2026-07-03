@@ -323,6 +323,8 @@ class Node extends Element
     /** Stored enabled state to restore when the linked element is restored. */
     public const LINKED_ELEMENT_DISABLED_STATE_DATA_KEY = '_linkedElementDisabledState';
 
+    public const ENABLED_FOR_PROPAGATED_SITES_DATA_KEY = 'enabledForPropagatedSites';
+
     public const STATUS_PENDING_ADD = 'pending-add';
     public const STATUS_PENDING_DELETE = 'pending-delete';
     public const STATUS_PENDING_EDIT = 'pending-edit';
@@ -1103,6 +1105,67 @@ class Node extends Element
         return $siteIds;
     }
 
+    public function getEnabledForPropagatedSitesPreference(?MenuSettings $menu = null): bool
+    {
+        $menu ??= $this->_getMenu();
+        $data = is_array($this->data) ? $this->data : [];
+
+        if (array_key_exists(self::ENABLED_FOR_PROPAGATED_SITES_DATA_KEY, $data)) {
+            return (bool)$data[self::ENABLED_FOR_PROPAGATED_SITES_DATA_KEY];
+        }
+
+        return (bool)($menu->defaultEnabledForPropagatedSites ?? true);
+    }
+
+    public function setEnabledForPropagatedSitesPreference(bool $value): void
+    {
+        $data = is_array($this->data) ? $this->data : [];
+        $data[self::ENABLED_FOR_PROPAGATED_SITES_DATA_KEY] = $value;
+        $this->data = $data;
+    }
+
+    public function applyPropagationEnabledSiteStatuses(bool $enabledOnPropagatedSites, ?bool $enabledOnOwnerSite = null): void
+    {
+        $menu = $this->_getMenu();
+
+        if (!$menu->getHasMultiSiteNodes()) {
+            return;
+        }
+
+        $ownerSiteId = (int)$this->siteId;
+        $enabledOnOwnerSite ??= $this->getEnabledForSite($ownerSiteId) ?? (bool)$this->enabled;
+        $map = [];
+
+        foreach ($this->getSupportedSites() as $site) {
+            $siteId = is_array($site) ? (int)$site['siteId'] : (int)$site;
+            $map[$siteId] = ($siteId === $ownerSiteId) ? $enabledOnOwnerSite : $enabledOnPropagatedSites;
+        }
+
+        if ($map === []) {
+            return;
+        }
+
+        $this->enabled = true;
+        $this->setEnabledForSite($map);
+    }
+
+    public function publishPendingAdd(): void
+    {
+        $menu = $this->_getMenu();
+
+        if ($menu->getHasMultiSiteNodes()) {
+            $this->applyPropagationEnabledSiteStatuses(
+                $this->getEnabledForPropagatedSitesPreference($menu),
+                true,
+            );
+        } else {
+            $this->enabled = true;
+            $this->setEnabledForSite(true);
+        }
+
+        $this->clearPendingPublish();
+    }
+
     public function getGqlTypeName(): string
     {
         return static::gqlTypeNameByContext($this->_getMenu());
@@ -1191,6 +1254,16 @@ class Node extends Element
 
         if ($this->nodeType()) {
             $this->nodeType()->beforeSaveNode($isNew);
+        }
+
+        if ($isNew && !$this->propagating && $nav->getHasMultiSiteNodes()) {
+            $enabledOnPropagated = $this->getEnabledForPropagatedSitesPreference($nav);
+
+            if ($this->getIsPendingPublish()) {
+                $this->applyPropagationEnabledSiteStatuses(false, false);
+            } else {
+                $this->applyPropagationEnabledSiteStatuses($enabledOnPropagated, true);
+            }
         }
 
         return parent::beforeSave($isNew);

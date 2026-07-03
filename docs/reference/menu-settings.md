@@ -23,6 +23,7 @@ MenuSettings is a PHP-only API. In Twig, use `craft.navigation.menu('handle').on
 | `propagationMethod` | Multisite propagation for nodes |
 | `titleTranslationMethod` | How node titles propagate across sites (`none`, `site`, `siteGroup`, `language`, `custom`) |
 | `titleTranslationKeyFormat` | Custom translation key template when `titleTranslationMethod` is `custom` |
+| `defaultEnabledForPropagatedSites` | Default **Enabled On Other Sites By Default** value for new nodes when propagation is not `none` |
 | `structureId` | Craft structure ID for the node tree |
 | `fieldLayoutId` | Node custom field layout |
 

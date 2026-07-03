@@ -360,6 +360,7 @@ class Menus extends Component
 
             $navRecord->titleTranslationMethod = $data['titleTranslationMethod'] ?? Field::TRANSLATION_METHOD_SITE;
             $navRecord->titleTranslationKeyFormat = $data['titleTranslationKeyFormat'] ?? null;
+            $navRecord->defaultEnabledForPropagatedSites = $data['defaultEnabledForPropagatedSites'] ?? true;
 
             $navRecord->uid = $menuUid;
             $propagationMethodChanged = false;
@@ -894,6 +895,10 @@ class Menus extends Component
 
             if (version_compare($schemaVersion, '4.0.0', '>=')) {
                 $query->addSelect(['navs.titleTranslationMethod', 'navs.titleTranslationKeyFormat']);
+            }
+
+            if (version_compare($schemaVersion, '4.0.6', '>=')) {
+                $query->addSelect('navs.defaultEnabledForPropagatedSites');
             }
 
         return $query;

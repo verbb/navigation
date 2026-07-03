@@ -87,6 +87,10 @@ Pass site criteria to `tree()` and GraphQL the same way as node queries:
 
 Menu-level **propagation** (in project config / menu settings) controls how new nodes propagate across sites — aligned with Craft element propagation methods (`all`, `none`, site group, language, etc.). Set this when creating the menu if editors should manage one shared tree or site-specific branches.
 
+### Default status on propagated sites
+
+When propagation is not **none**, each menu has an **Enabled On Other Sites By Default** setting. New nodes inherit this in the builder quick-add form (editors can override per node with the **Enabled on other sites** lightswitch). This is useful for site-specific branches in large multisite installs — add the node on one site without enabling it everywhere, then enable it on the sites that need it.
+
 ## Title translation
 
 Each menu has a **Title Translation Method** (same options as entry types: per site, site group, language, custom, or not translatable). When you override a node title on one site, Craft copies it to other sites that share the same translation key — for example, all English locales when set to **Translate for each language**.

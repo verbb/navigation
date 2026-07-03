@@ -218,6 +218,7 @@ class MenusController extends Controller
         $nav->propagationMethod = $this->request->getBodyParam('propagationMethod', MenuSettings::PROPAGATION_METHOD_ALL);
         $nav->titleTranslationMethod = $this->request->getBodyParam('titleTranslationMethod', Field::TRANSLATION_METHOD_SITE);
         $nav->titleTranslationKeyFormat = $this->request->getBodyParam('titleTranslationKeyFormat') ?: null;
+        $nav->defaultEnabledForPropagatedSites = (bool)$this->request->getBodyParam('defaultEnabledForPropagatedSites', true);
         $nav->maxLevels = (int)$this->request->getBodyParam('maxLevels') ?: null;
         $nav->maxNodes = (int)$this->request->getBodyParam('maxNodes') ?: null;
         $nav->maxNodesSettings = $this->request->getBodyParam('maxNodesSettings') ?: [];

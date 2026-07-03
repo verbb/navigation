@@ -7,7 +7,15 @@ use craft\base\Field;
 use verbb\navigation\elements\Node;
 use verbb\navigation\models\MenuSettings;
 use verbb\navigation\Navigation;
+use verbb\navigation\nodetypes\Custom;
 use verbb\navigation\variables\NavigationVariable;
+
+function nodeIsEnabledOnSite(Node $node): bool
+{
+    $isMultiSite = Craft::$app->getIsMultiSite() && count($node->getSupportedSites()) > 1;
+
+    return $isMultiSite ? (bool)$node->getEnabledForSite() : (bool)$node->enabled;
+}
 
 it('stores custom urls per site for propagated nodes', function() {
     $secondarySite = NavigationFixtureFactory::existingSecondarySite();
@@ -80,6 +88,91 @@ it('creates matching node titles on propagated sites', function() {
     expect($secondaryNode)->not->toBeNull();
     expect($secondaryNode->title)->toBe('Shared title');
     expect($secondaryNode->id)->toBe($node->id);
+});
+
+it('disables propagated site copies when enabledForPropagatedSites is false', function() {
+    $secondarySite = NavigationFixtureFactory::existingSecondarySite();
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $nav = NavigationFixtureFactory::menu();
+
+    $node = new Node([
+        'menuId' => $nav->id,
+        'siteId' => $primarySite->id,
+        'type' => Custom::class,
+        'title' => 'Site-only branch',
+        'url' => '/site-only',
+        'enabled' => true,
+    ]);
+    $node->setEnabledForPropagatedSitesPreference(false);
+
+    expect(Craft::$app->getElements()->saveElement($node, true))->toBeTrue();
+
+    $primaryReloaded = Node::find()->id($node->id)->siteId($primarySite->id)->status(null)->one();
+    $secondaryReloaded = Node::find()->id($node->id)->siteId($secondarySite->id)->status(null)->one();
+
+    expect($primaryReloaded)->not->toBeNull();
+    expect($secondaryReloaded)->not->toBeNull();
+    expect(nodeIsEnabledOnSite($primaryReloaded))->toBeTrue();
+    expect(nodeIsEnabledOnSite($secondaryReloaded))->toBeFalse();
+});
+
+it('uses the menu default when enabledForPropagatedSites is not set on the node', function() {
+    $secondarySite = NavigationFixtureFactory::existingSecondarySite();
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $nav = NavigationFixtureFactory::menu();
+    $nav->defaultEnabledForPropagatedSites = false;
+
+    expect(Navigation::$plugin->getMenus()->saveMenu($nav))->toBeTrue();
+
+    $node = new Node([
+        'menuId' => $nav->id,
+        'siteId' => $primarySite->id,
+        'type' => Custom::class,
+        'title' => 'Menu default disabled',
+        'url' => '/menu-default-disabled',
+        'enabled' => true,
+    ]);
+
+    expect(Craft::$app->getElements()->saveElement($node, true))->toBeTrue();
+
+    $secondaryReloaded = Node::find()->id($node->id)->siteId($secondarySite->id)->status(null)->one();
+
+    expect($secondaryReloaded)->not->toBeNull();
+    expect(nodeIsEnabledOnSite($secondaryReloaded))->toBeFalse();
+});
+
+it('enables propagated site copies when publishing a staged node with enabledForPropagatedSites false', function() {
+    Navigation::$plugin->getSettings()->builderLiveStructure = false;
+
+    $secondarySite = NavigationFixtureFactory::existingSecondarySite();
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $nav = NavigationFixtureFactory::menu();
+
+    $node = new Node([
+        'menuId' => $nav->id,
+        'siteId' => $primarySite->id,
+        'type' => Custom::class,
+        'title' => 'Staged site-only branch',
+        'url' => '/staged-site-only',
+        'enabled' => true,
+    ]);
+    $node->setEnabledForPropagatedSitesPreference(false);
+    $node->setPendingPublish(true);
+
+    expect(Craft::$app->getElements()->saveElement($node, true))->toBeTrue();
+
+    $secondaryBeforePublish = Node::find()->id($node->id)->siteId($secondarySite->id)->status(null)->one();
+    expect(nodeIsEnabledOnSite($secondaryBeforePublish))->toBeFalse();
+
+    $reloaded = Node::find()->id($node->id)->siteId($primarySite->id)->status(null)->one();
+    $reloaded->publishPendingAdd();
+    expect(Craft::$app->getElements()->saveElement($reloaded))->toBeTrue();
+
+    $primaryReloaded = Node::find()->id($node->id)->siteId($primarySite->id)->status(null)->one();
+    $secondaryReloaded = Node::find()->id($node->id)->siteId($secondarySite->id)->status(null)->one();
+
+    expect(nodeIsEnabledOnSite($primaryReloaded))->toBeTrue();
+    expect(nodeIsEnabledOnSite($secondaryReloaded))->toBeFalse();
 });
 
 it('limits language-propagated nodes to sites sharing the same language', function() {
