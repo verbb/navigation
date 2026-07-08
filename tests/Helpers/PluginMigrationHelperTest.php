@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Tests\Support\Fixtures\NavigationFixtureFactory;
 use verbb\navigation\helpers\PluginMigrationHelper;
+use verbb\navigation\migrations\plugins\MigrateFromNavkit;
 use verbb\navigation\migrations\plugins\MigrateFromTkaNavigation;
 use verbb\navigation\nodetypes\Asset;
 use verbb\navigation\nodetypes\Category;
@@ -31,6 +32,24 @@ it('resolves linked elements from short Navigate elementType handles', function(
 
     expect($uid)->toBe($entry->uid)
         ->and($type)->toBe(\craft\elements\Entry::class);
+});
+
+it('maps Navkit link types to Navigation node types', function() {
+    expect(PluginMigrationHelper::mapNavkitNodeType('entry'))->toBe(Entry::class)
+        ->and(PluginMigrationHelper::mapNavkitNodeType('category'))->toBe(Category::class)
+        ->and(PluginMigrationHelper::mapNavkitNodeType('asset'))->toBe(Asset::class)
+        ->and(PluginMigrationHelper::mapNavkitNodeType('url'))->toBe(Custom::class)
+        ->and(PluginMigrationHelper::mapNavkitNodeType('passive'))->toBe(Passive::class);
+});
+
+it('derives parent ids from nested-set structure rows', function() {
+    $flat = PluginMigrationHelper::attachStructureParents([
+        ['id' => 1, 'level' => 1, 'lft' => 2, 'rgt' => 5],
+        ['id' => 2, 'level' => 2, 'lft' => 3, 'rgt' => 4],
+    ]);
+
+    expect($flat[0]['parentId'])->toBeNull()
+        ->and($flat[1]['parentId'])->toBe(1);
 });
 
 it('lists each tka navigation once on multi-site installs', function() {

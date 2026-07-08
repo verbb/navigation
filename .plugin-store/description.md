@@ -10,7 +10,7 @@ Navigation is a Craft CMS plugin for building and rendering menus — nested lin
 - **Performance & caching** — tagged tree caching, smart hierarchy wiring, and opt-in linked-element hydration to cut down N+1 queries on large menus.
 - **Smarter active state** — single-pass matching with `getActiveNodes()`, `getCurrentNodes()`, and improved `tree()` output (`current`, `hasActiveChild`).
 - **GraphQL** — menu queries, context, menu breadcrumbs, and hydration flags for headless front ends.
-- **Third-party migrations** — import menus from FreeNav, Navigate, Olivemenus, and tka navigation.
+- **Third-party migrations** — import menus from FreeNav, Navigate, Navkit, Olivemenus, and tka navigation.
 
 ## Features
 
@@ -63,6 +63,7 @@ Import menus from other Craft navigation plugins. Source plugin data is never mo
 
 - [FreeNav](https://plugins.craftcms.com/free-nav)
 - [Navigate](https://plugins.craftcms.com/navigate)
+- [Navkit](https://plugins.craftcms.com/navkit?craft5)
 - [Olivemenus](https://plugins.craftcms.com/olivemenus)
 - [tka navigation](https://plugins.craftcms.com/tka-navigation)
 

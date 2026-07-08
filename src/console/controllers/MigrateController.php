@@ -4,6 +4,7 @@ namespace verbb\navigation\console\controllers;
 use verbb\navigation\helpers\MigrationRenderer;
 use verbb\navigation\migrations\plugins\MigrateFromFreeNav;
 use verbb\navigation\migrations\plugins\MigrateFromNavigate;
+use verbb\navigation\migrations\plugins\MigrateFromNavkit;
 use verbb\navigation\migrations\plugins\MigrateFromOlivemenus;
 use verbb\navigation\migrations\plugins\MigrateFromTkaNavigation;
 use verbb\navigation\Navigation;
@@ -51,6 +52,11 @@ class MigrateController extends Controller
     public function actionNavigate(): int
     {
         return $this->_run(MigrateFromNavigate::class);
+    }
+
+    public function actionNavkit(): int
+    {
+        return $this->_run(MigrateFromNavkit::class);
     }
 
     public function actionOlivemenus(): int

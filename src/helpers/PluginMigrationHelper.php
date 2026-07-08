@@ -103,6 +103,19 @@ class PluginMigrationHelper
         };
     }
 
+    public static function mapNavkitNodeType(?string $type): ?string
+    {
+        return match (strtolower(trim((string)$type))) {
+            'entry' => Entry::class,
+            'category' => Category::class,
+            'asset' => Asset::class,
+            'product' => class_exists(\craft\commerce\elements\Product::class) ? Product::class : Custom::class,
+            'url' => Custom::class,
+            'passive' => Passive::class,
+            default => null,
+        };
+    }
+
     /**
      * Navigate stores element links as type `element` with the Craft type in `elementType`.
      * The slideout UI uses capitalized `Url` and `Heading` values.
@@ -138,6 +151,61 @@ class PluginMigrationHelper
             'anchor' => Entry::class,
             default => Custom::class,
         };
+    }
+
+    /**
+     * Derives parentId from Craft nested-set columns on structure-backed rows.
+     */
+    public static function attachStructureParents(
+        array $flat,
+        int|string $idKey = 'id',
+        int|string $levelKey = 'level',
+    ): array {
+        usort($flat, static function(array $a, array $b) use ($levelKey): int {
+            return ((int)($a['lft'] ?? 0)) <=> ((int)($b['lft'] ?? 0));
+        });
+
+        $stack = [];
+
+        foreach ($flat as &$row) {
+            $level = (int)($row[$levelKey] ?? 1);
+
+            while ($stack !== [] && $stack[count($stack) - 1]['level'] >= $level) {
+                array_pop($stack);
+            }
+
+            $row['parentId'] = $stack !== [] ? $stack[count($stack) - 1]['id'] : null;
+            $stack[] = [
+                'id' => $row[$idKey],
+                'level' => $level,
+            ];
+        }
+
+        unset($row);
+
+        return $flat;
+    }
+
+    /**
+     * Loads serialized custom field values from a Navkit node element when available.
+     */
+    public static function loadNavkitNodeFieldValues(int $nodeId, int $siteId): array
+    {
+        if (!class_exists(\jainilnagar\navkit\elements\Node::class)) {
+            return [];
+        }
+
+        $node = \jainilnagar\navkit\elements\Node::find()
+            ->id($nodeId)
+            ->siteId($siteId)
+            ->status(null)
+            ->one();
+
+        if (!$node) {
+            return [];
+        }
+
+        return $node->getSerializedFieldValues();
     }
 
     public static function buildNestedTree(

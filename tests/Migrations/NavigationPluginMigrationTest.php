@@ -5,8 +5,46 @@ declare(strict_types=1);
 use Tests\Support\Fixtures\NavigationFixtureFactory;
 use verbb\navigation\helpers\PluginMigrationHelper;
 use verbb\navigation\migrations\plugins\MigrateFromFreeNav;
+use verbb\navigation\migrations\plugins\MigrateFromNavkit;
 use verbb\navigation\Navigation;
 use verbb\navigation\variables\NavigationVariable;
+
+it('detects Navkit as a migration source when tables exist', function() {
+    if (!PluginMigrationHelper::tableExists('navkit_menus')) {
+        $this->markTestSkipped('Navkit tables not present.');
+    }
+
+    $sources = Navigation::$plugin->getMigrations()->getSources();
+
+    expect($sources['navkit']['ready'])->toBeTrue()
+        ->and($sources['navkit']['consoleCommand'])->toBe('navigation/migrate/navkit')
+        ->and(Navigation::$plugin->getMigrations()->getSourceMenus('navkit'))->toBeArray();
+});
+
+it('migrates a Navkit menu into Navigation', function() {
+    if (!PluginMigrationHelper::tableExists('navkit_menus')) {
+        $this->markTestSkipped('Navkit tables not present.');
+    }
+
+    $existing = Navigation::$plugin->getMenus()->getMenuByHandle('general');
+
+    if ($existing) {
+        Navigation::$plugin->getMenus()->deleteMenu($existing);
+    }
+
+    $migration = Navigation::$plugin->createMigrator(MigrateFromNavkit::class, [
+        'handle' => 'general',
+    ]);
+
+    $result = $migration->run();
+
+    expect($result->ok)->toBeTrue();
+
+    $menu = Navigation::$plugin->getMenus()->getMenuByHandle('general');
+
+    expect($menu)->not->toBeNull()
+        ->and($menu->name)->toBe('General');
+});
 
 it('detects FreeNav as a migration source when tables exist', function() {
     if (!PluginMigrationHelper::tableExists('freenav_menus')) {

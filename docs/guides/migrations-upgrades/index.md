@@ -12,6 +12,7 @@ Run migrations from **Navigation → Settings**, under the **Migrations** sideba
 | --- | --- | --- |
 | [FreeNav](https://plugins.craftcms.com/free-nav) | `php craft navigation/migrate/free-nav` | [Migrating from FreeNav](/guides/migrations-upgrades/migrating-from-freenav) |
 | [Navigate](https://plugins.craftcms.com/navigate) | `php craft navigation/migrate/navigate` | [Migrating from Navigate](/guides/migrations-upgrades/migrating-from-navigate) |
+| [Navkit](https://plugins.craftcms.com/navkit?craft5) | `php craft navigation/migrate/navkit` | [Migrating from Navkit](/guides/migrations-upgrades/migrating-from-navkit) |
 | [Olivemenus](https://plugins.craftcms.com/olivemenus) | `php craft navigation/migrate/olivemenus` | [Migrating from Olivemenus](/guides/migrations-upgrades/migrating-from-olivemenus) |
 | [tka navigation](https://plugins.craftcms.com/tka-navigation) | `php craft navigation/migrate/tka-navigation` | [Migrating from tka navigation](/guides/migrations-upgrades/migrating-from-tka-navigation) |
 
