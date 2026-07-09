@@ -37,6 +37,12 @@ import {
 
 type SaveFeedbackState = 'idle' | 'success' | 'error';
 
+type CopyToSiteDialogState = {
+  open: boolean;
+  nodeIds: number[];
+  includeDeepOption: boolean;
+};
+
 type BuilderStore = {
   menuId: number;
   siteId: number;
@@ -56,6 +62,7 @@ type BuilderStore = {
   collapsedNodeIds: Record<number, boolean>;
   activeTabId: string | null;
   menuContentOpen: boolean;
+  copyToSiteDialog: CopyToSiteDialogState;
   error: string | null;
 
   init: (menuId: number, siteId: number) => Promise<void>;
@@ -87,6 +94,8 @@ type BuilderStore = {
   expandNodeCollapsed: (nodeId: number) => void;
   setActiveTab: (tabId: string | null) => void;
   setMenuContentOpen: (open: boolean) => void;
+  openCopyToSiteDialog: (nodeIds: number[], includeDeepOption?: boolean) => void;
+  setCopyToSiteDialogOpen: (open: boolean) => void;
   saveDraft: () => Promise<void>;
   publish: () => Promise<void>;
   discard: () => Promise<void>;
@@ -95,7 +104,7 @@ type BuilderStore = {
   setSelectedNodesStatus: (status: 'enabled' | 'disabled') => Promise<void>;
   duplicateNode: (nodeId: number, deep?: boolean) => Promise<void>;
   duplicateSelectedNodes: (deep?: boolean) => Promise<void>;
-  copyNodesToSite: (nodeIds: number[], targetSiteId: number, deep?: boolean) => Promise<void>;
+  copyNodesToSite: (nodeIds: number[], targetSiteId: number, deep?: boolean, remapLinkedElements?: boolean) => Promise<void>;
   restoreNode: (nodeId: number) => Promise<void>;
   applyServerNodes: (nodes: BuilderNode[]) => void;
   isDirty: () => boolean;
@@ -121,6 +130,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   collapsedNodeIds: {},
   activeTabId: null,
   menuContentOpen: false,
+  copyToSiteDialog: { open: false, nodeIds: [], includeDeepOption: false },
   error: null,
 
   init: async (menuId, siteId) => {
@@ -341,6 +351,26 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
   setMenuContentOpen: (open) => set({ menuContentOpen: open }),
 
+  openCopyToSiteDialog: (nodeIds, includeDeepOption = false) => {
+    set({
+      copyToSiteDialog: {
+        open: true,
+        nodeIds,
+        includeDeepOption,
+      },
+    });
+  },
+
+  setCopyToSiteDialogOpen: (open) => {
+    set((state) => ({
+      copyToSiteDialog: {
+        ...state.copyToSiteDialog,
+        open,
+        nodeIds: open ? state.copyToSiteDialog.nodeIds : [],
+      },
+    }));
+  },
+
   getStructureMoves: () => collectStructureMoves(get().nodes),
 
   isDirty: () => {
@@ -498,7 +528,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     }
   },
 
-  copyNodesToSite: async (nodeIds, targetSiteId, deep = false) => {
+  copyNodesToSite: async (nodeIds, targetSiteId, deep = false, remapLinkedElements = false) => {
     if (!nodeIds.length) {
       return;
     }
@@ -506,7 +536,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     const { menuId, siteId } = get();
 
     try {
-      const data = await copyNodesToSiteApi(menuId, siteId, nodeIds, targetSiteId, deep);
+      const data = await copyNodesToSiteApi(menuId, siteId, nodeIds, targetSiteId, deep, remapLinkedElements);
 
       getCraft().cp.displayNotice(
         data.message
@@ -514,6 +544,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
             ? t('Node copied to site.')
             : t('{count} nodes copied to site.', { count: nodeIds.length })),
       );
+      await get().refresh();
     } catch (error) {
       displayError(error);
     }

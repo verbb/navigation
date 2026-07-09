@@ -78,6 +78,63 @@ it('copies a node to another site when propagation is none', function() {
         ->toBe(['Primary Item']);
 });
 
+it('remaps linked element site when copying entry nodes to another site', function() {
+    $secondarySite = NavigationFixtureFactory::existingSecondarySite();
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $nav = NavigationFixtureFactory::menu(null, MenuSettings::PROPAGATION_METHOD_NONE);
+
+    $entry = NavigationFixtureFactory::entries(1)[0];
+    $node = NavigationFixtureFactory::entryNode($nav, $entry);
+
+    expect($node->getElementSiteId())->toBe($primarySite->id);
+
+    $withoutRemap = Navigation::$plugin->getNodes()->copyNodesToSite(
+        $nav->id,
+        $primarySite->id,
+        [$node->id],
+        $secondarySite->id,
+        false,
+        false,
+    );
+
+    expect($withoutRemap['successCount'])->toBe(1);
+
+    $copiedWithoutRemap = Node::find()
+        ->id($withoutRemap['copiedNodeIds'][0])
+        ->siteId($secondarySite->id)
+        ->status(null)
+        ->one();
+
+    expect($copiedWithoutRemap)->not->toBeNull();
+    expect(Navigation::$plugin->getNodeSites()->getSettings($copiedWithoutRemap->id, $secondarySite->id)?->linkedElementSiteId)
+        ->toBe($primarySite->id);
+
+    $secondEntry = NavigationFixtureFactory::entries(1)[0];
+    $secondNode = NavigationFixtureFactory::entryNode($nav, $secondEntry);
+
+    $withRemap = Navigation::$plugin->getNodes()->copyNodesToSite(
+        $nav->id,
+        $primarySite->id,
+        [$secondNode->id],
+        $secondarySite->id,
+        false,
+        true,
+    );
+
+    expect($withRemap['successCount'])->toBe(1);
+    expect($withRemap['remappedLinkedElementCount'])->toBe(1);
+
+    $copiedWithRemap = Node::find()
+        ->id($withRemap['copiedNodeIds'][0])
+        ->siteId($secondarySite->id)
+        ->status(null)
+        ->one();
+
+    expect($copiedWithRemap)->not->toBeNull();
+    expect(Navigation::$plugin->getNodeSites()->getSettings($copiedWithRemap->id, $secondarySite->id)?->linkedElementSiteId)
+        ->toBe($secondarySite->id);
+});
+
 it('preserves hierarchy when copying nodes to another site with descendants', function() {
     $secondarySite = NavigationFixtureFactory::existingSecondarySite();
     $primarySite = Craft::$app->getSites()->getPrimarySite();

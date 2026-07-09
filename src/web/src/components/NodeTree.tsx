@@ -47,6 +47,7 @@ const ROOT_NODE: BuilderNode = {
   enabled: true,
   enabledForSite: true,
   hasDescendants: true,
+  isElementLinked: false,
 };
 
 export function NodeTree() {

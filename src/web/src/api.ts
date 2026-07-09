@@ -99,9 +99,10 @@ export async function copyNodesToSite(
   nodeIds: number[],
   targetSiteId: number,
   deep = false,
+  remapLinkedElements = false,
 ): Promise<{ nodeId?: number; copiedNodeIds?: number[]; message?: string }> {
   const response = await getCraft().sendActionRequest('POST', 'navigation/nodes/copy-to-site', {
-    data: { menuId, sourceSiteId, nodeIds, siteId: targetSiteId, deep },
+    data: { menuId, sourceSiteId, nodeIds, siteId: targetSiteId, deep, remapLinkedElements },
   });
 
   return response.data as { nodeId?: number; copiedNodeIds?: number[]; message?: string };

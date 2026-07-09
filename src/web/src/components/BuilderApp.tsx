@@ -3,6 +3,7 @@ import { useBuilderStore } from '../store';
 import { useBuilderSaveShortcut } from '../hooks/useBuilderSaveShortcut';
 import { NodeTree } from './NodeTree';
 import { MenuContentDialog } from './MenuContentDialog';
+import { CopyToSiteDialog } from './CopyToSiteDialog';
 
 type Props = {
   menuId: number;
@@ -19,6 +20,8 @@ export function BuilderApp({ menuId, siteId }: Props) {
   const isDirty = structureDirty || sessionChangeCount > 0;
   const menuContentOpen = useBuilderStore((s) => s.menuContentOpen);
   const setMenuContentOpen = useBuilderStore((s) => s.setMenuContentOpen);
+  const copyToSiteDialog = useBuilderStore((s) => s.copyToSiteDialog);
+  const setCopyToSiteDialogOpen = useBuilderStore((s) => s.setCopyToSiteDialogOpen);
   const refresh = useBuilderStore((s) => s.refresh);
 
   useBuilderSaveShortcut(!loading && !error && stagingEnabled);
@@ -59,6 +62,13 @@ export function BuilderApp({ menuId, siteId }: Props) {
         siteId={siteId}
         onOpenChange={setMenuContentOpen}
         onSaved={() => void refresh()}
+      />
+
+      <CopyToSiteDialog
+        open={copyToSiteDialog.open}
+        nodeIds={copyToSiteDialog.nodeIds}
+        includeDeepOption={copyToSiteDialog.includeDeepOption}
+        onOpenChange={setCopyToSiteDialogOpen}
       />
     </>
   );

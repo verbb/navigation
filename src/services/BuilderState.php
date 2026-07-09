@@ -188,6 +188,7 @@ class BuilderState extends Component
             'enabled' => (bool)$node->enabled,
             'enabledForSite' => (bool)$node->getEnabledForSite(),
             'hasDescendants' => $hasDescendants,
+            'isElementLinked' => (bool)($node->elementId && $node->isElement()),
         ];
     }
 

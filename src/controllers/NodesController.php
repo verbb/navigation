@@ -109,6 +109,7 @@ class NodesController extends Controller
 
         $targetSiteId = (int)$this->request->getRequiredBodyParam('siteId');
         $deep = (bool)$this->request->getBodyParam('deep', false);
+        $remapLinkedElements = (bool)$this->request->getBodyParam('remapLinkedElements', false);
         $nodeIds = $this->_normalizeCopyNodeIds();
 
         $firstNode = Node::find()->id($nodeIds[0])->status(null)->site('*')->unique()->one();
@@ -137,6 +138,7 @@ class NodesController extends Controller
             $nodeIds,
             $targetSiteId,
             $deep,
+            $remapLinkedElements,
         );
 
         if ($result['successCount'] === 0) {
@@ -147,9 +149,19 @@ class NodesController extends Controller
             ? Craft::t('navigation', 'Node copied to site.')
             : Craft::t('navigation', '{count} nodes copied to site.', ['count' => $result['successCount']]);
 
+        if ($result['skippedLinkedElementRemapCount'] > 0) {
+            $message .= ' ' . Craft::t(
+                'navigation',
+                '{count, plural, =1{1 element-linked node kept its original link because the element isn’t available on the target site.} other{# element-linked nodes kept their original links because the elements aren’t available on the target site.}}',
+                ['count' => $result['skippedLinkedElementRemapCount']],
+            );
+        }
+
         return $this->asSuccess($message, [
             'nodeId' => $result['copiedNodeIds'][0] ?? null,
             'copiedNodeIds' => $result['copiedNodeIds'],
+            'remappedLinkedElementCount' => $result['remappedLinkedElementCount'],
+            'skippedLinkedElementRemapCount' => $result['skippedLinkedElementRemapCount'],
         ]);
     }
 

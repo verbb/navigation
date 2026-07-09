@@ -26,6 +26,7 @@ export type BuilderNode = {
   enabled: boolean;
   enabledForSite: boolean;
   hasDescendants: boolean;
+  isElementLinked: boolean;
 };
 
 export type StructureMove = {

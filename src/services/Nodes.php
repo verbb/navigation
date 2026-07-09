@@ -2,9 +2,12 @@
 namespace verbb\navigation\services;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\base\ElementNodeType;
 use verbb\navigation\elements\Node as NodeElement;
+use verbb\navigation\events\CopyNodeToSiteEvent;
 use verbb\navigation\helpers\DynamicSourceTypes;
 use verbb\navigation\helpers\NodeTypeHelper;
+use verbb\navigation\models\NodeSiteSettings;
 use verbb\navigation\nodetypes\Dynamic;
 
 use Craft;
@@ -26,6 +29,12 @@ use yii\base\UserException;
 
 class Nodes extends Component
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_BEFORE_COPY_NODE_TO_SITE = 'beforeCopyNodeToSite';
+
+
     // Properties
     // =========================================================================
 
@@ -516,6 +525,7 @@ class Nodes extends Component
         array $nodeIds,
         int $targetSiteId,
         bool $deep = false,
+        bool $remapLinkedElements = false,
     ): array {
         $nodeIds = array_values(array_unique(array_map('intval', $nodeIds)));
 
@@ -524,6 +534,8 @@ class Nodes extends Component
                 'successCount' => 0,
                 'failCount' => 0,
                 'copiedNodeIds' => [],
+                'remappedLinkedElementCount' => 0,
+                'skippedLinkedElementRemapCount' => 0,
             ];
         }
 
@@ -541,6 +553,8 @@ class Nodes extends Component
         $failCount = 0;
         $copiedSourceToTargetIds = [];
         $copiedNodeIds = [];
+        $remappedLinkedElementCount = 0;
+        $skippedLinkedElementRemapCount = 0;
 
         $this->_copyNodesToSiteQuery(
             $query,
@@ -551,12 +565,17 @@ class Nodes extends Component
             $copiedNodeIds,
             null,
             $deep,
+            $remapLinkedElements,
+            $remappedLinkedElementCount,
+            $skippedLinkedElementRemapCount,
         );
 
         return [
             'successCount' => $successCount,
             'failCount' => $failCount,
             'copiedNodeIds' => $copiedNodeIds,
+            'remappedLinkedElementCount' => $remappedLinkedElementCount,
+            'skippedLinkedElementRemapCount' => $skippedLinkedElementRemapCount,
         ];
     }
 
@@ -700,6 +719,9 @@ class Nodes extends Component
         array &$copiedNodeIds,
         ?NodeElement $newParent = null,
         bool $deep = false,
+        bool $remapLinkedElements = false,
+        int &$remappedLinkedElementCount = 0,
+        int &$skippedLinkedElementRemapCount = 0,
     ): void {
         $elementsService = Craft::$app->getElements();
         $structuresService = Craft::$app->getStructures();
@@ -727,7 +749,14 @@ class Nodes extends Component
                 continue;
             }
 
-            $this->_copyNodeSiteSettings($element, $duplicate, $targetSiteId);
+            $this->_copyNodeSiteSettings(
+                $element,
+                $duplicate,
+                $targetSiteId,
+                $remapLinkedElements,
+                $remappedLinkedElementCount,
+                $skippedLinkedElementRemapCount,
+            );
 
             $successCount++;
             $copiedSourceToTargetIds[$element->id] = $duplicate;
@@ -772,26 +801,74 @@ class Nodes extends Component
                     $copiedNodeIds,
                     $duplicate,
                     true,
+                    $remapLinkedElements,
+                    $remappedLinkedElementCount,
+                    $skippedLinkedElementRemapCount,
                 );
             }
         }
     }
 
-    private function _copyNodeSiteSettings(NodeElement $source, NodeElement $duplicate, int $targetSiteId): void
-    {
+    private function _copyNodeSiteSettings(
+        NodeElement $source,
+        NodeElement $duplicate,
+        int $targetSiteId,
+        bool $remapLinkedElements,
+        int &$remappedLinkedElementCount,
+        int &$skippedLinkedElementRemapCount,
+    ): void {
         $sourceSettings = Navigation::$plugin->getNodeSites()->getSettings($source->id, $source->siteId);
 
         if (!$sourceSettings) {
             return;
         }
 
-        $targetSettings = new \verbb\navigation\models\NodeSiteSettings([
+        $linkedElementSiteId = $sourceSettings->linkedElementSiteId;
+
+        if ($remapLinkedElements && $source->elementId && $source->isElement() && $linkedElementSiteId) {
+            $nodeType = $source->nodeType();
+
+            if ($nodeType instanceof ElementNodeType) {
+                $targetElement = Craft::$app->getElements()->getElementById(
+                    $source->elementId,
+                    $nodeType::getElementType(),
+                    $targetSiteId,
+                );
+
+                if ($targetElement) {
+                    $linkedElementSiteId = $targetSiteId;
+                    $remappedLinkedElementCount++;
+                } else {
+                    $skippedLinkedElementRemapCount++;
+                }
+            }
+        }
+
+        $targetSettings = new NodeSiteSettings([
             'nodeId' => $duplicate->id,
             'siteId' => $targetSiteId,
-            'linkedElementSiteId' => $sourceSettings->linkedElementSiteId,
+            'linkedElementSiteId' => $linkedElementSiteId,
             'url' => $sourceSettings->url,
             'urlSuffix' => $sourceSettings->urlSuffix,
         ]);
+
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_COPY_NODE_TO_SITE)) {
+            $event = new CopyNodeToSiteEvent([
+                'source' => $source,
+                'duplicate' => $duplicate,
+                'targetSiteId' => $targetSiteId,
+                'targetSettings' => $targetSettings,
+                'remapLinkedElements' => $remapLinkedElements,
+            ]);
+
+            $this->trigger(self::EVENT_BEFORE_COPY_NODE_TO_SITE, $event);
+
+            if ($event->isValid === false) {
+                return;
+            }
+
+            $targetSettings = $event->targetSettings;
+        }
 
         Navigation::$plugin->getNodeSites()->saveSettings($targetSettings);
     }
