@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.0.0-beta.3 - 2026-07-09
+
+### Added
+- Add copy-to-site dialog with per-copy element remapping for multisite menus. ([#453](https://github.com/verbb/navigation/issues/453)).
+- Add [Navkit](https://plugins.craftcms.com/navkit) migration.
+
+### Fixed
+- Fixed `node.children` being empty on cached level-scoped node queries (for example `.level(1)`) after the first page load. ([#452](https://github.com/verbb/navigation/issues/452)).
+- Fixed hierarchical structure being lost when copying nodes to another site. ([#452](https://github.com/verbb/navigation/issues/452)).
+- Fixed `craft.navigation.nodes()` string shorthand and deprecated node query criteria keys setting an unknown `menuHandle` property on `NodeQuery`.
+
 ## 4.0.0-beta.2 - 2026-07-03
 
 ### Added
