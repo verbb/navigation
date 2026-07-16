@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.0-beta.4 - 2026-07-16
+
+### Fixed
+- Fix Menu elements reclaiming Entry/User/Node IDs and wiping titles.
+
 ## 4.0.0-beta.3 - 2026-07-09
 
 ### Added
