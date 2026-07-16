@@ -8,6 +8,7 @@ use verbb\navigation\models\MenuSettings;
 
 use Craft;
 use craft\base\Element;
+use craft\elements\User;
 use craft\models\FieldLayout;
 
 class Menu extends Element
@@ -124,6 +125,27 @@ class Menu extends Element
         }
 
         parent::afterSave($isNew);
+    }
+
+    public function canView(User $user): bool
+    {
+        if ($user->admin) {
+            return true;
+        }
+
+        $uid = $this->menuUid ?? $this->uid;
+
+        return $uid ? $user->can('navigation-manageMenu:' . $uid) : false;
+    }
+
+    public function canSave(User $user): bool
+    {
+        return $this->canView($user);
+    }
+
+    public function canDelete(User $user): bool
+    {
+        return $this->canView($user);
     }
 
 

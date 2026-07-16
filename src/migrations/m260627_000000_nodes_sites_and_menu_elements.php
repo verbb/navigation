@@ -275,9 +275,9 @@ class m260627_000000_nodes_sites_and_menu_elements extends Migration
                     'deletedWithOwner' => null,
                     'uid' => $nav['uid'],
                 ]);
-            } else {
-                $this->update('{{%elements}}', ['type' => Menu::class], ['id' => $nav['id']]);
             }
+            // Never reclaim an existing elements.id (entries/users/nodes/…). Colliding menus
+            // are remapped via `php craft navigation/menus/fix-menu-element-collisions`.
 
             if (!$tables['sites']) {
                 continue;

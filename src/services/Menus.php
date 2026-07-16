@@ -411,22 +411,29 @@ class Menus extends Component
                 $navRecord->menuFieldLayoutId = null;
             }
 
-            if ($navRecord->menuFieldLayoutId) {
-                Craft::$app->getDb()->createCommand()
-                    ->update('{{%elements}}', ['fieldLayoutId' => $navRecord->menuFieldLayoutId], ['id' => $navRecord->id])
-                    ->execute();
-            } else {
-                Craft::$app->getDb()->createCommand()
-                    ->update('{{%elements}}', ['fieldLayoutId' => null], ['id' => $navRecord->id])
-                    ->execute();
-            }
-
             $resaveNodes = (
                 $navRecord->handle !== $navRecord->getOldAttribute('handle') ||
                 $propagationMethodChanged ||
                 $navRecord->fieldLayoutId != $navRecord->getOldAttribute('fieldLayoutId') ||
                 $navRecord->structureId != $navRecord->getOldAttribute('structureId')
             );
+
+            // Global Sets pattern: create the Menu element first so menus.id = elements.id
+            // and we never reclaim an existing foreign element id.
+            if ($isNewNav) {
+                $menuElement = new Menu();
+                $menuElement->uid = $menuUid;
+
+                if ($navRecord->menuFieldLayoutId) {
+                    $menuElement->fieldLayoutId = $navRecord->menuFieldLayoutId;
+                }
+
+                if (!Craft::$app->getElements()->saveElement($menuElement, false)) {
+                    throw new \RuntimeException('Unable to create the Menu element required for this menu.');
+                }
+
+                $navRecord->id = $menuElement->id;
+            }
 
             if ($wasTrashed = (bool)$navRecord->dateDeleted) {
                 $navRecord->restore();
@@ -638,10 +645,20 @@ class Menus extends Component
                 Craft::$app->getFields()->deleteLayoutById($navRecord->fieldLayoutId);
             }
 
-            // Delete the navigation
+            // Soft-delete settings then the owned Menu element. Element soft-delete does not
+            // hard-remove the elements row, so the menus.id → elements.id FK stays valid.
             Craft::$app->getDb()->createCommand()
                 ->softDelete('{{%navigation_menus}}', ['id' => $navRecord->id])
                 ->execute();
+
+            $menuElement = Menu::find()
+                ->id($navRecord->id)
+                ->status(null)
+                ->one();
+
+            if ($menuElement) {
+                $elementsService->deleteElement($menuElement);
+            }
 
             $transaction->commit();
         } catch (Throwable $e) {
@@ -996,35 +1013,144 @@ class Menus extends Component
         }
     }
 
+    /**
+     * Ensure this menu owns an exclusive Menu element at menus.id (Global Sets pattern).
+     *
+     * Never retypes an existing foreign element. If menus.id is occupied by Entry/User/Node/etc.,
+     * remaps the menu onto a freshly created Menu element id.
+     */
     private function _syncMenuElement(MenuRecord $navRecord, array $siteSettingData): void
     {
-        $db = Craft::$app->getDb();
+        if (!$this->_menuOwnsExclusiveElement((int)$navRecord->id)) {
+            $elementExists = (new Query())
+                ->from([Table::ELEMENTS])
+                ->where(['id' => $navRecord->id])
+                ->exists();
 
-        $exists = (new Query())
-            ->from(['{{%elements}}'])
-            ->where(['id' => $navRecord->id])
-            ->exists();
-
-        if (!$exists) {
-            $now = Db::prepareDateForDb(new \DateTime());
-
-            $db->createCommand()->insert('{{%elements}}', [
-                'id' => $navRecord->id,
-                'canonicalId' => $navRecord->id,
-                'draftId' => null,
-                'revisionId' => null,
-                'fieldLayoutId' => null,
-                'type' => Menu::class,
-                'enabled' => true,
-                'archived' => false,
-                'dateCreated' => $now,
-                'dateUpdated' => $now,
-                'dateDeleted' => null,
-                'deletedWithOwner' => null,
-                'uid' => $navRecord->uid,
-            ])->execute();
+            if (!$elementExists) {
+                $this->_insertMenuElementAtId($navRecord);
+            } else {
+                $this->_remapMenuOntoNewElement($navRecord);
+            }
         }
 
+        $this->_ensureMenuElementSites($navRecord, $siteSettingData);
+        $this->_syncMenuElementFieldLayout($navRecord);
+    }
+
+    private function _menuOwnsExclusiveElement(int $id): bool
+    {
+        $type = (new Query())
+            ->select(['type'])
+            ->from([Table::ELEMENTS])
+            ->where(['id' => $id])
+            ->scalar();
+
+        if ($type !== Menu::class) {
+            return false;
+        }
+
+        return !$this->_elementIdBelongsToForeignType($id);
+    }
+
+    private function _elementIdBelongsToForeignType(int $id): bool
+    {
+        foreach ([
+            '{{%entries}}',
+            '{{%users}}',
+            '{{%categories}}',
+            '{{%assets}}',
+            '{{%navigation_nodes}}',
+            '{{%commerce_products}}',
+        ] as $table) {
+            if ($table === '{{%commerce_products}}' && !Craft::$app->getDb()->tableExists($table)) {
+                continue;
+            }
+
+            if (!Craft::$app->getDb()->tableExists($table)) {
+                continue;
+            }
+
+            if ((new Query())->from([$table])->where(['id' => $id])->exists()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function _insertMenuElementAtId(MenuRecord $navRecord): void
+    {
+        $now = Db::prepareDateForDb(new \DateTime());
+
+        Craft::$app->getDb()->createCommand()->insert(Table::ELEMENTS, [
+            'id' => $navRecord->id,
+            'canonicalId' => $navRecord->id,
+            'draftId' => null,
+            'revisionId' => null,
+            'fieldLayoutId' => $navRecord->menuFieldLayoutId,
+            'type' => Menu::class,
+            'enabled' => true,
+            'archived' => false,
+            'dateCreated' => $now,
+            'dateUpdated' => $now,
+            'dateDeleted' => null,
+            'deletedWithOwner' => null,
+            'uid' => $navRecord->uid,
+        ])->execute();
+    }
+
+    /**
+     * Move a menu settings row onto a new exclusive Menu element id when the current id
+     * belongs to another element type (or a dual-homed collision).
+     */
+    private function _remapMenuOntoNewElement(MenuRecord $navRecord): void
+    {
+        $oldId = (int)$navRecord->id;
+
+        $menuElement = new Menu();
+        $menuElement->uid = $navRecord->uid;
+
+        if ($navRecord->menuFieldLayoutId) {
+            $menuElement->fieldLayoutId = $navRecord->menuFieldLayoutId;
+        }
+
+        if (!Craft::$app->getElements()->saveElement($menuElement, false)) {
+            throw new \RuntimeException("Unable to remap menu {$oldId} onto a new Menu element.");
+        }
+
+        $newId = (int)$menuElement->id;
+        $db = Craft::$app->getDb();
+
+        $row = (new Query())
+            ->from(['{{%navigation_menus}}'])
+            ->where(['id' => $oldId])
+            ->one();
+
+        if (!$row) {
+            return;
+        }
+
+        $row['id'] = $newId;
+        $db->createCommand()->insert('{{%navigation_menus}}', $row)->execute();
+
+        $db->createCommand()->update('{{%navigation_nodes}}', ['menuId' => $newId], ['menuId' => $oldId])->execute();
+        $db->createCommand()->update('{{%navigation_menus_sites}}', ['menuId' => $newId], ['menuId' => $oldId])->execute();
+
+        if ($db->tableExists('{{%navigation_build_sessions}}')) {
+            $db->createCommand()->update('{{%navigation_build_sessions}}', ['menuId' => $newId], ['menuId' => $oldId])->execute();
+        }
+
+        $db->createCommand()->delete('{{%navigation_menus}}', ['id' => $oldId])->execute();
+
+        $navRecord->id = $newId;
+        $navRecord->setIsNewRecord(false);
+        $navRecord->refresh();
+    }
+
+    private function _ensureMenuElementSites(MenuRecord $navRecord, array $siteSettingData): void
+    {
+        $db = Craft::$app->getDb();
         $siteIdMap = Db::idsByUids(Table::SITES, array_keys($siteSettingData));
 
         foreach ($siteSettingData as $siteUid => $siteSettings) {
@@ -1035,7 +1161,7 @@ class Menus extends Component
             }
 
             $siteRowExists = (new Query())
-                ->from(['{{%elements_sites}}'])
+                ->from([Table::ELEMENTS_SITES])
                 ->where(['elementId' => $navRecord->id, 'siteId' => $siteId])
                 ->exists();
 
@@ -1045,24 +1171,33 @@ class Menus extends Component
 
             $now = Db::prepareDateForDb(new \DateTime());
 
-            $db->createCommand()->insert('{{%elements_sites}}', [
+            $db->createCommand()->insert(Table::ELEMENTS_SITES, [
                 'elementId' => $navRecord->id,
                 'siteId' => $siteId,
                 'slug' => null,
                 'uri' => null,
+                'title' => null,
                 'enabled' => (bool)($siteSettings['enabled'] ?? true),
                 'dateCreated' => $now,
                 'dateUpdated' => $now,
                 'uid' => StringHelper::UUID(),
             ])->execute();
         }
+    }
 
-        $menu = Menu::find()->id($navRecord->id)->status(null)->one();
-
-        if ($menu) {
-            $menu->title = $navRecord->name;
-            $menu->handle = $navRecord->handle;
-            Craft::$app->getElements()->saveElement($menu, false);
+    private function _syncMenuElementFieldLayout(MenuRecord $navRecord): void
+    {
+        if (!$this->_menuOwnsExclusiveElement((int)$navRecord->id)) {
+            return;
         }
+
+        Craft::$app->getDb()->createCommand()
+            ->update(Table::ELEMENTS, [
+                'fieldLayoutId' => $navRecord->menuFieldLayoutId,
+            ], [
+                'id' => $navRecord->id,
+                'type' => Menu::class,
+            ])
+            ->execute();
     }
 }

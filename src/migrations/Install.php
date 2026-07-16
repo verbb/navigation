@@ -55,7 +55,7 @@ class Install extends Migration
 
         $this->archiveTableIfExists('{{%navigation_menus}}');
         $this->createTable('{{%navigation_menus}}', [
-            'id' => $this->primaryKey(),
+            'id' => $this->integer()->notNull(),
             'structureId' => $this->integer()->notNull(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string()->notNull(),
@@ -75,6 +75,7 @@ class Install extends Migration
             'dateUpdated' => $this->dateTime()->notNull(),
             'dateDeleted' => $this->dateTime()->null(),
             'uid' => $this->uid(),
+            'PRIMARY KEY(id)',
         ]);
 
         $this->archiveTableIfExists('{{%navigation_menus_sites}}');
@@ -141,6 +142,7 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['menuId'], '{{%navigation_menus}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['elementId'], '{{%elements}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%navigation_nodes}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%navigation_menus}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%navigation_menus}}', ['structureId'], '{{%structures}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%navigation_menus}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%navigation_menus}}', ['menuFieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'SET NULL', null);
