@@ -350,7 +350,10 @@ class BuilderController extends Controller
                 ]);
             }
 
-            return $this->_builderNodesSuccess($menuId, $siteId, $message);
+            return $this->_builderNodesSuccess($menuId, $siteId, $message, [
+                'duplicatedNodeIds' => $result['duplicatedNodeIds'],
+                'duplications' => $result['duplications'],
+            ]);
         }
 
         $action = Craft::createObject([
@@ -409,17 +412,17 @@ class BuilderController extends Controller
         return array_values(array_unique(array_map('intval', $nodeIds)));
     }
 
-    private function _builderNodesSuccess(int $menuId, int $siteId, string $message): Response
+    private function _builderNodesSuccess(int $menuId, int $siteId, string $message, array $extra = []): Response
     {
         $buildSessions = Navigation::$plugin->getBuildSessions();
         $session = $buildSessions->getSession($menuId, $siteId);
 
-        return $this->asSuccess($message, [
+        return $this->asSuccess($message, array_merge([
             'session' => $session ? $buildSessions->sessionToArray($session) : null,
             'nodes' => Navigation::$plugin->getBuilderState()->nodesToArray(
                 Node::find()->menuId($menuId)->siteId($siteId)->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all(),
             ),
-        ]);
+        ], $extra));
     }
 
     private function _getMenuContentContext(int $menuId, int $siteId): array

@@ -500,6 +500,7 @@ class Nodes extends Component
         $failCount = 0;
         $duplicatedSourceIds = [];
         $duplicatedNodeIds = [];
+        $duplications = [];
 
         $this->_duplicateNodesQuery(
             $query,
@@ -508,6 +509,7 @@ class Nodes extends Component
             $failCount,
             $duplicatedSourceIds,
             $duplicatedNodeIds,
+            $duplications,
             null,
             $deep,
         );
@@ -516,6 +518,7 @@ class Nodes extends Component
             'successCount' => $successCount,
             'failCount' => $failCount,
             'duplicatedNodeIds' => $duplicatedNodeIds,
+            'duplications' => $duplications,
         ];
     }
 
@@ -639,6 +642,7 @@ class Nodes extends Component
         int &$failCount,
         array &$duplicatedSourceIds,
         array &$duplicatedNodeIds,
+        array &$duplications,
         ?ElementInterface $newParent = null,
         bool $deep = false,
     ): void {
@@ -682,6 +686,14 @@ class Nodes extends Component
             $duplicatedSourceIds[$element->id] = true;
             $duplicatedNodeIds[] = (int)$duplicate->id;
 
+            // Root selections only — deep children are placed under `$duplicate` below.
+            if ($newParent === null) {
+                $duplications[] = [
+                    'sourceId' => (int)$element->id,
+                    'duplicateId' => (int)$duplicate->id,
+                ];
+            }
+
             if ($newParent) {
                 $structuresService->append($element->structureId, $duplicate, $newParent);
             } elseif ($element->structureId) {
@@ -703,6 +715,7 @@ class Nodes extends Component
                     $failCount,
                     $duplicatedSourceIds,
                     $duplicatedNodeIds,
+                    $duplications,
                     $duplicate,
                     true,
                 );

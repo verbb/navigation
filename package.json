@@ -1,14 +1,39 @@
 {
-  "name": "navigation-plugin-workspace",
+  "name": "verbb-navigation",
   "private": true,
+  "type": "module",
   "workspaces": [
-    "docs",
-    "src/web"
+    "docs"
   ],
   "scripts": {
+    "dev": "vite",
+    "build": "tsc -p src/web/tsconfig.json && vite build",
+    "dev:builder": "vite",
+    "build:builder": "npm run build",
     "dev:plugin-docs": "npm run docs:dev --prefix docs",
-    "docs:screenshots": "npm --prefix docs run docs:screenshots --",
-    "dev:builder": "npm run dev -w @verbb/navigation-builder",
-    "build:builder": "npm run build -w @verbb/navigation-builder"
+    "docs:screenshots": "npm --prefix docs run docs:screenshots --"
+  },
+  "dependencies": {
+    "@headless-tree/core": "^1.7.0",
+    "@headless-tree/react": "^1.7.0",
+    "@verbb/plugin-kit-forms": "^2.0.3",
+    "@verbb/plugin-kit-icons": "^2.0.3",
+    "@verbb/plugin-kit-react": "^2.0.3",
+    "clsx": "^2.1.1",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwind-merge": "^3.3.1",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.4",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.3",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^5.7.3",
+    "vite": "^8.0.10",
+    "vite-plugin-tailwind-shadowdom": "^1.1.1"
   }
 }

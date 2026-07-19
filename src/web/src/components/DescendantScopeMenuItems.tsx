@@ -1,22 +1,18 @@
-import {
-  DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from '@verbb/plugin-kit-react/components';
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { DropdownItem, DropdownSeparator } from '@verbb/plugin-kit-react/components/DropdownMenu';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
 import { t } from '../api';
 
 type Props = {
   label: string;
-  onAction: (deep: boolean) => void;
+  /** Optional when the parent menu handles `pk-select` by item value. */
+  onAction?: (deep: boolean) => void;
   disabled?: boolean;
   includeDeepOption?: boolean;
   deepAsSubmenu?: boolean;
   shallowLabel?: string;
-  variant?: 'default' | 'destructive';
-  icon?: IconDefinition;
+  destructive?: boolean;
+  /** pk-icon name (built-in or registered), e.g. `clone`, `xmark`. */
+  icon?: string;
 };
 
 export function DescendantScopeMenuItems({
@@ -26,46 +22,68 @@ export function DescendantScopeMenuItems({
   includeDeepOption = false,
   deepAsSubmenu = false,
   shallowLabel,
-  variant,
+  destructive = false,
   icon,
 }: Props) {
-  const iconNode = icon ? <FontAwesomeIcon icon={icon} /> : null;
+  const iconNode = icon ? <Icon slot="prefix" icon={icon} /> : null;
   const resolvedShallowLabel = shallowLabel ?? t('Selected only');
+  const handleAction = (deep: boolean) => {
+    onAction?.(deep);
+  };
 
   if (!includeDeepOption) {
     return (
-      <DropdownMenuItem variant={variant} disabled={disabled} onClick={() => onAction(false)}>
+      <DropdownItem
+        value={label}
+        disabled={disabled}
+        destructive={destructive}
+        onPkSelect={() => handleAction(false)}
+      >
         {iconNode}
         {label}
-      </DropdownMenuItem>
+      </DropdownItem>
     );
   }
 
   if (!deepAsSubmenu) {
     return (
       <>
-        <DropdownMenuItem variant={variant} disabled={disabled} onClick={() => onAction(false)}>
+        <DropdownItem
+          value={`${label}-shallow`}
+          disabled={disabled}
+          destructive={destructive}
+          onPkSelect={() => handleAction(false)}
+        >
           {iconNode}
           {label}
-        </DropdownMenuItem>
-        <DropdownMenuItem variant={variant} disabled={disabled} onClick={() => onAction(true)}>
+        </DropdownItem>
+        <DropdownItem
+          value={`${label}-deep`}
+          disabled={disabled}
+          destructive={destructive}
+          onPkSelect={() => handleAction(true)}
+        >
           {iconNode}
           {t('{label} (with descendants)', { label })}
-        </DropdownMenuItem>
+        </DropdownItem>
       </>
     );
   }
 
   return (
-    <DropdownMenuSub>
-      <DropdownMenuSubTrigger disabled={disabled} className={variant === 'destructive' ? 'text-error' : undefined}>
-        {iconNode}
-        {label}
-      </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent className="min-w-44">
-        <DropdownMenuItem onClick={() => onAction(false)}>{resolvedShallowLabel}</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onAction(true)}>{t('With descendants')}</DropdownMenuItem>
-      </DropdownMenuSubContent>
-    </DropdownMenuSub>
+    <DropdownItem value={`${label}-submenu`} disabled={disabled} destructive={destructive}>
+      {iconNode}
+      {label}
+      <div slot="submenu">
+        <DropdownItem value={`${label}-shallow`} onPkSelect={() => handleAction(false)}>
+          {resolvedShallowLabel}
+        </DropdownItem>
+        <DropdownItem value={`${label}-deep`} onPkSelect={() => handleAction(true)}>
+          {t('With descendants')}
+        </DropdownItem>
+      </div>
+    </DropdownItem>
   );
 }
+
+export { DropdownSeparator };

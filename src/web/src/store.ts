@@ -20,6 +20,7 @@ import {
   baselineMoves,
   collectStructureMoves,
   indentNode,
+  mergeServerNodesPreservingStructure,
   movesEqual,
   outdentNode,
   moveNode as applyNodeMove,
@@ -107,6 +108,13 @@ type BuilderStore = {
   copyNodesToSite: (nodeIds: number[], targetSiteId: number, deep?: boolean, remapLinkedElements?: boolean) => Promise<void>;
   restoreNode: (nodeId: number) => Promise<void>;
   applyServerNodes: (nodes: BuilderNode[]) => void;
+  applyDuplicationResult: (
+    previousNodes: BuilderNode[],
+    serverNodes: BuilderNode[],
+    duplications: Array<{ sourceId: number; duplicateId: number }>,
+    session: BuilderState['session'] | undefined,
+    structureWasDirty: boolean,
+  ) => void;
   isDirty: () => boolean;
   getStructureMoves: () => StructureMove[];
 };
@@ -164,18 +172,31 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   },
 
   refresh: async () => {
-    const { menuId, siteId } = get();
+    const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
 
     try {
       const state = await fetchBuilderState(menuId, siteId);
       const baseline = baselineMoves(state.nodes);
       const collapsedNodeIds = loadCollapsedNodeIds(menuId, siteId, new Set(state.nodes.map((node) => node.id)));
 
+      // Structure is client-staged until Save — do not snap back to Craft order on refresh.
+      let nodes: BuilderNode[];
+
+      if (structureDirty) {
+        nodes = mergeServerNodesPreservingStructure(previousNodes, state.nodes, {
+          preserveStructure: true,
+        });
+      } else if (state.session?.structureMoves?.length) {
+        nodes = applyStructureMoves(state.nodes, state.session.structureMoves);
+      } else {
+        nodes = state.nodes;
+      }
+
       set({
         state,
-        nodes: state.nodes,
+        nodes,
         baselineStructureMoves: baseline,
-        structureDirty: false,
+        structureDirty: structureDirty || Boolean(state.session?.hasStructureMoves),
         collapsedNodeIds,
         selectedNodeIds: [],
         lastSelectedNodeId: null,
@@ -501,11 +522,17 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   },
 
   duplicateNode: async (nodeId, deep = false) => {
-    const { menuId, siteId } = get();
+    const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
 
     try {
       const data = await duplicateNodes(menuId, siteId, [nodeId], deep);
       getCraft().cp.displayNotice(data.message ?? t('Elements duplicated.'));
+
+      if (data.nodes) {
+        get().applyDuplicationResult(previousNodes, data.nodes, data.duplications ?? [], data.session, structureDirty);
+        return;
+      }
+
       await get().refresh();
     } catch (error) {
       displayError(error);
@@ -513,7 +540,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   },
 
   duplicateSelectedNodes: async (deep = false) => {
-    const { menuId, siteId, selectedNodeIds } = get();
+    const { menuId, siteId, selectedNodeIds, nodes: previousNodes, structureDirty } = get();
 
     if (!selectedNodeIds.length) {
       return;
@@ -522,6 +549,12 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     try {
       const data = await duplicateNodes(menuId, siteId, selectedNodeIds, deep);
       getCraft().cp.displayNotice(data.message ?? t('Elements duplicated.'));
+
+      if (data.nodes) {
+        get().applyDuplicationResult(previousNodes, data.nodes, data.duplications ?? [], data.session, structureDirty);
+        return;
+      }
+
       await get().refresh();
     } catch (error) {
       displayError(error);
@@ -573,6 +606,25 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       nodes,
       baselineStructureMoves: baseline,
       structureDirty: false,
+      selectedNodeIds: [],
+      lastSelectedNodeId: null,
+    });
+  },
+
+  applyDuplicationResult: (previousNodes, serverNodes, duplications, session, structureWasDirty) => {
+    const nodes = mergeServerNodesPreservingStructure(previousNodes, serverNodes, {
+      // Always keep the on-screen order — duplicate places next to DB position otherwise.
+      preserveStructure: true,
+      duplications,
+    });
+    const baseline = baselineMoves(serverNodes);
+    const { state } = get();
+
+    set({
+      nodes,
+      baselineStructureMoves: baseline,
+      structureDirty: structureWasDirty || !movesEqual(collectStructureMoves(nodes), baseline),
+      state: state && session ? { ...state, session } : state,
       selectedNodeIds: [],
       lastSelectedNodeId: null,
     });

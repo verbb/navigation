@@ -6,10 +6,12 @@ import {
   type ItemInstance,
 } from '@headless-tree/core';
 import { useTree } from '@headless-tree/react';
-import { Checkbox } from '@verbb/plugin-kit-react/components';
-import { cn } from '@verbb/plugin-kit-react/utils';
+import { Checkbox } from '@verbb/plugin-kit-react/components/Checkbox';
+import { cn } from '../utils/cn';
 import { useBuilderStore } from '../store';
 import { filterNodesByStatus } from '../utils/tree';
+import { type PkCheckedChangeEvent } from '../utils/pluginKitEvents';
+import { t } from '../api';
 import {
   NAVIGATION_TREE_ROOT_ID,
   buildNavigationTreeChildrenMap,
@@ -25,7 +27,6 @@ import { NodeRow } from './NodeRow';
 import { TreeDragLine } from './TreeDragLine';
 import { useNavigationDragSession } from '../hooks/useNavigationDragSession';
 import { useNodeTreeKeyboardShortcuts } from '../hooks/useNodeTreeKeyboardShortcuts';
-import { t } from '../api';
 
 const ROOT_NODE: BuilderNode = {
   id: 0,
@@ -260,8 +261,8 @@ export function NodeTree() {
             <Checkbox
               aria-label={t('Select all')}
               checked={allSelected}
-              onCheckedChange={(checked) => {
-                if (checked) {
+              onPkChange={(event) => {
+                if ((event as PkCheckedChangeEvent).detail.checked) {
                   setSelectedNodeIds(selectableNodes.map((node) => node.id));
                 } else {
                   clearSelection();

@@ -1,42 +1,38 @@
-import { DropdownMenuItem } from '@verbb/plugin-kit-react/components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCopy } from '@fortawesome/pro-solid-svg-icons';
+import { DropdownItem } from '@verbb/plugin-kit-react/components/DropdownMenu';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
 import { useBuilderStore } from '../store';
 import { t } from '../api';
+
+/** Menu item value listened for on the parent `DropdownMenu` `pk-select`. */
+export const COPY_TO_SITE_MENU_VALUE = 'copy-to-site';
 
 type Props = {
   nodeIds: number[];
   disabled?: boolean;
-  includeDeepOption?: boolean;
   showIcon?: boolean;
-  onCopied?: () => void;
 };
 
+/**
+ * Presentational copy-to-site item. Open the dialog from the parent menu via
+ * `pk-select` + `runAfterMenuClose` — item-level `onPkSelect` never runs because
+ * `pk-select` fires on the menu host.
+ */
 export function CopyToSiteMenuItems({
   nodeIds,
   disabled = false,
-  includeDeepOption = false,
   showIcon = true,
-  onCopied,
 }: Props) {
   const canCopyToSite = useBuilderStore((s) => s.state?.canCopyToSite ?? false);
   const copyToSiteTargets = useBuilderStore((s) => s.state?.copyToSiteTargets ?? []);
-  const openCopyToSiteDialog = useBuilderStore((s) => s.openCopyToSiteDialog);
 
   if (!canCopyToSite || copyToSiteTargets.length === 0) {
     return null;
   }
 
   return (
-    <DropdownMenuItem
-      disabled={disabled || nodeIds.length === 0}
-      onClick={() => {
-        openCopyToSiteDialog(nodeIds, includeDeepOption);
-        onCopied?.();
-      }}
-    >
-      {showIcon && <FontAwesomeIcon icon={faCopy} />}
+    <DropdownItem value={COPY_TO_SITE_MENU_VALUE} disabled={disabled || nodeIds.length === 0}>
+      {showIcon && <Icon slot="prefix" icon="copy" />}
       {t('Copy to site…')}
-    </DropdownMenuItem>
+    </DropdownItem>
   );
 }

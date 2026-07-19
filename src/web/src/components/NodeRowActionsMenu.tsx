@@ -1,31 +1,21 @@
-import { useState } from 'react';
+import { useRef } from 'react';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
 import {
-  Button,
+  DropdownItem,
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@verbb/plugin-kit-react/components';
-import { cn } from '@verbb/plugin-kit-react/utils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faArrowDown,
-  faArrowLeft,
-  faArrowRight,
-  faArrowUp,
-  faClone,
-  faEllipsis,
-  faPencil,
-  faXmark,
-} from '@fortawesome/pro-solid-svg-icons';
+  DropdownSeparator,
+} from '@verbb/plugin-kit-react/components/DropdownMenu';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
+import { cn } from '../utils/cn';
 import type { BuilderNode } from '../types';
 import { useBuilderStore } from '../store';
 import { openNodeEditor } from '../utils/craft';
 import { getNodeMoveCapabilities } from '../utils/nodeMoveActions';
-import { CopyToSiteMenuItems } from './CopyToSiteMenuItems';
+import { COPY_TO_SITE_MENU_VALUE, CopyToSiteMenuItems } from './CopyToSiteMenuItems';
 import { DescendantScopeMenuItems } from './DescendantScopeMenuItems';
+import { runAfterMenuClose } from '../utils/openDialogAfterMenuClose';
 import { t } from '../api';
+import type { DropdownMenuHost } from '../utils/pluginKitEvents';
 
 type Props = {
   node: BuilderNode;
@@ -33,8 +23,12 @@ type Props = {
   className?: string;
 };
 
+type PkSelectDetail = {
+  value?: string;
+};
+
 export function NodeRowActionsMenu({ node, isDragSession = false, className }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<DropdownMenuHost | null>(null);
   const elementType = useBuilderStore((s) => s.state?.elementType ?? '');
   const siteId = useBuilderStore((s) => s.siteId);
   const nodes = useBuilderStore((s) => s.nodes);
@@ -46,97 +40,151 @@ export function NodeRowActionsMenu({ node, isDragSession = false, className }: P
   const duplicateNode = useBuilderStore((s) => s.duplicateNode);
   const deleteNode = useBuilderStore((s) => s.deleteNode);
   const refresh = useBuilderStore((s) => s.refresh);
+  const openCopyToSiteDialog = useBuilderStore((s) => s.openCopyToSiteDialog);
 
   const capabilities = getNodeMoveCapabilities(nodes, node.id, maxLevels);
   const allowNestedActions = maxLevels === null || maxLevels > 1;
+  const includeDeepOption = allowNestedActions && node.hasDescendants;
   const nodeTitle = node.title || t('Untitled');
+  const duplicateLabel = t('Duplicate');
+  const deleteLabel = t('Delete');
+
+  /** Queue work until the menu finishes hiding — avoids remount/teardown races. */
+  const afterClose = (action: () => void) => {
+    runAfterMenuClose(menuRef.current, action);
+  };
+
+  // `pk-select` fires on the menu host (overlay-isolation / WA pattern) — not on items.
+  const handleMenuSelect = (event: Event) => {
+    const value = (event as CustomEvent<PkSelectDetail>).detail?.value;
+
+    if (!value) {
+      return;
+    }
+
+    switch (value) {
+      case 'edit':
+        afterClose(() => {
+          openNodeEditor(elementType, node.id, siteId, () => void refresh());
+        });
+        return;
+      case COPY_TO_SITE_MENU_VALUE:
+        afterClose(() => {
+          openCopyToSiteDialog([node.id], includeDeepOption);
+        });
+        return;
+      case 'move-up':
+        afterClose(() => {
+          moveNodeUp(node.id);
+        });
+        return;
+      case 'move-down':
+        afterClose(() => {
+          moveNodeDown(node.id);
+        });
+        return;
+      case 'move-left':
+        afterClose(() => {
+          outdent(node.id);
+        });
+        return;
+      case 'move-right':
+        afterClose(() => {
+          indent(node.id);
+        });
+        return;
+      case duplicateLabel:
+      case `${duplicateLabel}-shallow`:
+        afterClose(() => {
+          void duplicateNode(node.id, false);
+        });
+        return;
+      case `${duplicateLabel}-deep`:
+        afterClose(() => {
+          void duplicateNode(node.id, true);
+        });
+        return;
+      case deleteLabel:
+      case `${deleteLabel}-shallow`:
+        afterClose(() => {
+          void deleteNode(node.id, false);
+        });
+        return;
+      case `${deleteLabel}-deep`:
+        afterClose(() => {
+          void deleteNode(node.id, true);
+        });
+        return;
+      default:
+        return;
+    }
+  };
 
   return (
     <div className={cn(isDragSession && 'opacity-0', className)}>
-      <DropdownMenu modal={false} size="sm" open={isOpen} onOpenChange={setIsOpen}>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              type="button"
-              variant="transparent"
-              size="sm"
-              data-no-row-select
-              className="h-7 w-7 rounded-lg p-0 text-gray-400 hover:text-gray-600"
-              aria-label={t('Actions for {title}', { title: nodeTitle })}
-              onClick={(event) => event.stopPropagation()}
-            />
-          }
+      <DropdownMenu
+        ref={(el) => {
+          menuRef.current = el as DropdownMenuHost | null;
+        }}
+        size="sm"
+        placement="bottom-end"
+        onPkSelect={handleMenuSelect}
+      >
+        <Button
+          slot="trigger"
+          type="button"
+          variant="transparent"
+          size="sm"
+          data-no-row-select
+          className="[--pk-btn-height:28px] [--pk-btn-padding-inline:7px]"
+          aria-label={t('Actions for {title}', { title: nodeTitle })}
+          onClick={(event) => event.stopPropagation()}
         >
-          <FontAwesomeIcon icon={faEllipsis} className="size-3.5" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[140px]">
-          <DropdownMenuItem onClick={() => openNodeEditor(elementType, node.id, siteId, () => void refresh())}>
-            <FontAwesomeIcon icon={faPencil} />
-            {t('Edit')}
-          </DropdownMenuItem>
-          <CopyToSiteMenuItems
-            nodeIds={[node.id]}
-            disabled={node.pendingDelete}
-            includeDeepOption={allowNestedActions && node.hasDescendants}
-            onCopied={() => setIsOpen(false)}
-          />
-          <DescendantScopeMenuItems
-            label={t('Duplicate')}
-            icon={faClone}
-            includeDeepOption={allowNestedActions && node.hasDescendants}
-            deepAsSubmenu={allowNestedActions && node.hasDescendants}
-            shallowLabel={t('This node')}
-            onAction={(deep) => void duplicateNode(node.id, deep)}
-          />
+          <Icon slot="start" icon="ellipsis" />
+        </Button>
 
-          <DropdownMenuSeparator />
+        <DropdownItem value="edit">
+          <Icon slot="prefix" icon="pen" />
+          {t('Edit')}
+        </DropdownItem>
+        <CopyToSiteMenuItems nodeIds={[node.id]} disabled={node.pendingDelete} />
+        <DescendantScopeMenuItems
+          label={duplicateLabel}
+          icon="clone"
+          includeDeepOption={includeDeepOption}
+          deepAsSubmenu={includeDeepOption}
+          shallowLabel={t('This node')}
+        />
 
-          <DropdownMenuItem
-            disabled={!capabilities.canMoveUp}
-            className={cn(!capabilities.canMoveUp && 'pointer-events-none opacity-50')}
-            onClick={() => moveNodeUp(node.id)}
-          >
-            <FontAwesomeIcon icon={faArrowUp} />
-            {t('Move up')}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={!capabilities.canMoveDown}
-            className={cn(!capabilities.canMoveDown && 'pointer-events-none opacity-50')}
-            onClick={() => moveNodeDown(node.id)}
-          >
-            <FontAwesomeIcon icon={faArrowDown} />
-            {t('Move down')}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={!capabilities.canMoveLeft}
-            className={cn(!capabilities.canMoveLeft && 'pointer-events-none opacity-50')}
-            onClick={() => outdent(node.id)}
-          >
-            <FontAwesomeIcon icon={faArrowLeft} />
-            {t('Move left')}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={!capabilities.canMoveRight}
-            className={cn(!capabilities.canMoveRight && 'pointer-events-none opacity-50')}
-            onClick={() => indent(node.id)}
-          >
-            <FontAwesomeIcon icon={faArrowRight} />
-            {t('Move right')}
-          </DropdownMenuItem>
+        <DropdownSeparator />
 
-          <DropdownMenuSeparator />
+        <DropdownItem value="move-up" disabled={!capabilities.canMoveUp}>
+          <Icon slot="prefix" icon="arrow-up" />
+          {t('Move up')}
+        </DropdownItem>
+        <DropdownItem value="move-down" disabled={!capabilities.canMoveDown}>
+          <Icon slot="prefix" icon="arrow-down" />
+          {t('Move down')}
+        </DropdownItem>
+        <DropdownItem value="move-left" disabled={!capabilities.canMoveLeft}>
+          <Icon slot="prefix" icon="arrow-left" />
+          {t('Move left')}
+        </DropdownItem>
+        <DropdownItem value="move-right" disabled={!capabilities.canMoveRight}>
+          <Icon slot="prefix" icon="arrow-right" />
+          {t('Move right')}
+        </DropdownItem>
 
-          <DescendantScopeMenuItems
-            label={t('Delete')}
-            icon={faXmark}
-            includeDeepOption={allowNestedActions && node.hasDescendants}
-            deepAsSubmenu={allowNestedActions && node.hasDescendants}
-            shallowLabel={t('This node')}
-            variant="destructive"
-            onAction={(deep) => void deleteNode(node.id, deep)}
-          />
+        <DropdownSeparator />
 
-        </DropdownMenuContent>
+        <DescendantScopeMenuItems
+          label={deleteLabel}
+          icon="xmark"
+          includeDeepOption={includeDeepOption}
+          deepAsSubmenu={includeDeepOption}
+          shallowLabel={t('This node')}
+          destructive
+        />
       </DropdownMenu>
     </div>
   );

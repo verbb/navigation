@@ -40,7 +40,11 @@ class NodesController extends Controller
             $nodesService->setTempNodes([$node]);
 
             if ($deferPublish) {
+                // Match duplicate staging: disabled until Save publishes. afterSave clears
+                // `_pendingPublish` whenever enabled+enabledForSite, so new adds must start disabled.
                 $node->setPendingPublish(true);
+                $node->enabled = false;
+                $node->setEnabledForSite(false);
             }
 
             if (!Craft::$app->getElements()->saveElement($node, true)) {

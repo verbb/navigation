@@ -1,4 +1,4 @@
-import { cn } from '@verbb/plugin-kit-react/utils';
+import { cn } from '../utils/cn';
 
 export const NODE_LEVEL_INDENT_PX = 20;
 

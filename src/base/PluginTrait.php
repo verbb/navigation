@@ -22,7 +22,9 @@ use verbb\navigation\services\NodeSites;
 use verbb\navigation\services\NodeTypes;
 
 use Craft;
+use craft\helpers\App;
 
+use nystudio107\pluginvite\services\VitePluginService;
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
 
@@ -52,6 +54,21 @@ trait PluginTrait
                 'nodeSites' => NodeSites::class,
                 'nodes' => Nodes::class,
                 'nodeTypes' => NodeTypes::class,
+                'vite' => [
+                    'class' => VitePluginService::class,
+                    'assetClass' => \verbb\navigation\web\assets\cp\BuilderAsset::class,
+                    // Default off: Craft serves built CP dist. Kit comes from published
+                    // `@verbb/plugin-kit-*` npm packages — bump versions + rebuild CP to
+                    // pick up kit changes. Opt in with NAVIGATION_USE_VITE_DEV_SERVER=true
+                    // for plugin-local HMR only (same model as Formie).
+                    'useDevServer' => filter_var(App::parseEnv('$NAVIGATION_USE_VITE_DEV_SERVER') ?: false, FILTER_VALIDATE_BOOL),
+                    'devServerPublic' => rtrim(App::parseEnv('$NAVIGATION_CP_DEV_SERVER_PUBLIC') ?: 'http://localhost:4011/', '/') . '/',
+                    'errorEntry' => 'src/main.tsx',
+                    'cacheKeySuffix' => '',
+                    'devServerInternal' => rtrim(App::parseEnv('$NAVIGATION_CP_DEV_SERVER_INTERNAL') ?: 'http://localhost:4011/', '/') . '/',
+                    'checkDevServer' => true,
+                    'includeReactRefreshShim' => true,
+                ],
             ],
         ];
     }
@@ -164,6 +181,11 @@ trait PluginTrait
     public function getNodeTypes(): NodeTypes
     {
         return $this->get('nodeTypes');
+    }
+
+    public function getVite(): VitePluginService
+    {
+        return $this->get('vite');
     }
 
 }

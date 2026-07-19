@@ -1,4 +1,4 @@
-import { cn } from '@verbb/plugin-kit-react/utils';
+import { cn } from '../utils/cn';
 import type { BuilderNode } from '../types';
 
 type Props = {

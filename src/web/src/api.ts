@@ -73,12 +73,24 @@ export async function duplicateNodes(
   siteId: number,
   nodeIds: number[],
   deep = false,
-): Promise<{ nodes?: BuilderNode[]; message?: string }> {
+): Promise<{
+  nodes?: BuilderNode[];
+  session?: BuilderState['session'];
+  duplications?: Array<{ sourceId: number; duplicateId: number }>;
+  duplicatedNodeIds?: number[];
+  message?: string;
+}> {
   const response = await getCraft().sendActionRequest('POST', 'navigation/builder/duplicate-nodes', {
     data: { menuId, siteId, nodeIds, deep },
   });
 
-  return response.data as { nodes?: BuilderNode[]; message?: string };
+  return response.data as {
+    nodes?: BuilderNode[];
+    session?: BuilderState['session'];
+    duplications?: Array<{ sourceId: number; duplicateId: number }>;
+    duplicatedNodeIds?: number[];
+    message?: string;
+  };
 }
 
 export async function unstageDelete(

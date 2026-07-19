@@ -1,4 +1,4 @@
-import type { SchemaIndex } from '@verbb/plugin-kit-react/forms/engine/SchemaIndex';
+import type { SchemaIndex } from '@verbb/plugin-kit-forms';
 
 export type { SchemaIndex };
 

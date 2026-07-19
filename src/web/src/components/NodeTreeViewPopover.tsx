@@ -1,14 +1,10 @@
-import {
-  Button,
-  Checkbox,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@verbb/plugin-kit-react/components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faSliders } from '@fortawesome/pro-solid-svg-icons';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { Checkbox } from '@verbb/plugin-kit-react/components/Checkbox';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
+import { Popover } from '@verbb/plugin-kit-react/components/Popover';
 import { useBuilderStore } from '../store';
 import type { TreeColumnId } from '../types';
+import { type PkCheckedChangeEvent } from '../utils/pluginKitEvents';
 import { t } from '../api';
 
 const COLUMN_OPTIONS: Array<{ id: TreeColumnId; label: string }> = [
@@ -20,38 +16,31 @@ export function NodeTreeViewPopover() {
   const setColumnVisible = useBuilderStore((s) => s.setColumnVisible);
 
   return (
-    <Popover modal={false}>
-      <PopoverTrigger
-        render={
-          <Button type="button" variant="default" className="gap-2">
-            <FontAwesomeIcon icon={faSliders} className="size-3.5 text-gray-500" />
-            <span>{t('View')}</span>
-            <FontAwesomeIcon icon={faChevronDown} className="size-2.5 opacity-70" />
-          </Button>
-        }
-      />
+    <Popover placement="bottom-end" className="navigation-node-tree-view-popover">
+      <Button slot="trigger" type="button" variant="default" withCaret>
+        <Icon slot="start" icon="sliders" className="size-3.5 text-gray-500" />
+        <span>{t('View')}</span>
+      </Button>
 
-      <PopoverContent align="end" className="w-[min(92vw,320px)] p-0">
-        <div className="grid grid-cols-[120px_minmax(0,1fr)]">
-          <div className="border-r border-gray-200 bg-gray-50 px-4 py-4 text-sm text-gray-600">
-            {t('Table Columns')}
-          </div>
-          <div className="space-y-1 px-4 py-3">
-            {COLUMN_OPTIONS.map((column) => (
-              <label
-                key={column.id}
-                className="flex min-h-8 cursor-pointer items-center gap-2 text-[13px] leading-tight text-gray-900"
-              >
-                <Checkbox
-                  checked={visibleColumns[column.id]}
-                  onCheckedChange={(checked) => setColumnVisible(column.id, Boolean(checked))}
-                />
-                <span className="min-w-0 flex-1 truncate">{t(column.label)}</span>
-              </label>
-            ))}
-          </div>
+      <div className="grid w-full grid-cols-[120px_minmax(0,1fr)]">
+        <div className="flex items-center self-stretch border-r border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-snug text-gray-600">
+          {t('Table Columns')}
         </div>
-      </PopoverContent>
+        <div className="flex flex-col justify-center px-4 py-2">
+          {COLUMN_OPTIONS.map((column) => (
+            <label
+              key={column.id}
+              className="flex min-h-9 cursor-pointer items-center gap-2 text-[13px] leading-tight text-gray-900"
+            >
+              <Checkbox
+                checked={visibleColumns[column.id]}
+                onPkChange={(event) => setColumnVisible(column.id, (event as PkCheckedChangeEvent).detail.checked)}
+              />
+              <span className="min-w-0 flex-1 truncate">{t(column.label)}</span>
+            </label>
+          ))}
+        </div>
+      </div>
     </Popover>
   );
 }

@@ -1,6 +1,5 @@
-import { cn } from '@verbb/plugin-kit-react/utils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/pro-solid-svg-icons';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
+import { cn } from '../utils/cn';
 import { useBuilderStore, useBuilderTabs } from '../store';
 import { AddNodePanel } from './AddNodePanel';
 import type { BuilderTab } from '../types';
@@ -57,14 +56,14 @@ function SidebarAccordionItem({
         onClick={onToggle}
       >
         <span className="min-w-0 truncate">{tab.label}</span>
-        <FontAwesomeIcon
-          icon={faChevronDown}
-          className={cn('size-4 shrink-0 transition-transform duration-150', expanded && 'rotate-180')}
+        <Icon
+          icon="chevron-down"
+          className={cn('size-3.5 shrink-0', expanded && 'rotate-180')}
         />
       </button>
 
       {expanded && (
-        <div className="border-b border-black/10 bg-[#cdd8e4] p-5">
+        <div className="border-b border-black/10 bg-white p-5">
           <AddNodePanel tab={tab} />
         </div>
       )}

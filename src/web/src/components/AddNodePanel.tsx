@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button } from '@verbb/plugin-kit-react/components';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
 import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 import { useBuilderStore } from '../store';
 import { addNodes, t } from '../api';
 import { getCraft } from '../utils/cp';
@@ -138,12 +137,12 @@ export function AddNodePanel({ tab }: { tab: BuilderTab }) {
 
       {tab.category === 'nodeType' ? (
         <Button type="button" variant="primary" loading={submitting} onClick={() => form.handleSubmit()}>
-          <FontAwesomeIcon icon={faPlus} className="size-3.5" />
+          <Icon slot="start" icon="plus" className="size-3.5" />
           {tab.button}
         </Button>
       ) : (
         <Button type="button" variant="primary" loading={submitting} onClick={openElementPicker}>
-          <FontAwesomeIcon icon={faPlus} className="size-3.5" />
+          <Icon slot="start" icon="plus" className="size-3.5" />
           {tab.button}
         </Button>
       )}

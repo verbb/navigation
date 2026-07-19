@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, type DragEvent, type MouseEvent } from 'react';
 import type { ItemInstance } from '@headless-tree/core';
-import { Button, Checkbox, Status } from '@verbb/plugin-kit-react/components';
-import { cn } from '@verbb/plugin-kit-react/utils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUpRightFromSquare, faChevronRight } from '@fortawesome/pro-solid-svg-icons';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { Checkbox } from '@verbb/plugin-kit-react/components/Checkbox';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
+import { Status } from '@verbb/plugin-kit-react/components/Status';
+import { cn } from '../utils/cn';
+import { asPkStatusVariant } from '../utils/pluginKitEvents';
 import type { BuilderNode } from '../types';
 import { useBuilderStore } from '../store';
 import { t } from '../api';
@@ -24,7 +26,7 @@ type Props = {
   isDropNestTarget?: boolean;
 };
 
-function GripIcon({ className }: { className?: string }) {
+function GripIcon({ className, slot }: { className?: string; slot?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -32,6 +34,7 @@ function GripIcon({ className }: { className?: string }) {
       focusable="false"
       aria-hidden="true"
       className={className}
+      slot={slot}
     >
       <path
         fill="currentColor"
@@ -223,7 +226,7 @@ export function NodeRow({
             checked={isSelected}
             tabIndex={-1}
             onClick={(event) => event.stopPropagation()}
-            onCheckedChange={() => {
+            onPkChange={() => {
               selectNode(
                 node.id,
                 { shiftKey: false, metaKey: false, ctrlKey: false, toggle: true },
@@ -247,12 +250,9 @@ export function NodeRow({
                 toggleNodeCollapsed(node.id);
               }}
             >
-              <FontAwesomeIcon
-                icon={faChevronRight}
-                className={cn(
-                  'size-2.5 transition-transform duration-150',
-                  !isCollapsed && 'rotate-90',
-                )}
+              <Icon
+                icon="chevron-right"
+                className={cn('size-2.5', !isCollapsed && 'rotate-90')}
               />
             </button>
           ) : null}
@@ -263,9 +263,9 @@ export function NodeRow({
             <Button
               type="button"
               variant="none"
-              size="none"
+              size="xs"
               data-no-row-select
-              className="absolute top-1/2 left-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-move items-center justify-center rounded bg-transparent p-0 text-gray-400 outline-none hover:bg-transparent hover:text-gray-600 focus:outline-none focus-visible:outline-none focus-visible:ring-0"
+              className="absolute top-1/2 left-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded bg-transparent p-0 text-gray-400 outline-none hover:bg-transparent hover:text-gray-600 focus:outline-none focus-visible:outline-none focus-visible:ring-0 [&::part(base)]:cursor-move"
               title="Drag to reorder"
               onClick={(event) => event.stopPropagation()}
               onDragStart={(event) => {
@@ -276,15 +276,15 @@ export function NodeRow({
               }}
               {...dragHandleProps}
             >
-              <GripIcon className="size-3" />
+              <GripIcon slot="start" className="size-3.5" />
             </Button>
-            <span className="invisible inline-flex size-3" aria-hidden>
-              <GripIcon className="size-3" />
+            <span className="invisible inline-flex size-3.5" aria-hidden>
+              <GripIcon className="size-3.5" />
             </span>
           </span>
         )}
 
-        <Status status={nodeStatusIndicator(node)} className="size-2.5 shrink-0" />
+        <Status status={asPkStatusVariant(nodeStatusIndicator(node))} className="size-2.5 shrink-0" />
 
         <span
           className={cn(
@@ -296,10 +296,10 @@ export function NodeRow({
         </span>
 
         {node.newWindow && (
-          <FontAwesomeIcon
-            icon={faArrowUpRightFromSquare}
+          <Icon
+            icon="arrow-up-right-from-square"
             className="size-2.5 shrink-0 text-gray-400/80"
-            title="Opens in a new window"
+            label="Opens in a new window"
           />
         )}
 
@@ -311,10 +311,11 @@ export function NodeRow({
           <Button
             type="button"
             variant="none"
-            size="none"
+            size="xs"
             data-no-row-select
             className={cn(
-              'node-edit-btn ml-[7px] h-5 shrink-0 rounded border border-[rgba(96,125,159,0.25)] bg-transparent px-1.5 text-[11px] font-normal text-gray-700 opacity-0 transition-opacity hover:bg-transparent focus-visible:opacity-100 group-hover:opacity-100',
+              'node-edit-btn ml-[7px] shrink-0 rounded border border-[rgba(96,125,159,0.25)] bg-transparent px-1.5 text-[11px] font-normal leading-none text-gray-700 opacity-0 transition-opacity hover:bg-transparent focus-visible:opacity-100 group-hover:opacity-100',
+              '[--pk-btn-height:1.25rem] [--pk-btn-padding-inline:0] [--pk-btn-font:11px] [--pk-btn-radius:0.25rem]',
               isSelected && 'opacity-100',
             )}
             onClick={(event) => {
@@ -334,7 +335,7 @@ export function NodeRow({
       </div>
 
       {showTypeColumn && (
-        <div role="cell" className="flex items-center justify-end px-3 py-1.5">
+        <div role="cell" className="flex items-center justify-end px-1 py-1.5">
           <NodeTypeBadge node={node} />
         </div>
       )}

@@ -1,5 +1,6 @@
 import type { BuilderNode, NodeStatusFilter, StructureMove } from '../types';
 import { NODE_LEVEL_INDENT_PX } from './nodeRowLayout';
+import { normalizeTreeNodes } from './normalizeTreeNodes';
 
 export type SubtreeRange = {
   start: number;
@@ -565,6 +566,160 @@ export function applyStructureMoves(nodes: BuilderNode[], moves: StructureMove[]
   });
 
   return recalculateLevels(withLevels);
+}
+
+export type NodeDuplication = {
+  sourceId: number;
+  duplicateId: number;
+};
+
+/**
+ * Reconcile server node payloads onto the client’s uncommitted tree order.
+ *
+ * Structure moves live client-side until Save — a naive refresh snaps rows back to
+ * Craft structure. This keeps the staged order and inserts new roots (duplicates)
+ * after their sources, then nests remaining new nodes under known parents.
+ */
+export function mergeServerNodesPreservingStructure(
+  previousNodes: BuilderNode[],
+  serverNodes: BuilderNode[],
+  options: {
+    preserveStructure?: boolean;
+    duplications?: NodeDuplication[];
+  } = {},
+): BuilderNode[] {
+  const preserveStructure = options.preserveStructure ?? true;
+  const duplications = options.duplications ?? [];
+
+  if (!preserveStructure && duplications.length === 0) {
+    return serverNodes;
+  }
+
+  if (!preserveStructure) {
+    const used = new Set<number>();
+    return finalizeMergedNodes(
+      insertDuplicationsIntoOrder(serverNodes, serverNodes, duplications, used),
+      serverNodes,
+      used,
+    );
+  }
+
+  const serverById = new Map(serverNodes.map((node) => [node.id, node]));
+  const used = new Set<number>();
+  const ordered: BuilderNode[] = [];
+
+  for (const previous of previousNodes) {
+    const fresh = serverById.get(previous.id);
+
+    if (!fresh) {
+      continue;
+    }
+
+    ordered.push({
+      ...fresh,
+      level: previous.level,
+      parentId: previous.parentId,
+    });
+    used.add(previous.id);
+  }
+
+  return finalizeMergedNodes(
+    insertDuplicationsIntoOrder(ordered, serverNodes, duplications, used),
+    serverNodes,
+    used,
+  );
+}
+
+function insertDuplicationsIntoOrder(
+  ordered: BuilderNode[],
+  serverNodes: BuilderNode[],
+  duplications: NodeDuplication[],
+  used: Set<number> = new Set(ordered.map((node) => node.id)),
+): BuilderNode[] {
+  const serverById = new Map(serverNodes.map((node) => [node.id, node]));
+  let next = [...ordered];
+
+  for (const { sourceId, duplicateId } of duplications) {
+    if (used.has(duplicateId)) {
+      continue;
+    }
+
+    const duplicate = serverById.get(duplicateId);
+
+    if (!duplicate) {
+      continue;
+    }
+
+    const sourceIndex = next.findIndex((node) => node.id === sourceId);
+
+    if (sourceIndex < 0) {
+      continue;
+    }
+
+    const source = next[sourceIndex];
+    const { end } = getSubtreeRange(next, sourceId);
+    next = [
+      ...next.slice(0, end),
+      {
+        ...duplicate,
+        level: source.level,
+        parentId: source.parentId,
+      },
+      ...next.slice(end),
+    ];
+    used.add(duplicateId);
+  }
+
+  return next;
+}
+
+function finalizeMergedNodes(
+  ordered: BuilderNode[],
+  serverNodes: BuilderNode[],
+  used: Set<number>,
+): BuilderNode[] {
+  let next = [...ordered];
+
+  // Deep-duplicated children / other new nodes whose parent is already present.
+  for (const node of serverNodes) {
+    if (used.has(node.id)) {
+      continue;
+    }
+
+    const parentId = node.parentId;
+
+    if (!parentId || !used.has(parentId)) {
+      continue;
+    }
+
+    const parentIndex = next.findIndex((candidate) => candidate.id === parentId);
+
+    if (parentIndex < 0) {
+      continue;
+    }
+
+    const parent = next[parentIndex];
+    const { end } = getSubtreeRange(next, parentId);
+    next = [
+      ...next.slice(0, end),
+      {
+        ...node,
+        level: parent.level + 1,
+        parentId: parent.id,
+      },
+      ...next.slice(end),
+    ];
+    used.add(node.id);
+  }
+
+  for (const node of serverNodes) {
+    if (!used.has(node.id)) {
+      next.push(node);
+      used.add(node.id);
+    }
+  }
+
+  return normalizeTreeNodes(recalculateLevels(next));
 }
 
 function getCollapsedAncestorLevel(

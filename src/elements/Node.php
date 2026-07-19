@@ -1286,8 +1286,9 @@ class Node extends Element
                 $record->id = (int)$this->id;
             }
 
-            // Manual publish (slide-out or Save menu) clears the deferred-builder flag.
-            if ($this->enabled && $this->getEnabledForSite()) {
+            // Manual publish (slide-out, Enable, or Save menu) clears the deferred-builder flag.
+            // Never clear on the creating save — add-nodes may still be writing `_pendingPublish`.
+            if (!$isNew && $this->enabled && $this->getEnabledForSite()) {
                 $this->clearPendingPublish();
             }
 

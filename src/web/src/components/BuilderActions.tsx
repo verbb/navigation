@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@verbb/plugin-kit-react/components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUpRightFromSquare, faCheck } from '@fortawesome/pro-solid-svg-icons';
-import { cn } from '@verbb/plugin-kit-react/utils';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
+import { cn } from '../utils/cn';
 import { useBuilderStore } from '../store';
 import { t } from '../api';
 
@@ -60,7 +59,7 @@ export function BuilderActions({ initialSettingsUrl, initialCanEditSettings }: P
         className="gap-1.5"
       >
         {t('Settings')}
-        <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="size-3.5 opacity-70" />
+        <Icon slot="end" icon="arrow-up-right-from-square" className="size-3.5 opacity-70" />
       </Button>
     ) : null;
   }
@@ -89,7 +88,7 @@ export function BuilderActions({ initialSettingsUrl, initialCanEditSettings }: P
           className="gap-1.5"
         >
           {t('Settings')}
-          <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="size-3.5 opacity-70" />
+          <Icon slot="end" icon="arrow-up-right-from-square" className="size-3.5 opacity-70" />
         </Button>
       )}
 
@@ -121,7 +120,7 @@ export function BuilderActions({ initialSettingsUrl, initialCanEditSettings }: P
         >
           {showSavedState && (
             <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <FontAwesomeIcon icon={faCheck} className="size-3 transition-opacity duration-300" />
+              <Icon icon="check" className="size-3 transition-opacity duration-300" />
             </span>
           )}
           <span className={showSavedState ? 'text-transparent' : ''}>{saveLabel}</span>

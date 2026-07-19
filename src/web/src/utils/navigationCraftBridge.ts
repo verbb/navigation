@@ -13,11 +13,17 @@ type ElementSelectWidget = {
 export function ensureNavigationCraftBridge(): void {
   ensureCraftNamespace('Navigation');
 
-  const craft = window.Craft as {
-    Navigation?: {
-      ElementSelect?: unknown;
+  const craft = (window as typeof window & {
+    Craft?: {
+      Navigation?: {
+        ElementSelect?: unknown;
+      };
     };
-  };
+  }).Craft;
+
+  if (!craft) {
+    return;
+  }
 
   if (craft.Navigation?.ElementSelect) {
     return;
@@ -29,7 +35,8 @@ export function ensureNavigationCraftBridge(): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const $ = getJquery() as any;
 
-  craft.Navigation!.ElementSelect = Garnish.Base.extend({
+  craft.Navigation ??= {};
+  craft.Navigation.ElementSelect = Garnish.Base.extend({
     init(elementSelect: string, siteId: string) {
       const $elementSelect = $(elementSelect);
       const $siteId = $(siteId);
@@ -53,4 +60,4 @@ export function ensureNavigationCraftBridge(): void {
       }, 100);
     },
   });
-}
+};
