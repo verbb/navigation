@@ -1,6 +1,8 @@
 <?php
 namespace verbb\navigation\console\controllers;
 
+use verbb\navigation\helpers\MenuElementCollisionRepair;
+
 use Craft;
 use craft\console\Controller;
 use craft\db\Query;
@@ -50,6 +52,26 @@ class MenusController extends Controller
                 }
             }
         }
+
+        return ExitCode::OK;
+    }
+
+    /**
+     * One-off repair for beta sites where Menu elements reclaimed Entry/User/Node ids.
+     *
+     * Not applied automatically — only the few beta installs that hit m260627 collisions need it.
+     */
+    public function actionFixMenuElementCollisions(): int
+    {
+        $this->stdout("Repairing Menu element id collisions…\n", Console::FG_YELLOW);
+
+        $result = MenuElementCollisionRepair::run();
+
+        $this->stdout("Restored foreign elements mistyped as Menu: {$result['restoredForeign']}\n");
+        $this->stdout("Remapped colliding menus onto exclusive elements: {$result['remappedMenus']}\n");
+        $this->stdout("Backfilled missing Menu elements: {$result['backfilledMenus']}\n");
+        $this->stdout("Restored empty linked node titles from entries: {$result['restoredNodeTitles']}\n");
+        $this->stdout("Done.\n", Console::FG_GREEN);
 
         return ExitCode::OK;
     }
