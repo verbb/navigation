@@ -7,10 +7,10 @@
 
 {% block blockContent %}
 
+<h2>{{ 'Performance' | t('navigation') }}</h2>
+
 <input type="hidden" name="action" value="plugins/save-plugin-settings">
 <input type="hidden" name="pluginHandle" value="navigation">
-
-<h2>{{ 'Performance' | t('navigation') }}</h2>
 
 {% namespace 'settings' %}
     {% include 'navigation/settings/_panes/performance' %}

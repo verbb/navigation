@@ -18,16 +18,13 @@
 {% endblock %}
 
 {% block blockContent %}
+    <h2>{{ 'Migrate {source}' | t('navigation', { source: source.label }) }}</h2>
 
     {% if outputs is not defined %}
         {{ actionInput('navigation/migrate/run') }}
         {{ hiddenInput('sourceId', sourceId) }}
         {{ redirectInput('navigation/settings/migrate/' ~ sourceId) }}
-    {% endif %}
 
-    <h2>{{ 'Migrate {source}' | t('navigation', { source: source.label }) }}</h2>
-
-    {% if outputs is not defined %}
         <p>{{ 'Select the menus you wish to migrate from {source}. This will migrate menu settings, site availability, and the full node tree. Depending on how many nodes the selected menus have, this could take some time.' | t('navigation', {
             source: source.label,
         }) }}</p>
