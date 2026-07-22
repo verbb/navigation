@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type DragEvent, type MouseEvent } from 'react';
+import { useCallback, useEffect, useRef, type CSSProperties, type DragEvent, type MouseEvent } from 'react';
 import type { ItemInstance } from '@headless-tree/core';
 import { Button } from '@verbb/plugin-kit-react/components/Button';
 import { Checkbox } from '@verbb/plugin-kit-react/components/Checkbox';
@@ -178,7 +178,13 @@ export function NodeRow({
         }
       }}
       className={cn(
-        nodeTreeGridClass(showTypeColumn, 'group min-h-9 outline-none focus:outline-none focus-visible:outline-none'),
+        // Exact 36px — rem utilities can grow with content via min-height:auto on
+        // nested kit hosts; px + max keeps the row locked. Kit `:host([size=*])`
+        // beats class `--pk-btn-*` vars, so in-flow buttons stay size="xxs" (22px).
+        nodeTreeGridClass(
+          showTypeColumn,
+          'group h-[36px] max-h-[36px] min-h-[36px] overflow-hidden outline-none focus:outline-none focus-visible:outline-none',
+        ),
         isSelectable && !isDragSession && 'cursor-pointer',
         !isSelected && !isDragSession && 'hover:bg-gray-50',
         isSelected && !isDragSession && 'bg-gray-100 hover:bg-gray-100',
@@ -219,7 +225,7 @@ export function NodeRow({
         handleEditNode();
       }}
     >
-      <div role="cell" className="flex items-center px-3 py-1.5">
+      <div role="cell" className="flex items-center px-3">
         {isSelectable && (
           <Checkbox
             aria-label={`Select ${node.title}`}
@@ -237,7 +243,7 @@ export function NodeRow({
         )}
       </div>
 
-      <div role="cell" className="flex min-h-9 items-center gap-1.5 py-1.5 pr-3" style={{ paddingLeft }}>
+      <div role="cell" className="flex items-center gap-1.5 pr-3" style={{ paddingLeft }}>
         <span className="relative inline-flex w-3 shrink-0 justify-center">
           {node.hasDescendants ? (
             <button
@@ -311,11 +317,21 @@ export function NodeRow({
           <Button
             type="button"
             variant="none"
-            size="xs"
+            size="xxs"
             data-no-row-select
+            // Inline --pk-btn-* wins over `:host([size=xxs])`; class utilities do not.
+            style={
+              {
+                '--pk-btn-height': '20px',
+                '--pk-btn-padding-inline': '6px',
+                '--pk-btn-font': '11px',
+                '--pk-btn-radius': '4px',
+              } as CSSProperties
+            }
             className={cn(
-              'node-edit-btn ml-[7px] shrink-0 rounded border border-[rgba(96,125,159,0.25)] bg-transparent px-1.5 text-[11px] font-normal leading-none text-gray-700 opacity-0 transition-opacity hover:bg-transparent focus-visible:opacity-100 group-hover:opacity-100',
-              '[--pk-btn-height:1.25rem] [--pk-btn-padding-inline:0] [--pk-btn-font:11px] [--pk-btn-radius:0.25rem]',
+              // Border lives on the host (variant=none zeros the inner border), so radius
+              // must be a host utility — `--pk-btn-radius` alone won't round the outline.
+              'node-edit-btn ml-[7px] shrink-0 rounded border border-[rgba(96,125,159,0.25)] bg-transparent font-normal leading-none text-gray-700 opacity-0 transition-opacity hover:bg-transparent focus-visible:opacity-100 group-hover:opacity-100',
               isSelected && 'opacity-100',
             )}
             onClick={(event) => {
@@ -328,14 +344,14 @@ export function NodeRow({
         )}
 
         {node.pendingDelete && (
-          <Button type="button" size="sm" variant="secondary" onClick={() => void restoreNode(node.id)}>
+          <Button type="button" size="xxs" variant="secondary" onClick={() => void restoreNode(node.id)}>
             Restore
           </Button>
         )}
       </div>
 
       {showTypeColumn && (
-        <div role="cell" className="flex items-center justify-end px-1 py-1.5">
+        <div role="cell" className="flex items-center justify-end px-1">
           <NodeTypeBadge node={node} />
         </div>
       )}
@@ -344,7 +360,7 @@ export function NodeRow({
         <div
           role="cell"
           className={cn(
-            'sticky right-0 z-10 flex items-center justify-center py-1.5 pr-1 pl-0.5',
+            'sticky right-0 z-10 flex items-center justify-center pr-1 pl-0.5',
             getRowActionsCellClassName(isSelected, isDropNestTarget, node.pendingAdd),
           )}
         >

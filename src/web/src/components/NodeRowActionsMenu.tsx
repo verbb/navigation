@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, type CSSProperties } from 'react';
 import { Button } from '@verbb/plugin-kit-react/components/Button';
 import {
   DropdownItem,
@@ -136,7 +136,14 @@ export function NodeRowActionsMenu({ node, isDragSession = false, className }: P
           variant="transparent"
           size="sm"
           data-no-row-select
-          className="[--pk-btn-height:28px] [--pk-btn-padding-inline:7px]"
+          // Inline vars beat `:host([size=…])` — restore 28px hit target + readable glyph.
+          style={
+            {
+              '--pk-btn-height': '28px',
+              '--pk-btn-padding-inline': '7px',
+              '--pk-btn-icon-size': '14px',
+            } as CSSProperties
+          }
           aria-label={t('Actions for {title}', { title: nodeTitle })}
           onClick={(event) => event.stopPropagation()}
         >
