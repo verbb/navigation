@@ -1,14 +1,14 @@
-<p align="center"><img src="https://assets.verbb.io/plugins/navigation/navigation-icon.svg" width="100" height="100" alt="Navigation icon"></p>
-<h1 align="center">Navigation for Craft CMS</h1>
-
 > [!IMPORTANT]
 > **Navigation 4** for **Craft 5** has some breaking changes. Consult our [Upgrading from v3](./docs/get-started/upgrading-from-v3.md) docs for the details.
+
+<p align="center"><img src="https://assets.verbb.io/plugins/navigation/navigation-icon.svg" width="100" height="100" alt="Navigation icon"></p>
+<h1 align="center">Navigation for Craft CMS</h1>
 
 Navigation is a Craft CMS plugin for building and rendering menus — nested link trees backed by Craft elements, custom URLs, dynamic branches, and structural node types.
 
 ## What's new in Navigation 4
 
-- **React menu builder** — a modern control panel experience with non-live edits you publish when ready, plus menu content editing in slide-outs.
+- **New menu builder** — a modern control panel experience with non-live edits you publish when ready, plus menu content editing in slide-outs.
 - **Menu element & menu fields** — menu-level custom fields on a dedicated `Menu` element, separate from node fields.
 - **Dynamic nodes** — pluggable dynamic sources that project entries, categories, assets, or Commerce products at read time, with entry conditions and sort order.
 - **Context API** — `craft.navigation.context(handle)` with `siblings()`, `branch()`, `ancestors()`, and more for section sidebars and sub-nav.
