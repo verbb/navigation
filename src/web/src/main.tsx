@@ -11,6 +11,7 @@ import {
   PluginKitProvider,
 } from '@verbb/plugin-kit-react/utils';
 
+import { BuilderErrorBoundary } from './components/BuilderErrorBoundary';
 import { BuilderShell } from './components/BuilderShell';
 import { registerNavigationIcons } from './icons/registerNavigationIcons';
 import {
@@ -73,16 +74,18 @@ if (!appEl) {
         shadowRootSelectors={[`[${builderStyleConfig.rootAttr}]`]}
         hostBridge={createCraftHostBridge()}
       >
-        <BuilderShell
-          menuId={menuId}
-          siteId={siteId}
-          initialSettingsUrl={initialSettingsUrl}
-          initialCanEditSettings={initialCanEditSettings}
-          headerMountNode={headerMountNode}
-          instructionsMountNode={instructionsMountNode}
-          actionsMountNode={actionsMountNode}
-          sidebarMountNode={sidebarMountNode}
-        />
+        <BuilderErrorBoundary>
+          <BuilderShell
+            menuId={menuId}
+            siteId={siteId}
+            initialSettingsUrl={initialSettingsUrl}
+            initialCanEditSettings={initialCanEditSettings}
+            headerMountNode={headerMountNode}
+            instructionsMountNode={instructionsMountNode}
+            actionsMountNode={actionsMountNode}
+            sidebarMountNode={sidebarMountNode}
+          />
+        </BuilderErrorBoundary>
       </PluginKitProvider>
     </StrictMode>,
   );

@@ -16,6 +16,7 @@ import {
   pen,
   plus,
   trash,
+  triangleExclamation,
   xmark,
   type PkIcon,
 } from '@verbb/plugin-kit-icons';
@@ -58,6 +59,8 @@ export function registerNavigationIcons(): void {
     pen,
     plus,
     trash,
+    // LargeErrorState / StatePanel error variant
+    triangleExclamation,
     xmark,
   });
   registerIcon('sliders', sliders);
