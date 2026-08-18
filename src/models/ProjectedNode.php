@@ -29,7 +29,7 @@ class ProjectedNode extends Model
         $projected = new self([
             'id' => 'projected:' . $element->id,
             'uid' => 'projected:' . $element->uid,
-            'title' => (string)$element->title,
+            'title' => (string)($element->title ?: $element),
             'uri' => $element->uri ?? null,
             'url' => $element->url ?? null,
             'level' => $level,

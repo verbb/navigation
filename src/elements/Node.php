@@ -888,11 +888,13 @@ class Node extends Element
     public function getLinkAttributes($extraAttributes = null): Markup
     {
         $object = $this->_getObject();
+        $tag = $this->getTag();
 
         $classes = $this->classes ? Craft::$app->getView()->renderObjectTemplate($this->classes, $object) : null;
 
+        // Passive / group / Dynamic nodes use getTag() (span by default) and must not emit a blank href.
         $attributes = [
-            'href' => $this->getUrl(),
+            'href' => $tag === 'a' ? $this->getUrl() : null,
             'target' => $this->newWindow ? '_blank' : null,
             'rel' => $this->newWindow ? 'noopener' : null,
             'class' => $classes,
@@ -917,7 +919,9 @@ class Node extends Element
 
     public function getLink($attributes = null): ?Markup
     {
-        return Template::raw('<a ' . $this->getLinkAttributes($attributes) . '>' . Html::encode($this->__toString()) . '</a>');
+        $tag = $this->getTag() ?: 'a';
+
+        return Template::raw('<' . $tag . ' ' . $this->getLinkAttributes($attributes) . '>' . Html::encode($this->__toString()) . '</' . $tag . '>');
     }
 
     public function getTarget(): string
@@ -1041,6 +1045,11 @@ class Node extends Element
     public function isSite(): bool
     {
         return $this->type === SiteNodeType::class;
+    }
+
+    public function getIsProjected(): bool
+    {
+        return false;
     }
 
     public function hasOverriddenTitle(): bool

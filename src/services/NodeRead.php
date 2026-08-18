@@ -445,7 +445,10 @@ class NodeRead extends Component
         $nodeArray['hasActiveChild'] = $node->hasActiveChild();
         $nodeArray['target'] = $node->getTarget();
         $nodeArray['isProjected'] = false;
-        $nodeArray['element'] = $node->getElement() ? $node->getElement()->toArray() : null;
+        // Keep tree() aligned with nodes(): linked elements are omitted unless the caller opted in.
+        $nodeArray['element'] = ($includeLinkedElements && $node->getElement())
+            ? $node->getElement()->toArray()
+            : null;
 
         $children = $node->getChildren()->all();
 

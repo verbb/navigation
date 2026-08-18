@@ -18,6 +18,7 @@
 
 <ul {{ attr(ulAttributes) }}>
     {% nav node in nodes %}
+        {% set tag = node.getTag() %}
         {% set liClasses = liAttributes.class | merge([node.classes]) | filter %}
 
         {% if node.children | length %}
@@ -26,8 +27,9 @@
 
         {% set liNodeAttributes = liAttributes | merge({ class: liClasses }) %}
 
+        {# getTag() is an a11y contract: passive/group/Dynamic items must not render empty anchors. #}
         {% set aNodeAttributes = aAttributes | merge({
-            href: node.url ?? false,
+            href: tag == 'a' ? (node.url ?? false) : false,
             target: node.newWindow ? '_blank' : false,
             rel: node.newWindow ? 'noopener' : false,
         }) | merge(node.getCustomAttributesObject()) %}
@@ -43,9 +45,9 @@
         {% endif %}
 
         <li {{ attr(liNodeAttributes) }}>
-            <a {{ attr(aNodeAttributes) }}>
+            <{{ tag }} {{ attr(aNodeAttributes) }}>
                 {{- node.title -}}
-            </a>
+            </{{ tag }}>
 
             {% ifchildren %}
                 <ul {{ attr(ulAttributes) }}>

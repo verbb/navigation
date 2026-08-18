@@ -27,6 +27,7 @@ class WebRequestSimulator
             'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
             'REQUEST_METHOD' => $_SERVER['REQUEST_METHOD'] ?? null,
             'SCRIPT_NAME' => $_SERVER['SCRIPT_NAME'] ?? null,
+            'PATH_INFO' => $_SERVER['PATH_INFO'] ?? null,
         ];
 
         $_SERVER['HTTP_HOST'] = $host . $port;
@@ -34,6 +35,8 @@ class WebRequestSimulator
         $_SERVER['REQUEST_URI'] = $path . $query;
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['SCRIPT_NAME'] = '/index.php';
+        // Craft/Yii path segments come from PATH_INFO; REQUEST_URI alone is not enough in tests.
+        $_SERVER['PATH_INFO'] = $path === '/' ? '' : $path;
 
         $previousRequest = Craft::$app->get('request', false);
         $general = Craft::$app->getConfig()->getGeneral();
@@ -45,6 +48,16 @@ class WebRequestSimulator
             'class' => Request::class,
             'isConsoleRequest' => false,
         ]);
+        $request->setPathInfo(ltrim($path, '/'));
+        $craftPath = ltrim($path, '/');
+        $requestClass = new \ReflectionClass($request);
+        foreach (['_path', '_fullPath'] as $propertyName) {
+            if ($requestClass->hasProperty($propertyName)) {
+                $property = $requestClass->getProperty($propertyName);
+                $property->setAccessible(true);
+                $property->setValue($request, $craftPath);
+            }
+        }
         Craft::$app->set('request', $request);
 
         try {
