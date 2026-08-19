@@ -96,10 +96,6 @@ JS, [
             return false;
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('navigation', 'Node{plural} restored to menu.', [
-            'plural' => $restoredCount > 1 ? 's' : '',
-        ]));
-
         return true;
     }
 }

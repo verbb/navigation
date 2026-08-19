@@ -164,10 +164,6 @@ JS, [
             return false;
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('navigation', 'Node{plural} staged for deletion. Save menu to apply.', [
-            'plural' => $stagedCount > 1 ? 's' : '',
-        ]));
-
         return true;
     }
 }
