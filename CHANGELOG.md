@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.6 - 2026-08-19
 
 ### Added
 - Added front-end regression coverage for `render()` options, `getTag()` / `getLink()`, `context()`, `menuBreadcrumbs()`, and `urlBreadcrumbs()`.
