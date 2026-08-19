@@ -56,6 +56,54 @@ it('publishes staged nodes through the build session', function() {
     expect($reloaded->getIsPendingPublish())->toBeFalse();
 });
 
+it('removes pending-add nodes immediately when staged for deletion', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $siteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
+    $buildSessions = Navigation::$plugin->getBuildSessions();
+
+    $node = NavigationFixtureFactory::customNode($nav, 'Unsaved add', '/unsaved-add');
+    $node->enabled = false;
+    $node->setEnabledForSite(false);
+    $node->setPendingPublish(true);
+
+    if (!Craft::$app->getElements()->saveElement($node)) {
+        throw new RuntimeException('Failed saving pending-add fixture.');
+    }
+
+    $nodeId = (int)$node->id;
+    $session = $buildSessions->getOrCreate($nav->id, $siteId);
+    $buildSessions->addAddedNode($session, $nodeId);
+
+    $session = $buildSessions->getSession($nav->id, $siteId);
+    $buildSessions->stageDelete($session, $node);
+
+    expect(Node::find()->id($nodeId)->status(null)->one())->toBeNull();
+    expect($buildSessions->getSession($nav->id, $siteId)?->addedNodeIds ?? [])->not->toContain($nodeId);
+});
+
+it('hard-deletes orphaned pending-add nodes that are missing from addedNodeIds', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $siteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
+    $buildSessions = Navigation::$plugin->getBuildSessions();
+
+    $node = NavigationFixtureFactory::customNode($nav, 'Orphan pending', '/orphan-pending');
+    $node->enabled = false;
+    $node->setEnabledForSite(false);
+    $node->setPendingPublish(true);
+
+    if (!Craft::$app->getElements()->saveElement($node)) {
+        throw new RuntimeException('Failed saving orphan pending-add fixture.');
+    }
+
+    $nodeId = (int)$node->id;
+    $session = $buildSessions->getOrCreate($nav->id, $siteId);
+
+    // Session exists but this node was never recorded in addedNodeIds.
+    $buildSessions->stageDelete($session, $node);
+
+    expect(Node::find()->id($nodeId)->status(null)->one())->toBeNull();
+});
+
 it('stages and publishes node deletions through the build session', function() {
     $nav = NavigationFixtureFactory::menu();
     $siteId = (int)Craft::$app->getSites()->getPrimarySite()->id;

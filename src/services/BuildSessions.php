@@ -117,6 +117,8 @@ class BuildSessions extends Component
 
     public function addAddedNode(BuildSessionModel $session, int $nodeId): void
     {
+        $nodeId = (int)$nodeId;
+
         if (!in_array($nodeId, $session->addedNodeIds, true)) {
             $session->addedNodeIds[] = $nodeId;
         }
@@ -127,6 +129,8 @@ class BuildSessions extends Component
     public function stageAddedNodes(BuildSessionModel $session, array $nodeIds): void
     {
         foreach ($nodeIds as $nodeId) {
+            $nodeId = (int)$nodeId;
+
             if (!in_array($nodeId, $session->addedNodeIds, true)) {
                 $session->addedNodeIds[] = $nodeId;
             }
@@ -166,13 +170,20 @@ class BuildSessions extends Component
         foreach ($nodesToStage as $nodeToStage) {
             $nodeId = (int)$nodeToStage->id;
 
-            if (in_array($nodeId, $session->addedNodeIds, true)) {
+            // Session adds (and any orphaned pending-publish rows) are not live yet — remove
+            // immediately instead of staging a delete that would fight the pending-add flag.
+            $isSessionAdd = in_array($nodeId, $session->addedNodeIds, true)
+                || $nodeToStage->getIsPendingPublish();
+
+            if ($isSessionAdd) {
                 $session->addedNodeIds = array_values(array_filter(
                     $session->addedNodeIds,
                     fn(int $id) => $id !== $nodeId,
                 ));
 
-                $elementsService->deleteElement($nodeToStage, true);
+                if (!$elementsService->deleteElement($nodeToStage, true)) {
+                    throw new UserException(Craft::t('navigation', 'Couldn’t stage node for deletion.'));
+                }
 
                 continue;
             }
@@ -517,7 +528,8 @@ class BuildSessions extends Component
             'siteId' => (int)$record->siteId,
             'userId' => (int)$record->userId,
             'structureMoves' => Json::decodeIfJson($record->structureMoves) ?? [],
-            'addedNodeIds' => Json::decodeIfJson($record->addedNodeIds) ?? [],
+            // JSON may rehydrate ids as strings — keep strict in_array() checks reliable.
+            'addedNodeIds' => array_values(array_map('intval', Json::decodeIfJson($record->addedNodeIds) ?? [])),
             'stagedDeletes' => Json::decodeIfJson($record->stagedDeletes) ?? [],
             'menuDraftId' => $record->menuDraftId ? (int)$record->menuDraftId : null,
             'menuContentDraft' => Json::decodeIfJson($record->menuContentDraft) ?? [],

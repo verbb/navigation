@@ -1,8 +1,8 @@
 {
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js": {
     "file": "assets/CheckboxSelectField-UagivNUR.js",
     "name": "CheckboxSelectField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
@@ -10,10 +10,10 @@
       "_useEngineField-DXQMOPLd.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/CodeEditorField.js": {
-    "file": "assets/CodeEditorField-Brs6wB1e.js",
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js": {
+    "file": "assets/CodeEditorField-BoskX5uw.js",
     "name": "CodeEditorField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/CodeEditorField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
@@ -23,10 +23,10 @@
       "_useEngineField-DXQMOPLd.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/ColorField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ColorField.js": {
     "file": "assets/ColorField-DQdbhHHK.js",
     "name": "ColorField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/ColorField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ColorField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
@@ -37,10 +37,10 @@
       "_useEngineField-DXQMOPLd.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/ComboboxField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js": {
     "file": "assets/ComboboxField-ieqexlG-.js",
     "name": "ComboboxField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/ComboboxField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
@@ -53,10 +53,10 @@
       "_useEngineField-DXQMOPLd.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/DateTimeField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/DateTimeField.js": {
     "file": "assets/DateTimeField-Co5uUTpa.js",
     "name": "DateTimeField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/DateTimeField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/DateTimeField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
@@ -70,20 +70,20 @@
       "_useEngineField-DXQMOPLd.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/GroupField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/GroupField.js": {
     "file": "assets/GroupField-iffZbcwn.js",
     "name": "GroupField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/GroupField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/GroupField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
       "_Field-Cr0kJfzY.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/LightswitchField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js": {
     "file": "assets/LightswitchField-DJ33w1Gh.js",
     "name": "LightswitchField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/LightswitchField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js",
     "isDynamicEntry": true,
     "imports": [
       "_Field-Cr0kJfzY.js",
@@ -91,10 +91,10 @@
       "_useEngineField-DXQMOPLd.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/NumberField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js": {
     "file": "assets/NumberField-C8dz5uJA.js",
     "name": "NumberField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/NumberField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js",
     "isDynamicEntry": true,
     "imports": [
       "_Field-Cr0kJfzY.js",
@@ -102,10 +102,10 @@
       "_Input-RHkma2vb.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/RadioGroupField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js": {
     "file": "assets/RadioGroupField-B78rx8C-.js",
     "name": "RadioGroupField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
@@ -118,10 +118,10 @@
       "_useEngineField-DXQMOPLd.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/SelectField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js": {
     "file": "assets/SelectField-DCHYx45v.js",
     "name": "SelectField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/SelectField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
@@ -131,10 +131,10 @@
       "_useEngineField-DXQMOPLd.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/TextField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js": {
     "file": "assets/TextField-B-zOX-pC.js",
     "name": "TextField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/TextField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js",
     "isDynamicEntry": true,
     "imports": [
       "_Field-Cr0kJfzY.js",
@@ -142,10 +142,10 @@
       "_Input-RHkma2vb.js"
     ]
   },
-  "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/TextareaField.js": {
+  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js": {
     "file": "assets/TextareaField-6fPC_Frx.js",
     "name": "TextareaField",
-    "src": "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/TextareaField.js",
+    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
@@ -279,7 +279,7 @@
     ]
   },
   "src/main.tsx": {
-    "file": "assets/builder-C0cshCZ9.js",
+    "file": "assets/builder-B5kwWMkj.js",
     "name": "builder",
     "src": "src/main.tsx",
     "isEntry": true,
@@ -296,18 +296,18 @@
       "_Lightswitch-B3NBPn05.js"
     ],
     "dynamicImports": [
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/TextField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/TextareaField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/NumberField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/SelectField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/LightswitchField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/ColorField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/ComboboxField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/GroupField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/DateTimeField.js",
-      "../../../../plugin-kit-2/plugin-kit-repo/plugin-kit-react/dist/forms/fields/CodeEditorField.js"
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ColorField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/GroupField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/DateTimeField.js",
+      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js"
     ],
     "css": [
       "assets/builder-Domr-PUC.css"

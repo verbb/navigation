@@ -475,7 +475,6 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await stageDelete(menuId, siteId, nodeId, withDescendants);
-      getCraft().cp.displayNotice(data.message ?? t('Node staged for deletion.'));
 
       if (data.nodes) {
         get().applyServerNodes(data.nodes);
@@ -489,15 +488,55 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
   deleteSelectedNodes: async (withDescendants = false) => {
     const { selectedNodeIds, nodes } = get();
+    const selectedSet = new Set(selectedNodeIds);
+    // When deleting with descendants, skip selected nodes that sit under another
+    // selected ancestor — otherwise the parent wipe makes child requests fail loudly.
     const orderedIds = nodes
-      .filter((node) => selectedNodeIds.includes(node.id))
+      .filter((node) => {
+        if (!selectedSet.has(node.id)) {
+          return false;
+        }
+
+        if (!withDescendants) {
+          return true;
+        }
+
+        let parentId = node.parentId;
+
+        while (parentId) {
+          if (selectedSet.has(parentId)) {
+            return false;
+          }
+
+          parentId = nodes.find((candidate) => candidate.id === parentId)?.parentId ?? null;
+        }
+
+        return true;
+      })
       .map((node) => node.id);
 
+    let firstError: unknown = null;
+
     for (const nodeId of orderedIds) {
-      await get().deleteNode(nodeId, withDescendants);
+      try {
+        const { menuId, siteId } = get();
+        const data = await stageDelete(menuId, siteId, nodeId, withDescendants);
+
+        if (data.nodes) {
+          get().applyServerNodes(data.nodes);
+        } else {
+          await get().refresh();
+        }
+      } catch (error) {
+        firstError ??= error;
+      }
     }
 
     set({ selectedNodeIds: [], lastSelectedNodeId: null });
+
+    if (firstError) {
+      displayError(firstError);
+    }
   },
 
   setSelectedNodesStatus: async (status) => {
@@ -588,7 +627,6 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await unstageDelete(menuId, siteId, nodeId);
-      getCraft().cp.displayNotice(t('Node restored to menu.'));
 
       if (data.nodes) {
         get().applyServerNodes(data.nodes);

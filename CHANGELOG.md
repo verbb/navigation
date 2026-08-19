@@ -6,8 +6,13 @@
 - Added front-end regression coverage for `render()` options, `getTag()` / `getLink()`, `context()`, `menuBreadcrumbs()`, and `urlBreadcrumbs()`.
 - Stored nodes now expose `isProjected` (`false`) so templates can use one check for stored vs Dynamic projected children.
 
+### Changed
+- Builder no longer shows success toasts when adding, deleting, or restoring staged nodes; the tree and Save affordance already reflect pending changes.
+
 ### Fixed
 - `craft.navigation.tree()` no longer lazy-loads `element` unless `{ withLinkedElements: true }` is passed, matching `nodes()`.
+- Slideout Status metadata for pending nodes uses Craft’s normal status dot + label spacing (no smashed `+●Pending` icon row).
+- Deleting a newly added (pending) node before Save removes it immediately instead of erroring with “Couldn’t stage node for deletion.”
 
 ## 4.0.0-beta.5 - 2026-07-19
 
