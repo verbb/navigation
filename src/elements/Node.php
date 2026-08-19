@@ -35,6 +35,7 @@ use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQuery;
+use craft\enums\Color;
 use craft\errors\UnsupportedSiteException;
 use craft\events\MoveElementEvent;
 use craft\helpers\App;
@@ -133,9 +134,19 @@ class Node extends Element
     public static function statuses(): array
     {
         return array_merge(parent::statuses(), [
-            self::STATUS_PENDING_ADD => Craft::t('navigation', 'Pending'),
-            self::STATUS_PENDING_DELETE => Craft::t('navigation', 'Pending deletion'),
-            self::STATUS_PENDING_EDIT => Craft::t('navigation', 'Pending edit'),
+            // Label + Color so Craft’s default sidebar Status row (dot + text) spaces correctly.
+            self::STATUS_PENDING_ADD => [
+                'label' => Craft::t('navigation', 'Pending'),
+                'color' => Color::Orange,
+            ],
+            self::STATUS_PENDING_DELETE => [
+                'label' => Craft::t('navigation', 'Pending deletion'),
+                'color' => Color::Red,
+            ],
+            self::STATUS_PENDING_EDIT => [
+                'label' => Craft::t('navigation', 'Pending edit'),
+                'color' => Color::Sky,
+            ],
         ]);
     }
 
@@ -1490,25 +1501,6 @@ class Node extends Element
 
     // Protected Methods
     // =========================================================================
-
-    protected function metadata(): array
-    {
-        $config = $this->_getBuilderPendingStatusConfig();
-
-        if (!$config || $this->getIsDraft()) {
-            return [];
-        }
-
-        return [
-            Craft::t('app', 'Status') => function() use ($config) {
-                return Html::tag('span', '', [
-                    'data' => ['icon' => $config['icon']],
-                    'class' => 'icon',
-                    'aria' => ['hidden' => 'true'],
-                ]) . Html::tag('span', $config['label']);
-            },
-        ];
-    }
 
     protected function _getMenu(): MenuSettings
     {
