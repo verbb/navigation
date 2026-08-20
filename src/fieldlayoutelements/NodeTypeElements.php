@@ -55,7 +55,7 @@ class NodeTypeElements extends BaseField
             $elementDisplayName = Craft::t('site', $elementType::displayName());
 
             $siteId = $element->getElement()->siteId ?? null;
-            $html = Html::hiddenInput('linkedElementSiteId', $siteId, [
+            $hidden = Html::hiddenInput('linkedElementSiteId', $siteId, [
                 'id' => 'linkedElementSiteId',
             ]);
 
@@ -75,7 +75,7 @@ class NodeTypeElements extends BaseField
                 ));
             }
 
-            $html .= Cp::elementSelectFieldHtml([
+            $fieldHtml = Cp::elementSelectFieldHtml([
                 'label' => Craft::t('navigation', 'Linked to {element}', ['element' => $elementDisplayName]),
                 'instructions' => Craft::t('navigation', 'The element this node is linked to.'),
                 'id' => 'linkedElementId',
@@ -92,14 +92,17 @@ class NodeTypeElements extends BaseField
             ]);
 
             $namespace = Craft::$app->getView()->getNamespace();
+            $script = "<script>new Craft.Navigation.ElementSelect('#" . $namespace ."-linkedElementId', '#" . $namespace ."-linkedElementSiteId')</script>";
 
-            $html .= "<script>new Craft.Navigation.ElementSelect('#" . $namespace ."-linkedElementId', '#" . $namespace ."-linkedElementSiteId')</script>";
-
-            return $html;
+            // Keep a single `.field` root for alwaysRefresh + flex-fields spacing
+            // (nesting `.field` inside a wrapper re-applies Craft’s 24px field margins).
+            return self::_injectIntoFieldRoot($fieldHtml, $hidden, $script);
         }
 
         if ($nodeType = $element->nodeType()) {
-            return $nodeType->getEditorHtml();
+            $html = $nodeType->getEditorHtml();
+
+            return $html ? self::_wrapEditorHtml($html) : null;
         }
 
         return null;
@@ -122,5 +125,49 @@ class NodeTypeElements extends BaseField
     protected function inputHtml(ElementInterface $element = null, bool $static = false): ?string
     {
         return null;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Craft’s FieldLayout attaches `data-layout-element` via modifyTagAttributes on the first root
+     * tag only. Multi-root editor HTML (Source + Section + …) left siblings behind on alwaysRefresh
+     * replaceWith — wrapping once keeps the whole block swappable.
+     *
+     * Nested `.field` margins are reset in `node-type-fields.css` (flex-fields only zeroes
+     * margins on direct children).
+     */
+    private static function _wrapEditorHtml(string $html): string
+    {
+        return Html::tag('div', $html, [
+            'class' => 'navigation-node-type-fields',
+        ]);
+    }
+
+    /**
+     * Puts site-id + ElementSelect bootstrap inside the element-select `.field` so that field
+     * remains the sole flex-fields child (correct spacing + alwaysRefresh target).
+     */
+    private static function _injectIntoFieldRoot(string $fieldHtml, string $prefixHtml, string $suffixHtml): string
+    {
+        if (!preg_match('/^(<div\b[^>]*>)/i', $fieldHtml, $match)) {
+            return self::_wrapEditorHtml($prefixHtml . $fieldHtml . $suffixHtml);
+        }
+
+        $opening = $match[1];
+        $rest = substr($fieldHtml, strlen($opening));
+        $closingPos = strrpos($rest, '</div>');
+
+        if ($closingPos === false) {
+            return self::_wrapEditorHtml($prefixHtml . $fieldHtml . $suffixHtml);
+        }
+
+        return $opening
+            . $prefixHtml
+            . substr($rest, 0, $closingPos)
+            . $suffixHtml
+            . substr($rest, $closingPos);
     }
 }

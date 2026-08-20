@@ -1,7 +1,17 @@
 // Head FOUCE tokens. Component imports register custom elements.
 import '@verbb/plugin-kit-react/style.css';
+import { PkSpinner } from '@verbb/plugin-kit-web/components/spinner/pk-spinner.js';
 import builderStyles from './css/style.css?inline';
 import pluginKitStyles from '@verbb/plugin-kit-react/style.css?inline';
+
+// pk-button renders <pk-spinner> while loading. Kit’s dist/chunks/** are outside
+// package.json sideEffects, so Vite drops the button’s bare spinner import and
+// Add buttons go blank (label hidden, CE never registered). Force retention.
+try {
+  customElements.define('pk-spinner', PkSpinner as CustomElementConstructor);
+} catch {
+  // Already registered by @customElement when the module evaluated — expected.
+}
 
 import { createRoot } from 'react-dom/client';
 import { StrictMode } from 'react';

@@ -1,7 +1,7 @@
 <?php
 namespace verbb\navigation\dynamic\sources;
 
-use verbb\navigation\base\DynamicSourceProvider;
+use verbb\navigation\base\DynamicSource;
 use verbb\navigation\elements\Node;
 use verbb\navigation\helpers\DynamicSourceTypes;
 use verbb\navigation\helpers\EntrySectionSettings;
@@ -14,7 +14,7 @@ use craft\base\ElementInterface;
 use craft\elements\Entry as EntryElement;
 use craft\models\Section;
 
-class EntrySectionDynamicSource implements DynamicSourceProvider
+class EntrySectionDynamicSource extends DynamicSource
 {
     // Static Methods
     // =========================================================================
@@ -22,11 +22,6 @@ class EntrySectionDynamicSource implements DynamicSourceProvider
     public static function handle(): string
     {
         return 'entrySection';
-    }
-
-    public static function displayName(): string
-    {
-        return Craft::t('navigation', 'Entry section');
     }
 
     public static function elementType(): string

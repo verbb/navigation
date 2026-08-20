@@ -49,7 +49,7 @@ function SidebarAccordionItem({
       <button
         type="button"
         className={cn(
-          'relative flex w-full max-w-full items-center justify-between gap-2 overflow-hidden border-b border-black/10 bg-[#f3f7fc] px-5 py-2.5 text-left text-[#576575] no-underline hover:bg-[#edf2f8] hover:no-underline',
+          'relative flex w-full max-w-full cursor-pointer items-center justify-between gap-2 overflow-hidden border-b border-black/10 bg-[#f3f7fc] px-5 py-2.5 text-left text-[#576575] no-underline hover:bg-[#edf2f8] hover:no-underline',
           expanded && 'pb-2.5 text-[#29323d]',
         )}
         data-active={expanded ? 'true' : 'false'}

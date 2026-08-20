@@ -36,7 +36,7 @@ Choose a **source** when adding or editing the node. Built-in sources:
 | `assetVolume` | Assets from a volume |
 | `productType` | Commerce products from a product type (when Commerce is installed) |
 
-Configure source-specific settings (conditions, sort order, and so on) in the node slide-out.
+Configure source-specific settings (section/group/volume, conditions, sort order, optional limit, and so on) in the node slide-out. Source picker labels use each element type’s plural display name (Entries, Categories, Assets, Products).
 
 Third-party plugins can register additional sources via [`RegisterDynamicSourceEvent`](/developers/events#the-registerdynamicsources-event). See [Projected Node](/reference/projected-node) for template and GraphQL behaviour.
 

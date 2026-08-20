@@ -98,6 +98,8 @@ class ProductTypeSettings
             'options' => self::orderByOptions(),
         ]);
 
+        $html .= DynamicProjectionSettings::limitFieldHtml($node);
+
         return $html;
     }
 
@@ -171,6 +173,7 @@ class ProductTypeSettings
         }
 
         self::applyOrderBy($query, $settings);
+        DynamicProjectionSettings::applyLimit($query, $settings);
     }
 
     public static function applyOrderBy(ElementQuery $query, array $settings): void

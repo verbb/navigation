@@ -1,7 +1,7 @@
 <?php
 namespace verbb\navigation\dynamic\sources;
 
-use verbb\navigation\base\DynamicSourceProvider;
+use verbb\navigation\base\DynamicSource;
 use verbb\navigation\elements\Node;
 use verbb\navigation\helpers\DynamicSourceTypes;
 use verbb\navigation\helpers\ProductTypeSettings;
@@ -12,7 +12,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\commerce\elements\Product as ProductElement;
 
-class ProductTypeDynamicSource implements DynamicSourceProvider
+class ProductTypeDynamicSource extends DynamicSource
 {
     // Static Methods
     // =========================================================================
@@ -20,11 +20,6 @@ class ProductTypeDynamicSource implements DynamicSourceProvider
     public static function handle(): string
     {
         return 'productType';
-    }
-
-    public static function displayName(): string
-    {
-        return Craft::t('navigation', 'Product type');
     }
 
     public static function elementType(): string

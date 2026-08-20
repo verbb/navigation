@@ -1,7 +1,7 @@
 <?php
 namespace verbb\navigation\dynamic\sources;
 
-use verbb\navigation\base\DynamicSourceProvider;
+use verbb\navigation\base\DynamicSource;
 use verbb\navigation\elements\Node;
 use verbb\navigation\helpers\CategoryGroupSettings;
 use verbb\navigation\helpers\DynamicSourceTypes;
@@ -13,7 +13,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Category as CategoryElement;
 
-class CategoryGroupDynamicSource implements DynamicSourceProvider
+class CategoryGroupDynamicSource extends DynamicSource
 {
     // Static Methods
     // =========================================================================
@@ -21,11 +21,6 @@ class CategoryGroupDynamicSource implements DynamicSourceProvider
     public static function handle(): string
     {
         return 'categoryGroup';
-    }
-
-    public static function displayName(): string
-    {
-        return Craft::t('navigation', 'Category group');
     }
 
     public static function elementType(): string

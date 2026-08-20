@@ -63,7 +63,13 @@ export function collectStructureMoves(nodes: BuilderNode[]): StructureMove[] {
   const moves: Array<StructureMove & { level: number }> = [];
   const stack: Array<{ id: number; level: number }> = [];
 
+  // Pending-delete rows stay visible for undo, but must not own parent/prev slots —
+  // publish hard-deletes them, and moves that still name them fail with Invalid node ID.
   for (const node of nodes) {
+    if (node.pendingDelete) {
+      continue;
+    }
+
     const level = node.level;
 
     while (stack.length && stack[stack.length - 1].level >= level) {

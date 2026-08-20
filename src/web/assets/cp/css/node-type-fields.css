@@ -1,0 +1,14 @@
+/**
+ * NodeTypeElements wraps multi-field editor HTML for alwaysRefresh. Nested
+ * `.field` nodes would otherwise keep Craft’s default `margin-block: 24px`
+ * (the `.flex-fields > *` override only applies to direct children).
+ */
+.navigation-node-type-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--xl);
+}
+
+.navigation-node-type-fields > .field {
+    margin-block: 0 !important;
+}

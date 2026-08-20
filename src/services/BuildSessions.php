@@ -278,12 +278,18 @@ class BuildSessions extends Component
             throw new BadRequestHttpException('Invalid moves payload.');
         }
 
-        $nodesService = Navigation::$plugin->getNodes();
         $structuresService = Craft::$app->getStructures();
         $elementsService = Craft::$app->getElements();
         $levels = [];
         $publishedCount = 0;
         $deletedCount = 0;
+        // Skip structure moves for nodes we are about to hard-delete — otherwise a
+        // post-delete move payload still referencing them throws "Invalid node ID".
+        $stagedDeleteIds = [];
+
+        foreach ($session->stagedDeletes as $stagedDelete) {
+            $stagedDeleteIds[(int)$stagedDelete['nodeId']] = true;
+        }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
 
@@ -310,30 +316,9 @@ class BuildSessions extends Component
                 $publishedCount++;
             }
 
-            foreach ($session->stagedDeletes as $stagedDelete) {
-                $nodeId = (int)$stagedDelete['nodeId'];
-
-                /* @var NodeElement|null $node */
-                $node = NodeElement::find()
-                    ->id($nodeId)
-                    ->siteId($siteId)
-                    ->menuId($menuId)
-                    ->status(null)
-                    ->one();
-
-                if (!$node) {
-                    continue;
-                }
-
-                $node->clearPendingDelete();
-
-                if (!$elementsService->deleteElement($node, true)) {
-                    throw new UserException(Craft::t('navigation', 'Couldn’t save menu.'));
-                }
-
-                $deletedCount++;
-            }
-
+            // Structure first, then deletes: moves may still reference staged-delete
+            // nodes as prev/parent anchors, and Craft promotes remaining children only
+            // when the parent is removed.
             if ($applyStructure && $structureMoves !== []) {
                 foreach ($structureMoves as $move) {
                     $elementId = (int)($move['elementId'] ?? 0);
@@ -342,6 +327,10 @@ class BuildSessions extends Component
 
                     if (!$elementId) {
                         throw new BadRequestHttpException('Invalid move payload.');
+                    }
+
+                    if (isset($stagedDeleteIds[$elementId])) {
+                        continue;
                     }
 
                     /* @var NodeElement|null $element */
@@ -389,6 +378,30 @@ class BuildSessions extends Component
                         throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t save menu structure.'));
                     }
                 }
+            }
+
+            foreach ($session->stagedDeletes as $stagedDelete) {
+                $nodeId = (int)$stagedDelete['nodeId'];
+
+                /* @var NodeElement|null $node */
+                $node = NodeElement::find()
+                    ->id($nodeId)
+                    ->siteId($siteId)
+                    ->menuId($menuId)
+                    ->status(null)
+                    ->one();
+
+                if (!$node) {
+                    continue;
+                }
+
+                $node->clearPendingDelete();
+
+                if (!$elementsService->deleteElement($node, true)) {
+                    throw new UserException(Craft::t('navigation', 'Couldn’t save menu.'));
+                }
+
+                $deletedCount++;
             }
 
             $this->deleteSession($session);

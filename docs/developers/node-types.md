@@ -61,7 +61,7 @@ See built-in types in `src/nodetypes/` for examples — especially `Dynamic` (wi
 
 ## Dynamic sources
 
-Dynamic nodes delegate projection to **source providers** registered on `DynamicSources::EVENT_REGISTER_DYNAMIC_SOURCES`. Implement `verbb\navigation\base\DynamicSourceProvider` and add your class to the event’s `providers` array. See [Events — Register dynamic sources](/developers/events#the-registerdynamicsources-event).
+Dynamic nodes delegate projection to **source providers** registered on `DynamicSources::EVENT_REGISTER_DYNAMIC_SOURCES`. Implement `verbb\navigation\base\DynamicSourceProvider` (or extend `DynamicSource`) and add your class to the event’s `providers` array. See [Events — Register dynamic sources](/developers/events#the-registerdynamicsources-event).
 
 ## Related
 

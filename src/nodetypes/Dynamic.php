@@ -66,6 +66,30 @@ class Dynamic extends NodeType implements ProjectingNodeType
             return null;
         }
 
+        $view = Craft::$app->getView();
+        $sourceInputId = $view->namespaceInputId('dynamicSource');
+
+        // Source swap must re-run alwaysRefresh so provider-specific fields replace cleanly.
+        $view->registerJs(<<<JS
+(() => {
+const \$sourceInput = $('#$sourceInputId');
+const getEditor = () => {
+    const \$editorContainer = \$sourceInput.closest('[data-element-editor]');
+    if (\$editorContainer.length) {
+        return \$editorContainer.data('elementEditor');
+    }
+    return \$sourceInput.closest('form').data('elementEditor');
+};
+
+\$sourceInput.off('change.navigationDynamicSource').on('change.navigationDynamicSource', () => {
+    const editor = getEditor();
+    if (editor) {
+        editor.checkForm(true);
+    }
+});
+})();
+JS);
+
         $html = Cp::selectFieldHtml([
             'label' => Craft::t('navigation', 'Source'),
             'instructions' => Craft::t('navigation', 'Choose which elements to project as child menu items.'),

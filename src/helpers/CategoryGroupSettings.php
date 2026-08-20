@@ -110,6 +110,8 @@ class CategoryGroupSettings
             'options' => self::orderByOptions($group),
         ]);
 
+        $html .= DynamicProjectionSettings::limitFieldHtml($node);
+
         return $html;
     }
 
@@ -184,6 +186,7 @@ class CategoryGroupSettings
         }
 
         self::applyOrderBy($query, $settings, $group);
+        DynamicProjectionSettings::applyLimit($query, $settings);
     }
 
     public static function applyOrderBy(CategoryQuery $query, array $settings, ?CategoryGroup $group): void

@@ -1,7 +1,7 @@
 <?php
 namespace verbb\navigation\dynamic\sources;
 
-use verbb\navigation\base\DynamicSourceProvider;
+use verbb\navigation\base\DynamicSource;
 use verbb\navigation\elements\Node;
 use verbb\navigation\helpers\AssetVolumeSettings;
 use verbb\navigation\helpers\DynamicSourceTypes;
@@ -13,7 +13,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Asset as AssetElement;
 
-class AssetVolumeDynamicSource implements DynamicSourceProvider
+class AssetVolumeDynamicSource extends DynamicSource
 {
     // Static Methods
     // =========================================================================
@@ -21,11 +21,6 @@ class AssetVolumeDynamicSource implements DynamicSourceProvider
     public static function handle(): string
     {
         return 'assetVolume';
-    }
-
-    public static function displayName(): string
-    {
-        return Craft::t('navigation', 'Asset volume');
     }
 
     public static function elementType(): string

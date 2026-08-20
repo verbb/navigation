@@ -197,7 +197,7 @@ Event::on(DynamicSources::class, DynamicSources::EVENT_REGISTER_DYNAMIC_SOURCES,
 });
 ```
 
-Each provider implements `DynamicSourceProvider` with a unique `handle()` (stored on the node as `data.dynamicSource`), builder schema fields, slide-out HTML, validation, projection logic, and cache tags. See `EntrySectionDynamicSource` in `src/dynamic/sources/` for a full example.
+Each provider implements `DynamicSourceProvider` (prefer extending `DynamicSource`, which derives `displayName()` from `elementType()::pluralDisplayName()`). Provide a unique `handle()` (stored on the node as `data.dynamicSource`), builder schema fields, slide-out HTML, validation, projection logic, and cache tags. See `EntrySectionDynamicSource` in `src/dynamic/sources/` for a full example.
 
 ## Cache Events
 

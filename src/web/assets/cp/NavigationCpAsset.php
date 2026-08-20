@@ -13,9 +13,15 @@ class NavigationCpAsset extends AssetBundle
 
     public function init(): void
     {
+        $this->sourcePath = __DIR__;
+
         $this->depends = [
             VerbbCpAsset::class,
             CraftCpAsset::class,
+        ];
+
+        $this->css = [
+            'css/node-type-fields.css',
         ];
 
         parent::init();

@@ -7,18 +7,18 @@ Manually adding every blog post or product to a menu does not scale. A **Dynamic
 | Situation | Approach |
 | --- | --- |
 | Fixed set of links (About, Contact, Services) | Manual **Entry** or **Custom** nodes |
-| Entire channel or section that changes often | **Dynamic** node with an **entry section** source |
-| Category tree | **Dynamic** with a **category group** source |
-| Asset library links | **Dynamic** with an **asset volume** source |
+| Entire channel or section that changes often | **Dynamic** node with an **Entries** source |
+| Category tree | **Dynamic** with a **Categories** source |
+| Asset library links | **Dynamic** with an **Assets** source |
 
 ## Step 1 — Add a Dynamic node
 
 1. Open the menu in the **menu builder**.
 2. Add a **Dynamic** node where children should appear — for example under a **Passive** parent titled **Blog**.
 3. In the slide-out, choose a **source**:
-   - **Entry section** — pick a section and optional entry conditions
-   - **Category group**, **Asset volume**, or **Product type** (Commerce) as needed
-4. Set sort order and any source-specific filters.
+   - **Entries** — pick a section and optional entry conditions
+   - **Categories**, **Assets**, or **Products** (Commerce) as needed
+4. Set sort order, optional limit (e.g. latest 5 posts), and any source-specific filters.
 5. **Save menu**.
 
 Built-in sources are listed in [Node Types](/menus/node-types). Plugins can register more via [Events](/developers/events).

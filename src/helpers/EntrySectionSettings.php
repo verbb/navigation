@@ -118,6 +118,8 @@ class EntrySectionSettings
             'options' => self::orderByOptions($section),
         ]);
 
+        $html .= DynamicProjectionSettings::limitFieldHtml($node);
+
         return $html;
     }
 
@@ -200,6 +202,7 @@ class EntrySectionSettings
         }
 
         self::applyOrderBy($query, $settings, $section);
+        DynamicProjectionSettings::applyLimit($query, $settings);
     }
 
     public static function applyOrderBy(EntryQuery $query, array $settings, ?Section $section): void

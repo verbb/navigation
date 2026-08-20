@@ -97,6 +97,8 @@ class AssetVolumeSettings
             'options' => self::orderByOptions(),
         ]);
 
+        $html .= DynamicProjectionSettings::limitFieldHtml($node);
+
         return $html;
     }
 
@@ -170,6 +172,7 @@ class AssetVolumeSettings
         }
 
         self::applyOrderBy($query, $settings);
+        DynamicProjectionSettings::applyLimit($query, $settings);
     }
 
     public static function applyOrderBy(AssetQuery $query, array $settings): void

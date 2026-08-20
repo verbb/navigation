@@ -268,6 +268,92 @@ it('stages duplicated nodes for publish like newly added nodes', function() {
     expect($publishedDuplicate->getIsPendingPublish())->toBeFalse();
 });
 
+it('publishes a pending child moved to root while its parent is staged for delete', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $siteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
+    $buildSessions = Navigation::$plugin->getBuildSessions();
+    $group = NavigationFixtureFactory::categoryGroup();
+
+    $parent = NavigationFixtureFactory::customNode($nav, 'Parent', '/parent');
+    $child = NavigationFixtureFactory::dynamicCategoryGroupNode($nav, $group, $parent);
+    $child->enabled = false;
+    $child->setEnabledForSite(false);
+    $child->setPendingPublish(true);
+
+    if (!Craft::$app->getElements()->saveElement($child)) {
+        throw new RuntimeException('Failed saving pending dynamic child: ' . json_encode($child->getErrors()));
+    }
+
+    $parentId = (int)$parent->id;
+    $childId = (int)$child->id;
+
+    $session = $buildSessions->getOrCreate($nav->id, $siteId);
+    $buildSessions->addAddedNode($session, $childId);
+    $session = $buildSessions->getSession($nav->id, $siteId);
+    $buildSessions->stageDelete($session, $parent);
+
+    // Mimic collectStructureMoves after excluding pending-delete parents: child at root.
+    $moves = [
+        ['elementId' => $childId, 'parentId' => null, 'prevId' => null],
+    ];
+
+    $session = $buildSessions->getSession($nav->id, $siteId);
+    $result = $buildSessions->publish($session, true, $moves);
+
+    expect($result['publishedCount'])->toBe(1)
+        ->and($result['deletedCount'])->toBe(1);
+
+    expect(Node::find()->id($parentId)->status(null)->one())->toBeNull();
+
+    $publishedChild = Node::find()
+        ->id($childId)
+        ->status(null)
+        ->structureId($nav->structureId)
+        ->one();
+
+    expect($publishedChild)->not->toBeNull()
+        ->and($publishedChild->getIsPendingPublish())->toBeFalse()
+        ->and((int)$publishedChild->level)->toBe(1);
+});
+
+it('ignores structure moves for staged-delete nodes when publishing', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $siteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
+    $buildSessions = Navigation::$plugin->getBuildSessions();
+
+    $parent = NavigationFixtureFactory::customNode($nav, 'Legacy parent', '/legacy-parent');
+    $child = NavigationFixtureFactory::customNode($nav, 'Legacy child', '/legacy-child', $parent);
+    $child->enabled = false;
+    $child->setEnabledForSite(false);
+    $child->setPendingPublish(true);
+
+    if (!Craft::$app->getElements()->saveElement($child)) {
+        throw new RuntimeException('Failed saving pending child: ' . json_encode($child->getErrors()));
+    }
+
+    $parentId = (int)$parent->id;
+    $childId = (int)$child->id;
+
+    $session = $buildSessions->getOrCreate($nav->id, $siteId);
+    $buildSessions->addAddedNode($session, $childId);
+    $session = $buildSessions->getSession($nav->id, $siteId);
+    $buildSessions->stageDelete($session, $parent);
+
+    // Older clients may still emit moves for the pending-delete parent.
+    $moves = [
+        ['elementId' => $parentId, 'parentId' => null, 'prevId' => null],
+        ['elementId' => $childId, 'parentId' => null, 'prevId' => $parentId],
+    ];
+
+    $session = $buildSessions->getSession($nav->id, $siteId);
+    $result = $buildSessions->publish($session, true, $moves);
+
+    expect($result['publishedCount'])->toBe(1)
+        ->and($result['deletedCount'])->toBe(1)
+        ->and(Node::find()->id($parentId)->status(null)->one())->toBeNull()
+        ->and(Node::find()->id($childId)->status(null)->structureId($nav->structureId)->one())->not->toBeNull();
+});
+
 it('reports disabled status for explicitly disabled nodes', function() {
     $nav = NavigationFixtureFactory::menu();
     $node = NavigationFixtureFactory::disabledCustomNode($nav, 'Disabled', '/disabled');
