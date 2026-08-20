@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.7 - 2026-08-20
 
 ### Added
 - Dynamic nodes support an optional **Limit** so authors can project e.g. the latest 5 entries.
