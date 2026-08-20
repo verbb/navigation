@@ -152,6 +152,85 @@ class BuildSessions extends Component
     }
 
     /**
+     * Persist a full structure-move payload against Craft’s structure tables.
+     *
+     * Used by Save/publish (staging) and by live structure mode (`builderLiveStructure`).
+     * `$skipElementIds` skips nodes that are about to be hard-deleted in the same publish.
+     *
+     * @param array<int, true> $skipElementIds
+     */
+    public function applyStructureMoves(MenuSettings $nav, int $siteId, array $structureMoves, array $skipElementIds = []): void
+    {
+        if ($structureMoves === []) {
+            throw new BadRequestHttpException('Invalid moves payload.');
+        }
+
+        $menuId = (int)$nav->id;
+        $structuresService = Craft::$app->getStructures();
+        $elementsService = Craft::$app->getElements();
+        $levels = [];
+
+        foreach ($structureMoves as $move) {
+            $elementId = (int)($move['elementId'] ?? 0);
+            $parentId = isset($move['parentId']) && $move['parentId'] !== '' ? (int)$move['parentId'] : null;
+            $prevId = isset($move['prevId']) && $move['prevId'] !== '' ? (int)$move['prevId'] : null;
+
+            if (!$elementId) {
+                throw new BadRequestHttpException('Invalid move payload.');
+            }
+
+            if (isset($skipElementIds[$elementId])) {
+                continue;
+            }
+
+            /* @var NodeElement|null $element */
+            $element = NodeElement::find()
+                ->id($elementId)
+                ->siteId($siteId)
+                ->menuId($menuId)
+                ->status(null)
+                ->structureId($nav->structureId)
+                ->one();
+
+            if (!$element) {
+                throw new BadRequestHttpException("Invalid node ID: $elementId");
+            }
+
+            $parentLevel = $parentId ? ($levels[$parentId] ?? 0) : 0;
+            $level = $parentLevel + 1;
+            $levels[$elementId] = $level;
+
+            if ($nav->maxLevels && $level > $nav->maxLevels) {
+                throw new BadRequestHttpException(Craft::t('navigation', 'Maximum menu depth exceeded.'));
+            }
+
+            if ($prevId) {
+                $prevElement = $elementsService->getElementById($prevId, NodeElement::class, $siteId);
+
+                if (!$prevElement || $prevElement->menuId !== $menuId) {
+                    throw new BadRequestHttpException("Invalid previous node ID: $prevId");
+                }
+
+                if (!$structuresService->moveAfter($nav->structureId, $element, $prevElement)) {
+                    throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t save menu structure.'));
+                }
+            } elseif ($parentId) {
+                $parentElement = $elementsService->getElementById($parentId, NodeElement::class, $siteId);
+
+                if (!$parentElement || $parentElement->menuId !== $menuId) {
+                    throw new BadRequestHttpException("Invalid parent node ID: $parentId");
+                }
+
+                if (!$structuresService->prepend($nav->structureId, $element, $parentElement)) {
+                    throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t save menu structure.'));
+                }
+            } elseif (!$structuresService->prependToRoot($nav->structureId, $element)) {
+                throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t save menu structure.'));
+            }
+        }
+    }
+
+    /**
      * Stage a node for deletion on publish. Newly-added session nodes are removed immediately.
      */
     public function stageDelete(BuildSessionModel $session, NodeElement $node, bool $withDescendants = false): void
@@ -278,9 +357,7 @@ class BuildSessions extends Component
             throw new BadRequestHttpException('Invalid moves payload.');
         }
 
-        $structuresService = Craft::$app->getStructures();
         $elementsService = Craft::$app->getElements();
-        $levels = [];
         $publishedCount = 0;
         $deletedCount = 0;
         // Skip structure moves for nodes we are about to hard-delete — otherwise a
@@ -320,64 +397,7 @@ class BuildSessions extends Component
             // nodes as prev/parent anchors, and Craft promotes remaining children only
             // when the parent is removed.
             if ($applyStructure && $structureMoves !== []) {
-                foreach ($structureMoves as $move) {
-                    $elementId = (int)($move['elementId'] ?? 0);
-                    $parentId = isset($move['parentId']) && $move['parentId'] !== '' ? (int)$move['parentId'] : null;
-                    $prevId = isset($move['prevId']) && $move['prevId'] !== '' ? (int)$move['prevId'] : null;
-
-                    if (!$elementId) {
-                        throw new BadRequestHttpException('Invalid move payload.');
-                    }
-
-                    if (isset($stagedDeleteIds[$elementId])) {
-                        continue;
-                    }
-
-                    /* @var NodeElement|null $element */
-                    $element = NodeElement::find()
-                        ->id($elementId)
-                        ->siteId($siteId)
-                        ->menuId($menuId)
-                        ->status(null)
-                        ->structureId($nav->structureId)
-                        ->one();
-
-                    if (!$element) {
-                        throw new BadRequestHttpException("Invalid node ID: $elementId");
-                    }
-
-                    $parentLevel = $parentId ? ($levels[$parentId] ?? 0) : 0;
-                    $level = $parentLevel + 1;
-                    $levels[$elementId] = $level;
-
-                    if ($nav->maxLevels && $level > $nav->maxLevels) {
-                        throw new BadRequestHttpException(Craft::t('navigation', 'Maximum menu depth exceeded.'));
-                    }
-
-                    if ($prevId) {
-                        $prevElement = $elementsService->getElementById($prevId, NodeElement::class, $siteId);
-
-                        if (!$prevElement || $prevElement->menuId !== $menuId) {
-                            throw new BadRequestHttpException("Invalid previous node ID: $prevId");
-                        }
-
-                        if (!$structuresService->moveAfter($nav->structureId, $element, $prevElement)) {
-                            throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t save menu structure.'));
-                        }
-                    } elseif ($parentId) {
-                        $parentElement = $elementsService->getElementById($parentId, NodeElement::class, $siteId);
-
-                        if (!$parentElement || $parentElement->menuId !== $menuId) {
-                            throw new BadRequestHttpException("Invalid parent node ID: $parentId");
-                        }
-
-                        if (!$structuresService->prepend($nav->structureId, $element, $parentElement)) {
-                            throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t save menu structure.'));
-                        }
-                    } elseif (!$structuresService->prependToRoot($nav->structureId, $element)) {
-                        throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t save menu structure.'));
-                    }
-                }
+                $this->applyStructureMoves($nav, $siteId, $structureMoves, $stagedDeleteIds);
             }
 
             foreach ($session->stagedDeletes as $stagedDelete) {

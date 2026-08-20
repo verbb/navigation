@@ -34,6 +34,19 @@ export async function publishMenu(
   return response.data;
 }
 
+/** Live Structure Saves: persist moves immediately (no build session). */
+export async function applyStructure(
+  menuId: number,
+  siteId: number,
+  moves: StructureMove[],
+): Promise<Record<string, unknown>> {
+  const response = await getCraft().sendActionRequest('POST', 'navigation/builder/apply-structure', {
+    data: { menuId, siteId, moves },
+  });
+
+  return response.data;
+}
+
 export async function discardSession(menuId: number, siteId: number): Promise<Record<string, unknown>> {
   const response = await getCraft().sendActionRequest('POST', 'navigation/build-sessions/discard', {
     data: { menuId, siteId },
@@ -97,12 +110,12 @@ export async function unstageDelete(
   menuId: number,
   siteId: number,
   nodeId: number,
-): Promise<{ nodes?: BuilderNode[]; changeCount?: number }> {
+): Promise<{ nodes?: BuilderNode[]; changeCount?: number; message?: string }> {
   const response = await getCraft().sendActionRequest('POST', 'navigation/build-sessions/unstage-delete', {
     data: { menuId, siteId, nodeId },
   });
 
-  return response.data as { nodes?: BuilderNode[]; changeCount?: number };
+  return response.data as { nodes?: BuilderNode[]; changeCount?: number; message?: string };
 }
 
 export async function copyNodesToSite(
@@ -168,6 +181,10 @@ export function displayError(error: unknown): void {
   } else {
     getCraft().cp.displayError();
   }
+}
+
+export function displayNotice(message: string): void {
+  getCraft().cp.displayNotice(message);
 }
 
 export function t(message: string, params?: Record<string, unknown>): string {

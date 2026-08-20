@@ -385,3 +385,35 @@ it('restores orphaned pending delete nodes through unstage delete', function() {
     expect($reloaded->enabled)->toBeTrue();
     expect($reloaded->getEnabledForSite())->toBeTrue();
 });
+
+it('applies structure moves immediately for live structure mode', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $siteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
+    $buildSessions = Navigation::$plugin->getBuildSessions();
+
+    $first = NavigationFixtureFactory::customNode($nav, 'First', '/first');
+    $second = NavigationFixtureFactory::customNode($nav, 'Second', '/second');
+
+    // Swap root order: Second, then First (First after Second).
+    $buildSessions->applyStructureMoves($nav, $siteId, [
+        [
+            'elementId' => (int)$second->id,
+            'parentId' => null,
+            'prevId' => null,
+        ],
+        [
+            'elementId' => (int)$first->id,
+            'parentId' => null,
+            'prevId' => (int)$second->id,
+        ],
+    ]);
+
+    $ordered = Node::find()
+        ->menuId($nav->id)
+        ->siteId($siteId)
+        ->status(null)
+        ->orderBy(['structureelements.lft' => SORT_ASC])
+        ->ids();
+
+    expect($ordered)->toBe([(int)$second->id, (int)$first->id]);
+});

@@ -85,17 +85,67 @@ class BuilderController extends Controller
         ]);
     }
 
-    public function actionStageDelete(): Response
+    /**
+     * Persist structure moves immediately when Live Structure Saves is enabled.
+     * Staging mode keeps moves client-side until Save menu.
+     */
+    public function actionApplyStructure(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $buildSessions = Navigation::$plugin->getBuildSessions();
 
-        if (!$buildSessions->isStagingEnabled()) {
-            throw new BadRequestHttpException('Builder staging is disabled.');
+        if ($buildSessions->isStagingEnabled()) {
+            throw new BadRequestHttpException('Builder staging is enabled; save the menu to apply structure changes.');
         }
 
+        $menuId = (int)$this->request->getRequiredBodyParam('menuId');
+        $siteId = (int)$this->request->getRequiredBodyParam('siteId');
+        $moves = $this->request->getBodyParam('moves', []);
+
+        if (!is_array($moves) || $moves === []) {
+            throw new BadRequestHttpException('Invalid moves payload.');
+        }
+
+        $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
+
+        if (!$nav) {
+            throw new BadRequestHttpException("Invalid menu ID: $menuId");
+        }
+
+        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+
+        // Match the build-page authorize so Craft’s structure service accepts moves.
+        Craft::$app->getSession()->authorize('editStructure:' . $nav->structureId);
+
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            $buildSessions->applyStructureMoves($nav, $siteId, $moves);
+            $transaction->commit();
+        } catch (BadRequestHttpException $e) {
+            $transaction->rollBack();
+
+            return $this->asFailure($e->getMessage());
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            Craft::error('Failed to apply live structure: ' . $e->getMessage(), __METHOD__);
+
+            return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu structure.'));
+        }
+
+        Navigation::$plugin->getNavigationCache()->invalidateMenuSite($nav->uid, $siteId);
+
+        return $this->asSuccess(Craft::t('navigation', 'Menu structure saved.'));
+    }
+
+    public function actionStageDelete(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
+        $buildSessions = Navigation::$plugin->getBuildSessions();
         $menuId = (int)$this->request->getRequiredBodyParam('menuId');
         $siteId = (int)$this->request->getRequiredBodyParam('siteId');
         $nodeId = (int)$this->request->getRequiredBodyParam('nodeId');
@@ -118,6 +168,50 @@ class BuilderController extends Controller
 
         if (!$node || $node->getIsPendingDelete()) {
             return $this->asFailure(Craft::t('navigation', 'Couldn’t stage node for deletion.'));
+        }
+
+        // Live Structure Saves: no build session — hard-delete immediately.
+        if (!$buildSessions->isStagingEnabled()) {
+            $elementsService = Craft::$app->getElements();
+            $toDelete = [$node];
+
+            if ($withDescendants) {
+                $descendants = Node::find()
+                    ->descendantOf($node)
+                    ->siteId($siteId)
+                    ->menuId($menuId)
+                    ->status(null)
+                    ->orderBy(['structureelements.lft' => SORT_DESC])
+                    ->all();
+
+                $toDelete = array_merge($descendants, $toDelete);
+            }
+
+            $transaction = Craft::$app->getDb()->beginTransaction();
+
+            try {
+                foreach ($toDelete as $deleteNode) {
+                    if (!$elementsService->deleteElement($deleteNode, true)) {
+                        throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t delete node.'));
+                    }
+                }
+
+                $transaction->commit();
+            } catch (Throwable $e) {
+                $transaction->rollBack();
+                Craft::error('Failed to delete node in live structure mode: ' . $e->getMessage(), __METHOD__);
+
+                return $this->asFailure(Craft::t('navigation', 'Couldn’t delete node.'));
+            }
+
+            Navigation::$plugin->getNavigationCache()->invalidateMenuSite($nav->uid, $siteId);
+
+            return $this->asSuccess(Craft::t('navigation', 'Node deleted.'), [
+                'session' => null,
+                'nodes' => Navigation::$plugin->getBuilderState()->nodesToArray(
+                    Node::find()->menuId($menuId)->siteId($siteId)->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all(),
+                ),
+            ]);
         }
 
         $session = $buildSessions->getOrCreate($menuId, $siteId);

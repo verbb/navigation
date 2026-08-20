@@ -3,7 +3,7 @@ import { Button } from '@verbb/plugin-kit-react/components/Button';
 import { Icon } from '@verbb/plugin-kit-react/components/Icon';
 import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
 import { useBuilderStore } from '../store';
-import { addNodes, t } from '../api';
+import { addNodes, displayNotice, t } from '../api';
 import { openElementSelector } from '../utils/craft';
 import type { BuilderTab } from '../types';
 
@@ -53,7 +53,8 @@ export function AddNodePanel({ tab }: { tab: BuilderTab }) {
       setErrors([]);
 
       try {
-        await addNodes([buildPayload(tab, menuId, siteId, values)]);
+        const data = await addNodes([buildPayload(tab, menuId, siteId, values)]);
+        displayNotice((data.message as string) ?? t('Node{plural} added.', { plural: '' }));
         resetForm();
         await refresh();
       } catch (error) {
@@ -108,7 +109,11 @@ export function AddNodePanel({ tab }: { tab: BuilderTab }) {
             url: element.url,
           }));
 
-          await addNodes(payloads);
+          const data = await addNodes(payloads);
+          displayNotice(
+            (data.message as string)
+              ?? t('Node{plural} added.', { plural: payloads.length > 1 ? 's' : '' }),
+          );
           await refresh();
         } catch (error) {
           const response = (error as { response?: { data?: { message?: string } } })?.response;

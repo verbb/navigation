@@ -4,10 +4,12 @@
 
 ### Added
 - Dynamic nodes support an optional **Limit** so authors can project e.g. the latest 5 entries.
+- Builder shows Craft CP success toasts for immediate live-mode actions (structure moves, adds, deletes).
 
 ### Changed
 - Dynamic source labels use the element type’s plural display name (`Entries`, `Categories`, `Assets`, `Products`), via shared `DynamicSource::displayName()`.
 - Builder accordion headers use a pointer cursor on hover.
+- With **Live Structure Saves** enabled, deleting a node hard-deletes immediately (no build-session staging).
 
 ### Fixed
 - Querying Dynamic nodes that have stored (manual) children no longer throws `TypeError` when Craft tries to assign a `ProjectedNode` to `Element::$_nextElement` — projections stay off Craft’s eager-loaded children collection and merge in `Node::getChildren()` instead.
@@ -15,6 +17,7 @@
 - Add-node (and other) primary buttons show their loading spinner again — Vite had tree-shaken `pk-spinner` registration.
 - Linked-element (and other nested) node type fields no longer show oversized gaps above/below in the slide-out.
 - Saving a menu no longer fails when a pending node was moved out from under a parent that is staged for deletion (structure moves now apply before deletes; pending-delete rows are omitted from move payloads).
+- **Live Structure Saves** now persists drag/indent/outdent structure changes immediately (the Save button was hidden but moves only updated the client tree).
 
 ## 4.0.0-beta.6 - 2026-08-19
 

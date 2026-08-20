@@ -5,6 +5,7 @@ import {
   fetchBuilderState,
   saveDraft,
   publishMenu,
+  applyStructure,
   discardSession,
   stageDelete,
   unstageDelete,
@@ -12,9 +13,9 @@ import {
   duplicateNodes,
   copyNodesToSite as copyNodesToSiteApi,
   displayError,
+  displayNotice,
   t,
 } from './api';
-import { getCraft } from './utils/cp';
 import {
   applyStructureMoves,
   baselineMoves,
@@ -117,7 +118,11 @@ type BuilderStore = {
   ) => void;
   isDirty: () => boolean;
   getStructureMoves: () => StructureMove[];
+  persistLiveStructure: (moves: StructureMove[]) => Promise<void>;
 };
+
+/** Monotonic seq so rapid live moves only commit the latest successful payload. */
+let liveStructureSeq = 0;
 
 export const useBuilderStore = create<BuilderStore>((set, get) => ({
   menuId: 0,
@@ -208,12 +213,46 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
   setNodes: (nodes) => {
     const moves = collectStructureMoves(nodes);
-    const { baselineStructureMoves } = get();
+    const { baselineStructureMoves, state } = get();
+    const dirty = !movesEqual(moves, baselineStructureMoves);
 
     set({
       nodes,
-      structureDirty: !movesEqual(moves, baselineStructureMoves),
+      structureDirty: dirty,
     });
+
+    // Live Structure Saves: no Save button — persist moves as soon as the tree changes.
+    if (dirty && state && !state.stagingEnabled) {
+      void get().persistLiveStructure(moves);
+    }
+  },
+
+  persistLiveStructure: async (moves) => {
+    const seq = ++liveStructureSeq;
+    const { menuId, siteId } = get();
+
+    try {
+      const data = await applyStructure(menuId, siteId, moves);
+
+      // A newer drag superseded this request — leave baseline to that persist.
+      if (seq !== liveStructureSeq) {
+        return;
+      }
+
+      set({
+        baselineStructureMoves: moves,
+        structureDirty: false,
+      });
+      displayNotice((data.message as string) ?? t('Menu structure saved.'));
+    } catch (error) {
+      if (seq !== liveStructureSeq) {
+        return;
+      }
+
+      displayError(error);
+      // Snap UI back to the last persisted structure.
+      await get().refresh();
+    }
   },
 
   reorder: (activeId, overId, targetLevel) => {
@@ -405,7 +444,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     const { menuId, siteId, structureDirty } = get();
 
     if (!structureDirty) {
-      getCraft().cp.displayNotice(t('Nothing to save.'));
+      displayNotice(t('Nothing to save.'));
       return;
     }
 
@@ -415,7 +454,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       const moves = get().getStructureMoves();
       const data = await saveDraft(menuId, siteId, moves);
 
-      getCraft().cp.displayNotice((data.message as string) ?? t('Draft saved.'));
+      displayNotice((data.message as string) ?? t('Draft saved.'));
       await get().refresh();
     } catch (error) {
       displayError(error);
@@ -433,7 +472,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       const moves = get().getStructureMoves();
       const data = await publishMenu(menuId, siteId, structureDirty, moves);
 
-      getCraft().cp.displayNotice((data.message as string) ?? t('Menu saved.'));
+      displayNotice((data.message as string) ?? t('Menu saved.'));
       set({ saveFeedbackState: 'success' });
 
       if (data.reload) {
@@ -461,7 +500,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await discardSession(menuId, siteId);
-      getCraft().cp.displayNotice((data.message as string) ?? t('Build session discarded.'));
+      displayNotice((data.message as string) ?? t('Build session discarded.'));
       await get().refresh();
     } catch (error) {
       displayError(error);
@@ -475,6 +514,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await stageDelete(menuId, siteId, nodeId, withDescendants);
+      displayNotice(data.message ?? t('Node deleted.'));
 
       if (data.nodes) {
         get().applyServerNodes(data.nodes);
@@ -516,11 +556,15 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       .map((node) => node.id);
 
     let firstError: unknown = null;
+    let lastMessage: string | undefined;
+    let successCount = 0;
 
     for (const nodeId of orderedIds) {
       try {
         const { menuId, siteId } = get();
         const data = await stageDelete(menuId, siteId, nodeId, withDescendants);
+        successCount += 1;
+        lastMessage = data.message;
 
         if (data.nodes) {
           get().applyServerNodes(data.nodes);
@@ -536,6 +580,12 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     if (firstError) {
       displayError(firstError);
+    } else if (successCount > 0) {
+      // One toast for the batch — live mode is immediate; staging still needs Save.
+      displayNotice(
+        lastMessage
+          ?? t('Node{plural} deleted.', { plural: successCount > 1 ? 's' : '' }),
+      );
     }
   },
 
@@ -548,7 +598,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await setNodeStatus(menuId, siteId, selectedNodeIds, status);
-      getCraft().cp.displayNotice(data.message ?? t('Status updated.'));
+      displayNotice(data.message ?? t('Status updated.'));
 
       if (data.nodes) {
         get().applyServerNodes(data.nodes);
@@ -565,7 +615,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await duplicateNodes(menuId, siteId, [nodeId], deep);
-      getCraft().cp.displayNotice(data.message ?? t('Elements duplicated.'));
+      displayNotice(data.message ?? t('Elements duplicated.'));
 
       if (data.nodes) {
         get().applyDuplicationResult(previousNodes, data.nodes, data.duplications ?? [], data.session, structureDirty);
@@ -587,7 +637,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await duplicateNodes(menuId, siteId, selectedNodeIds, deep);
-      getCraft().cp.displayNotice(data.message ?? t('Elements duplicated.'));
+      displayNotice(data.message ?? t('Elements duplicated.'));
 
       if (data.nodes) {
         get().applyDuplicationResult(previousNodes, data.nodes, data.duplications ?? [], data.session, structureDirty);
@@ -610,7 +660,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     try {
       const data = await copyNodesToSiteApi(menuId, siteId, nodeIds, targetSiteId, deep, remapLinkedElements);
 
-      getCraft().cp.displayNotice(
+      displayNotice(
         data.message
           ?? (nodeIds.length === 1
             ? t('Node copied to site.')
@@ -627,6 +677,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await unstageDelete(menuId, siteId, nodeId);
+      displayNotice(data.message ?? t('Node restored to menu.'));
 
       if (data.nodes) {
         get().applyServerNodes(data.nodes);
