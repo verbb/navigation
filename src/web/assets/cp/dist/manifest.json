@@ -1,221 +1,222 @@
 {
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js": {
-    "file": "assets/CheckboxSelectField-B7fYX5Ye.js",
+    "file": "assets/CheckboxSelectField-BJTacCEP.js",
     "name": "CheckboxSelectField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
-      "_useEngineField-BN1Z4-dt.js"
+      "_Field-DTPx4asS.js",
+      "_pk-checkbox-Bavq3-9C-BWy5YEeJ.js",
+      "_useEngineField-zgqC2O22.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js": {
-    "file": "assets/CodeEditorField-CNF-AR16.js",
+    "file": "assets/CodeEditorField-DwJJkH6D.js",
     "name": "CodeEditorField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
-      "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
+      "_Field-DTPx4asS.js",
+      "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
       "_mirror-validator-DCjNYrrx-BuTMKpbu.js",
-      "_useEngineField-BN1Z4-dt.js"
+      "_useEngineField-zgqC2O22.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ColorField.js": {
-    "file": "assets/ColorField-DJ1OZWXe.js",
+    "file": "assets/ColorField-CtYWoSPA.js",
     "name": "ColorField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ColorField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
-      "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
+      "_Field-DTPx4asS.js",
+      "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
       "_required-validator-CEg8dvjS-DznAeO8J.js",
       "_mirror-validator-DCjNYrrx-BuTMKpbu.js",
-      "_useEngineField-BN1Z4-dt.js"
+      "_useEngineField-zgqC2O22.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js": {
-    "file": "assets/ComboboxField-DmgdN12v.js",
+    "file": "assets/ComboboxField-DcgU-Iho.js",
     "name": "ComboboxField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
-      "_pk-select-odSNU1tN-BFCya_2X.js",
-      "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
+      "_Field-DTPx4asS.js",
+      "_pk-select-BPnO9qgj-79_4kp8y.js",
+      "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
       "_mirror-validator-DCjNYrrx-BuTMKpbu.js",
-      "_Select-BT3fQ6WL.js",
+      "_Select-TSW5SMRQ.js",
       "_pk-clear--mPWZP7H-BHgvcQ98.js",
-      "_useEngineField-BN1Z4-dt.js"
+      "_useEngineField-zgqC2O22.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/DateTimeField.js": {
-    "file": "assets/DateTimeField-DgUP9GrO.js",
+    "file": "assets/DateTimeField-lfrvDjED.js",
     "name": "DateTimeField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/DateTimeField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
-      "_pk-select-odSNU1tN-BFCya_2X.js",
-      "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
+      "_Field-DTPx4asS.js",
+      "_pk-select-BPnO9qgj-79_4kp8y.js",
+      "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
       "_required-validator-CEg8dvjS-DznAeO8J.js",
       "_mirror-validator-DCjNYrrx-BuTMKpbu.js",
       "_field-labels-CoU9dnNq-qJ92s-2-.js",
       "_pk-clear--mPWZP7H-BHgvcQ98.js",
-      "_useEngineField-BN1Z4-dt.js"
+      "_useEngineField-zgqC2O22.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/GroupField.js": {
-    "file": "assets/GroupField-DI5yNLXf.js",
+    "file": "assets/GroupField-C8-dXAuk.js",
     "name": "GroupField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/GroupField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js"
+      "_Field-DTPx4asS.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js": {
-    "file": "assets/LightswitchField-B0zNVH7z.js",
+    "file": "assets/LightswitchField-r5i3eLsF.js",
     "name": "LightswitchField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js",
     "isDynamicEntry": true,
     "imports": [
-      "_Field-C0nNpaS-.js",
-      "_Lightswitch-BbFeYjvT.js",
-      "_useEngineField-BN1Z4-dt.js"
+      "_Field-DTPx4asS.js",
+      "_Lightswitch-vKPCp396.js",
+      "_useEngineField-zgqC2O22.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js": {
-    "file": "assets/NumberField-DHA092Fi.js",
+    "file": "assets/NumberField-CvqNT_5r.js",
     "name": "NumberField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js",
     "isDynamicEntry": true,
     "imports": [
-      "_Field-C0nNpaS-.js",
-      "_useEngineField-BN1Z4-dt.js",
-      "_Input-CtEeGlxx.js"
+      "_Field-DTPx4asS.js",
+      "_useEngineField-zgqC2O22.js",
+      "_Input-BfFIVBG3.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js": {
-    "file": "assets/RadioGroupField-Ip5mYdA8.js",
+    "file": "assets/RadioGroupField-ibSFypvA.js",
     "name": "RadioGroupField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
+      "_Field-DTPx4asS.js",
       "_dist-BpymPXnn.js",
       "_pk-change-BMLA71i0.js",
-      "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
+      "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
       "_required-validator-CEg8dvjS-DznAeO8J.js",
       "_field-labels-CoU9dnNq-qJ92s-2-.js",
-      "_useEngineField-BN1Z4-dt.js"
+      "_useEngineField-zgqC2O22.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js": {
-    "file": "assets/SelectField-j6mLG-tP.js",
+    "file": "assets/SelectField-B0izWyst.js",
     "name": "SelectField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
+      "_Field-DTPx4asS.js",
       "_dist-BpymPXnn.js",
-      "_SelectInput-UZuLegmy.js",
-      "_useEngineField-BN1Z4-dt.js"
+      "_SelectInput-BoDbBSxh.js",
+      "_useEngineField-zgqC2O22.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js": {
-    "file": "assets/TextField-D1bYIEeD.js",
+    "file": "assets/TextField-BVy5si9Z.js",
     "name": "TextField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js",
     "isDynamicEntry": true,
     "imports": [
-      "_Field-C0nNpaS-.js",
-      "_useEngineField-BN1Z4-dt.js",
-      "_Input-CtEeGlxx.js"
+      "_Field-DTPx4asS.js",
+      "_useEngineField-zgqC2O22.js",
+      "_Input-BfFIVBG3.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js": {
-    "file": "assets/TextareaField-C1Fr1bu6.js",
+    "file": "assets/TextareaField-D3t5cWuh.js",
     "name": "TextareaField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
-      "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
+      "_Field-DTPx4asS.js",
+      "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
       "_required-validator-CEg8dvjS-DznAeO8J.js",
       "_mirror-validator-DCjNYrrx-BuTMKpbu.js",
       "_field-labels-CoU9dnNq-qJ92s-2-.js",
-      "_useEngineField-BN1Z4-dt.js",
-      "_live-CihwgG8-.js"
+      "_useEngineField-zgqC2O22.js",
+      "_live--CJ_9xjT.js"
     ]
   },
-  "_Field-C0nNpaS-.js": {
-    "file": "assets/Field-C0nNpaS-.js",
+  "_Field-DTPx4asS.js": {
+    "file": "assets/Field-DTPx4asS.js",
     "name": "Field",
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js"
     ]
   },
-  "_Input-CtEeGlxx.js": {
-    "file": "assets/Input-CtEeGlxx.js",
+  "_Input-BfFIVBG3.js": {
+    "file": "assets/Input-BfFIVBG3.js",
     "name": "Input",
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
-      "_button-group-item.styles-DYmBR28a-BiVND-sp.js",
-      "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
+      "_Field-DTPx4asS.js",
+      "_button-group-item.styles-DYmBR28a-cGvGstbZ.js",
+      "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
       "_required-validator-CEg8dvjS-DznAeO8J.js",
       "_mirror-validator-DCjNYrrx-BuTMKpbu.js",
       "_field-labels-CoU9dnNq-qJ92s-2-.js",
       "_pk-clear--mPWZP7H-BHgvcQ98.js",
-      "_live-CihwgG8-.js"
+      "_live--CJ_9xjT.js"
     ]
   },
-  "_Lightswitch-BbFeYjvT.js": {
-    "file": "assets/Lightswitch-BbFeYjvT.js",
+  "_Lightswitch-vKPCp396.js": {
+    "file": "assets/Lightswitch-vKPCp396.js",
     "name": "Lightswitch",
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
+      "_Field-DTPx4asS.js",
       "_pk-change-BMLA71i0.js",
-      "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
+      "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
       "_required-validator-CEg8dvjS-DznAeO8J.js",
       "_mirror-validator-DCjNYrrx-BuTMKpbu.js",
       "_field-labels-CoU9dnNq-qJ92s-2-.js"
     ]
   },
-  "_Select-BT3fQ6WL.js": {
-    "file": "assets/Select-BT3fQ6WL.js",
+  "_Select-TSW5SMRQ.js": {
+    "file": "assets/Select-TSW5SMRQ.js",
     "name": "Select",
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
-      "_pk-select-odSNU1tN-BFCya_2X.js"
+      "_Field-DTPx4asS.js",
+      "_pk-select-BPnO9qgj-79_4kp8y.js"
     ]
   },
-  "_SelectInput-UZuLegmy.js": {
-    "file": "assets/SelectInput-UZuLegmy.js",
+  "_SelectInput-BoDbBSxh.js": {
+    "file": "assets/SelectInput-BoDbBSxh.js",
     "name": "SelectInput",
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
-      "_Select-BT3fQ6WL.js"
+      "_Field-DTPx4asS.js",
+      "_Select-TSW5SMRQ.js"
     ]
   },
-  "_button-group-item.styles-DYmBR28a-BiVND-sp.js": {
-    "file": "assets/button-group-item.styles-DYmBR28a-BiVND-sp.js",
+  "_button-group-item.styles-DYmBR28a-cGvGstbZ.js": {
+    "file": "assets/button-group-item.styles-DYmBR28a-cGvGstbZ.js",
     "name": "button-group-item.styles-DYmBR28a",
     "imports": [
-      "_Field-C0nNpaS-.js"
+      "_Field-DTPx4asS.js"
     ]
   },
   "_dist-BpymPXnn.js": {
@@ -226,11 +227,11 @@
     "file": "assets/field-labels-CoU9dnNq-qJ92s-2-.js",
     "name": "field-labels-CoU9dnNq"
   },
-  "_live-CihwgG8-.js": {
-    "file": "assets/live-CihwgG8-.js",
+  "_live--CJ_9xjT.js": {
+    "file": "assets/live--CJ_9xjT.js",
     "name": "live",
     "imports": [
-      "_Field-C0nNpaS-.js"
+      "_Field-DTPx4asS.js"
     ]
   },
   "_mirror-validator-DCjNYrrx-BuTMKpbu.js": {
@@ -241,23 +242,32 @@
     "file": "assets/pk-change-BMLA71i0.js",
     "name": "pk-change"
   },
+  "_pk-checkbox-Bavq3-9C-BWy5YEeJ.js": {
+    "file": "assets/pk-checkbox-Bavq3-9C-BWy5YEeJ.js",
+    "name": "pk-checkbox-Bavq3-9C",
+    "imports": [
+      "_Field-DTPx4asS.js",
+      "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
+      "_required-validator-CEg8dvjS-DznAeO8J.js"
+    ]
+  },
   "_pk-clear--mPWZP7H-BHgvcQ98.js": {
     "file": "assets/pk-clear--mPWZP7H-BHgvcQ98.js",
     "name": "pk-clear--mPWZP7H"
   },
-  "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js": {
-    "file": "assets/pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
+  "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js": {
+    "file": "assets/pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
     "name": "pk-form-associated-element-DmZKgNPL",
     "imports": [
-      "_Field-C0nNpaS-.js"
+      "_Field-DTPx4asS.js"
     ]
   },
-  "_pk-select-odSNU1tN-BFCya_2X.js": {
-    "file": "assets/pk-select-odSNU1tN-BFCya_2X.js",
-    "name": "pk-select-odSNU1tN",
+  "_pk-select-BPnO9qgj-79_4kp8y.js": {
+    "file": "assets/pk-select-BPnO9qgj-79_4kp8y.js",
+    "name": "pk-select-BPnO9qgj",
     "imports": [
-      "_Field-C0nNpaS-.js",
-      "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
+      "_Field-DTPx4asS.js",
+      "_pk-form-associated-element-DmZKgNPL-BUtdTeFV.js",
       "_mirror-validator-DCjNYrrx-BuTMKpbu.js",
       "_pk-clear--mPWZP7H-BHgvcQ98.js"
     ]
@@ -270,30 +280,29 @@
     "file": "assets/rolldown-runtime-QTnfLwEv.js",
     "name": "rolldown-runtime"
   },
-  "_useEngineField-BN1Z4-dt.js": {
-    "file": "assets/useEngineField-BN1Z4-dt.js",
+  "_useEngineField-zgqC2O22.js": {
+    "file": "assets/useEngineField-zgqC2O22.js",
     "name": "useEngineField",
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js"
+      "_Field-DTPx4asS.js"
     ]
   },
   "src/main.tsx": {
-    "file": "assets/builder-BKEj-Jsu.js",
+    "file": "assets/builder-DA12M1ln.js",
     "name": "builder",
     "src": "src/main.tsx",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-QTnfLwEv.js",
-      "_Field-C0nNpaS-.js",
-      "_pk-select-odSNU1tN-BFCya_2X.js",
+      "_Field-DTPx4asS.js",
+      "_pk-select-BPnO9qgj-79_4kp8y.js",
       "_dist-BpymPXnn.js",
-      "_button-group-item.styles-DYmBR28a-BiVND-sp.js",
+      "_button-group-item.styles-DYmBR28a-cGvGstbZ.js",
       "_pk-change-BMLA71i0.js",
-      "_pk-form-associated-element-DmZKgNPL-BMF0IqiY.js",
-      "_required-validator-CEg8dvjS-DznAeO8J.js",
-      "_SelectInput-UZuLegmy.js",
-      "_Lightswitch-BbFeYjvT.js"
+      "_pk-checkbox-Bavq3-9C-BWy5YEeJ.js",
+      "_SelectInput-BoDbBSxh.js",
+      "_Lightswitch-vKPCp396.js"
     ],
     "dynamicImports": [
       "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js",
@@ -310,7 +319,7 @@
       "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js"
     ],
     "css": [
-      "assets/builder-Domr-PUC.css"
+      "assets/builder-DYgPLjjD.css"
     ]
   }
 }

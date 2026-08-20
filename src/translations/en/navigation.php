@@ -180,7 +180,6 @@ return [
   'Navigations' => 'Menus',
   'Navigation saved.' => 'Menu saved.',
   'New navigation' => 'New menu',
-  'New Window' => 'New Window',
   'Node' => 'Node',
   'Node Fields' => 'Node Fields',
   'Nodes' => 'Nodes',
