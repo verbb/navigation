@@ -329,6 +329,10 @@ class NodeRead extends Component
 
     /**
      * Appends read-time projected children for Dynamic nodes (stored children first).
+     *
+     * Projections stay on Node::setProjectedChildren() — never in Craft's eager-loaded
+     * ElementCollection — so Element::getEagerLoadedElements() does not run setNextPrev
+     * across Node ↔ ProjectedNode (typed ElementInterface|false).
      */
     public function projectDynamicChildren(array $nodes, ?int $siteId = null): void
     {
@@ -345,12 +349,7 @@ class NodeRead extends Component
                 continue;
             }
 
-            $storedChildren = $node->getChildren()->all();
-            $projectedChildren = $nodeType->getProjectedChildren($node, $siteId);
-            $merged = array_merge($storedChildren, $projectedChildren);
-
-            $childrenPlan = new EagerLoadPlan(['handle' => 'children', 'alias' => 'children']);
-            $node->setEagerLoadedElements('children', $merged, $childrenPlan);
+            $node->setProjectedChildren($nodeType->getProjectedChildren($node, $siteId));
         }
     }
 
@@ -419,18 +418,7 @@ class NodeRead extends Component
 
     private function _projectedChildrenForNode(NodeElement $node): array
     {
-        $children = $node->getEagerLoadedElements('children');
-
-        if ($children === null) {
-            return [];
-        }
-
-        $items = is_array($children) ? $children : $children->all();
-
-        return array_values(array_filter(
-            $items,
-            static fn(mixed $child): bool => $child instanceof ProjectedNode,
-        ));
+        return $node->getProjectedChildren();
     }
 
     private function _nodeToTreeArray(NodeElement $node, bool $includeLinkedElements = false): array

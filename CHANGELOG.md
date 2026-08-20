@@ -10,6 +10,7 @@
 - Builder accordion headers use a pointer cursor on hover.
 
 ### Fixed
+- Querying Dynamic nodes that have stored (manual) children no longer throws `TypeError` when Craft tries to assign a `ProjectedNode` to `Element::$_nextElement` — projections stay off Craft’s eager-loaded children collection and merge in `Node::getChildren()` instead.
 - Changing Section / source settings on a Dynamic node no longer duplicates Section and Sort Order fields in the slide-out.
 - Add-node (and other) primary buttons show their loading spinner again — Vite had tree-shaken `pk-spinner` registration.
 - Linked-element (and other nested) node type fields no longer show oversized gaps above/below in the slide-out.

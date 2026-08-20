@@ -70,6 +70,44 @@ it('skips projected dynamic section children when withProjectedChildren is false
     expect($roots[0]->getChildren())->toHaveCount(0);
 });
 
+it('merges stored custom children ahead of projected dynamic children without TypeError', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $section = NavigationFixtureFactory::entrySection();
+    $entries = NavigationFixtureFactory::entries(2, $section);
+    $dynamic = NavigationFixtureFactory::dynamicSectionNode($nav, $section);
+    NavigationFixtureFactory::customNode($nav, 'Manual Promo', '/promo', $dynamic);
+
+    // Mirrors craft.navigation.nodes().handle(...).level(1).all() on the front end:
+    // hierarchy + projection must not assign ProjectedNode onto Element::$_nextElement.
+    $roots = (new NavigationVariable())
+        ->nodes(['handle' => $nav->handle])
+        ->level(1)
+        ->withNodeHierarchy()
+        ->all();
+
+    expect($roots)->toHaveCount(1);
+
+    $children = $roots[0]->getChildren()->all();
+
+    expect($children)->toHaveCount(3);
+    expect($children[0])->toBeInstanceOf(\verbb\navigation\elements\Node::class);
+    expect($children[0]->title)->toBe('Manual Promo');
+    expect($children[1])->toBeInstanceOf(\verbb\navigation\models\ProjectedNode::class);
+    expect($children[2])->toBeInstanceOf(\verbb\navigation\models\ProjectedNode::class);
+
+    $projectedIds = array_map(
+        static fn(mixed $child): ?int => $child instanceof \verbb\navigation\models\ProjectedNode
+            ? $child->elementId
+            : null,
+        array_slice($children, 1),
+    );
+    sort($projectedIds);
+    $expectedIds = [$entries[0]->id, $entries[1]->id];
+    sort($expectedIds);
+
+    expect($projectedIds)->toBe($expectedIds);
+});
+
 it('invalidates cached nav reads when a projected section entry is saved', function() {
     Navigation::$plugin->getSettings()->cacheMode = NavigationCache::MODE_AUTO;
 

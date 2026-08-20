@@ -13,6 +13,7 @@ use verbb\navigation\elementactions\UnstageDelete;
 use verbb\navigation\helpers\NodeTypeHelper;
 use verbb\navigation\models\MenuSettings;
 use verbb\navigation\models\NodeActiveState;
+use verbb\navigation\models\ProjectedNode;
 use verbb\navigation\models\Settings;
 use verbb\navigation\nodetypes\Custom;
 use verbb\navigation\nodetypes\GroupColumn;
@@ -27,6 +28,8 @@ use craft\base\ElementInterface;
 use craft\controllers\ElementIndexesController;
 use craft\db\Query;
 use craft\db\Table;
+use craft\elements\db\ElementQueryInterface;
+use craft\elements\ElementCollection;
 use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Duplicate;
@@ -371,6 +374,9 @@ class Node extends Element
     private ?int $_linkedElementSiteId = null;
     private ?Menu $_eagerLoadedMenu = null;
     private bool $_eagerLoadedMenuResolved = false;
+    // Read-time Dynamic projections — kept off Craft's ElementCollection so
+    // getEagerLoadedElements() never runs setNextPrev across Node ↔ ProjectedNode.
+    private array $_projectedChildren = [];
 
     // Public Methods
     // =========================================================================
@@ -799,6 +805,46 @@ class Node extends Element
     {
         $this->_eagerLoadedMenu = $menu;
         $this->_eagerLoadedMenuResolved = true;
+    }
+
+    /**
+     * Attaches read-time Dynamic projections without putting them in Craft's
+     * eager-loaded children collection (Element::$_nextElement is Element-typed).
+     */
+    public function setProjectedChildren(array $children): void
+    {
+        $this->_projectedChildren = array_values($children);
+    }
+
+    public function getProjectedChildren(): array
+    {
+        return $this->_projectedChildren;
+    }
+
+    /**
+     * Merges stored structure children with Dynamic projections (stored first).
+     */
+    public function getChildren(): ElementQueryInterface|ElementCollection
+    {
+        $hasStored = $this->hasEagerLoadedElements('children');
+        $hasProjected = $this->_projectedChildren !== [];
+
+        if (!$hasStored && !$hasProjected) {
+            return $this->getDescendants(1);
+        }
+
+        if ($hasStored && !$hasProjected) {
+            return parent::getEagerLoadedElements('children') ?? $this->getDescendants(1);
+        }
+
+        $stored = $hasStored
+            ? (parent::getEagerLoadedElements('children')?->all() ?? [])
+            : [];
+
+        $merged = array_merge($stored, $this->_projectedChildren);
+        $this->_wireMixedSiblingPointers($merged);
+
+        return ElementCollection::make($merged);
     }
 
     public function getRawElementUrl(): ?string
@@ -1728,6 +1774,46 @@ EOD;
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Wires prev/next across stored Nodes and ProjectedNodes.
+     *
+     * Craft Elements only accept ElementInterface|false for $_nextElement/$_prevElement,
+     * so cross-type pointers are stored on ProjectedNode only.
+     */
+    private function _wireMixedSiblingPointers(array $nodes): void
+    {
+        $prev = false;
+
+        foreach ($nodes as $node) {
+            if ($node instanceof ProjectedNode) {
+                $node->setPrev($prev === false ? false : $prev);
+
+                if ($prev instanceof ProjectedNode) {
+                    $prev->setNext($node);
+                }
+            } elseif ($node instanceof self) {
+                if ($prev instanceof self) {
+                    $prev->setNext($node);
+                    $node->setPrev($prev);
+                } else {
+                    $node->setPrev(false);
+
+                    if ($prev instanceof ProjectedNode) {
+                        $prev->setNext($node);
+                    }
+                }
+            }
+
+            $prev = $node;
+        }
+
+        if ($prev instanceof ProjectedNode) {
+            $prev->setNext(false);
+        } elseif ($prev instanceof self) {
+            $prev->setNext(false);
+        }
+    }
 
     private function _getBuilderRowActionBtnHtml(): string
     {
