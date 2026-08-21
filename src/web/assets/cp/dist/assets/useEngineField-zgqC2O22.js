@@ -1,2 +1,0 @@
-import{r as e}from"./rolldown-runtime-QTnfLwEv.js";import{R as t}from"./Field-DTPx4asS.js";var n=e(t(),1),r=[],i=(e,t)=>{let i=(0,n.useSyncExternalStore)(e.store.subscribe.bind(e.store),()=>e.getFieldValue(t),()=>e.getFieldValue(t)),a=(0,n.useSyncExternalStore)(e.store.subscribe.bind(e.store),()=>e.getErrorMapFields()[t]||r,()=>e.getErrorMapFields()[t]||r);return{value:i,errors:a,isInvalid:a.length>0,setValue:n=>{e.setFieldValue(t,n)},setTouched:()=>{e.store.setTouched(t,!0)}}};export{i as t};
-//# sourceMappingURL=useEngineField-zgqC2O22.js.map
