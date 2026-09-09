@@ -1,55 +1,16 @@
-{% extends 'navigation/_layouts' %}
+{% extends 'navigation/_layouts/settings' %}
 
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% requireAdmin %}
 
-{% set crumbs = [
-    { label: craft.navigation.getPluginName(), url: url('navigation/settings') },
-    { label: 'Settings' | t('app'), url: url('navigation/settings') }
-] %}
-
-{% set navItems = {
-    'general': { title: 'General Settings' | t('navigation') },
-} %}
-
-{% set selectedItem = 'general' %}
 {% set fullPageForm = true %}
+{% set selectedTab = 'general' %}
+{% set pageTitle = 'General Settings' | t('navigation') %}
+{% set pageAction = 'plugins/save-plugin-settings' %}
+{% set pageUrl = 'navigation/settings' %}
 
-{% block sidebar %}
-    <nav class="navigation-settings-tabs" data-vui-tabs>
-        <ul>
-            {% for id, item in navItems %}
-                {% if item.heading is defined %}
-                    <li class="heading"><span>{{ item.heading }}</span></li>
-                {% else %}
-                    <li>
-                        <a id="tab-{{ loop.index }}" href="#tab-{{ id }}" class="tab {% if id == selectedItem %}sel{% endif %}">
-                            {{ item.title }}
-                        </a>
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </nav>
-{% endblock %}
-
-{% block blockContent %}
-
-<input type="hidden" name="action" value="plugins/save-plugin-settings">
-<input type="hidden" name="pluginHandle" value="navigation">
-
-{% for id, item in navItems %}
-    {% if item.title is defined %}
-        <div id="tab-{{ id }}" {% if not loop.first %}class="hidden"{% endif %}>
-            <h2>{{ item.title }}</h2>
-
-            {% namespace 'settings' %}
-                {% include 'navigation/settings/_panes/' ~ id ignore missing %}
-            {% endnamespace %}
-        </div>
-    {% endif %}
-{% endfor %}
-
+{% block settingsContent %}
+    {% include 'navigation/settings/_panes/general' %}
 {% endblock %}
