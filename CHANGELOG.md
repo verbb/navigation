@@ -15,6 +15,7 @@
 - GraphQL `element` on nodes/projections requires schema awareness of the linked section, category group, volume, or product type (not a broad entries/categories/assets grant).
 
 ### Fixed
+- Fresh installs include `navigation_menus.defaultEnabledForPropagatedSites` in `Install.php` (column was only added by a later migration that Craft skips after install).
 - CP write endpoints (`nodes/add-nodes`, parent options, menu save/reorder/duplicate) now enforce Navigation menu permissions; `Node::canView` / `canSave` / `canDelete` / `canDuplicate` / `canCreateDrafts` require `navigation-manageMenu:{uid}` (Astra A01).
 - GraphQL `handle_Menu` fields, `navigationContext`, and `navigationMenuBreadcrumbs` honor per-menu schema scope instead of exposing every menu when any Navigation grant exists (Astra A02).
 - Custom URL schemes outside `http`/`https`/`mailto`/`tel` (and relative paths) are omitted from front-end output; custom attribute names are allowlisted (`class`, `rel`, `aria-*`, `data-*`, …) so event-handler names cannot be emitted (Astra A03).

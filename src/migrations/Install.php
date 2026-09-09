@@ -64,6 +64,8 @@ class Install extends Migration
             'propagationMethod' => $this->string()->defaultValue(MenuSettings::PROPAGATION_METHOD_ALL)->notNull(),
             'titleTranslationMethod' => $this->string()->notNull()->defaultValue(Field::TRANSLATION_METHOD_SITE),
             'titleTranslationKeyFormat' => $this->string()->null(),
+            // Keep in sync with m260703_010000 — Craft marks later migrations applied on fresh install.
+            'defaultEnabledForPropagatedSites' => $this->boolean()->notNull()->defaultValue(true),
             'maxNodes' => $this->integer(),
             'maxNodesSettings' => $this->text(),
             'permissions' => $this->text(),
