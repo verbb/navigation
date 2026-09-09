@@ -673,7 +673,9 @@ class Nodes extends Component
                 continue;
             }
 
-            if ($deferPublish && $duplicate->getEnabledForSite()) {
+            if ($deferPublish) {
+                // Global + current site: pending duplicates must not appear on any site until Save.
+                $duplicate->enabled = false;
                 $duplicate->setEnabledForSite(false);
 
                 if (!$elementsService->saveElement($duplicate)) {

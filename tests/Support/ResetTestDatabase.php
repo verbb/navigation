@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use Craft;
+use craft\models\Site;
 use verbb\navigation\elements\Node;
 use verbb\navigation\records\Menu as MenuRecord;
 
@@ -34,6 +35,43 @@ class ResetTestDatabase
             } elseif ($db->driverName === 'sqlite') {
                 $db->createCommand('PRAGMA foreign_keys = ON')->execute();
             }
+        }
+
+        self::pruneFixtureSites();
+    }
+
+    /**
+     * Remove ephemeral Craft sites left by multisite fixtures so the test DB
+     * does not accumulate toward Craft's site limit across suite runs.
+     * Never deletes the primary site; keeps the shared navigationTestSecondary if present
+     * only when it is the sole non-primary match — unique handles are always pruned.
+     */
+    public static function pruneFixtureSites(): void
+    {
+        $sitesService = Craft::$app->getSites();
+        $primaryId = (int)$sitesService->getPrimarySite()->id;
+
+        foreach ($sitesService->getAllSites(true) as $site) {
+            if (!$site instanceof Site || (int)$site->id === $primaryId) {
+                continue;
+            }
+
+            $handle = (string)$site->handle;
+
+            // Shared secondary site is reused across tests — leave it.
+            if ($handle === 'navigationTestSecondary') {
+                continue;
+            }
+
+            $isFixture =
+                str_starts_with($handle, 'navigationAutoEnableSite')
+                || str_starts_with($handle, 'navigationTest');
+
+            if (!$isFixture) {
+                continue;
+            }
+
+            $sitesService->deleteSiteById((int)$site->id);
         }
     }
 }

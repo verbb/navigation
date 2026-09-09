@@ -112,15 +112,47 @@ class ImportExportHelper
 
         $result->menu = $savedMenu;
 
-        if ($menuAction === 'update') {
-            self::_deleteMenuNodes($savedMenu);
-        }
-
         $siteId = self::_resolveSiteIdByHandle($json['sourceSiteHandle'] ?? null)
             ?? (int)Craft::$app->getSites()->getPrimarySite()->id;
 
-        self::_importNodeTree($json['nodes'] ?? [], $savedMenu, null, $siteId, $result);
-        self::_importMenuFieldValues($savedMenu, $json['menuFieldValues'] ?? [], $result);
+        // Preflight types before any destructive delete so update cannot empty the menu.
+        self::_preflightNodeTree($json['nodes'] ?? [], $result);
+
+        if ($result->hasImportErrors()) {
+            return $result;
+        }
+
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            if ($menuAction === 'update') {
+                self::_deleteMenuNodes($savedMenu);
+            }
+
+            $skippedBefore = $result->nodesSkipped;
+            self::_importNodeTree($json['nodes'] ?? [], $savedMenu, null, $siteId, $result);
+            self::_importMenuFieldValues($savedMenu, $json['menuFieldValues'] ?? [], $result);
+
+            // Replacement imports must not succeed with skipped/failed nodes — roll back.
+            if (
+                $result->hasImportErrors()
+                || ($menuAction === 'update' && $result->nodesSkipped > $skippedBefore)
+            ) {
+                throw new \RuntimeException('Menu import failed; original nodes were preserved.');
+            }
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+
+            if (!$result->hasImportErrors()) {
+                $result->addImportError($e->getMessage());
+            }
+
+            // Reload menu settings after rollback (nodes restored by the transaction).
+            $result->menu = Navigation::$plugin->getMenus()->getMenuByHandle($savedMenu->handle) ?? $savedMenu;
+            $result->nodesCreated = 0;
+        }
 
         return $result;
     }
@@ -444,7 +476,7 @@ class ImportExportHelper
 
             if (!Craft::$app->getElements()->saveElement($node)) {
                 $result->nodesSkipped++;
-                $result->addWarning("Failed saving node “{$node->title}”: " . json_encode($node->getErrors()));
+                $result->addImportError("Failed saving node “{$node->title}”: " . json_encode($node->getErrors()));
 
                 continue;
             }
@@ -466,8 +498,8 @@ class ImportExportHelper
     ): ?Node {
         $type = NodeTypeHelper::resolveTypeClass($data['type'] ?? null);
 
-        if (!$type || !class_exists($type)) {
-            $result->addWarning('Skipped node with unknown type: ' . ($data['type'] ?? '(empty)'));
+        if (!$type || !class_exists($type) || !self::_isRegisteredNodeType($type)) {
+            $result->addImportError('Skipped node with unknown type: ' . ($data['type'] ?? '(empty)'));
 
             return null;
         }
@@ -581,6 +613,8 @@ class ImportExportHelper
     {
         $nodes = Node::find()
             ->menuId($menu->id)
+            ->site('*')
+            ->unique()
             ->status(null)
             ->all();
 
@@ -618,5 +652,42 @@ class ImportExportHelper
         $site = Craft::$app->getSites()->getSiteByHandle($handle);
 
         return $site ? (int)$site->id : null;
+    }
+
+    /**
+     * Walk the payload and fail fast on unknown/unregistered node types before
+     * any destructive replacement delete runs.
+     */
+    private static function _preflightNodeTree(array $nodes, MenuImportResult $result): void
+    {
+        foreach ($nodes as $nodeData) {
+            if (!is_array($nodeData)) {
+                $result->addImportError('Invalid node payload entry.');
+                continue;
+            }
+
+            $type = NodeTypeHelper::resolveTypeClass($nodeData['type'] ?? null);
+
+            if (!$type || !class_exists($type) || !self::_isRegisteredNodeType($type)) {
+                $result->addImportError('Unknown or unregistered node type: ' . ($nodeData['type'] ?? '(empty)'));
+            }
+
+            $children = $nodeData['children'] ?? [];
+
+            if (is_array($children) && $children !== []) {
+                self::_preflightNodeTree($children, $result);
+            }
+        }
+    }
+
+    private static function _isRegisteredNodeType(string $typeClass): bool
+    {
+        foreach (Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes() as $nodeType) {
+            if ($nodeType::class === $typeClass) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

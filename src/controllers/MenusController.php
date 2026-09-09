@@ -9,6 +9,7 @@ use verbb\navigation\fieldlayoutelements\ClassesField;
 use verbb\navigation\fieldlayoutelements\CustomAttributesField;
 use verbb\navigation\fieldlayoutelements\NewWindowField;
 use verbb\navigation\fieldlayoutelements\UrlSuffixField;
+use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\MenuContentFieldLayout;
 use verbb\navigation\helpers\MenuPermissions;
 use verbb\navigation\helpers\Plugin as NavigationPluginHelper;
@@ -208,7 +209,10 @@ class MenusController extends Controller
             if (!$nav) {
                 throw new BadRequestHttpException("Invalid menu ID: $menuId");
             }
+
+            MenuAuth::requireEditMenu($this, $nav);
         } else {
+            MenuAuth::requireCreateMenus($this);
             $nav = new MenuSettings();
         }
 
@@ -279,6 +283,9 @@ class MenusController extends Controller
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
+        // Index UI only offers reorder to users who can create menus.
+        MenuAuth::requireCreateMenus($this);
+
         $navIds = Json::decode($this->request->getRequiredBodyParam('ids'));
         Navigation::$plugin->getMenus()->reorderMenus($navIds);
 
@@ -293,7 +300,7 @@ class MenusController extends Controller
         $menuId = $this->request->getRequiredBodyParam('id');
         $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
 
-        $this->requirePermission('navigation-deleteMenu:' . $nav->uid);
+        MenuAuth::requireDeleteMenu($this, $nav);
 
         Navigation::$plugin->getMenus()->deleteMenuById($menuId);
 
@@ -302,8 +309,15 @@ class MenusController extends Controller
 
     public function actionDuplicateMenu(): ?Response
     {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
         $menuId = $this->request->getRequiredBodyParam('id');
         $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
+
+        // Duplicate reads the source menu and creates a new one.
+        MenuAuth::requireManageMenu($this, $nav);
+        MenuAuth::requireCreateMenus($this);
 
         $newNav = clone $nav;
         $newNav->id = null;

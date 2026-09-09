@@ -84,10 +84,12 @@ class EntrySectionDynamicSource extends DynamicSource
         $parentEntryId = (int)($settings['parentEntryId'] ?? 0) ?: null;
         $section = Craft::$app->getEntries()->getSectionById($sectionId);
 
+        // Default to Craft live statuses so public projections never leak disabled /
+        // unpublished entries. Preview uses DynamicSources::includePendingProjections.
         $query = EntryElement::find()
             ->sectionId($sectionId)
-            ->siteId($siteId)
-            ->status(null);
+            ->siteId($siteId);
+        Navigation::$plugin->getDynamicSources()->applyProjectionStatus($query);
 
         if ($parentEntryId) {
             $query->descendantOf($parentEntryId)->level(max(1, (int)$parent->level) + 1);

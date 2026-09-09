@@ -16,9 +16,9 @@
   "dependencies": {
     "@headless-tree/core": "^1.7.0",
     "@headless-tree/react": "^1.7.0",
-    "@verbb/plugin-kit-forms": "^2.0.13",
-    "@verbb/plugin-kit-icons": "^2.0.13",
-    "@verbb/plugin-kit-react": "^2.0.13",
+    "@verbb/plugin-kit-forms": "^2.0.14",
+    "@verbb/plugin-kit-icons": "^2.0.14",
+    "@verbb/plugin-kit-react": "^2.0.14",
     "clsx": "^2.1.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",

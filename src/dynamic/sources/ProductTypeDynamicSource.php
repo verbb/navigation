@@ -77,10 +77,11 @@ class ProductTypeDynamicSource extends DynamicSource
             return [];
         }
 
+        // Live products only for public projections.
         $query = ProductElement::find()
             ->typeId($productTypeId)
-            ->siteId($siteId)
-            ->status(null);
+            ->siteId($siteId);
+        Navigation::$plugin->getDynamicSources()->applyProjectionStatus($query);
 
         ProductTypeSettings::applyToQuery($query, $parent);
 

@@ -45,15 +45,15 @@ class ActiveMatcher extends Component
             return;
         }
 
-        $childrenByParentId = $this->_buildChildrenMap($nodes);
-        $statesById = [];
+        $childrenByParentKey = $this->_buildChildrenMap($nodes);
+        $statesByKey = [];
 
         foreach ($nodes as $node) {
             if (!$node instanceof NodeElement) {
                 continue;
             }
 
-            $statesById[$node->id] = new NodeActiveState([
+            $statesByKey[$this->_nodeSiteKey($node)] = new NodeActiveState([
                 'isCurrent' => $this->_matchType($node) === self::MATCH_EXACT,
             ]);
         }
@@ -70,11 +70,12 @@ class ActiveMatcher extends Component
                     continue;
                 }
 
-                $state = $statesById[$node->id];
-                $children = $childrenByParentId[$node->id] ?? [];
+                $key = $this->_nodeSiteKey($node);
+                $state = $statesByKey[$key];
+                $children = $childrenByParentKey[$key] ?? [];
 
                 foreach ($children as $child) {
-                    $childState = $statesById[$child->id] ?? null;
+                    $childState = $statesByKey[$this->_nodeSiteKey($child)] ?? null;
 
                     if ($childState && ($childState->isCurrent || $childState->hasActiveChild)) {
                         $state->hasActiveChild = true;
@@ -94,7 +95,7 @@ class ActiveMatcher extends Component
                 continue;
             }
 
-            $node->setActiveState($statesById[$node->id] ?? new NodeActiveState());
+            $node->setActiveState($statesByKey[$this->_nodeSiteKey($node)] ?? new NodeActiveState());
         }
     }
 
@@ -357,7 +358,7 @@ class ActiveMatcher extends Component
 
     private function _buildChildrenMap(array $nodes): array
     {
-        $childrenByParentId = [];
+        $childrenByParentKey = [];
         $stack = [];
 
         foreach ($nodes as $node) {
@@ -375,13 +376,24 @@ class ActiveMatcher extends Component
 
             if ($level > 1 && isset($stack[$level - 1])) {
                 $parent = $stack[$level - 1];
-                $childrenByParentId[$parent->id][] = $node;
+                // Only wire same-site parents — site('*') batches must not cross locales.
+                if ((int)$parent->siteId === (int)$node->siteId) {
+                    $childrenByParentKey[$this->_nodeSiteKey($parent)][] = $node;
+                }
             }
 
             $stack[$level] = $node;
         }
 
-        return $childrenByParentId;
+        return $childrenByParentKey;
+    }
+
+    /**
+     * Composite identity for multi-site node lists (same pattern as NodeQuery::populate).
+     */
+    private function _nodeSiteKey(NodeElement $node): string
+    {
+        return $node->id . ':' . (int)$node->siteId;
     }
 
     private function _sortByLevelDesc(array $nodes): array

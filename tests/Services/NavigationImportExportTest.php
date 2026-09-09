@@ -74,6 +74,34 @@ it('imports with update action replacing an existing menu tree', function() {
         ->and($nodes[0]->title)->toBe('New link');
 });
 
+it('preserves the existing tree when an update import has unknown node types', function() {
+    $menu = NavigationFixtureFactory::menu('importExportFailedUpdate');
+    NavigationFixtureFactory::customNode($menu, 'Keep me', '/keep');
+
+    $export = ImportExportHelper::generateMenuExport($menu);
+    $export['nodes'] = [[
+        'title' => 'Broken',
+        'type' => 'verbb\\navigation\\nodetypes\\DoesNotExist',
+        'url' => '/broken',
+        'newWindow' => false,
+        'customAttributes' => [],
+        'data' => [],
+        'enabled' => true,
+        'enabledForSite' => true,
+        'children' => [],
+    ]];
+
+    $import = ImportExportHelper::importMenuFromJson($export, 'update');
+
+    expect($import->hasImportErrors())->toBeTrue()
+        ->and($import->nodesCreated)->toBe(0);
+
+    $nodes = Node::find()->menuId($menu->id)->all();
+
+    expect($nodes)->toHaveCount(1)
+        ->and($nodes[0]->title)->toBe('Keep me');
+});
+
 it('warns when linked element uids cannot be resolved', function() {
     $menu = NavigationFixtureFactory::menu('importExportMissingElement');
     $export = ImportExportHelper::generateMenuExport($menu);

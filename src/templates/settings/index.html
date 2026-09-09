@@ -1,19 +1,14 @@
 {% extends 'navigation/_layouts/settings' %}
 
 {% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
 
 {% set selectedTab = 'general' %}
 {% set fullPageForm = true %}
+{% set pageTitle = 'General Settings' | t('navigation') %}
+{% set pageAction = 'plugins/save-plugin-settings' %}
+{% set pageUrl = 'navigation/settings' %}
 
-{% block blockContent %}
-
-<h2>{{ 'General Settings' | t('navigation') }}</h2>
-
-<input type="hidden" name="action" value="plugins/save-plugin-settings">
-<input type="hidden" name="pluginHandle" value="navigation">
-
-{% namespace 'settings' %}
+{% block settingsContent %}
     {% include 'navigation/settings/_panes/general' %}
-{% endnamespace %}
-
 {% endblock %}

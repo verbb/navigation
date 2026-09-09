@@ -2,8 +2,9 @@
 namespace verbb\navigation\controllers;
 
 use verbb\navigation\elements\Node;
-use verbb\navigation\Navigation;
+use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\models\MenuSettings;
+use verbb\navigation\Navigation;
 
 use Craft;
 use craft\helpers\Json;
@@ -12,6 +13,7 @@ use craft\web\Controller;
 use Throwable;
 
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 class NodesController extends Controller
@@ -29,13 +31,46 @@ class NodesController extends Controller
         $deferPublish = $buildSessions->isStagingEnabled();
 
         $nodesPost = $this->request->getRequiredParam('nodes');
+
+        if (!is_array($nodesPost) || $nodesPost === []) {
+            throw new BadRequestHttpException('No nodes to add.');
+        }
+
+        // Authorize the whole batch before any write so a mixed-menu payload cannot
+        // create nodes on an unauthorized menu after a permitted first item saves.
+        $nodes = [];
         $menuId = null;
         $siteId = null;
-        $addedNodeIds = [];
 
         foreach ($nodesPost as $key => $nodePost) {
             $node = $this->_setNodeFromPost("nodes.{$key}.");
+            $nodeMenuId = (int)$node->menuId;
+            $nodeSiteId = (int)$node->siteId;
 
+            if (!$nodeMenuId) {
+                throw new BadRequestHttpException('Invalid menu ID.');
+            }
+
+            if ($menuId === null) {
+                MenuAuth::requireManageMenuSite(
+                    $this,
+                    Navigation::$plugin->getMenus()->getMenuById($nodeMenuId),
+                    $nodeSiteId ?: null,
+                );
+                $menuId = $nodeMenuId;
+                $siteId = $nodeSiteId ?: null;
+            } elseif ($nodeMenuId !== $menuId) {
+                throw new ForbiddenHttpException('All nodes in a batch must belong to the same menu.');
+            } elseif ($siteId !== null && $nodeSiteId && $nodeSiteId !== $siteId) {
+                throw new ForbiddenHttpException('All nodes in a batch must belong to the same site.');
+            }
+
+            $nodes[] = $node;
+        }
+
+        $addedNodeIds = [];
+
+        foreach ($nodes as $node) {
             // Add this new node to the nav, to assist with validation
             $nodesService->setTempNodes([$node]);
 
@@ -51,7 +86,6 @@ class NodesController extends Controller
                 return $this->asModelFailure($node, Craft::t('navigation', 'Couldn’t add node.'), 'node');
             }
 
-            $menuId ??= (int)$node->menuId;
             $siteId ??= (int)$node->siteId;
             $addedNodeIds[] = (int)$node->id;
         }
@@ -90,6 +124,12 @@ class NodesController extends Controller
         $siteId = $this->request->getParam('siteId');
         $siteId = $siteId ? (int)$siteId : null;
 
+        MenuAuth::requireManageMenuSite(
+            $this,
+            Navigation::$plugin->getMenus()->getMenuById($menuId),
+            $siteId,
+        );
+
         $nodes = $nodesService->getNodesForNav($menuId, $siteId);
 
         $options = [];
@@ -125,8 +165,7 @@ class NodesController extends Controller
         $menuId = (int)($this->request->getBodyParam('menuId') ?? $firstNode->menuId);
         $sourceSiteId = (int)($this->request->getBodyParam('sourceSiteId') ?? $firstNode->siteId);
 
-        $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        $nav = MenuAuth::requireManageMenu($this, Navigation::$plugin->getMenus()->getMenuById($menuId));
 
         if ($nav->propagationMethod !== MenuSettings::PROPAGATION_METHOD_NONE) {
             return $this->asFailure(Craft::t('navigation', 'Nodes in this menu are propagated automatically. Switch sites to edit them instead of copying.'));
@@ -189,13 +228,11 @@ class NodesController extends Controller
             throw new BadRequestHttpException('Invalid moves payload.');
         }
 
-        $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
-
-        if (!$nav) {
-            throw new BadRequestHttpException("Invalid menu ID: $menuId");
-        }
-
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite(
+            $this,
+            Navigation::$plugin->getMenus()->getMenuById($menuId),
+            $siteId,
+        );
 
         $session = $buildSessions->getOrCreate($menuId, $siteId);
         $changeCount = $session->getChangeCount(false);

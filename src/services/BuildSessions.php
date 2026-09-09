@@ -282,8 +282,8 @@ class BuildSessions extends Component
 
             $nodeToStage->setPendingDeleteRestoreState($enabled, $enabledForSite);
             $nodeToStage->setPendingDelete(true);
-            $nodeToStage->enabled = false;
-            $nodeToStage->setEnabledForSite(false);
+            // Keep live enabled state — public readers must not see deletes until publish.
+            // Builder overlays pending-delete styling from the flag / session.
 
             if (!$elementsService->saveElement($nodeToStage)) {
                 throw new UserException(Craft::t('navigation', 'Couldn’t stage node for deletion.'));
@@ -316,6 +316,7 @@ class BuildSessions extends Component
         ));
 
         $node->clearPendingDelete();
+        // Restore prior enabled flags when present (legacy staged rows may have been disabled).
         $node->enabled = (bool)$stagedDelete['enabled'];
         $node->setEnabledForSite((bool)$stagedDelete['enabledForSite']);
 

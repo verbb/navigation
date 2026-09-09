@@ -83,10 +83,11 @@ class CategoryGroupDynamicSource extends DynamicSource
         $parentCategoryId = (int)($settings['parentCategoryId'] ?? 0) ?: null;
         $group = Craft::$app->getCategories()->getGroupById($groupId);
 
+        // Live/public categories only — same visibility contract as entry projections.
         $query = CategoryElement::find()
             ->groupId($groupId)
-            ->siteId($siteId)
-            ->status(null);
+            ->siteId($siteId);
+        Navigation::$plugin->getDynamicSources()->applyProjectionStatus($query);
 
         if ($parentCategoryId) {
             $query->descendantOf($parentCategoryId)->level(max(1, (int)$parent->level) + 1);

@@ -445,6 +445,11 @@ class Menus extends Component
 
             $this->_syncMenuElement($navRecord, $siteSettingData);
 
+            // Soft-deleted Menu elements must be restored with the settings row (A13).
+            if ($wasTrashed) {
+                $this->_restoreOwnedMenuElement((int)$navRecord->id);
+            }
+
             // Update the site settings
             // -----------------------------------------------------------------
 
@@ -620,19 +625,31 @@ class Menus extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
-            // All nodes *should* be deleted by now via their nav, but loop through all the sites in case
-            // there are any lingering entries from unsupported sites
-            $nodeQuery = Node::find()
-                ->menuId($navRecord->id)
-                ->status(null);
-            
+            // Snapshot parent links from Craft structure *before* any deleteElement calls.
+            // Unordered deletes otherwise empty getAncestors() for children and wipe parentId (A13).
+            if ($navRecord->structureId) {
+                $this->_snapshotNodeParentsFromStructure((int)$navRecord->structureId);
+            }
+
+            // Delete deepest-first so beforeDelete ancestor lookup remains a safe backup.
+            $nodeIdsByDepth = $this->_nodeIdsOrderedForMenuDelete((int)$navRecord->id, $navRecord->structureId);
+
             $elementsService = Craft::$app->getElements();
-            
-            foreach (Craft::$app->getSites()->getAllSiteIds() as $siteId) {
-                foreach (Db::each($nodeQuery->siteId($siteId)) as $node) {
-                    $node->deletedWithMenu = true;
-                    $elementsService->deleteElement($node);
+
+            foreach ($nodeIdsByDepth as $nodeId) {
+                $node = Node::find()
+                    ->id($nodeId)
+                    ->site('*')
+                    ->unique()
+                    ->status(null)
+                    ->one();
+
+                if (!$node) {
+                    continue;
                 }
+
+                $node->deletedWithMenu = true;
+                $elementsService->deleteElement($node);
             }
 
             // Delete the structure
@@ -994,6 +1011,9 @@ class Menus extends Component
         );
 
         $elementsService = Craft::$app->getElements();
+        $structuresService = Craft::$app->getStructures();
+        $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
+        $structureId = $nav ? (int)$nav->structureId : 0;
 
         foreach ($rowsById as $row) {
             $node = Node::find()
@@ -1009,8 +1029,142 @@ class Menus extends Component
                 continue;
             }
 
-            $elementsService->restoreElement($node);
+            if (!$elementsService->restoreElement($node)) {
+                continue;
+            }
+
+            // Clear the soft-delete-with-menu marker so later deletes/restores behave correctly.
+            Db::update('{{%navigation_nodes}}', [
+                'deletedWithMenu' => false,
+            ], [
+                'id' => $node->id,
+            ], [], false);
+
+            $node->deletedWithMenu = false;
         }
+
+        // Second pass: afterRestore may race structure placement while siblings are still
+        // trashed. Re-apply parent/order from the preserved parentId snapshot.
+        if ($structureId) {
+            foreach ($rowsById as $row) {
+                $node = Node::find()
+                    ->id($row['id'])
+                    ->site('*')
+                    ->unique()
+                    ->status(null)
+                    ->one();
+
+                if (!$node) {
+                    continue;
+                }
+
+                $parentId = $row['parentId'];
+
+                if ($parentId) {
+                    $parent = Node::find()
+                        ->id($parentId)
+                        ->site('*')
+                        ->unique()
+                        ->status(null)
+                        ->one();
+
+                    if ($parent) {
+                        $parent->structureId = $structureId;
+                        $node->structureId = $structureId;
+                        $structuresService->append($structureId, $node, $parent);
+                        continue;
+                    }
+                }
+
+                $node->structureId = $structureId;
+                $structuresService->appendToRoot($structureId, $node);
+            }
+        }
+    }
+
+    /**
+     * Write parentId on every node from the live structure tree before menu delete.
+     * structureelements has no parentId column — derive parents from level + lft order.
+     */
+    private function _snapshotNodeParentsFromStructure(int $structureId): void
+    {
+        $rows = (new Query())
+            ->select(['elementId', 'level', 'lft'])
+            ->from(['{{%structureelements}}'])
+            ->where(['structureId' => $structureId])
+            ->orderBy(['lft' => SORT_ASC])
+            ->all();
+
+        $stack = [];
+
+        foreach ($rows as $row) {
+            $elementId = (int)$row['elementId'];
+            $level = max(1, (int)$row['level']);
+
+            while ($stack !== [] && end($stack)['level'] >= $level) {
+                array_pop($stack);
+            }
+
+            $parentId = $stack === [] ? null : end($stack)['elementId'];
+
+            Db::update('{{%navigation_nodes}}', [
+                'parentId' => $parentId,
+            ], [
+                'id' => $elementId,
+            ], [], false);
+
+            $stack[] = [
+                'elementId' => $elementId,
+                'level' => $level,
+            ];
+        }
+    }
+
+    /**
+     * Deepest-first node ids for menu delete so structure ancestors survive until children snapshot.
+     */
+    private function _nodeIdsOrderedForMenuDelete(int $menuId, ?int $structureId): array
+    {
+        if ($structureId) {
+            $ids = (new Query())
+                ->select(['elementId'])
+                ->from(['{{%structureelements}}'])
+                ->where(['structureId' => $structureId])
+                ->orderBy(['level' => SORT_DESC, 'lft' => SORT_DESC])
+                ->column();
+
+            if ($ids !== []) {
+                return array_map('intval', $ids);
+            }
+        }
+
+        return array_map(
+            'intval',
+            (new Query())
+                ->select(['id'])
+                ->from(['{{%navigation_nodes}}'])
+                ->where(['menuId' => $menuId])
+                ->column(),
+        );
+    }
+
+    /**
+     * Restore the owned Menu element after a settings-row restore from Project Config.
+     */
+    private function _restoreOwnedMenuElement(int $menuId): void
+    {
+        $menuElement = Menu::find()
+            ->id($menuId)
+            ->status(null)
+            ->trashed()
+            ->one();
+
+        if (!$menuElement) {
+            // Already live, or ownership remapped — sync will create if missing.
+            return;
+        }
+
+        Craft::$app->getElements()->restoreElement($menuElement);
     }
 
     /**

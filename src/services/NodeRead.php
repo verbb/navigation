@@ -12,7 +12,6 @@ use Craft;
 use craft\base\Component;
 use craft\base\ElementInterface;
 use craft\elements\db\EagerLoadPlan;
-use craft\helpers\ArrayHelper;
 
 class NodeRead extends Component
 {
@@ -175,17 +174,33 @@ class NodeRead extends Component
         }
 
         $sourceNodes = $this->_resolveHierarchySourceNodes($query, $nodes);
-        $wiredNodes = $this->assembleNodeHierarchy($sourceNodes, $includeLinkedElements, $projectChildren);
+        // Carry projection preview flag from the originating query into DynamicSources.
+        $dynamicSources = Navigation::$plugin->getDynamicSources();
+        $previousPending = $dynamicSources->shouldIncludePendingProjections();
+        $wantPending = $query->includePendingProjections || $this->_requestWantsPendingProjections();
+
+        if ($wantPending) {
+            $dynamicSources->includePendingProjections(true);
+        }
+
+        try {
+            $wiredNodes = $this->assembleNodeHierarchy($sourceNodes, $includeLinkedElements, $projectChildren);
+        } finally {
+            $dynamicSources->includePendingProjections($previousPending);
+        }
 
         if ($sourceNodes !== $nodes) {
-            $wiredNodesById = ArrayHelper::index(
-                array_filter($wiredNodes, static fn(mixed $node): bool => $node instanceof NodeElement),
-                'id',
-            );
+            $wiredNodesByKey = [];
+
+            foreach ($wiredNodes as $wiredNode) {
+                if ($wiredNode instanceof NodeElement) {
+                    $wiredNodesByKey[$this->_nodeSiteKey($wiredNode)] = $wiredNode;
+                }
+            }
 
             foreach ($nodes as $index => $node) {
-                if (isset($wiredNodesById[$node->id])) {
-                    $nodes[$index] = $wiredNodesById[$node->id];
+                if ($node instanceof NodeElement && isset($wiredNodesByKey[$this->_nodeSiteKey($node)])) {
+                    $nodes[$index] = $wiredNodesByKey[$this->_nodeSiteKey($node)];
                 }
             }
 
@@ -207,13 +222,13 @@ class NodeRead extends Component
         }
 
         $nodeStack = [];
-        $childrenByParentId = [];
+        $childrenByParentKey = [];
         $childrenPlan = new EagerLoadPlan(['handle' => 'children', 'alias' => 'children']);
-        $nodesById = [];
+        $nodesByKey = [];
 
         foreach ($nodes as $node) {
             if ($node instanceof NodeElement) {
-                $nodesById[$node->id] = $node;
+                $nodesByKey[$this->_nodeSiteKey($node)] = $node;
             }
         }
 
@@ -228,18 +243,24 @@ class NodeRead extends Component
                 $node->setParent(null);
             } else if (isset($nodeStack[$level - 1])) {
                 $parent = $nodeStack[$level - 1];
-                $node->setParent($parent);
-                $childrenByParentId[$parent->id][] = $node;
+
+                if ((int)$parent->siteId === (int)$node->siteId) {
+                    $node->setParent($parent);
+                    $childrenByParentKey[$this->_nodeSiteKey($parent)][] = $node;
+                } else {
+                    $node->setParent(null);
+                    $level = 1;
+                }
             } else {
                 $parent = $node->getParent();
 
                 if (
                     $parent instanceof NodeElement
                     && (int)$parent->siteId === (int)$node->siteId
-                    && isset($nodesById[$parent->id])
+                    && isset($nodesByKey[$this->_nodeSiteKey($parent)])
                 ) {
                     $node->setParent($parent);
-                    $childrenByParentId[$parent->id][] = $node;
+                    $childrenByParentKey[$this->_nodeSiteKey($parent)][] = $node;
                     $level = (int)$parent->level + 1;
                 } else {
                     $node->setParent(null);
@@ -261,7 +282,7 @@ class NodeRead extends Component
                 continue;
             }
 
-            $node->setEagerLoadedElements('children', $childrenByParentId[$node->id] ?? [], $childrenPlan);
+            $node->setEagerLoadedElements('children', $childrenByParentKey[$this->_nodeSiteKey($node)] ?? [], $childrenPlan);
         }
 
         if (!$projectChildren) {
@@ -288,43 +309,57 @@ class NodeRead extends Component
         $count = count($nodes);
         $index = 0;
 
+        // Recurse so nested Dynamic parents inside a subtree also receive projections
+        // (the previous flat jump skipped them).
         while ($index < $count) {
-            $node = $nodes[$index];
-            $output[] = $node;
-
-            if (!$node instanceof NodeElement) {
-                $index++;
-                continue;
-            }
-
-            $nextIndex = $index + 1;
-
-            while (
-                $nextIndex < $count
-                && $nodes[$nextIndex] instanceof NodeElement
-                && (int)$nodes[$nextIndex]->level > (int)$node->level
-            ) {
-                $output[] = $nodes[$nextIndex];
-                $nextIndex++;
-            }
-
-            $projectedChildren = $this->_projectedChildrenForNode($node);
-
-            if ($projectedChildren !== []) {
-                $node->rgt = (int)$node->lft + 1 + (count($projectedChildren) * 2);
-
-                foreach ($projectedChildren as $childIndex => $projectedNode) {
-                    $projectedNode->lft = (int)$node->lft + 1 + ($childIndex * 2);
-                    $projectedNode->rgt = $projectedNode->lft + 1;
-                    $projectedNode->level = (int)$node->level + 1;
-                    $output[] = $projectedNode;
-                }
-            }
-
-            $index = $nextIndex;
+            $index = $this->_appendStoredNodeWithProjections($nodes, $index, $count, $output);
         }
 
         return $output;
+    }
+
+    /**
+     * Appends one stored node, its stored descendants (recursively), then its projections.
+     */
+    private function _appendStoredNodeWithProjections(array $nodes, int $index, int $count, array &$output): int
+    {
+        $node = $nodes[$index];
+        $output[] = $node;
+
+        if (!$node instanceof NodeElement) {
+            return $index + 1;
+        }
+
+        $level = (int)$node->level;
+        $childIndex = $index + 1;
+
+        while (
+            $childIndex < $count
+            && $nodes[$childIndex] instanceof NodeElement
+            && (int)$nodes[$childIndex]->level > $level
+        ) {
+            if ((int)$nodes[$childIndex]->level === $level + 1) {
+                $childIndex = $this->_appendStoredNodeWithProjections($nodes, $childIndex, $count, $output);
+            } else {
+                // Malformed flat order — keep moving to avoid an infinite loop.
+                $childIndex++;
+            }
+        }
+
+        $projectedChildren = $this->_projectedChildrenForNode($node);
+
+        if ($projectedChildren !== []) {
+            $node->rgt = (int)$node->lft + 1 + (count($projectedChildren) * 2);
+
+            foreach ($projectedChildren as $childIdx => $projectedNode) {
+                $projectedNode->lft = (int)$node->lft + 1 + ($childIdx * 2);
+                $projectedNode->rgt = $projectedNode->lft + 1;
+                $projectedNode->level = $level + 1;
+                $output[] = $projectedNode;
+            }
+        }
+
+        return $childIndex;
     }
 
     /**
@@ -337,19 +372,33 @@ class NodeRead extends Component
     public function projectDynamicChildren(array $nodes, ?int $siteId = null): void
     {
         $siteId ??= Craft::$app->getSites()->getCurrentSite()->id;
+        $dynamicSources = Navigation::$plugin->getDynamicSources();
+        $restorePending = $dynamicSources->shouldIncludePendingProjections();
 
-        foreach ($nodes as $node) {
-            if (!$node instanceof NodeElement) {
-                continue;
+        if (!$restorePending && $this->_requestWantsPendingProjections()) {
+            $dynamicSources->includePendingProjections(true);
+        }
+
+        try {
+            foreach ($nodes as $node) {
+                if (!$node instanceof NodeElement) {
+                    continue;
+                }
+
+                $nodeType = $node->nodeType();
+
+                if (!$nodeType instanceof ProjectingNodeType) {
+                    continue;
+                }
+
+                // Prefer each node's own site when the list is multi-site.
+                $nodeSiteId = (int)($node->siteId ?? $siteId);
+                $node->setProjectedChildren($nodeType->getProjectedChildren($node, $nodeSiteId));
             }
-
-            $nodeType = $node->nodeType();
-
-            if (!$nodeType instanceof ProjectingNodeType) {
-                continue;
+        } finally {
+            if (!$restorePending) {
+                $dynamicSources->includePendingProjections(false);
             }
-
-            $node->setProjectedChildren($nodeType->getProjectedChildren($node, $siteId));
         }
     }
 
@@ -419,6 +468,26 @@ class NodeRead extends Component
     private function _projectedChildrenForNode(NodeElement $node): array
     {
         return $node->getProjectedChildren();
+    }
+
+    private function _nodeSiteKey(NodeElement $node): string
+    {
+        return $node->id . ':' . (int)$node->siteId;
+    }
+
+    /**
+     * Live Preview / tokenized preview may include pending projected sources.
+     * Public front-end requests must not.
+     */
+    private function _requestWantsPendingProjections(): bool
+    {
+        $request = Craft::$app->getRequest();
+
+        if ($request->getIsConsoleRequest() || $request->getIsCpRequest()) {
+            return false;
+        }
+
+        return method_exists($request, 'getIsPreview') && $request->getIsPreview();
     }
 
     private function _nodeToTreeArray(NodeElement $node, bool $includeLinkedElements = false): array

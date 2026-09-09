@@ -39,6 +39,7 @@ class NodeQuery extends ElementQuery
     public ?bool $withNodeHierarchy = null;
     public bool $withMenu = false;
     public ?bool $withProjectedChildren = null;
+    public bool $includePendingProjections = false;
     public bool $internalReadFetch = false;
     public bool $bypassReadCache = false;
     public bool $skipPostCacheProcessing = false;
@@ -172,6 +173,16 @@ class NodeQuery extends ElementQuery
         return $this;
     }
 
+    /**
+     * Include disabled/pending sources in Dynamic projections (preview / explicit opt-in).
+     * Bypasses the public tree cache — do not use for public front-end reads.
+     */
+    public function includePendingProjections(bool $value = true): static
+    {
+        $this->includePendingProjections = $value;
+        return $this;
+    }
+
     public function shouldProjectChildren(): bool
     {
         return $this->withProjectedChildren !== false;
@@ -207,10 +218,13 @@ class NodeQuery extends ElementQuery
     // which quickly blow out queries. So instead, do this when the elements are populated
     public function populate($rows): array
     {
-        $siteDataByNodeId = [];
+        // Key by node + site so site('*') batches do not overwrite locale-specific link data.
+        $siteDataByNodeSite = [];
 
         foreach ($rows as &$row) {
-            $siteDataByNodeId[(int)$row['id']] = [
+            $nodeId = (int)$row['id'];
+            $siteId = (int)($row['siteId'] ?? 0);
+            $siteDataByNodeSite[$nodeId . ':' . $siteId] = [
                 'url' => $row['nodeSiteUrl'] ?? null,
                 'urlSuffix' => $row['nodeSiteUrlSuffix'] ?? null,
                 'linkedElementSiteId' => $row['nodeSiteLinkedElementSiteId'] ?? null,
@@ -230,7 +244,9 @@ class NodeQuery extends ElementQuery
 
         if ($rows) {
             foreach ($rows as $node) {
-                $data = $siteDataByNodeId[$node->id] ?? null;
+                $data = $siteDataByNodeSite[$node->id . ':' . (int)$node->siteId]
+                    ?? $siteDataByNodeSite[$node->id . ':0']
+                    ?? null;
 
                 if (!$data) {
                     continue;
@@ -298,6 +314,7 @@ class NodeQuery extends ElementQuery
             'navigation_nodes.newWindow',
             'navigation_nodes.customAttributes',
             'navigation_nodes.data',
+            'navigation_nodes.deletedWithMenu',
             'node_sites.url AS nodeSiteUrl',
             'node_sites.urlSuffix AS nodeSiteUrlSuffix',
             'node_sites.linkedElementSiteId AS nodeSiteLinkedElementSiteId',
@@ -352,34 +369,42 @@ class NodeQuery extends ElementQuery
             ]);
         }
 
-        $siteId = $this->_resolveSiteId();
+        if (!parent::beforePrepare()) {
+            return false;
+        }
+
+        // Subquery: Craft may still emit custom joins before elements_sites, so use a
+        // concrete site id there. Outer query correlates to each row's elements_sites.siteId
+        // so site('*') / multi-site reads keep per-locale link data (A09).
+        $fallbackSiteId = $this->_resolveFallbackSiteId();
 
         $this->subQuery->leftJoin(
             '{{%navigation_nodes_sites}} node_sites',
-            '[[node_sites.nodeId]] = [[navigation_nodes.id]] AND [[node_sites.siteId]] = ' . (int)$siteId,
+            '[[node_sites.nodeId]] = [[navigation_nodes.id]] AND [[node_sites.siteId]] = ' . $fallbackSiteId,
         );
 
         $this->query->leftJoin(
             '{{%navigation_nodes_sites}} node_sites',
-            '[[node_sites.nodeId]] = [[navigation_nodes.id]] AND [[node_sites.siteId]] = ' . (int)$siteId,
+            '[[node_sites.nodeId]] = [[navigation_nodes.id]] AND [[node_sites.siteId]] = [[elements_sites.siteId]]',
         );
 
-        return parent::beforePrepare();
+        return true;
     }
 
     protected function afterPrepare(): bool
     {
-        $siteId = $this->_resolveSiteId();
-
         $this->query->leftJoin(
             '{{%elements_sites}} element_item_sites',
-            '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND [[element_item_sites.siteId]] = COALESCE([[node_sites.linkedElementSiteId]], ' . (int)$siteId . ')',
+            '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND [[element_item_sites.siteId]] = COALESCE([[node_sites.linkedElementSiteId]], [[elements_sites.siteId]])',
         );
 
         return parent::afterPrepare();
     }
 
-    protected function _resolveSiteId(): int
+    /**
+     * Site id used only for subquery joins where elements_sites is not yet addressable.
+     */
+    protected function _resolveFallbackSiteId(): int
     {
         if ($this->siteId !== null && $this->siteId !== '*') {
             if (is_array($this->siteId)) {
@@ -389,6 +414,6 @@ class NodeQuery extends ElementQuery
             return (int)$this->siteId;
         }
 
-        return Craft::$app->getSites()->getCurrentSite()->id;
+        return (int)Craft::$app->getSites()->getCurrentSite()->id;
     }
 }

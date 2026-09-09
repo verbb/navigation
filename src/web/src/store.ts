@@ -68,7 +68,7 @@ type BuilderStore = {
   error: string | null;
 
   init: (menuId: number, siteId: number) => Promise<void>;
-  refresh: () => Promise<void>;
+  refresh: (options?: { resetStructure?: boolean }) => Promise<void>;
   setNodes: (nodes: BuilderNode[]) => void;
   reorder: (activeId: number, overId: number, targetLevel: number) => void;
   dropNode: (
@@ -108,7 +108,15 @@ type BuilderStore = {
   duplicateSelectedNodes: (deep?: boolean) => Promise<void>;
   copyNodesToSite: (nodeIds: number[], targetSiteId: number, deep?: boolean, remapLinkedElements?: boolean) => Promise<void>;
   restoreNode: (nodeId: number) => Promise<void>;
+  /** Hard-replace tree from server (clears structure dirty). Prefer applyMutationNodes for stage actions. */
   applyServerNodes: (nodes: BuilderNode[]) => void;
+  /** Merge server payloads while preserving uncommitted client structure (A07). */
+  applyMutationNodes: (
+    previousNodes: BuilderNode[],
+    serverNodes: BuilderNode[],
+    session: BuilderState['session'] | Record<string, unknown> | null | undefined,
+    structureWasDirty: boolean,
+  ) => void;
   applyDuplicationResult: (
     previousNodes: BuilderNode[],
     serverNodes: BuilderNode[],
@@ -176,7 +184,8 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     }
   },
 
-  refresh: async () => {
+  refresh: async (options?: { resetStructure?: boolean }) => {
+    const resetStructure = Boolean(options?.resetStructure);
     const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
 
     try {
@@ -184,24 +193,32 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       const baseline = baselineMoves(state.nodes);
       const collapsedNodeIds = loadCollapsedNodeIds(menuId, siteId, new Set(state.nodes.map((node) => node.id)));
 
-      // Structure is client-staged until Save — do not snap back to Craft order on refresh.
+      // Structure is client-staged until Save — do not snap back to Craft order on refresh,
+      // unless discard/publish explicitly resets to the server baseline (A07).
       let nodes: BuilderNode[];
+      let nextDirty: boolean;
 
-      if (structureDirty) {
+      if (resetStructure) {
+        nodes = state.nodes;
+        nextDirty = false;
+      } else if (structureDirty) {
         nodes = mergeServerNodesPreservingStructure(previousNodes, state.nodes, {
           preserveStructure: true,
         });
+        nextDirty = true;
       } else if (state.session?.structureMoves?.length) {
         nodes = applyStructureMoves(state.nodes, state.session.structureMoves);
+        nextDirty = Boolean(state.session?.hasStructureMoves);
       } else {
         nodes = state.nodes;
+        nextDirty = Boolean(state.session?.hasStructureMoves);
       }
 
       set({
         state,
         nodes,
         baselineStructureMoves: baseline,
-        structureDirty: structureDirty || Boolean(state.session?.hasStructureMoves),
+        structureDirty: nextDirty,
         collapsedNodeIds,
         selectedNodeIds: [],
         lastSelectedNodeId: null,
@@ -480,7 +497,8 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
         return;
       }
 
-      await get().refresh();
+      // Publish commits structure — take the server baseline, do not preserve dirty moves.
+      await get().refresh({ resetStructure: true });
     } catch (error) {
       set({ saveFeedbackState: 'error' });
       displayError(error);
@@ -501,7 +519,8 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     try {
       const data = await discardSession(menuId, siteId);
       displayNotice((data.message as string) ?? t('Build session discarded.'));
-      await get().refresh();
+      // Discard must clear client structure dirty state (opposite of refresh-while-dirty).
+      await get().refresh({ resetStructure: true });
     } catch (error) {
       displayError(error);
     } finally {
@@ -510,14 +529,14 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   },
 
   deleteNode: async (nodeId, withDescendants = false) => {
-    const { menuId, siteId } = get();
+    const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
 
     try {
       const data = await stageDelete(menuId, siteId, nodeId, withDescendants);
       displayNotice(data.message ?? t('Node deleted.'));
 
       if (data.nodes) {
-        get().applyServerNodes(data.nodes);
+        get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty);
       } else {
         await get().refresh();
       }
@@ -561,13 +580,13 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     for (const nodeId of orderedIds) {
       try {
-        const { menuId, siteId } = get();
+        const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
         const data = await stageDelete(menuId, siteId, nodeId, withDescendants);
         successCount += 1;
         lastMessage = data.message;
 
         if (data.nodes) {
-          get().applyServerNodes(data.nodes);
+          get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty);
         } else {
           await get().refresh();
         }
@@ -590,7 +609,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   },
 
   setSelectedNodesStatus: async (status) => {
-    const { menuId, siteId, selectedNodeIds } = get();
+    const { menuId, siteId, selectedNodeIds, nodes: previousNodes, structureDirty } = get();
 
     if (!selectedNodeIds.length) {
       return;
@@ -601,7 +620,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       displayNotice(data.message ?? t('Status updated.'));
 
       if (data.nodes) {
-        get().applyServerNodes(data.nodes);
+        get().applyMutationNodes(previousNodes, data.nodes, undefined, structureDirty);
       } else {
         await get().refresh();
       }
@@ -673,14 +692,14 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   },
 
   restoreNode: async (nodeId) => {
-    const { menuId, siteId } = get();
+    const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
 
     try {
       const data = await unstageDelete(menuId, siteId, nodeId);
       displayNotice(data.message ?? t('Node restored to menu.'));
 
       if (data.nodes) {
-        get().applyServerNodes(data.nodes);
+        get().applyMutationNodes(previousNodes, data.nodes, undefined, structureDirty);
       } else {
         await get().refresh();
       }
@@ -695,6 +714,26 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       nodes,
       baselineStructureMoves: baseline,
       structureDirty: false,
+      selectedNodeIds: [],
+      lastSelectedNodeId: null,
+    });
+  },
+
+  applyMutationNodes: (previousNodes, serverNodes, session, structureWasDirty) => {
+    const nodes = mergeServerNodesPreservingStructure(previousNodes, serverNodes, {
+      preserveStructure: structureWasDirty,
+    });
+    const baseline = baselineMoves(serverNodes);
+    const { state } = get();
+
+    set({
+      nodes,
+      baselineStructureMoves: baseline,
+      structureDirty: structureWasDirty || !movesEqual(collectStructureMoves(nodes), baseline),
+      state:
+        state && session
+          ? { ...state, session: session as BuilderState['session'] }
+          : state,
       selectedNodeIds: [],
       lastSelectedNodeId: null,
     });

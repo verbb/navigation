@@ -10,6 +10,8 @@ use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\elementactions\StageDelete;
 use verbb\navigation\elementactions\UnstageDelete;
+use verbb\navigation\helpers\MenuAuth;
+use verbb\navigation\helpers\NodeOutputSafety;
 use verbb\navigation\helpers\NodeTypeHelper;
 use verbb\navigation\models\MenuSettings;
 use verbb\navigation\models\NodeActiveState;
@@ -589,7 +591,7 @@ class Node extends Element
 
     public function canView(User $user): bool
     {
-        return true;
+        return $this->_userCanManageMenu($user);
     }
 
     public function canSave(User $user): bool
@@ -598,7 +600,7 @@ class Node extends Element
             return false;
         }
 
-        return true;
+        return $this->_userCanManageMenu($user);
     }
 
     public function canDuplicate(User $user): bool
@@ -607,7 +609,7 @@ class Node extends Element
             return false;
         }
 
-        return true;
+        return $this->_userCanManageMenu($user);
     }
 
     public function canDelete(User $user): bool
@@ -616,12 +618,12 @@ class Node extends Element
             return false;
         }
 
-        return true;
+        return $this->_userCanManageMenu($user);
     }
 
     public function canCreateDrafts(User $user): bool
     {
-        return true;
+        return $this->_userCanManageMenu($user);
     }
 
     public function getStatus(): ?string
@@ -947,7 +949,7 @@ class Node extends Element
         $object = $this->_getObject();
         $tag = $this->getTag();
 
-        $classes = $this->classes ? Craft::$app->getView()->renderObjectTemplate($this->classes, $object) : null;
+        $classes = $this->classes ? NodeOutputSafety::renderAuthorTemplate($this->classes, $object) : null;
 
         // Passive / group / Dynamic nodes use getTag() (span by default) and must not emit a blank href.
         $attributes = [
@@ -957,12 +959,23 @@ class Node extends Element
             'class' => $classes,
         ];
 
-        foreach ($this->customAttributes as $attribute) {
-            $key = $attribute['attribute'];
-            $val = $attribute['value'];
+        $customAttributes = [];
 
-            $attributes[$key] = Craft::$app->getView()->renderObjectTemplate($val, $object);
+        foreach ($this->customAttributes as $attribute) {
+            $key = $attribute['attribute'] ?? null;
+            $val = $attribute['value'] ?? null;
+
+            if (!is_string($key) || $key === '') {
+                continue;
+            }
+
+            $customAttributes[$key] = is_string($val)
+                ? NodeOutputSafety::renderAuthorTemplate($val, $object)
+                : $val;
         }
+
+        // Drop onclick / unknown names after render so allowlists apply to final keys.
+        $attributes = array_merge($attributes, NodeOutputSafety::filterCustomAttributes($customAttributes));
 
         // Filter out any values
         $attributes = array_filter($attributes);
@@ -1420,6 +1433,16 @@ class Node extends Element
 
     public function afterRestore(): void
     {
+        // Menu-level soft-delete marker must clear so the node is a normal live row again.
+        if ($this->deletedWithMenu) {
+            $this->deletedWithMenu = false;
+            Db::update('{{%navigation_nodes}}', [
+                'deletedWithMenu' => false,
+            ], [
+                'id' => $this->id,
+            ], [], false);
+        }
+
         $nav = $this->_getMenu();
         $structureId = (int)$nav->structureId;
 
@@ -1858,9 +1881,23 @@ EOD;
 
     private function _getObject(): array
     {
-        return [
-            'currentUser' => Craft::$app->getUser()->getIdentity(),
-        ];
+        // Author templates get a bounded context — not a live User element.
+        return NodeOutputSafety::authorTemplateObject();
+    }
+
+    /**
+     * Menu manage grant is the single backstop for element editor / Elements::saveElement
+     * paths that never hit NodesController.
+     */
+    private function _userCanManageMenu(User $user): bool
+    {
+        if ($this->menuId === null) {
+            return false;
+        }
+
+        $nav = Navigation::$plugin->getMenus()->getMenuById($this->menuId);
+
+        return MenuAuth::canManageMenu($user, $nav);
     }
 
     private function _parentOptionCriteria(MenuSettings $nav): array

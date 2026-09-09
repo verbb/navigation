@@ -32,6 +32,8 @@ class Settings extends Model
     public function rules(): array
     {
         return [
+            [['pluginName'], 'trim'],
+            [['pluginName'], 'required'],
             [['pluginName'], 'string'],
             [['bypassProjectConfig', 'autoEnableNewSites', 'builderLiveStructure'], 'boolean'],
             [['cacheMode'], 'in', 'range' => [

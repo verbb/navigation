@@ -6,10 +6,9 @@ use verbb\navigation\deprecations\DeprecationHelper;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\gql\types\generators\MenuGenerator;
 use verbb\navigation\helpers\Gql as GqlHelper;
-use verbb\navigation\models\NavigationContext;
+use verbb\navigation\models\MenuSettings;
 
 use craft\gql\base\Query;
-use craft\gql\GqlEntityRegistry;
 
 use GraphQL\Type\Definition\Type;
 use GraphQL\Error\UserError;
@@ -28,6 +27,11 @@ class MenuQuery extends Query
         $queries = [];
 
         foreach (Navigation::$plugin->getMenus()->getAllMenus() as $nav) {
+            // Match MenuGenerator: only expose menus the active schema may read.
+            if ($checkToken && !GqlHelper::canQueryMenu($nav)) {
+                continue;
+            }
+
             $menu = Menu::find()->id($nav->id)->status(null)->one();
 
             if (!$menu) {
@@ -47,8 +51,20 @@ class MenuQuery extends Query
                         'description' => 'The site handle.',
                     ],
                 ],
-                'resolve' => function($source, array $args) use ($menu) {
-                    $query = Menu::find()->id($menu->id);
+                'resolve' => function($source, array $args) use ($menu, $nav) {
+                    // Enforce per-menu scope when a schema is active (executeQuery / tokens).
+                    // Direct resolver calls without a schema (unit tests) skip this gate.
+                    try {
+                        $schema = \Craft::$app->getGql()->getActiveSchema();
+                    } catch (\Throwable) {
+                        $schema = null;
+                    }
+
+                    if ($schema !== null && !GqlHelper::canQueryMenu($nav, $schema)) {
+                        return null;
+                    }
+
+                    $query = Menu::find()->id($menu->id)->status(null);
 
                     if (!empty($args['site'])) {
                         $query->site($args['site']);
@@ -76,6 +92,8 @@ class MenuQuery extends Query
                     throw new UserError('`menuHandle` is required.');
                 }
 
+                self::_requireMenuHandleAccess($menuHandle);
+
                 return Navigation::$plugin->getContextResolver()->resolve($menuHandle);
             },
             'description' => 'Returns menu context helpers for the current request.',
@@ -97,11 +115,26 @@ class MenuQuery extends Query
                     throw new UserError('`menuHandle` is required.');
                 }
 
+                self::_requireMenuHandleAccess($menuHandle);
+
                 return Navigation::$plugin->getMenuBreadcrumbs()->getBreadcrumbs($menuHandle);
             },
             'description' => 'Returns breadcrumbs through the menu tree for the current request.',
         ];
 
         return $queries;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _requireMenuHandleAccess(string $menuHandle): void
+    {
+        $nav = Navigation::$plugin->getMenus()->getMenuByHandle($menuHandle);
+
+        if (!$nav instanceof MenuSettings || !GqlHelper::canQueryMenu($nav)) {
+            throw new UserError('Menu not found or not authorized for this schema.');
+        }
     }
 }

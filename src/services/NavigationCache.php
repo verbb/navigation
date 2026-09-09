@@ -57,7 +57,14 @@ class NavigationCache extends Component
             return false;
         }
 
-        if ($query->bypassReadCache || $query->internalReadFetch || $query->withLinkedElements || $query->withMenu) {
+        if (
+            $query->bypassReadCache
+            || $query->internalReadFetch
+            || $query->withLinkedElements
+            || $query->withMenu
+            || $query->includePendingProjections
+        ) {
+            // Pending projections are preview-only — never share a public cache entry.
             return false;
         }
 
@@ -74,6 +81,12 @@ class NavigationCache extends Component
         }
 
         if ($this->_getMode() === self::MODE_MANUAL && !$query->useNavigationCache) {
+            return false;
+        }
+
+        // Only cache canonical nav-scoped tree shapes — arbitrary ElementQuery
+        // filters (title/search/relatedTo/orderBy/…) share incomplete keys otherwise.
+        if (!$this->_isCanonicalCacheableQuery($query)) {
             return false;
         }
 
@@ -150,7 +163,8 @@ class NavigationCache extends Component
 
     public function buildTagsForQuery(NodeQuery $query): array
     {
-        $tags = [];
+        // Root tag so invalidateByHandle(null) can flush every navigation tree entry.
+        $tags = ['navigation'];
         $menuUid = $this->_resolveMenuUid($query);
         $siteId = $this->_resolveSiteId($query);
 
@@ -453,6 +467,24 @@ class NavigationCache extends Component
     private function _isCacheableScope(NodeQuery $query): bool
     {
         return (bool)($query->menuId || $query->handle);
+    }
+
+    /**
+     * Canonical front-end tree reads only — filters that change the result set but are
+     * absent from buildCriteriaHash must bypass cache rather than collide (A05).
+     */
+    private function _isCanonicalCacheableQuery(NodeQuery $query): bool
+    {
+        // Extra ElementQuery constraints not represented in buildCriteriaHash.
+        if ($query->search || $query->relatedTo || $query->title || $query->slug) {
+            return false;
+        }
+
+        if ($query->drafts || $query->revisions || $query->provisionalDrafts || $query->trashed) {
+            return false;
+        }
+
+        return true;
     }
 
     private function _triggerInvalidateEvent(array $tags, ?string $menuUid = null, ?int $siteId = null, ?int $nodeId = null): void

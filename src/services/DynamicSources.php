@@ -12,6 +12,7 @@ use verbb\navigation\events\RegisterDynamicSourceEvent;
 use Craft;
 use craft\base\Component;
 use craft\base\ElementInterface;
+use craft\elements\db\ElementQueryInterface;
 
 class DynamicSources extends Component
 {
@@ -25,6 +26,7 @@ class DynamicSources extends Component
     // =========================================================================
 
     private ?array $_providerClasses = null;
+    private bool $_includePendingProjections = false;
 
 
     // Public Methods
@@ -114,6 +116,31 @@ class DynamicSources extends Component
         }
 
         return $this->getProviderClass($handle);
+    }
+
+    /**
+     * Opt into including disabled/pending sources in Dynamic projections for this request.
+     * Public front-end reads must leave this false so live/public status stays the default.
+     */
+    public function includePendingProjections(bool $value = true): void
+    {
+        $this->_includePendingProjections = $value;
+    }
+
+    public function shouldIncludePendingProjections(): bool
+    {
+        return $this->_includePendingProjections;
+    }
+
+    /**
+     * Apply pending visibility only when explicitly opted in; otherwise leave Craft defaults
+     * (live/public) so projections never leak unpublished sources on the public site.
+     */
+    public function applyProjectionStatus(ElementQueryInterface $query): void
+    {
+        if ($this->_includePendingProjections) {
+            $query->status(null);
+        }
     }
 
     public function getProjectedChildren(Node $parent, int $siteId): array

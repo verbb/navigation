@@ -118,7 +118,9 @@ it('stages and publishes node deletions through the build session', function() {
     $reloaded = Node::find()->id($nodeId)->status(null)->one();
 
     expect($reloaded->getIsPendingDelete())->toBeTrue();
-    expect($reloaded->enabled)->toBeFalse();
+    // Staged deletes must remain live until publish (public “invisible until Save”).
+    expect($reloaded->enabled)->toBeTrue();
+    expect(Node::find()->id($nodeId)->one())->not->toBeNull();
 
     $session = $buildSessions->getSession($nav->id, $siteId);
     $result = $buildSessions->publish($session);

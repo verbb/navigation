@@ -1,21 +1,41 @@
-{% extends 'navigation/_layouts' %}
+{% extends 'verbb-base/_layouts/settings' %}
 
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% requireAdmin %}
 
+{% do view.registerAssetBundle('verbb\\navigation\\web\\assets\\cp\\NavigationCpAsset') -%}
+
 {% set selectedSubnavItem = 'settings' %}
 
 {% set crumbs = [
-    { label: craft.navigation.getPluginName(), url: url('navigation/menus') },
-    { label: 'Settings' | t('app'), url: url('navigation/settings') },
-] %}
+    { label: 'Settings' | t('app'), url: url('settings') },
+    { label: 'Plugins' | t('app'), url: url('settings/plugins') },
+    { label: craft.navigation.getPluginName() | t('navigation'), url: url('navigation/settings') },
+] | merge(crumbs ?? []) %}
 
-{% set selectedTab = selectedTab ?? craft.app.request.getSegment(3) ?? 'general' %}
+{# Build pageTabs with URLs; getSettingsNavItems() only provides title/heading. #}
+{% set pageTabs = {} %}
+{% for handle, item in craft.navigation.getSettingsNavItems() %}
+    {% if item.heading is defined %}
+        {% set pageTabs = pageTabs | merge({ (handle): item }) %}
+    {% else %}
+        {% set itemUrl = handle == 'general'
+            ? url('navigation/settings')
+            : url('navigation/settings/' ~ handle)
+        %}
+        {% set pageTabs = pageTabs | merge({ (handle): item | merge({ url: itemUrl }) }) %}
+    {% endif %}
+{% endfor %}
 
-{% block sidebar %}
-    {% include 'navigation/_includes/settings-nav' %}
+{% set pageTitle = pageTitle ?? false %}
+{% if title is not defined and pageTitle %}
+    {% set title = pageTitle %}
+{% endif %}
+
+{% block settingsMeta %}
+    {{ hiddenInput('pluginHandle', 'navigation') }}
 {% endblock %}
 
 {% css %}

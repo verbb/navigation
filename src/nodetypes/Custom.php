@@ -2,6 +2,7 @@
 namespace verbb\navigation\nodetypes;
 
 use verbb\navigation\base\NodeType;
+use verbb\navigation\helpers\NodeOutputSafety;
 
 use Craft;
 use craft\helpers\App;
@@ -45,7 +46,7 @@ class Custom extends NodeType
     {
         return Cp::textFieldHtml([
             'label' => Craft::t('navigation', 'URL'),
-            'instructions' => Craft::t('navigation', 'The URL for this node.'),
+            'instructions' => Craft::t('navigation', 'The URL for this node. Relative paths and http(s)/mailto/tel links are supported. Optional `{…}` tokens use a sandboxed Twig context.'),
             'id' => 'url',
             'name' => 'url',
             'value' => $this->node->getRawUrl(),
@@ -59,23 +60,11 @@ class Custom extends NodeType
         // Parse aliases and env variables
         $url = App::parseEnv($url);
 
-        // Allow twig support
-        if ($url && strstr($url, '{')) {
-            $object = $this->_getObject();
-            $url = Craft::$app->getView()->renderObjectTemplate($url, $object);
+        // Optional sandboxed Twig — authors are not full template authors.
+        if ($url && str_contains($url, '{')) {
+            $url = NodeOutputSafety::renderAuthorTemplate($url, NodeOutputSafety::authorTemplateObject());
         }
 
-        return $url;
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private function _getObject(): array
-    {
-        return [
-            'currentUser' => Craft::$app->getUser()->getIdentity(),
-        ];
+        return NodeOutputSafety::sanitizeUrl($url);
     }
 }
