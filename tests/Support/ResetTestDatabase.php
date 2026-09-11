@@ -43,8 +43,7 @@ class ResetTestDatabase
     /**
      * Remove ephemeral Craft sites left by multisite fixtures so the test DB
      * does not accumulate toward Craft's site limit across suite runs.
-     * Never deletes the primary site; keeps the shared navigationTestSecondary if present
-     * only when it is the sole non-primary match — unique handles are always pruned.
+     * Never deletes the primary site. Shared fixture handles are still test-owned.
      */
     public static function pruneFixtureSites(): void
     {
@@ -57,11 +56,6 @@ class ResetTestDatabase
             }
 
             $handle = (string)$site->handle;
-
-            // Shared secondary site is reused across tests — leave it.
-            if ($handle === 'navigationTestSecondary') {
-                continue;
-            }
 
             $isFixture =
                 str_starts_with($handle, 'navigationAutoEnableSite')

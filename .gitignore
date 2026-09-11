@@ -44,3 +44,10 @@ node_modules
 /docs/node_modules
 /docs/.vitepress/cache
 /docs/.vitepress/dist
+
+# Local test network allocation
+/.ddev/docker-compose.tests-local.yaml
+
+/.cache/
+
+/.phpunit.result.cache

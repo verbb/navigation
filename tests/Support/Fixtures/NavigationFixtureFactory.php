@@ -577,6 +577,9 @@ class NavigationFixtureFactory
 
     public static function existingSecondarySite(): Site
     {
+        Craft::$app->getSites()->refreshSites();
+        Craft::$app->getIsMultiSite(true);
+        Craft::$app->getIsMultiSite(true, true);
         $primary = Craft::$app->getSites()->getPrimarySite();
 
         foreach (Craft::$app->getSites()->getAllSites() as $site) {
@@ -619,6 +622,9 @@ class NavigationFixtureFactory
             throw new RuntimeException('Failed creating site fixture: ' . json_encode($site->getErrors()));
         }
 
+        // Craft normally refreshes this application cache on the next request.
+        Craft::$app->getIsMultiSite(true);
+        Craft::$app->getIsMultiSite(true, true);
         $savedSite = $sites->getSiteByHandle($handle);
 
         if (!$savedSite) {

@@ -30,8 +30,8 @@
 {% endfor %}
 
 {% set pageTitle = pageTitle ?? false %}
-{% if title is not defined and pageTitle %}
-    {% set title = pageTitle %}
+{% if title is not defined %}
+    {% set title = pageTitle ?: craft.navigation.getPluginName() %}
 {% endif %}
 
 {% block settingsMeta %}

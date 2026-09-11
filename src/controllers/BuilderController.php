@@ -1,22 +1,27 @@
 <?php
 namespace verbb\navigation\controllers;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\elements\Node;
+use verbb\navigation\helpers\BuilderStructureRevision;
+use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\MenuContentFieldLayout;
-use verbb\navigation\Navigation;
 
 use Craft;
+use craft\elements\actions\Duplicate;
+use craft\elements\actions\SetStatus;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\web\Controller;
 use craft\web\Response as CraftResponse;
 
-use Throwable;
-
 use yii\web\BadRequestHttpException;
+use yii\web\ConflictHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
+
+use Throwable;
 
 class BuilderController extends Controller
 {
@@ -37,7 +42,7 @@ class BuilderController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         return $this->asSuccess(data: Navigation::$plugin->getBuilderState()->getState($menuId, $siteId));
     }
@@ -62,7 +67,7 @@ class BuilderController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         $structureMoves = $this->request->getBodyParam('structureMoves');
         $menuContentDraft = $this->request->getBodyParam('menuContentDraft');
@@ -114,7 +119,7 @@ class BuilderController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         // Match the build-page authorize so Craft’s structure service accepts moves.
         Craft::$app->getSession()->authorize('editStructure:' . $nav->structureId);
@@ -122,8 +127,13 @@ class BuilderController extends Controller
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
+            BuilderStructureRevision::requireCurrent($nav, $this->request->getBodyParam('structureRevision'));
             $buildSessions->applyStructureMoves($nav, $siteId, $moves);
+            $structureRevision = BuilderStructureRevision::get($nav);
             $transaction->commit();
+        } catch (ConflictHttpException $e) {
+            $transaction->rollBack();
+            throw $e;
         } catch (BadRequestHttpException $e) {
             $transaction->rollBack();
 
@@ -137,7 +147,9 @@ class BuilderController extends Controller
 
         Navigation::$plugin->getNavigationCache()->invalidateMenuSite($nav->uid, $siteId);
 
-        return $this->asSuccess(Craft::t('navigation', 'Menu structure saved.'));
+        return $this->asSuccess(Craft::t('navigation', 'Menu structure saved.'), [
+            'structureRevision' => $structureRevision,
+        ]);
     }
 
     public function actionStageDelete(): Response
@@ -157,7 +169,7 @@ class BuilderController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         $node = Node::find()
             ->id($nodeId)
@@ -207,6 +219,7 @@ class BuilderController extends Controller
             Navigation::$plugin->getNavigationCache()->invalidateMenuSite($nav->uid, $siteId);
 
             return $this->asSuccess(Craft::t('navigation', 'Node deleted.'), [
+                'structureRevision' => BuilderStructureRevision::get($nav),
                 'session' => null,
                 'nodes' => Navigation::$plugin->getBuilderState()->nodesToArray(
                     Node::find()->menuId($menuId)->siteId($siteId)->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all(),
@@ -227,6 +240,7 @@ class BuilderController extends Controller
         $session = $buildSessions->getSession($menuId, $siteId);
 
         return $this->asSuccess(Craft::t('navigation', 'Node staged for deletion. Save menu to apply.'), [
+            'structureRevision' => BuilderStructureRevision::get($nav),
             'session' => $session ? $buildSessions->sessionToArray($session) : null,
             'nodes' => Navigation::$plugin->getBuilderState()->nodesToArray(
                 Node::find()->menuId($menuId)->siteId($siteId)->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all(),
@@ -279,7 +293,7 @@ class BuilderController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         if (!Navigation::$plugin->getMenus()->saveMenuContentFromRequest($menuId, $siteId)) {
             return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu content.'));
@@ -309,7 +323,7 @@ class BuilderController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         $site = Craft::$app->getSites()->getSiteById($siteId);
 
@@ -342,7 +356,7 @@ class BuilderController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         if (!Navigation::$plugin->getMenus()->saveMenuContentFromRequest($menuId, $siteId)) {
             return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu content.'));
@@ -376,7 +390,7 @@ class BuilderController extends Controller
         }
 
         $action = Craft::createObject([
-            'class' => \craft\elements\actions\SetStatus::class,
+            'class' => SetStatus::class,
             'status' => $status,
         ]);
         $action->setElementType(Node::class);
@@ -451,7 +465,7 @@ class BuilderController extends Controller
         }
 
         $action = Craft::createObject([
-            'class' => \craft\elements\actions\Duplicate::class,
+            'class' => Duplicate::class,
             'deep' => $deep,
         ]);
         $action->setElementType(Node::class);
@@ -492,7 +506,7 @@ class BuilderController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         return [$menuId, $siteId, $nav];
     }
@@ -512,6 +526,7 @@ class BuilderController extends Controller
         $session = $buildSessions->getSession($menuId, $siteId);
 
         return $this->asSuccess($message, array_merge([
+            'structureRevision' => BuilderStructureRevision::get(Navigation::$plugin->getMenus()->getMenuById($menuId)),
             'session' => $session ? $buildSessions->sessionToArray($session) : null,
             'nodes' => Navigation::$plugin->getBuilderState()->nodesToArray(
                 Node::find()->menuId($menuId)->siteId($siteId)->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all(),
@@ -527,7 +542,7 @@ class BuilderController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         $site = Craft::$app->getSites()->getSiteById($siteId);
 

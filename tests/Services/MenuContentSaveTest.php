@@ -69,20 +69,25 @@ it('saves menu content field values from the publish request payload', function(
         ],
     ]);
 
-    Craft::$app->set('request', $request);
+    $originalRequest = Craft::$app->getRequest();
+    try {
+        Craft::$app->set('request', $request);
 
-    $saved = Navigation::$plugin->getMenus()->saveMenuContentFromRequest((int)$nav->id, $siteId);
+        $saved = Navigation::$plugin->getMenus()->saveMenuContentFromRequest((int)$nav->id, $siteId);
 
-    expect($saved)->toBeTrue();
+        expect($saved)->toBeTrue();
 
-    $menuElement = Menu::find()->id($nav->id)->siteId($siteId)->status(null)->one();
+        $menuElement = Menu::find()->id($nav->id)->siteId($siteId)->status(null)->one();
 
-    expect($menuElement)->not->toBeNull();
-    expect($menuElement->getFieldValue($plainText->handle))->toBe('ww');
-    expect($menuElement->getFieldValue($plainText2->handle))->toBeIn([null, '']);
+        expect($menuElement)->not->toBeNull();
+        expect($menuElement->getFieldValue($plainText->handle))->toBe('ww');
+        expect($menuElement->getFieldValue($plainText2->handle))->toBeIn([null, '']);
 
-    $tabs = Navigation::$plugin->getMenus()->getMenuContentTabsForBuilder((int)$nav->id, $siteId);
+        $tabs = Navigation::$plugin->getMenus()->getMenuContentTabsForBuilder((int)$nav->id, $siteId);
 
-    expect($tabs)->not->toBeEmpty();
-    expect($tabs[0]['html'])->toContain('ww');
+        expect($tabs)->not->toBeEmpty();
+        expect($tabs[0]['html'])->toContain('ww');
+    } finally {
+        Craft::$app->set('request', $originalRequest);
+    }
 });

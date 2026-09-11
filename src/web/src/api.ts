@@ -1,8 +1,34 @@
 import type { BuilderNode, BuilderState, MenuContentTab, StructureMove } from './types';
 import { getCraft } from './utils/cp';
 
+// Serialize requests for a menu, including reads after mutations. Ignoring an
+// older response alone cannot prevent that older request from winning on the server.
+const requests = new Map<string, Promise<unknown>>();
+const serverStructureRevisions = new Map<string, string>();
+function sendBuilderRequest(...args: Parameters<ReturnType<typeof getCraft>['sendActionRequest']>) {
+  const data = args[2]?.data;
+  const firstNode = (data?.nodes as Array<Record<string, unknown>> | undefined)?.[0];
+  const key = String(data?.menuId ?? firstNode?.menuId ?? 'legacy');
+  const previous = requests.get(key);
+  const send = () => {
+    if (['navigation/builder/apply-structure', 'navigation/build-sessions/publish'].includes(args[1]) && data && serverStructureRevisions.has(key)) {
+      data.structureRevision = serverStructureRevisions.get(key);
+    }
+    return getCraft().sendActionRequest(...args).then((response) => {
+      const revision = response.data?.structureRevision;
+      if (typeof revision === 'string') serverStructureRevisions.set(key, revision);
+      return response;
+    });
+  };
+  const pending = previous ? previous.then(send, send) : send();
+  requests.set(key, pending);
+  const cleanup = () => { if (requests.get(key) === pending) requests.delete(key); };
+  void pending.then(cleanup, cleanup);
+  return pending;
+}
+
 export async function fetchBuilderState(menuId: number, siteId: number): Promise<BuilderState> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/builder/get-state', {
+  const response = await sendBuilderRequest('POST', 'navigation/builder/get-state', {
     data: { menuId, siteId },
   });
 
@@ -14,7 +40,7 @@ export async function saveDraft(
   siteId: number,
   structureMoves: StructureMove[],
 ): Promise<Record<string, unknown>> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/builder/save-draft', {
+  const response = await sendBuilderRequest('POST', 'navigation/builder/save-draft', {
     data: { menuId, siteId, structureMoves },
   });
 
@@ -26,9 +52,10 @@ export async function publishMenu(
   siteId: number,
   applyStructure: boolean,
   moves: StructureMove[],
+  structureRevision?: string,
 ): Promise<Record<string, unknown>> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/build-sessions/publish', {
-    data: { menuId, siteId, applyStructure, moves },
+  const response = await sendBuilderRequest('POST', 'navigation/build-sessions/publish', {
+    data: { menuId, siteId, applyStructure, moves, structureRevision },
   });
 
   return response.data;
@@ -39,16 +66,17 @@ export async function applyStructure(
   menuId: number,
   siteId: number,
   moves: StructureMove[],
+  structureRevision?: string,
 ): Promise<Record<string, unknown>> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/builder/apply-structure', {
-    data: { menuId, siteId, moves },
+  const response = await sendBuilderRequest('POST', 'navigation/builder/apply-structure', {
+    data: { menuId, siteId, moves, structureRevision },
   });
 
   return response.data;
 }
 
 export async function discardSession(menuId: number, siteId: number): Promise<Record<string, unknown>> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/build-sessions/discard', {
+  const response = await sendBuilderRequest('POST', 'navigation/build-sessions/discard', {
     data: { menuId, siteId },
   });
 
@@ -61,7 +89,7 @@ export async function stageDelete(
   nodeId: number,
   withDescendants = false,
 ): Promise<{ nodes?: BuilderNode[]; session?: Record<string, unknown>; message?: string }> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/builder/stage-delete', {
+  const response = await sendBuilderRequest('POST', 'navigation/builder/stage-delete', {
     data: { menuId, siteId, nodeId, withDescendants },
   });
 
@@ -73,12 +101,12 @@ export async function setNodeStatus(
   siteId: number,
   nodeIds: number[],
   status: 'enabled' | 'disabled',
-): Promise<{ nodes?: BuilderNode[]; message?: string }> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/builder/set-node-status', {
+): Promise<{ nodes?: BuilderNode[]; session?: BuilderState['session']; message?: string }> {
+  const response = await sendBuilderRequest('POST', 'navigation/builder/set-node-status', {
     data: { menuId, siteId, nodeIds, status },
   });
 
-  return response.data as { nodes?: BuilderNode[]; message?: string };
+  return response.data as { nodes?: BuilderNode[]; session?: BuilderState['session']; message?: string };
 }
 
 export async function duplicateNodes(
@@ -93,7 +121,7 @@ export async function duplicateNodes(
   duplicatedNodeIds?: number[];
   message?: string;
 }> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/builder/duplicate-nodes', {
+  const response = await sendBuilderRequest('POST', 'navigation/builder/duplicate-nodes', {
     data: { menuId, siteId, nodeIds, deep },
   });
 
@@ -110,12 +138,12 @@ export async function unstageDelete(
   menuId: number,
   siteId: number,
   nodeId: number,
-): Promise<{ nodes?: BuilderNode[]; changeCount?: number; message?: string }> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/build-sessions/unstage-delete', {
+): Promise<{ nodes?: BuilderNode[]; session?: BuilderState['session']; changeCount?: number; message?: string }> {
+  const response = await sendBuilderRequest('POST', 'navigation/build-sessions/unstage-delete', {
     data: { menuId, siteId, nodeId },
   });
 
-  return response.data as { nodes?: BuilderNode[]; changeCount?: number; message?: string };
+  return response.data as { nodes?: BuilderNode[]; session?: BuilderState['session']; changeCount?: number; message?: string };
 }
 
 export async function copyNodesToSite(
@@ -126,7 +154,7 @@ export async function copyNodesToSite(
   deep = false,
   remapLinkedElements = false,
 ): Promise<{ nodeId?: number; copiedNodeIds?: number[]; message?: string }> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/nodes/copy-to-site', {
+  const response = await sendBuilderRequest('POST', 'navigation/nodes/copy-to-site', {
     data: { menuId, sourceSiteId, nodeIds, siteId: targetSiteId, deep, remapLinkedElements },
   });
 
@@ -138,7 +166,7 @@ export async function copyNodeToSite(
   nodeId: number,
   targetSiteId: number,
 ): Promise<{ nodeId?: number; message?: string }> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/nodes/copy-to-site', {
+  const response = await sendBuilderRequest('POST', 'navigation/nodes/copy-to-site', {
     data: { nodeId, siteId: targetSiteId },
   });
 
@@ -146,7 +174,7 @@ export async function copyNodeToSite(
 }
 
 export async function addNodes(nodes: Record<string, unknown>[]): Promise<Record<string, unknown>> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/nodes/add-nodes', {
+  const response = await sendBuilderRequest('POST', 'navigation/nodes/add-nodes', {
     data: { nodes },
   });
 
@@ -154,7 +182,7 @@ export async function addNodes(nodes: Record<string, unknown>[]): Promise<Record
 }
 
 export async function fetchMenuContentForm(menuId: number, siteId: number): Promise<MenuContentTab[]> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/builder/menu-content-form', {
+  const response = await sendBuilderRequest('POST', 'navigation/builder/menu-content-form', {
     data: { menuId, siteId },
   });
 
@@ -166,7 +194,7 @@ export async function saveMenuContentDraft(
   siteId: number,
   fields: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
-  const response = await getCraft().sendActionRequest('POST', 'navigation/builder/save-menu-content', {
+  const response = await sendBuilderRequest('POST', 'navigation/builder/save-menu-content', {
     data: { menuId, siteId, fields },
   });
 

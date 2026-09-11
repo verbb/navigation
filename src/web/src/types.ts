@@ -78,6 +78,7 @@ export type BuilderSite = {
 };
 
 export type BuilderState = {
+  structureRevision?: string;
   menu: {
     id: number;
     uid: string;

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\navigation\controllers;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\deprecations\DeprecationHelper;
 use verbb\navigation\deprecations\MenusControllerDeprecations;
 use verbb\navigation\elements\Menu;
@@ -16,7 +17,6 @@ use verbb\navigation\helpers\Plugin as NavigationPluginHelper;
 use verbb\navigation\models\MenuSettings;
 use verbb\navigation\models\MenuSiteSettings;
 use verbb\navigation\models\Settings;
-use verbb\navigation\Navigation;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -28,11 +28,11 @@ use craft\helpers\UrlHelper;
 use craft\models\FieldLayoutTab;
 use craft\web\Controller;
 
-use Throwable;
-
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
+
+use Throwable;
 
 class MenusController extends Controller
 {
@@ -49,6 +49,10 @@ class MenusController extends Controller
     {
         if ($response = $this->_redirectLegacyNavsUrl('navigation/menus')) {
             return $response;
+        }
+
+        if (trim($this->request->getPathInfo(), '/') === 'navigation') {
+            return $this->redirect(UrlHelper::cpUrl('navigation/menus', $this->request->getQueryParams()));
         }
 
         /* @var Settings $settings */
@@ -174,7 +178,7 @@ class MenusController extends Controller
             throw new NotFoundHttpException('Menu not enabled for site: ' . $siteHandle);
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, (int)$site->id);
 
         if ($settings->builderLiveStructure) {
             Craft::$app->getSession()->authorize('editStructure:' . $nav->structureId);

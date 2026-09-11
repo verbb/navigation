@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use craft\base\Element;
+use craft\helpers\Cp;
 use Tests\Support\Fixtures\NavigationFixtureFactory;
 use verbb\navigation\elements\Node;
 
@@ -30,6 +32,22 @@ it('does not register front-end preview targets for nodes', function() {
 
 it('tracks element changes for cache invalidation integrations', function() {
     expect(Node::trackChanges())->toBeTrue();
+});
+
+it('keeps generic element chips free of builder-only presentation', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $node = NavigationFixtureFactory::customNode($nav, 'External', '/external');
+    $node->newWindow = true;
+    $node->classes = 'featured';
+
+    $chipHtml = Cp::elementChipHtml($node, ['context' => 'index']);
+    $declaringClass = (new ReflectionMethod(Node::class, 'getChipLabelHtml'))->getDeclaringClass()->getName();
+
+    expect($declaringClass)->toBe(Element::class)
+        ->and($chipHtml)->toContain('External')
+        ->and($chipHtml)->not->toContain('node-info-icons')
+        ->and($chipHtml)->not->toContain('node-edit-btn')
+        ->and($chipHtml)->not->toContain('featured');
 });
 
 it('includes the menu in full-page editor breadcrumbs', function() {

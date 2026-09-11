@@ -46,7 +46,7 @@ class Custom extends NodeType
     {
         return Cp::textFieldHtml([
             'label' => Craft::t('navigation', 'URL'),
-            'instructions' => Craft::t('navigation', 'The URL for this node. Relative paths and http(s)/mailto/tel links are supported. Optional `{…}` tokens use a sandboxed Twig context.'),
+            'instructions' => Craft::t('navigation', 'The URL for this node.'),
             'id' => 'url',
             'name' => 'url',
             'value' => $this->node->getRawUrl(),

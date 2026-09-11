@@ -40,9 +40,7 @@ it('stores custom urls per site for propagated nodes', function() {
 
 it('auto-enables existing menus when a new site is created', function() {
     if (!Craft::$app->getSites()->getRemainingSites()) {
-        expect(true)->toBeTrue();
-
-        return;
+        $this->markTestSkipped('No remaining site capacity; run against a fresh isolated test database.');
     }
 
     Navigation::$plugin->getSettings()->autoEnableNewSites = true;

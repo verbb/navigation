@@ -1,8 +1,6 @@
 <?php
 namespace verbb\navigation\elements\db;
 
-use Craft;
-use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 
@@ -35,6 +33,7 @@ class MenuQuery extends ElementQuery
     protected function beforePrepare(): bool
     {
         $this->joinElementTable('navigation_menus');
+        $this->subQuery->andWhere(['elements.type' => $this->elementType]);
 
         $this->query->select([
             'navigation_menus.id',

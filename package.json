@@ -11,7 +11,10 @@
     "dev:builder": "vite",
     "build:builder": "npm run build",
     "dev:plugin-docs": "npm run docs:dev --prefix docs",
-    "docs:screenshots": "npm --prefix docs run docs:screenshots --"
+    "docs:screenshots": "npm --prefix docs run docs:screenshots --",
+    "test:builder": "node --import tsx --test tests/web/store.test.ts",
+    "test:builder:browser": "node tests/web/browser-regression.mjs",
+    "test:builder:assets": "node tests/web/check-built-assets.mjs"
   },
   "dependencies": {
     "@headless-tree/core": "^1.7.0",
@@ -34,6 +37,9 @@
     "tailwindcss": "^4.2.4",
     "typescript": "^5.7.3",
     "vite": "^8.0.10",
-    "vite-plugin-tailwind-shadowdom": "^1.1.1"
+    "vite-plugin-tailwind-shadowdom": "^1.1.1",
+    "tsx": "^4.21.0",
+    "playwright": "^1.59.1",
+    "esbuild": "^0.28.1"
   }
 }

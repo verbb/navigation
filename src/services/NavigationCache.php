@@ -15,6 +15,8 @@ use craft\helpers\Json;
 
 use yii\caching\TagDependency;
 
+use Throwable;
+
 class NavigationCache extends Component
 {
     // Constants
@@ -68,7 +70,8 @@ class NavigationCache extends Component
             return false;
         }
 
-        if (Craft::$app->getRequest()->getIsCpRequest()) {
+        if (Craft::$app->getRequest()->getIsCpRequest()
+            || (!Craft::$app->getRequest()->getIsConsoleRequest() && Craft::$app->getRequest()->getIsPreview())) {
             return false;
         }
 
@@ -110,7 +113,7 @@ class NavigationCache extends Component
 
     public function setCachedNodes(NodeQuery $query, array $nodes): void
     {
-        if (!$this->isEnabled() || !$this->_isCacheableScope($query)) {
+        if (!$this->shouldCacheQuery($query)) {
             return;
         }
 
@@ -135,7 +138,7 @@ class NavigationCache extends Component
         $profile = $this->_getProfile();
 
         return sprintf(
-            'navigation:tree:%s:%s:%s:%s',
+            'navigation:tree:v2:%s:%s:%s:%s',
             $menuUid ?? 'unknown',
             $siteId ?? 'all',
             $profile,
@@ -340,6 +343,17 @@ class NavigationCache extends Component
             'urlSuffix' => $node->urlSuffix,
             'data' => $node->data,
             'elementId' => $node->elementId,
+            'elementSiteId' => $node->getElementSiteId(),
+            'uid' => $node->uid,
+            'fieldLayoutId' => $node->fieldLayoutId,
+            'siteSettingsId' => $node->siteSettingsId,
+            'canonicalId' => $node->canonicalId,
+            'slug' => $node->slug,
+            'uri' => $node->uri,
+            'structureId' => $node->structureId,
+            'root' => $node->root,
+            'lft' => $node->lft,
+            'rgt' => $node->rgt,
             'elementUrl' => $node->getRawElementUrl(),
             'enabled' => $node->enabled,
             'enabledForSite' => $node->getEnabledForSite(),
@@ -374,6 +388,12 @@ class NavigationCache extends Component
             $node->customAttributes = $nodeData['customAttributes'] ?? [];
             $node->data = $nodeData['data'] ?? [];
             $node->elementId = $nodeData['elementId'] ?? null;
+            $node->setElementSiteId($nodeData['elementSiteId'] ?? $node->siteId);
+            foreach (['uid', 'fieldLayoutId', 'siteSettingsId', 'canonicalId', 'slug', 'uri', 'structureId', 'root', 'lft', 'rgt'] as $attribute) {
+                if (array_key_exists($attribute, $nodeData)) {
+                    $node->$attribute = $nodeData[$attribute];
+                }
+            }
             $node->enabled = (bool)($nodeData['enabled'] ?? true);
             $node->setEnabledForSite((bool)($nodeData['enabledForSite'] ?? true));
             $node->setUrl($nodeData['url'] ?? null);
@@ -475,13 +495,53 @@ class NavigationCache extends Component
      */
     private function _isCanonicalCacheableQuery(NodeQuery $query): bool
     {
-        // Extra ElementQuery constraints not represented in buildCriteriaHash.
-        if ($query->search || $query->relatedTo || $query->title || $query->slug) {
+        // Cache one menu on one site. Wildcards, compound selectors and subclasses
+        // have no representation in this cache's identity contract.
+        if (($query->menuId !== null && $query->handle !== null)
+            || $query::class !== NodeQuery::class
+            || ($query->menuId !== null && !(is_scalar($query->menuId) && ctype_digit((string)$query->menuId)))
+            || ($query->handle !== null && (!is_string($query->handle) || $query->handle === '' || str_contains($query->handle, '*')))
+            || ($query->siteId !== null && !(is_scalar($query->siteId) && ctype_digit((string)$query->siteId)))
+            || !$this->_resolveMenuUid($query)) {
             return false;
         }
 
-        if ($query->drafts || $query->revisions || $query->provisionalDrafts || $query->trashed) {
-            return false;
+        $isCriterion = function($value) use (&$isCriterion): bool {
+            if (is_array($value)) {
+                foreach ($value as $item) {
+                    if (!$isCriterion($item)) return false;
+                }
+                return true;
+            }
+            return $value === null || is_scalar($value);
+        };
+        foreach (['status', 'type', 'level', 'id', 'limit', 'offset', 'enabled', 'hasUrl'] as $attribute) {
+            if (!$isCriterion($query->$attribute)) return false;
+        }
+
+        // Compare every SQL/query property and custom-field criterion with an untouched
+        // query. Only the fields represented in buildCriteriaHash may vary. This also
+        // fails closed when Craft or an extension introduces a new criterion.
+        $defaults = NodeElement::find();
+        $allowed = array_fill_keys([
+            'menuId', 'handle', 'siteId', 'status', 'type', 'level', 'id', 'limit',
+            'offset', 'enabled', 'hasUrl', 'withNodeHierarchy', 'withProjectedChildren',
+            'useNavigationCache',
+        ], true);
+        $criteria = get_object_vars($query) + $query->getCriteria();
+        $defaultCriteria = get_object_vars($defaults) + $defaults->getCriteria();
+        foreach ($criteria as $attribute => $value) {
+            if (!isset($allowed[$attribute]) && $value !== ($defaultCriteria[$attribute] ?? null)) {
+                // Craft initializes ordering with an Expression object on each query.
+                // Compare its value, without loosening null/false/string distinctions.
+                try {
+                    if (serialize($value) !== serialize($defaultCriteria[$attribute] ?? null)) {
+                        return false;
+                    }
+                } catch (Throwable) {
+                    return false;
+                }
+            }
         }
 
         return true;

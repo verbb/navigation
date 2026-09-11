@@ -4,12 +4,15 @@ namespace verbb\navigation\elements;
 use verbb\navigation\Navigation;
 use verbb\navigation\deprecations\MenuDeprecations;
 use verbb\navigation\elements\db\MenuQuery;
+use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\models\MenuSettings;
 
 use Craft;
 use craft\base\Element;
 use craft\elements\User;
 use craft\models\FieldLayout;
+
+use yii\base\InvalidConfigException;
 
 class Menu extends Element
 {
@@ -75,7 +78,7 @@ class Menu extends Element
 
     // Properties
     // =========================================================================
-    
+
     public ?int $structureId = null;
     public ?int $nodeFieldLayoutId = null;
     public ?int $menuFieldLayoutId = null;
@@ -101,7 +104,7 @@ class Menu extends Element
 
     public function getNodeFieldLayout(): ?FieldLayout
     {
-        return $this->_getMenuSettings()->getFieldLayout();
+        return $this->getMenuSettings()->getFieldLayout();
     }
 
     public function getFieldLayout(): ?FieldLayout
@@ -129,13 +132,8 @@ class Menu extends Element
 
     public function canView(User $user): bool
     {
-        if ($user->admin) {
-            return true;
-        }
-
-        $uid = $this->menuUid ?? $this->uid;
-
-        return $uid ? $user->can('navigation-manageMenu:' . $uid) : false;
+        $menu = Navigation::$plugin->getMenus()->getMenuById($this->id);
+        return MenuAuth::canManageMenuSite($user, $menu, (int)$this->siteId);
     }
 
     public function canSave(User $user): bool
@@ -152,12 +150,12 @@ class Menu extends Element
     // Protected Methods
     // =========================================================================
 
-    protected function _getMenuSettings(): MenuSettings
+    protected function getMenuSettings(): MenuSettings
     {
         $nav = Navigation::$plugin->getMenus()->getMenuById($this->id);
 
         if (!$nav) {
-            throw new \yii\base\InvalidConfigException('Invalid menu ID: ' . $this->id);
+            throw new InvalidConfigException('Invalid menu ID: ' . $this->id);
         }
 
         return $nav;

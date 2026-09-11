@@ -1,0 +1,46 @@
+name: Release checks
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  builder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:builder
+      - run: npm run test:builder:browser
+      # Check shipped assets before rebuilding so stale committed assets fail.
+      - run: npm run test:builder:assets
+      - run: npm run build
+      - run: npm run test:builder:assets
+  distribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: zip
+          tools: composer:v2
+          coverage: none
+      - run: composer --no-plugins validate --no-check-publish
+      - name: Build and verify distribution
+        run: |
+          composer --no-plugins archive --format=zip --dir="$RUNNER_TEMP/navigation-dist"
+          for package in "$RUNNER_TEMP/navigation-dist/"*.zip; do
+            php tests/bin/check-release-archive.php "$package"
+          done

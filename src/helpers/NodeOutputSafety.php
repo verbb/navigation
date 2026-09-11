@@ -14,29 +14,6 @@ use craft\helpers\UrlHelper;
  */
 class NodeOutputSafety
 {
-    // Constants
-    // =========================================================================
-
-    private const ALLOWED_URL_SCHEMES = [
-        'http',
-        'https',
-        'mailto',
-        'tel',
-    ];
-
-    private const ALLOWED_ATTRIBUTE_NAMES = [
-        'accesskey',
-        'class',
-        'dir',
-        'id',
-        'lang',
-        'rel',
-        'role',
-        'tabindex',
-        'title',
-    ];
-
-
     // Static Methods
     // =========================================================================
 
@@ -70,26 +47,14 @@ class NodeOutputSafety
             return '';
         }
 
-        // Relative / fragment / query-only destinations stay as authored.
-        if (
-            str_starts_with($url, '/') ||
-            str_starts_with($url, '#') ||
-            str_starts_with($url, '?') ||
-            str_starts_with($url, './') ||
-            str_starts_with($url, '../') ||
-            !preg_match('/^[a-z][a-z0-9+.-]*:/i', $url)
-        ) {
-            return $url;
+        // Browsers remove embedded ASCII tabs/newlines before parsing a scheme.
+        // Reject controls rather than treating an unrecognized scheme as relative.
+        if (preg_match('/[\x00-\x1f\x7f]/', $url)) {
+            return null;
         }
 
-        // Protocol-relative URLs are treated as https destinations.
-        if (str_starts_with($url, '//')) {
-            return $url;
-        }
-
-        $scheme = strtolower((string)parse_url($url, PHP_URL_SCHEME));
-
-        if ($scheme === '' || !in_array($scheme, self::ALLOWED_URL_SCHEMES, true)) {
+        if (preg_match('/^([a-z][a-z0-9+.-]*):/i', $url, $matches)
+            && !in_array(strtolower($matches[1]), self::ALLOWED_URL_SCHEMES, true)) {
             return null;
         }
 
@@ -153,4 +118,27 @@ class NodeOutputSafety
             ],
         ];
     }
+
+
+    // Constants
+    // =========================================================================
+
+    private const ALLOWED_URL_SCHEMES = [
+        'http',
+        'https',
+        'mailto',
+        'tel',
+    ];
+
+    private const ALLOWED_ATTRIBUTE_NAMES = [
+        'accesskey',
+        'class',
+        'dir',
+        'id',
+        'lang',
+        'rel',
+        'role',
+        'tabindex',
+        'title',
+    ];
 }

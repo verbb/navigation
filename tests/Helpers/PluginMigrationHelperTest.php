@@ -53,12 +53,8 @@ it('derives parent ids from nested-set structure rows', function() {
 });
 
 it('lists each tka navigation once on multi-site installs', function() {
-    if (!PluginMigrationHelper::tableExists('tka_navigations')) {
-        $this->markTestSkipped('tka navigation tables not present.');
-    }
-
-    $menus = MigrateFromTkaNavigation::getMenus();
-    $handles = array_column($menus, 'handle');
-
-    expect($handles)->toBe(array_values(array_unique($handles)));
+    \Tests\Support\Fixtures\PluginMigrationFixture::with('tka-navigation', function($fixture) {
+        $menus = MigrateFromTkaNavigation::getMenus();
+        expect(array_column($menus, 'handle'))->toBe([$fixture['handle']]);
+    });
 });

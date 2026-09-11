@@ -1,10 +1,10 @@
 <?php
 namespace verbb\navigation\elements\db;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\deprecations\NodeQueryDeprecations;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\models\MenuSettings;
-use verbb\navigation\Navigation;
 
 use Craft;
 use craft\elements\db\ElementQuery;
@@ -218,6 +218,22 @@ class NodeQuery extends ElementQuery
     // which quickly blow out queries. So instead, do this when the elements are populated
     public function populate($rows): array
     {
+        // Craft uses array queries internally when resolving GraphQL eager loads.
+        if ($this->asArray) {
+            foreach ($rows as &$row) {
+                // These rows may subsequently be passed to Craft's element factory.
+                foreach (['nodeSiteUrl' => 'url', 'nodeSiteUrlSuffix' => 'urlSuffix', 'nodeSiteLinkedElementSiteId' => 'linkedElementSiteId'] as $column => $attribute) {
+                    if (array_key_exists($column, $row)) {
+                        $row[$attribute] = $row[$column];
+                        unset($row[$column]);
+                    }
+                }
+            }
+            unset($row);
+
+            return parent::populate($rows);
+        }
+
         // Key by node + site so site('*') batches do not overwrite locale-specific link data.
         $siteDataByNodeSite = [];
 
@@ -376,7 +392,7 @@ class NodeQuery extends ElementQuery
         // Subquery: Craft may still emit custom joins before elements_sites, so use a
         // concrete site id there. Outer query correlates to each row's elements_sites.siteId
         // so site('*') / multi-site reads keep per-locale link data (A09).
-        $fallbackSiteId = $this->_resolveFallbackSiteId();
+        $fallbackSiteId = $this->resolveFallbackSiteId();
 
         $this->subQuery->leftJoin(
             '{{%navigation_nodes_sites}} node_sites',
@@ -404,7 +420,7 @@ class NodeQuery extends ElementQuery
     /**
      * Site id used only for subquery joins where elements_sites is not yet addressable.
      */
-    protected function _resolveFallbackSiteId(): int
+    protected function resolveFallbackSiteId(): int
     {
         if ($this->siteId !== null && $this->siteId !== '*') {
             if (is_array($this->siteId)) {

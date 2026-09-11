@@ -2,6 +2,7 @@
 namespace verbb\navigation\services;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\base\ElementNodeType;
 use verbb\navigation\base\ProjectingNodeType;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\elements\Menu;
@@ -49,9 +50,10 @@ class NodeRead extends Component
             return $cachedNodes;
         }
 
-        $query->bypassReadCache = true;
-        $query->skipPostCacheProcessing = true;
-        $nodes = $query->all();
+        $fetchQuery = clone $query;
+        $fetchQuery->bypassReadCache = true;
+        $fetchQuery->skipPostCacheProcessing = true;
+        $nodes = $fetchQuery->all();
 
         $cache->setCachedNodes($query, $nodes);
         Navigation::$plugin->getActiveMatcher()->resolve($nodes);
@@ -78,7 +80,7 @@ class NodeRead extends Component
 
             $nodeType = $node->nodeType();
 
-            if (!$nodeType instanceof \verbb\navigation\base\ElementNodeType) {
+            if (!$nodeType instanceof ElementNodeType) {
                 continue;
             }
 
@@ -319,50 +321,6 @@ class NodeRead extends Component
     }
 
     /**
-     * Appends one stored node, its stored descendants (recursively), then its projections.
-     */
-    private function _appendStoredNodeWithProjections(array $nodes, int $index, int $count, array &$output): int
-    {
-        $node = $nodes[$index];
-        $output[] = $node;
-
-        if (!$node instanceof NodeElement) {
-            return $index + 1;
-        }
-
-        $level = (int)$node->level;
-        $childIndex = $index + 1;
-
-        while (
-            $childIndex < $count
-            && $nodes[$childIndex] instanceof NodeElement
-            && (int)$nodes[$childIndex]->level > $level
-        ) {
-            if ((int)$nodes[$childIndex]->level === $level + 1) {
-                $childIndex = $this->_appendStoredNodeWithProjections($nodes, $childIndex, $count, $output);
-            } else {
-                // Malformed flat order — keep moving to avoid an infinite loop.
-                $childIndex++;
-            }
-        }
-
-        $projectedChildren = $this->_projectedChildrenForNode($node);
-
-        if ($projectedChildren !== []) {
-            $node->rgt = (int)$node->lft + 1 + (count($projectedChildren) * 2);
-
-            foreach ($projectedChildren as $childIdx => $projectedNode) {
-                $projectedNode->lft = (int)$node->lft + 1 + ($childIdx * 2);
-                $projectedNode->rgt = $projectedNode->lft + 1;
-                $projectedNode->level = $level + 1;
-                $output[] = $projectedNode;
-            }
-        }
-
-        return $childIndex;
-    }
-
-    /**
      * Appends read-time projected children for Dynamic nodes (stored children first).
      *
      * Projections stay on Node::setProjectedChildren() — never in Craft's eager-loaded
@@ -464,6 +422,50 @@ class NodeRead extends Component
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Appends one stored node, its stored descendants (recursively), then its projections.
+     */
+    private function _appendStoredNodeWithProjections(array $nodes, int $index, int $count, array &$output): int
+    {
+        $node = $nodes[$index];
+        $output[] = $node;
+
+        if (!$node instanceof NodeElement) {
+            return $index + 1;
+        }
+
+        $level = (int)$node->level;
+        $childIndex = $index + 1;
+
+        while (
+            $childIndex < $count
+            && $nodes[$childIndex] instanceof NodeElement
+            && (int)$nodes[$childIndex]->level > $level
+        ) {
+            if ((int)$nodes[$childIndex]->level === $level + 1) {
+                $childIndex = $this->_appendStoredNodeWithProjections($nodes, $childIndex, $count, $output);
+            } else {
+                // Malformed flat order — keep moving to avoid an infinite loop.
+                $childIndex++;
+            }
+        }
+
+        $projectedChildren = $this->_projectedChildrenForNode($node);
+
+        if ($projectedChildren !== []) {
+            $node->rgt = (int)$node->lft + 1 + (count($projectedChildren) * 2);
+
+            foreach ($projectedChildren as $childIdx => $projectedNode) {
+                $projectedNode->lft = (int)$node->lft + 1 + ($childIdx * 2);
+                $projectedNode->rgt = $projectedNode->lft + 1;
+                $projectedNode->level = $level + 1;
+                $output[] = $projectedNode;
+            }
+        }
+
+        return $childIndex;
+    }
 
     private function _projectedChildrenForNode(NodeElement $node): array
     {

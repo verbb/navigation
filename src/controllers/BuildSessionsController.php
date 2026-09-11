@@ -3,14 +3,16 @@ namespace verbb\navigation\controllers;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
+use verbb\navigation\helpers\BuilderStructureRevision;
+use verbb\navigation\helpers\MenuAuth;
 
 use Craft;
 use craft\web\Controller;
 
-use Throwable;
-
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
+
+use Throwable;
 
 class BuildSessionsController extends Controller
 {
@@ -43,37 +45,15 @@ class BuildSessionsController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
-        $session = $buildSessions->getOrCreate($menuId, $siteId);
-        $nodeChangeCount = count($session->addedNodeIds) + count($session->stagedDeletes);
-        $hasStructurePayload = $applyStructure && $moves !== [];
-
-        if ($hasStructurePayload) {
-            $buildSessions->setStructureMoves($session, $moves);
-            $session = $buildSessions->getSession($menuId, $siteId);
+        $publish = fn() => $this->_publishSession($menuId, $siteId, $applyStructure, $moves);
+        if ($applyStructure && $moves !== []) {
+            return BuilderStructureRevision::apply(
+                $nav, $this->request->getBodyParam('structureRevision'), $publish,
+            );
         }
-
-        try {
-            if ($nodeChangeCount > 0 || $hasStructurePayload) {
-                $result = $buildSessions->publish($session, $applyStructure, $hasStructurePayload ? $moves : null);
-            } else {
-                $result = ['publishedCount' => 0, 'deletedCount' => 0];
-                $buildSessions->deleteSession($session);
-            }
-        } catch (BadRequestHttpException $e) {
-            return $this->asFailure($e->getMessage());
-        } catch (Throwable $e) {
-            Craft::error('Failed to save menu build session: ' . $e->getMessage(), __METHOD__);
-
-            return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu.'));
-        }
-
-        return $this->asSuccess(Craft::t('navigation', 'Menu saved.'), [
-            'changeCount' => 0,
-            'publishedCount' => $result['publishedCount'],
-            'deletedCount' => $result['deletedCount'],
-        ]);
+        return $publish();
     }
 
     public function actionDiscard(): Response
@@ -96,7 +76,7 @@ class BuildSessionsController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         $session = $buildSessions->getSession($menuId, $siteId);
 
@@ -140,7 +120,7 @@ class BuildSessionsController extends Controller
             throw new BadRequestHttpException("Invalid menu ID: $menuId");
         }
 
-        $this->requirePermission('navigation-manageMenu:' . $nav->uid);
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         $node = Node::find()
             ->id($nodeId)
@@ -167,9 +147,48 @@ class BuildSessionsController extends Controller
 
         return $this->asSuccess(Craft::t('navigation', 'Node restored to menu.'), [
             'changeCount' => $session ? $session->getChangeCount(true) : 0,
+            'session' => $session ? Navigation::$plugin->getBuilderState()->sessionToArray($session) : null,
             'nodes' => Navigation::$plugin->getBuilderState()->nodesToArray(
                 Node::find()->menuId($menuId)->siteId($siteId)->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all(),
             ),
+        ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _publishSession(int $menuId, int $siteId, bool $applyStructure, array $moves): Response
+    {
+        $buildSessions = Navigation::$plugin->getBuildSessions();
+        $session = $buildSessions->getOrCreate($menuId, $siteId);
+        $nodeChangeCount = count($session->addedNodeIds) + count($session->stagedDeletes);
+        $hasStructurePayload = $applyStructure && $moves !== [];
+
+        if ($hasStructurePayload) {
+            $buildSessions->setStructureMoves($session, $moves);
+            $session = $buildSessions->getSession($menuId, $siteId);
+        }
+
+        try {
+            if ($nodeChangeCount > 0 || $hasStructurePayload) {
+                $result = $buildSessions->publish($session, $applyStructure, $hasStructurePayload ? $moves : null);
+            } else {
+                $result = ['publishedCount' => 0, 'deletedCount' => 0];
+                $buildSessions->deleteSession($session);
+            }
+        } catch (BadRequestHttpException $e) {
+            return $this->asFailure($e->getMessage());
+        } catch (Throwable $e) {
+            Craft::error('Failed to save menu build session: ' . $e->getMessage(), __METHOD__);
+
+            return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu.'));
+        }
+
+        return $this->asSuccess(Craft::t('navigation', 'Menu saved.'), [
+            'changeCount' => 0,
+            'publishedCount' => $result['publishedCount'],
+            'deletedCount' => $result['deletedCount'],
         ]);
     }
 }

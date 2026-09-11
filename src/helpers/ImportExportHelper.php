@@ -1,13 +1,13 @@
 <?php
 namespace verbb\navigation\helpers;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\elements\Menu as MenuElement;
 use verbb\navigation\elements\Node;
 use verbb\navigation\models\MenuImportResult;
 use verbb\navigation\models\MenuSettings;
 use verbb\navigation\models\MenuSiteSettings;
 use verbb\navigation\models\NodeSiteSettings;
-use verbb\navigation\Navigation;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -15,9 +15,9 @@ use craft\db\Query;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\models\Site;
 
 use DateTime;
+use RuntimeException;
 use Throwable;
 
 class ImportExportHelper
@@ -83,7 +83,7 @@ class ImportExportHelper
                 return $result;
             }
 
-            $menu = self::_createMenuFromImport($menuData, $existingMenu);
+            $menu = self::_createMenuFromImport($menuData, clone $existingMenu);
         } else {
             if ($existingMenu) {
                 $menuData['handle'] = self::_uniqueMenuHandle($handle);
@@ -92,66 +92,61 @@ class ImportExportHelper
             $menu = self::_createMenuFromImport($menuData);
         }
 
-        if (!Navigation::$plugin->getMenus()->saveMenu($menu)) {
-            foreach ($menu->getErrors() as $attribute => $errors) {
-                foreach ((array)$errors as $error) {
-                    $result->addImportError("Menu {$attribute}: {$error}");
-                }
-            }
-
-            return $result;
-        }
-
-        $savedMenu = Navigation::$plugin->getMenus()->getMenuByHandle($menu->handle);
-
-        if (!$savedMenu) {
-            $result->addImportError('Menu saved but could not be reloaded.');
-
-            return $result;
-        }
-
-        $result->menu = $savedMenu;
-
-        $siteId = self::_resolveSiteIdByHandle($json['sourceSiteHandle'] ?? null)
-            ?? (int)Craft::$app->getSites()->getPrimarySite()->id;
-
-        // Preflight types before any destructive delete so update cannot empty the menu.
+        // No configuration or content writes before the complete type preflight.
         self::_preflightNodeTree($json['nodes'] ?? [], $result);
-
         if ($result->hasImportErrors()) {
+            $result->menu = $existingMenu;
             return $result;
         }
 
+        $config = Craft::$app->getProjectConfig();
+        $configBefore = $config->get('navigation');
+        $timestampBefore = $config->get('dateModified');
+        $writeYaml = $config->writeYamlAutomatically;
+        $config->writeYamlAutomatically = false;
         $transaction = Craft::$app->getDb()->beginTransaction();
-
         try {
+            if (!Navigation::$plugin->getMenus()->saveMenu($menu)) {
+                throw new RuntimeException('Invalid menu settings: ' . Json::encode($menu->getErrors()));
+            }
+            $savedMenu = Navigation::$plugin->getMenus()->getMenuByHandle($menu->handle);
+            if (!$savedMenu) {
+                throw new RuntimeException('Menu could not be reloaded.');
+            }
+            $result->menu = $savedMenu;
+            $siteId = self::_resolveSiteIdByHandle($json['sourceSiteHandle'] ?? null)
+                ?? (int)Craft::$app->getSites()->getPrimarySite()->id;
             if ($menuAction === 'update') {
                 self::_deleteMenuNodes($savedMenu);
             }
-
             $skippedBefore = $result->nodesSkipped;
             self::_importNodeTree($json['nodes'] ?? [], $savedMenu, null, $siteId, $result);
             self::_importMenuFieldValues($savedMenu, $json['menuFieldValues'] ?? [], $result);
-
-            // Replacement imports must not succeed with skipped/failed nodes — roll back.
-            if (
-                $result->hasImportErrors()
-                || ($menuAction === 'update' && $result->nodesSkipped > $skippedBefore)
-            ) {
-                throw new \RuntimeException('Menu import failed; original nodes were preserved.');
+            if ($result->hasImportErrors() || $result->nodesSkipped > $skippedBefore) {
+                throw new RuntimeException('Menu import failed; original content was preserved.');
             }
-
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
-
+            // Database rollback restores elements/structures, but Project Config also
+            // retains a working copy in memory for its deferred YAML write. Restore it
+            // without replaying lifecycle events against the already-restored database.
+            $muteEvents = $config->muteEvents;
+            $config->muteEvents = true;
+            try {
+                $config->set('navigation', $configBefore, null, false);
+                $config->set('dateModified', $timestampBefore, null, false);
+            } finally {
+                $config->muteEvents = $muteEvents;
+            }
+            Navigation::$plugin->getMenus()->resetCache();
             if (!$result->hasImportErrors()) {
                 $result->addImportError($e->getMessage());
             }
-
-            // Reload menu settings after rollback (nodes restored by the transaction).
-            $result->menu = Navigation::$plugin->getMenus()->getMenuByHandle($savedMenu->handle) ?? $savedMenu;
+            $result->menu = $existingMenu ? Navigation::$plugin->getMenus()->getMenuById($existingMenu->id) : null;
             $result->nodesCreated = 0;
+        } finally {
+            $config->writeYamlAutomatically = $writeYaml;
         }
 
         return $result;
@@ -604,7 +599,7 @@ class ImportExportHelper
             }
 
             if (!Navigation::$plugin->getMenus()->saveMenuContentFromDraft((int)$menu->id, $siteId, $fieldValues)) {
-                $result->addWarning("Failed saving menu field values for site “{$siteHandle}”.");
+                $result->addImportError("Failed saving menu field values for site “{$siteHandle}”.");
             }
         }
     }

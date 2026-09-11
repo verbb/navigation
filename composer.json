@@ -27,17 +27,41 @@
     ],
     "require": {
         "php": "^8.2",
-        "craftcms/cms": "^5.0.0",
+        "craftcms/cms": "^5.9.11",
         "nystudio107/craft-plugin-vite": "^5.0.0",
         "verbb/base": "^3.0.0"
     },
     "require-dev": {
-        "craftcms/cms": "^5.9",
+        "craftcms/cms": "^5.9.11",
         "craftcms/generator": "^2.0.0",
         "pestphp/pest": "^3.8",
         "pestphp/pest-plugin": "^3.0",
         "vlucas/phpdotenv": "^5.6",
         "yiisoft/yii2-shell": "^2.0.3"
+    },
+    "archive": {
+        "exclude": [
+            "/.env*",
+            "/.cache",
+            "/.DS_Store",
+            "/.github",
+            "/.plugin-store",
+            "/.gitignore",
+            "/node_modules",
+            "/**/node_modules",
+            "/vendor",
+            "/tests",
+            "/docs",
+            "/package.json",
+            "/package-lock.json",
+            "/phpunit*.xml",
+            "/vite.config.*",
+            "/src/web/src",
+            "/src/web/tsconfig.json",
+            "/.ddev",
+            "/.phpunit*",
+            "/.pest*"
+        ]
     },
     "autoload": {
         "psr-4": {
@@ -57,10 +81,9 @@
         }
     },
     "scripts": {
-        "test": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests/Services tests/Gql tests/Helpers --exclude-group=slow --exclude-group=perf",
-        "test:setup": "@php tests/bin/test-setup.php",
-        "test:perf": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests --group=perf",
-        "test:all": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests"
+        "test": "ddev test",
+        "test:all": "ddev test --suite=all",
+        "test:perf": "ddev test --suite=performance"
     },
     "extra": {
         "name": "Navigation",

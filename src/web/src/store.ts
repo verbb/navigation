@@ -68,7 +68,7 @@ type BuilderStore = {
   error: string | null;
 
   init: (menuId: number, siteId: number) => Promise<void>;
-  refresh: (options?: { resetStructure?: boolean }) => Promise<void>;
+  refresh: (options?: { resetStructure?: boolean; structureRevision?: number }) => Promise<void>;
   setNodes: (nodes: BuilderNode[]) => void;
   reorder: (activeId: number, overId: number, targetLevel: number) => void;
   dropNode: (
@@ -131,6 +131,8 @@ type BuilderStore = {
 
 /** Monotonic seq so rapid live moves only commit the latest successful payload. */
 let liveStructureSeq = 0;
+let contextGeneration = 0;
+let structureRevision = 0;
 
 export const useBuilderStore = create<BuilderStore>((set, get) => ({
   menuId: 0,
@@ -155,10 +157,15 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   error: null,
 
   init: async (menuId, siteId) => {
-    set({ loading: true, menuId, siteId, error: null });
+    ++contextGeneration;
+    ++liveStructureSeq;
+    set({ loading: true, menuId, siteId, error: null, saving: false, publishing: false, discarding: false });
+    const generation = contextGeneration;
+    const isCurrent = () => generation === contextGeneration && get().menuId === menuId && get().siteId === siteId;
 
     try {
       const state = await fetchBuilderState(menuId, siteId);
+      if (!isCurrent()) return;
       let nodes = state.nodes;
 
       if (state.session?.structureMoves?.length) {
@@ -179,17 +186,26 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
         lastSelectedNodeId: null,
       });
     } catch (error) {
+      if (!isCurrent()) return;
       displayError(error);
       set({ loading: false, error: t('Couldn’t load menu builder.') });
     }
   },
 
-  refresh: async (options?: { resetStructure?: boolean }) => {
-    const resetStructure = Boolean(options?.resetStructure);
-    const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
+  refresh: async (options?: { resetStructure?: boolean; structureRevision?: number }) => {
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
+    const startingRevision = options?.structureRevision ?? structureRevision;
+    const { menuId, siteId } = get();
 
     try {
       const state = await fetchBuilderState(menuId, siteId);
+      if (!isCurrent()) return;
+      const { nodes: previousNodes, structureDirty } = get();
+      const resetStructure = Boolean(options?.resetStructure) && startingRevision === structureRevision;
       const baseline = baselineMoves(state.nodes);
       const collapsedNodeIds = loadCollapsedNodeIds(menuId, siteId, new Set(state.nodes.map((node) => node.id)));
 
@@ -201,11 +217,11 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       if (resetStructure) {
         nodes = state.nodes;
         nextDirty = false;
-      } else if (structureDirty) {
+      } else if (structureDirty || startingRevision !== structureRevision) {
         nodes = mergeServerNodesPreservingStructure(previousNodes, state.nodes, {
           preserveStructure: true,
         });
-        nextDirty = true;
+        nextDirty = !movesEqual(collectStructureMoves(nodes), baseline);
       } else if (state.session?.structureMoves?.length) {
         nodes = applyStructureMoves(state.nodes, state.session.structureMoves);
         nextDirty = Boolean(state.session?.hasStructureMoves);
@@ -224,11 +240,13 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
         lastSelectedNodeId: null,
       });
     } catch (error) {
+      if (!isCurrent()) return;
       displayError(error);
     }
   },
 
   setNodes: (nodes) => {
+    ++structureRevision;
     const moves = collectStructureMoves(nodes);
     const { baselineStructureMoves, state } = get();
     const dirty = !movesEqual(moves, baselineStructureMoves);
@@ -245,11 +263,17 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   },
 
   persistLiveStructure: async (moves) => {
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     const seq = ++liveStructureSeq;
     const { menuId, siteId } = get();
 
     try {
-      const data = await applyStructure(menuId, siteId, moves);
+      const data = await applyStructure(menuId, siteId, moves, get().state?.structureRevision);
+      if (!isCurrent()) return;
 
       // A newer drag superseded this request — leave baseline to that persist.
       if (seq !== liveStructureSeq) {
@@ -262,6 +286,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       });
       displayNotice((data.message as string) ?? t('Menu structure saved.'));
     } catch (error) {
+      if (!isCurrent()) return;
       if (seq !== liveStructureSeq) {
         return;
       }
@@ -269,6 +294,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       displayError(error);
       // Snap UI back to the last persisted structure.
       await get().refresh();
+      if (!isCurrent()) return;
     }
   },
 
@@ -458,6 +484,11 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   },
 
   saveDraft: async () => {
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     const { menuId, siteId, structureDirty } = get();
 
     if (!structureDirty) {
@@ -470,24 +501,35 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     try {
       const moves = get().getStructureMoves();
       const data = await saveDraft(menuId, siteId, moves);
+      if (!isCurrent()) return;
 
       displayNotice((data.message as string) ?? t('Draft saved.'));
       await get().refresh();
+      if (!isCurrent()) return;
     } catch (error) {
+      if (!isCurrent()) return;
       displayError(error);
     } finally {
+      if (!isCurrent()) return;
       set({ saving: false });
     }
   },
 
   publish: async () => {
+    const startingRevision = structureRevision;
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     const { menuId, siteId, structureDirty } = get();
 
     set({ publishing: true, saveFeedbackState: 'idle' });
 
     try {
       const moves = get().getStructureMoves();
-      const data = await publishMenu(menuId, siteId, structureDirty, moves);
+      const data = await publishMenu(menuId, siteId, structureDirty, moves, get().state?.structureRevision);
+      if (!isCurrent()) return;
 
       displayNotice((data.message as string) ?? t('Menu saved.'));
       set({ saveFeedbackState: 'success' });
@@ -498,16 +540,25 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       }
 
       // Publish commits structure — take the server baseline, do not preserve dirty moves.
-      await get().refresh({ resetStructure: true });
+      await get().refresh({ resetStructure: true, structureRevision: startingRevision });
+      if (!isCurrent()) return;
     } catch (error) {
+      if (!isCurrent()) return;
       set({ saveFeedbackState: 'error' });
       displayError(error);
     } finally {
+      if (!isCurrent()) return;
       set({ publishing: false });
     }
   },
 
   discard: async () => {
+    const startingRevision = structureRevision;
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     if (!confirm(t('Discard all unsaved changes to this menu?'))) {
       return;
     }
@@ -518,34 +569,53 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await discardSession(menuId, siteId);
+      if (!isCurrent()) return;
       displayNotice((data.message as string) ?? t('Build session discarded.'));
       // Discard must clear client structure dirty state (opposite of refresh-while-dirty).
-      await get().refresh({ resetStructure: true });
+      await get().refresh({ resetStructure: true, structureRevision: startingRevision });
+      if (!isCurrent()) return;
     } catch (error) {
+      if (!isCurrent()) return;
       displayError(error);
     } finally {
+      if (!isCurrent()) return;
       set({ discarding: false });
     }
   },
 
   deleteNode: async (nodeId, withDescendants = false) => {
+    const startingRevision = structureRevision;
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
 
     try {
       const data = await stageDelete(menuId, siteId, nodeId, withDescendants);
+      if (!isCurrent()) return;
       displayNotice(data.message ?? t('Node deleted.'));
 
       if (data.nodes) {
-        get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty);
+        get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty || startingRevision !== structureRevision);
       } else {
         await get().refresh();
+        if (!isCurrent()) return;
       }
     } catch (error) {
+      if (!isCurrent()) return;
       displayError(error);
     }
   },
 
   deleteSelectedNodes: async (withDescendants = false) => {
+    const startingRevision = structureRevision;
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     const { selectedNodeIds, nodes } = get();
     const selectedSet = new Set(selectedNodeIds);
     // When deleting with descendants, skip selected nodes that sit under another
@@ -582,15 +652,18 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       try {
         const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
         const data = await stageDelete(menuId, siteId, nodeId, withDescendants);
+        if (!isCurrent()) return;
         successCount += 1;
         lastMessage = data.message;
 
         if (data.nodes) {
-          get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty);
+          get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty || startingRevision !== structureRevision);
         } else {
           await get().refresh();
+          if (!isCurrent()) return;
         }
       } catch (error) {
+      if (!isCurrent()) return;
         firstError ??= error;
       }
     }
@@ -609,6 +682,12 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   },
 
   setSelectedNodesStatus: async (status) => {
+    const startingRevision = structureRevision;
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     const { menuId, siteId, selectedNodeIds, nodes: previousNodes, structureDirty } = get();
 
     if (!selectedNodeIds.length) {
@@ -617,37 +696,55 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await setNodeStatus(menuId, siteId, selectedNodeIds, status);
+      if (!isCurrent()) return;
       displayNotice(data.message ?? t('Status updated.'));
 
       if (data.nodes) {
-        get().applyMutationNodes(previousNodes, data.nodes, undefined, structureDirty);
+        get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty || startingRevision !== structureRevision);
       } else {
         await get().refresh();
+        if (!isCurrent()) return;
       }
     } catch (error) {
+      if (!isCurrent()) return;
       displayError(error);
     }
   },
 
   duplicateNode: async (nodeId, deep = false) => {
+    const startingRevision = structureRevision;
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
 
     try {
       const data = await duplicateNodes(menuId, siteId, [nodeId], deep);
+      if (!isCurrent()) return;
       displayNotice(data.message ?? t('Elements duplicated.'));
 
       if (data.nodes) {
-        get().applyDuplicationResult(previousNodes, data.nodes, data.duplications ?? [], data.session, structureDirty);
+        get().applyDuplicationResult(previousNodes, data.nodes, data.duplications ?? [], data.session, structureDirty || startingRevision !== structureRevision);
         return;
       }
 
       await get().refresh();
+      if (!isCurrent()) return;
     } catch (error) {
+      if (!isCurrent()) return;
       displayError(error);
     }
   },
 
   duplicateSelectedNodes: async (deep = false) => {
+    const startingRevision = structureRevision;
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     const { menuId, siteId, selectedNodeIds, nodes: previousNodes, structureDirty } = get();
 
     if (!selectedNodeIds.length) {
@@ -656,20 +753,28 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await duplicateNodes(menuId, siteId, selectedNodeIds, deep);
+      if (!isCurrent()) return;
       displayNotice(data.message ?? t('Elements duplicated.'));
 
       if (data.nodes) {
-        get().applyDuplicationResult(previousNodes, data.nodes, data.duplications ?? [], data.session, structureDirty);
+        get().applyDuplicationResult(previousNodes, data.nodes, data.duplications ?? [], data.session, structureDirty || startingRevision !== structureRevision);
         return;
       }
 
       await get().refresh();
+      if (!isCurrent()) return;
     } catch (error) {
+      if (!isCurrent()) return;
       displayError(error);
     }
   },
 
   copyNodesToSite: async (nodeIds, targetSiteId, deep = false, remapLinkedElements = false) => {
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     if (!nodeIds.length) {
       return;
     }
@@ -678,6 +783,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const data = await copyNodesToSiteApi(menuId, siteId, nodeIds, targetSiteId, deep, remapLinkedElements);
+      if (!isCurrent()) return;
 
       displayNotice(
         data.message
@@ -686,24 +792,35 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
             : t('{count} nodes copied to site.', { count: nodeIds.length })),
       );
       await get().refresh();
+      if (!isCurrent()) return;
     } catch (error) {
+      if (!isCurrent()) return;
       displayError(error);
     }
   },
 
   restoreNode: async (nodeId) => {
+    const startingRevision = structureRevision;
+    const generation = contextGeneration;
+    const scopeMenuId = get().menuId;
+    const scopeSiteId = get().siteId;
+    const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
+
     const { menuId, siteId, nodes: previousNodes, structureDirty } = get();
 
     try {
       const data = await unstageDelete(menuId, siteId, nodeId);
+      if (!isCurrent()) return;
       displayNotice(data.message ?? t('Node restored to menu.'));
 
       if (data.nodes) {
-        get().applyMutationNodes(previousNodes, data.nodes, undefined, structureDirty);
+        get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty || startingRevision !== structureRevision);
       } else {
         await get().refresh();
+        if (!isCurrent()) return;
       }
     } catch (error) {
+      if (!isCurrent()) return;
       displayError(error);
     }
   },
@@ -719,7 +836,9 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     });
   },
 
-  applyMutationNodes: (previousNodes, serverNodes, session, structureWasDirty) => {
+  applyMutationNodes: (_previousNodes, serverNodes, session, _structureWasDirty) => {
+    const { nodes: previousNodes, structureDirty } = get();
+    const structureWasDirty = structureDirty || _structureWasDirty;
     const nodes = mergeServerNodesPreservingStructure(previousNodes, serverNodes, {
       preserveStructure: structureWasDirty,
     });
@@ -729,9 +848,9 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     set({
       nodes,
       baselineStructureMoves: baseline,
-      structureDirty: structureWasDirty || !movesEqual(collectStructureMoves(nodes), baseline),
+      structureDirty: !movesEqual(collectStructureMoves(nodes), baseline),
       state:
-        state && session
+        state && session !== undefined
           ? { ...state, session: session as BuilderState['session'] }
           : state,
       selectedNodeIds: [],
@@ -739,7 +858,8 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     });
   },
 
-  applyDuplicationResult: (previousNodes, serverNodes, duplications, session, structureWasDirty) => {
+  applyDuplicationResult: (_previousNodes, serverNodes, duplications, session, _structureWasDirty) => {
+    const { nodes: previousNodes } = get();
     const nodes = mergeServerNodesPreservingStructure(previousNodes, serverNodes, {
       // Always keep the on-screen order — duplicate places next to DB position otherwise.
       preserveStructure: true,
@@ -751,8 +871,8 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     set({
       nodes,
       baselineStructureMoves: baseline,
-      structureDirty: structureWasDirty || !movesEqual(collectStructureMoves(nodes), baseline),
-      state: state && session ? { ...state, session } : state,
+      structureDirty: !movesEqual(collectStructureMoves(nodes), baseline),
+      state: state && session !== undefined ? { ...state, session } : state,
       selectedNodeIds: [],
       lastSelectedNodeId: null,
     });

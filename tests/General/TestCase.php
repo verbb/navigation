@@ -15,12 +15,20 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->ensureCraftBootstrapped();
+        Craft::$app->getSites()->refreshSites();
+        Craft::$app->getIsMultiSite(true);
+        Craft::$app->getIsMultiSite(true, true);
     }
 
     protected function tearDown(): void
     {
         if (class_exists(Craft::class) && Craft::$app?->getIsInstalled()) {
             Craft::$app->getGql()->setActiveSchema(null);
+            // Multisite fixtures belong to their test, not to later GraphQL scopes.
+            \Tests\Support\ResetTestDatabase::pruneFixtureSites();
+            Craft::$app->getIsMultiSite(true);
+        Craft::$app->getIsMultiSite(true, true);
+            Craft::$app->getSites()->setCurrentSite(Craft::$app->getSites()->getPrimarySite());
         }
 
         parent::tearDown();

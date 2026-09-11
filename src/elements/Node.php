@@ -4,12 +4,12 @@ namespace verbb\navigation\elements;
 use verbb\navigation\Navigation;
 use verbb\navigation\base\ElementNodeType;
 use verbb\navigation\deprecations\NodeDeprecations;
-use verbb\navigation\events\NodeActiveEvent;
+use verbb\navigation\elementactions\StageDelete;
+use verbb\navigation\elementactions\UnstageDelete;
 use verbb\navigation\elements\conditions\NodeCondition;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\elements\Menu;
-use verbb\navigation\elementactions\StageDelete;
-use verbb\navigation\elementactions\UnstageDelete;
+use verbb\navigation\events\NodeActiveEvent;
 use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\NodeOutputSafety;
 use verbb\navigation\helpers\NodeTypeHelper;
@@ -25,14 +25,10 @@ use verbb\navigation\records\Node as NodeRecord;
 
 use Craft;
 use craft\base\Element;
-use craft\base\Field;
 use craft\base\ElementInterface;
+use craft\base\Field;
 use craft\controllers\ElementIndexesController;
 use craft\db\Query;
-use craft\db\Table;
-use craft\elements\db\ElementQueryInterface;
-use craft\elements\ElementCollection;
-use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Duplicate;
 use craft\elements\actions\Edit;
@@ -40,10 +36,12 @@ use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQuery;
+use craft\elements\db\ElementQueryInterface;
+use craft\elements\ElementCollection;
+use craft\elements\User;
 use craft\enums\Color;
 use craft\errors\UnsupportedSiteException;
 use craft\events\MoveElementEvent;
-use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
 use craft\helpers\Db;
@@ -56,13 +54,12 @@ use craft\models\FieldLayout;
 use craft\models\Site;
 use craft\services\Structures;
 
-use Throwable;
-
 use yii\base\Event;
-use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\helpers\BaseHtml;
 use yii\validators\Validator;
+
+use Throwable;
 
 use Twig\Markup;
 
@@ -345,6 +342,7 @@ class Node extends Element
     public const STATUS_PENDING_DELETE = 'pending-delete';
     public const STATUS_PENDING_EDIT = 'pending-edit';
 
+
     // Traits
     // =========================================================================
 
@@ -379,6 +377,7 @@ class Node extends Element
     // Read-time Dynamic projections — kept off Craft's ElementCollection so
     // getEagerLoadedElements() never runs setNextPrev across Node ↔ ProjectedNode.
     private array $_projectedChildren = [];
+
 
     // Public Methods
     // =========================================================================
@@ -511,38 +510,6 @@ class Node extends Element
         unset($this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY]);
     }
 
-    /**
-     * Builder-only status indicator icon HTML for staged rows.
-     */
-    public function getBuilderPendingStatusIndicatorHtml(): ?string
-    {
-        $config = $this->_getBuilderPendingStatusConfig();
-
-        if (!$config) {
-            return null;
-        }
-
-        $classes = ['navigation-pending-status', 'navigation-pending-status--' . $config['key']];
-        $aria = [
-            'label' => sprintf('%s %s', Craft::t('app', 'Status:'), $config['label']),
-        ];
-
-        if (($config['iconType'] ?? 'craft') === 'fontawesome') {
-            return Html::tag('span', '', [
-                'class' => array_merge(['fa', 'fa-' . $config['icon']], $classes),
-                'role' => 'img',
-                'aria' => $aria,
-            ]);
-        }
-
-        return Html::tag('span', '', [
-            'data' => ['icon' => $config['icon']],
-            'class' => array_merge(['icon'], $classes),
-            'role' => 'img',
-            'aria' => $aria,
-        ]);
-    }
-
     public function init(): void
     {
         parent::init();
@@ -553,7 +520,7 @@ class Node extends Element
                 return;
             }
 
-            $nav = $event->element->_getMenu();
+            $nav = $event->element->getMenuSettings();
 
             // Check for max nodes at level. This was only added in Craft 4.5, so check
             if (property_exists($event, 'targetElementId')) {
@@ -570,7 +537,7 @@ class Node extends Element
 
     public function createAnother(): ?self
     {
-        $nav = $this->_getMenu();
+        $nav = $this->getMenuSettings();
 
         $node = Craft::createObject([
             'class' => self::class,
@@ -600,7 +567,7 @@ class Node extends Element
             return false;
         }
 
-        return $this->_userCanManageMenu($user);
+        return MenuAuth::canAuthorNode($user, $this);
     }
 
     public function canDuplicate(User $user): bool
@@ -641,34 +608,6 @@ class Node extends Element
         }
 
         return parent::getStatus();
-    }
-
-    public function getChipLabelHtml(): string
-    {
-        // Detect if this is the element index
-        $isElementIndex = Craft::$app->getRequest()->getParam('viewState.mode') === 'table';
-
-        // When reloading nodes, get the modified HTML
-        if (Craft::$app->getRequest()->getSegments() === ['actions', 'app', 'render-elements']) {
-            $isElementIndex = true;
-        }
-
-        // Only show this when editing the nav, in case these elements are listed by third parties
-        if (!$isElementIndex) {
-            return parent::getChipLabelHtml();
-        }
-
-        $title = $this->hasOverriddenTitle();
-        $newWindow = $this->newWindow;
-        $classes = $this->classes ? '.' . str_replace(' ', ' .', $this->classes) : '';
-
-        $html = implode(' ', array_filter([
-            $title ? Html::tag('span', '', ['class' => 'node-custom-title edit icon']) : false,
-            $newWindow ? Html::tag('span', '', ['class' => 'node-new-window fa fa-external-link']) : false,
-            $classes ? Html::tag('span', $classes, ['class' => 'node-classes classes code']) : false,
-        ]));
-
-        return parent::getChipLabelHtml() . ($html ? Html::tag('span', $html, ['class' => 'node-info-icons']) : '') . $this->_getBuilderRowActionBtnHtml();
     }
 
     public function getElement(): ?ElementInterface
@@ -878,7 +817,7 @@ class Node extends Element
             $url .= $this->urlSuffix;
         }
 
-        return $url;
+        return NodeOutputSafety::sanitizeUrl($url);
     }
 
     /**
@@ -1131,17 +1070,17 @@ class Node extends Element
 
     public function getIsTitleTranslatable(): bool
     {
-        return $this->_getMenu()->titleTranslationMethod !== Field::TRANSLATION_METHOD_NONE;
+        return $this->getMenuSettings()->titleTranslationMethod !== Field::TRANSLATION_METHOD_NONE;
     }
 
     public function getTitleTranslationDescription(): ?string
     {
-        return ElementHelper::translationDescription($this->_getMenu()->titleTranslationMethod);
+        return ElementHelper::translationDescription($this->getMenuSettings()->titleTranslationMethod);
     }
 
     public function getTitleTranslationKey(): string
     {
-        $menu = $this->_getMenu();
+        $menu = $this->getMenuSettings();
 
         return ElementHelper::translationKey(
             $this,
@@ -1152,7 +1091,7 @@ class Node extends Element
 
     public function getSupportedSites(): array
     {
-        $nav = $this->_getMenu();
+        $nav = $this->getMenuSettings();
 
         /* @var Site[] $allSites */
         $allSites = ArrayHelper::index($nav->getSites(), 'id');
@@ -1186,7 +1125,7 @@ class Node extends Element
 
     public function getEnabledForPropagatedSitesPreference(?MenuSettings $menu = null): bool
     {
-        $menu ??= $this->_getMenu();
+        $menu ??= $this->getMenuSettings();
         $data = is_array($this->data) ? $this->data : [];
 
         if (array_key_exists(self::ENABLED_FOR_PROPAGATED_SITES_DATA_KEY, $data)) {
@@ -1205,7 +1144,7 @@ class Node extends Element
 
     public function applyPropagationEnabledSiteStatuses(bool $enabledOnPropagatedSites, ?bool $enabledOnOwnerSite = null): void
     {
-        $menu = $this->_getMenu();
+        $menu = $this->getMenuSettings();
 
         if (!$menu->getHasMultiSiteNodes()) {
             return;
@@ -1230,7 +1169,7 @@ class Node extends Element
 
     public function publishPendingAdd(): void
     {
-        $menu = $this->_getMenu();
+        $menu = $this->getMenuSettings();
 
         if ($menu->getHasMultiSiteNodes()) {
             $this->applyPropagationEnabledSiteStatuses(
@@ -1247,7 +1186,7 @@ class Node extends Element
 
     public function getGqlTypeName(): string
     {
-        return static::gqlTypeNameByContext($this->_getMenu());
+        return static::gqlTypeNameByContext($this->getMenuSettings());
     }
 
     public function beforeSave(bool $isNew): bool
@@ -1268,7 +1207,7 @@ class Node extends Element
         /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
 
-        $nav = $this->_getMenu();
+        $nav = $this->getMenuSettings();
 
         // Verify that the menu supports this site
         $navSiteSettings = $nav->getSiteSettings();
@@ -1341,7 +1280,11 @@ class Node extends Element
             if ($this->getIsPendingPublish()) {
                 $this->applyPropagationEnabledSiteStatuses(false, false);
             } else {
-                $this->applyPropagationEnabledSiteStatuses($enabledOnPropagated, true);
+                // Preserve imported/explicit disabled state while normalizing per-site status.
+                $this->applyPropagationEnabledSiteStatuses(
+                    $this->enabled && $enabledOnPropagated,
+                    $this->enabled && (bool)$this->getEnabledForSite(),
+                );
             }
         }
 
@@ -1351,7 +1294,7 @@ class Node extends Element
     public function afterSave(bool $isNew): void
     {
         if (!$this->propagating) {
-            $nav = $this->_getMenu();
+            $nav = $this->getMenuSettings();
 
             // Get the node record
             if (!$isNew) {
@@ -1443,7 +1386,7 @@ class Node extends Element
             ], [], false);
         }
 
-        $nav = $this->_getMenu();
+        $nav = $this->getMenuSettings();
         $structureId = (int)$nav->structureId;
 
         $parentId = (new Query())
@@ -1483,7 +1426,7 @@ class Node extends Element
     public function afterMoveInStructure(int $structureId): void
     {
         // Was the node moved within its group's structure?
-        $nav = $this->_getMenu();
+        $nav = $this->getMenuSettings();
 
         if ($nav->structureId == $structureId) {
             Craft::$app->getElements()->updateElementSlugAndUri($this, true, true, true);
@@ -1513,7 +1456,7 @@ class Node extends Element
 
     public function getFieldLayout(): ?FieldLayout
     {
-        $nav = $this->menuId === null ? null : $this->_getMenu();
+        $nav = $this->menuId === null ? null : $this->getMenuSettings();
 
         return $nav ? $nav->getFieldLayout() : null;
     }
@@ -1561,17 +1504,11 @@ class Node extends Element
         }
     }
 
-    public function _getActive($includeChildren = true): bool
-    {
-        $matcher = Navigation::$plugin->getActiveMatcher();
-
-        return $includeChildren ? $matcher->isActive($this) : $matcher->isCurrent($this);
-    }
 
     // Protected Methods
     // =========================================================================
 
-    protected function _getMenu(): MenuSettings
+    protected function getMenuSettings(): MenuSettings
     {
         if ($this->menuId === null) {
             throw new InvalidConfigException('Node is missing its menu ID');
@@ -1654,7 +1591,7 @@ class Node extends Element
         $rules[] = [
             'level',
             function($attribute, $params, Validator $validator): void {
-                $nav = $this->_getMenu();
+                $nav = $this->getMenuSettings();
 
                 // Check for max nodes
                 if ($nav->maxNodes) {
@@ -1708,7 +1645,7 @@ class Node extends Element
 
     protected function metaFieldsHtml(bool $static): string
     {
-        $nav = $this->_getMenu();
+        $nav = $this->getMenuSettings();
         
         $fields = [];
 
@@ -1716,7 +1653,7 @@ class Node extends Element
         $fields[] = (function() use ($static) {
             $nodeTypeOptions = [];
 
-            foreach (Navigation::$plugin->getMenus()->getBuilderTabs($this->_getMenu()) as $tab) {
+            foreach (Navigation::$plugin->getMenus()->getBuilderTabs($this->getMenuSettings()) as $tab) {
                 $nodeTypeOptions[] = [
                     'label' => Craft::t('site', $tab['label']),
                     'value' => $tab['type'],
@@ -1772,7 +1709,7 @@ EOD;
                         ->one();
                 }
 
-                $nav = $this->_getMenu();
+                $nav = $this->getMenuSettings();
 
                 return Cp::elementSelectFieldHtml([
                     'label' => Craft::t('app', 'Parent'),
@@ -1793,7 +1730,7 @@ EOD;
 
         return implode("\n", $fields);
     }
-    
+
 
     // Private Methods
     // =========================================================================
@@ -1838,47 +1775,6 @@ EOD;
         }
     }
 
-    private function _getBuilderRowActionBtnHtml(): string
-    {
-        if ($this->getIsPendingDelete() && Navigation::$plugin->getBuildSessions()->isStagingEnabled()) {
-            return Html::tag('a', Craft::t('navigation', 'Restore'), [
-                'class' => 'btn small icon undo node-restore-btn',
-            ]);
-        }
-
-        return Html::tag('a', Craft::t('navigation', 'Edit'), ['class' => 'btn small icon edit node-edit-btn']);
-    }
-
-    private function _getBuilderPendingStatusConfig(): ?array
-    {
-        if ($this->getIsPendingPublish() && !$this->getIsDraft()) {
-            return [
-                'key' => 'add',
-                'icon' => 'plus-circle',
-                'iconType' => 'fontawesome',
-                'label' => Craft::t('navigation', 'Pending'),
-            ];
-        }
-
-        if ($this->getIsPendingDelete() && !$this->getIsDraft()) {
-            return [
-                'key' => 'delete',
-                'icon' => 'trash',
-                'label' => Craft::t('navigation', 'Pending deletion'),
-            ];
-        }
-
-        if ($this->getIsPendingEdit() && !$this->getIsDraft()) {
-            return [
-                'key' => 'edit',
-                'icon' => 'pen-circle',
-                'label' => Craft::t('navigation', 'Pending edit'),
-            ];
-        }
-
-        return null;
-    }
-
     private function _getObject(): array
     {
         // Author templates get a bounded context — not a live User element.
@@ -1897,7 +1793,7 @@ EOD;
 
         $nav = Navigation::$plugin->getMenus()->getMenuById($this->menuId);
 
-        return MenuAuth::canManageMenu($user, $nav);
+        return MenuAuth::canManageMenuSite($user, $nav, (int)$this->siteId);
     }
 
     private function _parentOptionCriteria(MenuSettings $nav): array

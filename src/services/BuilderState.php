@@ -6,6 +6,7 @@ use verbb\navigation\base\NodeType;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\elements\Node as NodeElement;
 use verbb\navigation\helpers\BuilderSchemaHelper;
+use verbb\navigation\helpers\BuilderStructureRevision;
 use verbb\navigation\helpers\MenuContentFieldLayout;
 use verbb\navigation\helpers\NodeTypeHelper;
 use verbb\navigation\models\BuildSession as BuildSessionModel;
@@ -17,9 +18,9 @@ use craft\helpers\Markdown;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
-use Throwable;
-
 use yii\web\NotFoundHttpException;
+
+use Throwable;
 
 class BuilderState extends Component
 {
@@ -41,6 +42,7 @@ class BuilderState extends Component
         }
 
         $buildSessions = Navigation::$plugin->getBuildSessions();
+        $structureRevision = BuilderStructureRevision::get($nav);
         $stagingEnabled = $buildSessions->isStagingEnabled();
         $session = $stagingEnabled ? $buildSessions->getOrCreate($menuId, $siteId) : null;
 
@@ -58,6 +60,7 @@ class BuilderState extends Component
         $copyToSiteTargets = $this->getCopyToSiteTargets($nav, $siteId);
 
         return [
+            'structureRevision' => $structureRevision,
             'menu' => [
                 'id' => $nav->id,
                 'uid' => $nav->uid,

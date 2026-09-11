@@ -1,6 +1,7 @@
 <?php
 namespace verbb\navigation\helpers;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\elements\Node;
 
@@ -14,20 +15,29 @@ use craft\elements\User;
 use craft\helpers\Db;
 use craft\helpers\StringHelper;
 
+use DateTime;
+
 /**
  * One-off repair for beta installs hit by m260627 reclaiming foreign element ids as Menu.
  *
- * Not a schema migration — opt-in via `php craft navigation/menus/fix-menu-element-collisions`.
- * Fresh installs and post-GA upgrades never need this; forward `_syncMenuElement` never reclaims.
+ * Historical foreign-content restoration remains opt-in via the console command.
+ * The schema migration only allocates exclusive IDs for legacy menus.
  */
 class MenuElementCollisionRepair
 {
     // Static Methods
     // =========================================================================
 
-    /**
-     * @return array{restoredForeign: int, remappedMenus: int, backfilledMenus: int, restoredNodeTitles: int}
-     */
+    /** Allocate exclusive element IDs for legacy menu rows without changing foreign elements. */
+    public static function migrateLegacyMenuIds(): int
+    {
+        $count = self::_remapCollidingMenusOntoExclusiveElements();
+        self::_backfillMissingMenuElements();
+        Navigation::$plugin->getMenus()->resetCache();
+
+        return $count;
+    }
+
     public static function run(): array
     {
         $db = Craft::$app->getDb();
@@ -244,8 +254,8 @@ class MenuElementCollisionRepair
                 'slug' => null,
                 'uri' => null,
                 'enabled' => (bool)$siteRow['enabled'],
-                'dateCreated' => $menu['dateCreated'] ?? Db::prepareDateForDb(new \DateTime()),
-                'dateUpdated' => $menu['dateUpdated'] ?? Db::prepareDateForDb(new \DateTime()),
+                'dateCreated' => $menu['dateCreated'] ?? Db::prepareDateForDb(new DateTime()),
+                'dateUpdated' => $menu['dateUpdated'] ?? Db::prepareDateForDb(new DateTime()),
                 'uid' => StringHelper::UUID(),
             ])->execute();
         }

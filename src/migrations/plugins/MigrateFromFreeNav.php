@@ -2,10 +2,13 @@
 namespace verbb\navigation\migrations\plugins;
 
 use verbb\navigation\helpers\PluginMigrationHelper;
+use verbb\navigation\nodetypes\Custom;
 
 use Craft;
 use craft\db\Query;
 use craft\helpers\Json;
+
+use Throwable;
 
 class MigrateFromFreeNav extends BasePluginMigrator
 {
@@ -137,13 +140,15 @@ class MigrateFromFreeNav extends BasePluginMigrator
 
     private function _buildNodeTree(int $menuId, int $structureId): array
     {
+        // FreeNav 5.1.4 renamed url to customUrl; older tables may still use url.
+        $urlColumn = Craft::$app->getDb()->columnExists('{{%freenav_nodes}}', 'customUrl') ? 'customUrl' : 'url';
+
         $rows = (new Query())
             ->select([
                 'n.id',
-                'n.parentId',
                 'n.linkedElementId',
                 'n.nodeType',
-                'n.url',
+                'url' => 'n.' . $urlColumn,
                 'n.classes',
                 'n.urlSuffix',
                 'n.customAttributes',
@@ -186,7 +191,8 @@ class MigrateFromFreeNav extends BasePluginMigrator
             $deduped[(int)$row['id']] = $row;
         }
 
-        $flat = array_values($deduped);
+        // FreeNav's historical parentId column was never populated.
+        $flat = PluginMigrationHelper::attachStructureParents(array_values($deduped));
 
         foreach ($flat as $row) {
             if (!empty($row['icon']) || !empty($row['badge'])) {
@@ -200,7 +206,7 @@ class MigrateFromFreeNav extends BasePluginMigrator
 
             if (!$type) {
                 $this->warning("Unknown FreeNav node type “{$row['nodeType']}”; using Custom URL.", 1);
-                $type = \verbb\navigation\nodetypes\Custom::class;
+                $type = Custom::class;
             }
 
             if (!empty($row['visibilityRules'])) {
@@ -216,7 +222,7 @@ class MigrateFromFreeNav extends BasePluginMigrator
             if (!empty($row['data'])) {
                 try {
                     $data = Json::decodeIfJson($row['data']) ?? [];
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     $data = [];
                 }
             }

@@ -1,20 +1,21 @@
 <?php
 namespace verbb\navigation\controllers;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
 use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\models\MenuSettings;
-use verbb\navigation\Navigation;
 
 use Craft;
 use craft\helpers\Json;
 use craft\web\Controller;
 
-use Throwable;
-
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
+
+use RuntimeException;
+use Throwable;
 
 class NodesController extends Controller
 {
@@ -45,7 +46,8 @@ class NodesController extends Controller
         foreach ($nodesPost as $key => $nodePost) {
             $node = $this->_setNodeFromPost("nodes.{$key}.");
             $nodeMenuId = (int)$node->menuId;
-            $nodeSiteId = (int)$node->siteId;
+            $nodeSiteId = (int)($node->siteId ?? Craft::$app->getSites()->getCurrentSite()->id);
+            $node->siteId = $nodeSiteId;
 
             if (!$nodeMenuId) {
                 throw new BadRequestHttpException('Invalid menu ID.');
@@ -65,41 +67,59 @@ class NodesController extends Controller
                 throw new ForbiddenHttpException('All nodes in a batch must belong to the same site.');
             }
 
+            if (!MenuAuth::canAuthorNode(Craft::$app->getUser()->getIdentity(), $node)) {
+                throw new ForbiddenHttpException('Node type, source or parent is not available for this menu.');
+            }
             $nodes[] = $node;
         }
 
-        $addedNodeIds = [];
+        $transaction = Craft::$app->getDb()->beginTransaction();
+        try {
+            $addedNodeIds = [];
 
-        foreach ($nodes as $node) {
-            // Add this new node to the nav, to assist with validation
-            $nodesService->setTempNodes([$node]);
+            foreach ($nodes as $node) {
+                // Add this new node to the nav, to assist with validation
+                $nodesService->setTempNodes([$node]);
 
-            if ($deferPublish) {
-                // Match duplicate staging: disabled until Save publishes. afterSave clears
-                // `_pendingPublish` whenever enabled+enabledForSite, so new adds must start disabled.
-                $node->setPendingPublish(true);
-                $node->enabled = false;
-                $node->setEnabledForSite(false);
+                if ($deferPublish) {
+                    // Match duplicate staging: disabled until Save publishes. afterSave clears
+                    // `_pendingPublish` whenever enabled+enabledForSite, so new adds must start disabled.
+                    $node->setPendingPublish(true);
+                    $node->enabled = false;
+                    $node->setEnabledForSite(false);
+                }
+
+                if (!Craft::$app->getElements()->saveElement($node, true)) {
+                    $transaction->rollBack();
+                    return $this->asModelFailure($node, Craft::t('navigation', 'Couldn’t add node.'), 'node');
+                }
+
+                $siteId ??= (int)$node->siteId;
+                $addedNodeIds[] = (int)$node->id;
             }
 
-            if (!Craft::$app->getElements()->saveElement($node, true)) {
-                return $this->asModelFailure($node, Craft::t('navigation', 'Couldn’t add node.'), 'node');
-            }
+            if ($deferPublish && $menuId && $siteId) {
+                $session = $buildSessions->getOrCreate($menuId, $siteId);
 
-            $siteId ??= (int)$node->siteId;
-            $addedNodeIds[] = (int)$node->id;
-        }
+                foreach ($addedNodeIds as $nodeId) {
+                    if (!in_array($nodeId, $session->addedNodeIds, true)) {
+                        $session->addedNodeIds[] = $nodeId;
+                    }
+                }
 
-        if ($deferPublish && $menuId && $siteId) {
-            $session = $buildSessions->getOrCreate($menuId, $siteId);
-
-            foreach ($addedNodeIds as $nodeId) {
-                if (!in_array($nodeId, $session->addedNodeIds, true)) {
-                    $session->addedNodeIds[] = $nodeId;
+                if (!$buildSessions->saveSession($session)) {
+                    throw new RuntimeException('Could not save build session.');
                 }
             }
 
-            $buildSessions->saveSession($session);
+            $transaction->commit();
+        } catch (Throwable $e) {
+            if ($transaction->getIsActive()) {
+                $transaction->rollBack();
+            }
+            throw $e;
+        } finally {
+            $nodesService->setTempNodes([]);
         }
 
         $message = $deferPublish
@@ -165,7 +185,8 @@ class NodesController extends Controller
         $menuId = (int)($this->request->getBodyParam('menuId') ?? $firstNode->menuId);
         $sourceSiteId = (int)($this->request->getBodyParam('sourceSiteId') ?? $firstNode->siteId);
 
-        $nav = MenuAuth::requireManageMenu($this, Navigation::$plugin->getMenus()->getMenuById($menuId));
+        $nav = MenuAuth::requireManageMenuSite($this, Navigation::$plugin->getMenus()->getMenuById($menuId), $sourceSiteId);
+        MenuAuth::requireManageMenuSite($this, $nav, $targetSiteId);
 
         if ($nav->propagationMethod !== MenuSettings::PROPAGATION_METHOD_NONE) {
             return $this->asFailure(Craft::t('navigation', 'Nodes in this menu are propagated automatically. Switch sites to edit them instead of copying.'));

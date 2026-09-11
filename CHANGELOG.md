@@ -6,6 +6,7 @@
 - Dynamic projections support an explicit **pending/preview** opt-in (`NodeQuery::includePendingProjections()` / Craft Live Preview) that can include non-live sources; public cache is bypassed for those reads.
 
 ### Changed
+- Navigation 4 now requires Craft CMS 5.9.11 or later within Craft 5, matching its sandboxed template and element APIs.
 - Normalize CP General Settings to the shared `verbb-base` settings layout (Settings → Plugins → Navigation crumbs, `pageTabs` / `pageTitle` / `pageAction` helpers) and require a trimmed `pluginName`.
 - Author URL/class/custom-attribute `{…}` tokens now render in Craft’s **sandboxed** Twig environment with a bounded site context (no live User object).
 - Dynamic projections (entries, categories, assets, products) default to Craft **live/public** statuses instead of including disabled or unpublished sources.
@@ -15,6 +16,20 @@
 - GraphQL `element` on nodes/projections requires schema awareness of the linked section, category group, volume, or product type (not a broad entries/categories/assets grant).
 
 ### Fixed
+- Fix GraphQL child queries failing when Craft hydrates nodes from array results.
+- FreeNav migrations support both historical `url` and current `customUrl` schemas, deriving hierarchy from Craft structures instead of the unused legacy parent column.
+- New multisite nodes preserve explicit disabled state during propagation, including imported source nodes.
+- Release archives exclude local environment files, caches, dependencies, tests, and frontend build sources.
+- Full menu rendering batch-loads linked elements and hierarchy, avoiding one linked-element query per node.
+- Schema 4.0.8 allocates exclusive Craft element IDs for legacy menus that overlap users or entries, preserving menu UIDs and nested node relationships. Menu queries cannot hydrate unrelated element types.
+- Staged and live full-tree saves reject stale structure revisions with HTTP 409; queued live moves carry forward the preceding successful revision.
+- Builder endpoints and element authoring enforce Craft site access, enabled node types, allowed linked sources, and parent ownership alongside menu grants.
+- Final composed URLs reject control characters and unsafe schemes, including suffix-only destinations.
+- Tree cache bypasses unsupported query criteria and preserves linked-site and element identity; the cache format is versioned.
+- Batch node creation and build-session bookkeeping roll back together on failure. Private sessions cannot recover another session's pending nodes through orphan recovery.
+- Builder requests execute in order; delayed responses preserve newer drags and cannot update a different menu/site context. Production CP assets have been rebuilt from the corrected source.
+- Failed imports restore menu configuration and content together, including failures while creating a menu.
+- Permission migrations recognize Craft's lowercase grants and merge duplicate assignments. Schema 4.0.7 repairs installations that already ran the earlier rename migration.
 - Fresh installs include `navigation_menus.defaultEnabledForPropagatedSites` in `Install.php` (column was only added by a later migration that Craft skips after install).
 - CP write endpoints (`nodes/add-nodes`, parent options, menu save/reorder/duplicate) now enforce Navigation menu permissions; `Node::canView` / `canSave` / `canDelete` / `canDuplicate` / `canCreateDrafts` require `navigation-manageMenu:{uid}` (Astra A01).
 - GraphQL `handle_Menu` fields, `navigationContext`, and `navigationMenuBreadcrumbs` honor per-menu schema scope instead of exposing every menu when any Navigation grant exists (Astra A02).

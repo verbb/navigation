@@ -3,6 +3,7 @@ namespace verbb\navigation\variables;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\deprecations\NavigationVariableDeprecations;
+use verbb\navigation\elements\db\MenuQuery;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\elements\Node as NodeElement;
@@ -37,7 +38,7 @@ class NavigationVariable
         return Navigation::$plugin->getNodeTypes()->getRegisteredNodeTypes();
     }
 
-    public function menu($handle): \verbb\navigation\elements\db\MenuQuery
+    public function menu($handle): MenuQuery
     {
         return Menu::find()->handle($handle);
     }
@@ -65,7 +66,9 @@ class NavigationVariable
 
     public function render($criteria = null, array $options = []): Markup
     {
-        $nodes = $this->nodes($criteria)->all();
+        // Rendering consumes linked titles/URLs for the whole tree. Hydrate them
+        // in batches rather than allowing one element query per rendered link.
+        $nodes = $this->nodes($criteria)->withNodeHierarchy(true)->withLinkedElements(true)->all();
 
         $template = Craft::$app->getView()->renderTemplate('navigation/_special/render', [
             'nodes' => $nodes,

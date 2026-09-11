@@ -2,6 +2,7 @@
 namespace verbb\navigation\services;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\base\ElementNodeType;
 use verbb\navigation\deprecations\MenusDeprecations;
 use verbb\navigation\deprecations\MenusLegacyConstants;
 use verbb\navigation\elements\Menu;
@@ -18,6 +19,7 @@ use verbb\navigation\records\MenuSiteSettings as MenuSiteSettingsRecord;
 
 use Craft;
 use craft\base\Component;
+use craft\base\Field;
 use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\db\Table;
@@ -25,7 +27,6 @@ use craft\events\ConfigEvent;
 use craft\events\DeleteSiteEvent;
 use craft\events\FieldEvent;
 use craft\events\SiteEvent;
-use craft\base\Field;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
@@ -37,9 +38,11 @@ use craft\models\Structure;
 use craft\queue\jobs\ApplyNewPropagationMethod;
 use craft\queue\jobs\ResaveElements;
 
-use Throwable;
-
 use yii\db\ActiveRecord;
+
+use DateTime;
+use RuntimeException;
+use Throwable;
 
 class Menus extends Component
 {
@@ -72,6 +75,11 @@ class Menus extends Component
 
     // Public Methods
     // =========================================================================
+
+    public function resetCache(): void
+    {
+        $this->_menus = null;
+    }
 
     public function getAllMenus(): array
     {
@@ -429,7 +437,7 @@ class Menus extends Component
                 }
 
                 if (!Craft::$app->getElements()->saveElement($menuElement, false)) {
-                    throw new \RuntimeException('Unable to create the Menu element required for this menu.');
+                    throw new RuntimeException('Unable to create the Menu element required for this menu.');
                 }
 
                 $navRecord->id = $menuElement->id;
@@ -777,13 +785,12 @@ class Menus extends Component
         foreach ($navIds as $navOrder => $menuId) {
             if (!empty($uidsByIds[$menuId])) {
                 $menuUid = $uidsByIds[$menuId];
+                $configData = $this->getMenuById($menuId)->getConfig();
+                $configData['sortOrder'] = $navOrder + 1;
 
                 // There's some edge-cases where devs know what they're doing.
                 // See https://github.com/verbb/navigation/issues/88
                 if ($settings->bypassProjectConfig && !Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-                    $configData = $this->getMenuById($menuId)->getConfig();
-                    $configData['sortOrder'] = $navOrder + 1;
-
                     $event = new ConfigEvent([
                         'tokenMatches' => [$menuUid],
                         'newValue' => $configData,
@@ -791,7 +798,9 @@ class Menus extends Component
 
                     $this->handleChangedMenu($event);
                 } else {
-                    $projectConfig->set(self::CONFIG_MENU_KEY . '.' . $menuUid . '.sortOrder', $navOrder + 1);
+                    // Set the complete menu config so the containing project-config event always
+                    // receives the data required by handleChangedMenu().
+                    $projectConfig->set(self::CONFIG_MENU_KEY . '.' . $menuUid, $configData);
                 }
             }
         }
@@ -815,7 +824,7 @@ class Menus extends Component
 
             $key = StringHelper::toKebabCase($nodeType->displayName());
 
-            if ($nodeType instanceof \verbb\navigation\base\ElementNodeType) {
+            if ($nodeType instanceof ElementNodeType) {
                 $config = $nodeType::getBuilderConfig();
                 $elementType = $nodeType::getElementType();
                 $configuredSources = MenuPermissions::getTypeSources($permissions, $typeClass);
@@ -1235,7 +1244,7 @@ class Menus extends Component
 
     private function _insertMenuElementAtId(MenuRecord $navRecord): void
     {
-        $now = Db::prepareDateForDb(new \DateTime());
+        $now = Db::prepareDateForDb(new DateTime());
 
         Craft::$app->getDb()->createCommand()->insert(Table::ELEMENTS, [
             'id' => $navRecord->id,
@@ -1270,7 +1279,7 @@ class Menus extends Component
         }
 
         if (!Craft::$app->getElements()->saveElement($menuElement, false)) {
-            throw new \RuntimeException("Unable to remap menu {$oldId} onto a new Menu element.");
+            throw new RuntimeException("Unable to remap menu {$oldId} onto a new Menu element.");
         }
 
         $newId = (int)$menuElement->id;
@@ -1323,7 +1332,7 @@ class Menus extends Component
                 continue;
             }
 
-            $now = Db::prepareDateForDb(new \DateTime());
+            $now = Db::prepareDateForDb(new DateTime());
 
             $db->createCommand()->insert(Table::ELEMENTS_SITES, [
                 'elementId' => $navRecord->id,

@@ -9,11 +9,13 @@ use verbb\navigation\records\BuildSession as BuildSessionRecord;
 
 use Craft;
 use craft\base\Component;
-use craft\helpers\Db;
+use craft\elements\User;
 use craft\helpers\Json;
 
 use yii\base\UserException;
 use yii\web\BadRequestHttpException;
+
+use Throwable;
 
 class BuildSessions extends Component
 {
@@ -95,7 +97,7 @@ class BuildSessions extends Component
         $record->nodeDraftMap = $session->nodeDraftMap !== [] ? Json::encode($session->nodeDraftMap) : null;
 
         if (!$record->save()) {
-            return false;
+            throw new UserException(Craft::t('navigation', 'Couldn’t save build session.'));
         }
 
         $session->id = (int)$record->id;
@@ -157,7 +159,6 @@ class BuildSessions extends Component
      * Used by Save/publish (staging) and by live structure mode (`builderLiveStructure`).
      * `$skipElementIds` skips nodes that are about to be hard-deleted in the same publish.
      *
-     * @param array<int, true> $skipElementIds
      */
     public function applyStructureMoves(MenuSettings $nav, int $siteId, array $structureMoves, array $skipElementIds = []): void
     {
@@ -235,62 +236,73 @@ class BuildSessions extends Component
      */
     public function stageDelete(BuildSessionModel $session, NodeElement $node, bool $withDescendants = false): void
     {
-        $elementsService = Craft::$app->getElements();
-        $nodesToStage = [$node];
+        $transaction = Craft::$app->getDb()->beginTransaction();
+        try {
+            $elementsService = Craft::$app->getElements();
+            $nodesToStage = [$node];
 
-        if ($withDescendants) {
-            foreach ($node->getDescendants()->status(null)->all() as $descendant) {
-                if ($descendant instanceof NodeElement) {
-                    $nodesToStage[] = $descendant;
+            if ($withDescendants) {
+                foreach ($node->getDescendants()->status(null)->all() as $descendant) {
+                    if ($descendant instanceof NodeElement) {
+                        $nodesToStage[] = $descendant;
+                    }
                 }
             }
-        }
 
-        foreach ($nodesToStage as $nodeToStage) {
-            $nodeId = (int)$nodeToStage->id;
+            foreach ($nodesToStage as $nodeToStage) {
+                $this->_requireNodeOwnership($session, $nodeToStage);
+            }
 
-            // Session adds (and any orphaned pending-publish rows) are not live yet — remove
-            // immediately instead of staging a delete that would fight the pending-add flag.
-            $isSessionAdd = in_array($nodeId, $session->addedNodeIds, true)
-                || $nodeToStage->getIsPendingPublish();
+            foreach ($nodesToStage as $nodeToStage) {
+                $nodeId = (int)$nodeToStage->id;
 
-            if ($isSessionAdd) {
-                $session->addedNodeIds = array_values(array_filter(
-                    $session->addedNodeIds,
-                    fn(int $id) => $id !== $nodeId,
-                ));
+                // Session adds (and any orphaned pending-publish rows) are not live yet — remove
+                // immediately instead of staging a delete that would fight the pending-add flag.
+                $isSessionAdd = in_array($nodeId, $session->addedNodeIds, true)
+                    || $nodeToStage->getIsPendingPublish();
 
-                if (!$elementsService->deleteElement($nodeToStage, true)) {
+                if ($isSessionAdd) {
+                    $session->addedNodeIds = array_values(array_filter(
+                        $session->addedNodeIds,
+                        fn(int $id) => $id !== $nodeId,
+                    ));
+
+                    if (!$elementsService->deleteElement($nodeToStage, true)) {
+                        throw new UserException(Craft::t('navigation', 'Couldn’t stage node for deletion.'));
+                    }
+
+                    continue;
+                }
+
+                if ($this->_findStagedDelete($session, $nodeId)) {
+                    continue;
+                }
+
+                $enabled = (bool)$nodeToStage->enabled;
+                $enabledForSite = (bool)$nodeToStage->getEnabledForSite();
+
+                $session->stagedDeletes[] = [
+                    'nodeId' => $nodeId,
+                    'enabled' => $enabled,
+                    'enabledForSite' => $enabledForSite,
+                ];
+
+                $nodeToStage->setPendingDeleteRestoreState($enabled, $enabledForSite);
+                $nodeToStage->setPendingDelete(true);
+                // Keep live enabled state — public readers must not see deletes until publish.
+                // Builder overlays pending-delete styling from the flag / session.
+
+                if (!$elementsService->saveElement($nodeToStage)) {
                     throw new UserException(Craft::t('navigation', 'Couldn’t stage node for deletion.'));
                 }
-
-                continue;
             }
 
-            if ($this->_findStagedDelete($session, $nodeId)) {
-                continue;
-            }
-
-            $enabled = (bool)$nodeToStage->enabled;
-            $enabledForSite = (bool)$nodeToStage->getEnabledForSite();
-
-            $session->stagedDeletes[] = [
-                'nodeId' => $nodeId,
-                'enabled' => $enabled,
-                'enabledForSite' => $enabledForSite,
-            ];
-
-            $nodeToStage->setPendingDeleteRestoreState($enabled, $enabledForSite);
-            $nodeToStage->setPendingDelete(true);
-            // Keep live enabled state — public readers must not see deletes until publish.
-            // Builder overlays pending-delete styling from the flag / session.
-
-            if (!$elementsService->saveElement($nodeToStage)) {
-                throw new UserException(Craft::t('navigation', 'Couldn’t stage node for deletion.'));
-            }
+            $this->saveSession($session);
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
         }
-
-        $this->saveSession($session);
     }
 
     /**
@@ -298,36 +310,44 @@ class BuildSessions extends Component
      */
     public function unstageDelete(BuildSessionModel $session, NodeElement $node): void
     {
-        $nodeId = (int)$node->id;
-        $stagedDelete = $this->_findStagedDelete($session, $nodeId);
+        $transaction = Craft::$app->getDb()->beginTransaction();
+        try {
+            $this->_requireNodeOwnership($session, $node);
+            $nodeId = (int)$node->id;
+            $stagedDelete = $this->_findStagedDelete($session, $nodeId);
 
-        if (!$stagedDelete) {
-            if (!$node->getIsPendingDelete()) {
+            if (!$stagedDelete) {
+                if (!$node->getIsPendingDelete()) {
+                    throw new UserException(Craft::t('navigation', 'Couldn’t restore node.'));
+                }
+
+                $stagedDelete = $node->getPendingDeleteRestoreState();
+                $stagedDelete['nodeId'] = $nodeId;
+            }
+
+            $session->stagedDeletes = array_values(array_filter(
+                $session->stagedDeletes,
+                fn(array $entry) => (int)$entry['nodeId'] !== $nodeId,
+            ));
+
+            $node->clearPendingDelete();
+            // Restore prior enabled flags when present (legacy staged rows may have been disabled).
+            $node->enabled = (bool)$stagedDelete['enabled'];
+            $node->setEnabledForSite((bool)$stagedDelete['enabledForSite']);
+
+            if (!Craft::$app->getElements()->saveElement($node)) {
                 throw new UserException(Craft::t('navigation', 'Couldn’t restore node.'));
             }
 
-            $stagedDelete = $node->getPendingDeleteRestoreState();
-            $stagedDelete['nodeId'] = $nodeId;
-        }
-
-        $session->stagedDeletes = array_values(array_filter(
-            $session->stagedDeletes,
-            fn(array $entry) => (int)$entry['nodeId'] !== $nodeId,
-        ));
-
-        $node->clearPendingDelete();
-        // Restore prior enabled flags when present (legacy staged rows may have been disabled).
-        $node->enabled = (bool)$stagedDelete['enabled'];
-        $node->setEnabledForSite((bool)$stagedDelete['enabledForSite']);
-
-        if (!Craft::$app->getElements()->saveElement($node)) {
-            throw new UserException(Craft::t('navigation', 'Couldn’t restore node.'));
-        }
-
-        if ($session->getChangeCount(true) === 0) {
-            $this->deleteSession($session);
-        } else {
-            $this->saveSession($session);
+            if ($session->getChangeCount(true) === 0) {
+                $this->deleteSession($session);
+            } else {
+                $this->saveSession($session);
+            }
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
         }
     }
 
@@ -431,7 +451,7 @@ class BuildSessions extends Component
             $transaction->rollBack();
 
             throw $e;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
 
             throw $e;
@@ -496,7 +516,7 @@ class BuildSessions extends Component
 
             $this->deleteSession($session);
             $transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
 
             throw $e;
@@ -572,6 +592,23 @@ class BuildSessions extends Component
         ]);
     }
 
+    /** Canonical pending flags are shared across sites; never adopt another session's work. */
+    private function _requireNodeOwnership(BuildSessionModel $session, NodeElement $node): void
+    {
+        if ((int)$node->menuId !== (int)$session->menuId || (int)$node->siteId !== (int)$session->siteId) {
+            throw new BadRequestHttpException('Node does not belong to this menu/site session.');
+        }
+        foreach (BuildSessionRecord::find()->where(['menuId' => $session->menuId])->all() as $record) {
+            if ((int)$record->id === (int)$session->id) {
+                continue;
+            }
+            $other = $this->_recordToModel($record);
+            if (in_array((int)$node->id, $other->addedNodeIds, true) || $this->_findStagedDelete($other, (int)$node->id)) {
+                throw new UserException(Craft::t('navigation', 'This node has pending changes in another build session.'));
+            }
+        }
+    }
+
     private function _findStagedDelete(BuildSessionModel $session, int $nodeId): ?array
     {
         foreach ($session->stagedDeletes as $stagedDelete) {
@@ -591,7 +628,7 @@ class BuildSessions extends Component
             return $userId;
         }
 
-        $admin = \craft\elements\User::find()->admin()->status(null)->one();
+        $admin = User::find()->admin()->status(null)->one();
 
         if ($admin) {
             return (int)$admin->id;

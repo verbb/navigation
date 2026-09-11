@@ -5,18 +5,17 @@ use verbb\navigation\base\PluginTrait;
 use verbb\navigation\deprecations\LegacyBootstrap;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\elements\Node;
-use verbb\navigation\fields\NavigationField;
 use verbb\navigation\fieldlayoutelements\ClassesField;
 use verbb\navigation\fieldlayoutelements\CustomAttributesField;
 use verbb\navigation\fieldlayoutelements\NewWindowField;
 use verbb\navigation\fieldlayoutelements\NodeTypeElements;
 use verbb\navigation\fieldlayoutelements\UrlSuffixField;
+use verbb\navigation\fields\NavigationField;
 use verbb\navigation\gql\interfaces\NodeInterface;
 use verbb\navigation\gql\queries\MenuQuery as MenuGqlQuery;
 use verbb\navigation\gql\queries\NodeQuery;
 use verbb\navigation\gql\types\generators\MenuGenerator;
 use verbb\navigation\gql\types\ProjectedNodeType;
-use verbb\navigation\helpers\BuilderUi;
 use verbb\navigation\helpers\Gql as GqlHelper;
 use verbb\navigation\helpers\ProjectConfigData;
 use verbb\navigation\integrations\NodeFeedMeElement;
@@ -29,6 +28,7 @@ use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
 use craft\console\Controller as ConsoleController;
 use craft\console\controllers\ResaveController;
+use craft\events\ConfigEvent;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RebuildConfigEvent;
@@ -38,10 +38,7 @@ use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
-use craft\events\SiteEvent;
-use craft\events\ConfigEvent;
 use craft\fieldlayoutelements\TitleField;
-use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\services\Categories;
@@ -54,11 +51,12 @@ use craft\services\Sites;
 use craft\services\Structures;
 use craft\services\UserPermissions;
 use craft\services\Volumes;
-use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
+use craft\web\UrlManager;
 
 use yii\base\Event;
 
+use craft\commerce\Plugin as CommercePlugin;
 use craft\feedme\events\RegisterFeedMeElementsEvent;
 use craft\feedme\services\Elements as FeedMeElements;
 use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
@@ -77,7 +75,7 @@ class Navigation extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.6';
+    public string $schemaVersion = '4.0.8';
     public string $minVersionRequired = '1.4.24';
 
 
@@ -219,8 +217,6 @@ class Navigation extends Plugin
 
         // Handle validation of max levels when dragging items across levels in structure
         Event::on(Structures::class, Structures::EVENT_BEFORE_MOVE_ELEMENT, [$this->getNodes(), 'onMoveElement']);
-
-        Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_CHIP_HTML, [BuilderUi::class, 'onDefineElementChipHtml']);
     }
 
     private function _registerProjectConfigEventHandlers(): void
@@ -409,7 +405,7 @@ class Navigation extends Plugin
                 return;
             }
 
-            $productType = \craft\commerce\Plugin::getInstance()->getProductTypes()->getProductTypeByUid($uid);
+            $productType = CommercePlugin::getInstance()->getProductTypes()->getProductTypeByUid($uid);
 
             if (!$productType && is_array($event->oldValue) && !empty($event->oldValue['id'])) {
                 $this->getNodes()->onDeleteProductType((int)$event->oldValue['id']);

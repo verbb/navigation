@@ -250,8 +250,11 @@ it('stages duplicated nodes for publish like newly added nodes', function() {
     $duplicate = Node::find()->id($duplicateId)->status(null)->one();
 
     expect($duplicate->getIsPendingPublish())->toBeTrue();
-    expect($duplicate->enabled)->toBeFalse();
-    expect($duplicate->getEnabledForSite())->toBeFalse();
+    // Multisite nodes keep the global flag enabled and control visibility per site.
+    expect($duplicate->enabled)->toBe($nav->getHasMultiSiteNodes());
+    // Craft stores single-site disabled state globally and keeps its site flag enabled.
+    expect($duplicate->getEnabledForSite())->toBe(!$nav->getHasMultiSiteNodes());
+    expect(Node::find()->id($duplicateId)->exists())->toBeFalse();
     expect($duplicate->getStatus())->toBe(Node::STATUS_PENDING_ADD);
 
     $session = $buildSessions->getOrCreate($nav->id, $siteId);

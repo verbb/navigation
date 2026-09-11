@@ -1,6 +1,9 @@
 <?php
 namespace verbb\navigation\deprecations;
 
+use verbb\navigation\models\MenuSettings;
+use verbb\navigation\models\NodeActiveState;
+
 use Craft;
 
 trait NodeDeprecations
@@ -14,12 +17,12 @@ trait NodeDeprecations
     // Public Methods
     // =========================================================================
 
-    public function getNav(): \verbb\navigation\models\MenuSettings
+    public function getNav(): MenuSettings
     {
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Node `getNav()` has been deprecated. Use `getMenu()` instead.');
 
-        return $this->_getMenu();
+        return $this->getMenuSettings();
     }
 
     public function getIsActive(): ?bool
@@ -36,7 +39,7 @@ trait NodeDeprecations
         Craft::$app->getDeprecator()->log(__METHOD__, 'Node `setIsActive()` has been deprecated. Active state is resolved by ActiveMatcher.');
 
         if ($this->_activeState === null) {
-            $this->_activeState = new \verbb\navigation\models\NodeActiveState();
+            $this->_activeState = new NodeActiveState();
             $this->_activeStateResolved = true;
         }
 
