@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.23 - 2026-09-13
+
+### Changed
+- Normalize plugin settings.
+
 ## 3.0.22 - 2026-05-14
 
 ### Fixed
