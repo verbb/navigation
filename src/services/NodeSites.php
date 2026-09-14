@@ -5,8 +5,11 @@ use verbb\navigation\elements\Node;
 use verbb\navigation\models\NodeSiteSettings as NodeSiteSettingsModel;
 use verbb\navigation\records\NodeSiteSettings as NodeSiteSettingsRecord;
 
+use Craft;
 use craft\base\Component;
 use craft\helpers\Db;
+
+use yii\base\UserException;
 
 class NodeSites extends Component
 {
@@ -143,7 +146,9 @@ class NodeSites extends Component
         $settings->urlSuffix = $node->urlSuffix;
         $settings->linkedElementSiteId = $node->getElementSiteId();
 
-        $this->saveSettings($settings);
+        if (!$this->saveSettings($settings)) {
+            throw new UserException(Craft::t('navigation', 'Couldn’t save node site settings.'));
+        }
     }
 
 

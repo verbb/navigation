@@ -288,7 +288,7 @@ it('uses the menu default when enabledForPropagatedSites is not set on the node'
     expect(nodeIsEnabledOnSite($secondaryReloaded))->toBeFalse();
 });
 
-it('enables propagated site copies when publishing a staged node with enabledForPropagatedSites false', function() {
+it('keeps propagated site copies disabled when publishing a staged node with enabledForPropagatedSites false', function() {
     Navigation::$plugin->getSettings()->builderLiveStructure = false;
 
     $secondarySite = NavigationFixtureFactory::existingSecondarySite();
@@ -324,17 +324,21 @@ it('enables propagated site copies when publishing a staged node with enabledFor
 
 it('limits language-propagated nodes to sites sharing the same language', function() {
     $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $sameLanguage = NavigationFixtureFactory::secondarySite('navigationTestSameLanguage');
+    $otherLanguage = NavigationFixtureFactory::secondarySite('navigationTestOtherLanguage');
+    $sameLanguage->language = $primarySite->language;
+    $otherLanguage->language = $primarySite->language === 'fr' ? 'de' : 'fr';
+    expect(Craft::$app->getSites()->saveSite($sameLanguage))->toBeTrue();
+    expect(Craft::$app->getSites()->saveSite($otherLanguage))->toBeTrue();
+
     $nav = NavigationFixtureFactory::menu(null, MenuSettings::PROPAGATION_METHOD_LANGUAGE);
     $node = NavigationFixtureFactory::customNode($nav, 'Lang item', '/lang-item', null, $primarySite->id);
+    $supported = array_map('intval', $node->getSupportedSites());
 
-    expect($node->getSupportedSites())->not->toBeEmpty();
-
-    foreach ($node->getSupportedSites() as $siteId) {
-        $site = Craft::$app->getSites()->getSiteById((int)$siteId);
-
-        expect($site)->not->toBeNull();
-        expect($site->language)->toBe($primarySite->language);
-    }
+    expect($supported)->toContain((int)$primarySite->id, (int)$sameLanguage->id)
+        ->not->toContain((int)$otherLanguage->id);
+    expect(Node::find()->id($node->id)->siteId($sameLanguage->id)->status(null)->one())->not->toBeNull();
+    expect(Node::find()->id($node->id)->siteId($otherLanguage->id)->status(null)->one())->toBeNull();
 });
 
 it('propagates node title overrides to sites in the same site group', function() {

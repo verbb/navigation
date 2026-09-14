@@ -10,12 +10,20 @@ use verbb\navigation\Navigation;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\elements\User;
 use craft\commerce\elements\Product as ProductElement;
 
 class ProductTypeDynamicSource extends DynamicSource
 {
     // Static Methods
     // =========================================================================
+
+    public static function canAuthorNode(Node $node, User $user): bool
+    {
+        $source = ProductTypeSettings::getProductTypeFromNode($node);
+
+        return $source !== null && \craft\commerce\Plugin::getInstance()->getProductTypes()->hasPermission($user, $source, 'commerce-editProductType');
+    }
 
     public static function handle(): string
     {

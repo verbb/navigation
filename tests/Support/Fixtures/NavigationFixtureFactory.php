@@ -202,6 +202,14 @@ class NavigationFixtureFactory
             'hasTitleField' => true,
         ]);
 
+        // Craft derives hasTitleField from the layout; the flag alone is not sufficient.
+        $layout = $entryType->getFieldLayout();
+        $layout->setTabs([new FieldLayoutTab([
+            'layout' => $layout,
+            'name' => 'Content',
+            'elements' => [['type' => \craft\fieldlayoutelements\entries\EntryTitleField::class]],
+        ])]);
+
         if (!$entries->saveEntryType($entryType)) {
             throw new RuntimeException('Failed creating entry type fixture: ' . json_encode($entryType->getErrors()));
         }

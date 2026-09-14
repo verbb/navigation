@@ -55,6 +55,22 @@ it('hard-deletes linked entry nodes when the entry is permanently deleted', func
     expect(Node::find()->id($nodeId)->status(null)->one())->toBeNull();
 });
 
+it('syncs node titles that still match their linked entry', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $entry = NavigationFixtureFactory::entries(1)[0];
+    $node = NavigationFixtureFactory::entryNode($nav, $entry);
+
+    expect($node->hasOverriddenTitle())->toBeFalse();
+
+    $entry->title = 'Updated entry title';
+    Craft::$app->getElements()->saveElement($entry);
+
+    $reloaded = Node::find()->id($node->id)->status(null)->one();
+
+    expect($reloaded?->title)->toBe('Updated entry title');
+    expect($reloaded?->hasOverriddenTitle())->toBeFalse();
+});
+
 it('does not sync overridden node titles when the linked entry title changes', function() {
     $nav = NavigationFixtureFactory::menu();
     $entry = NavigationFixtureFactory::entries(1)[0];
@@ -63,12 +79,37 @@ it('does not sync overridden node titles when the linked entry title changes', f
     $node->title = 'Custom menu label';
     Craft::$app->getElements()->saveElement($node);
 
+    expect($node->hasOverriddenTitle())->toBeTrue();
+
     $entry->title = 'Updated entry title';
     Craft::$app->getElements()->saveElement($entry);
 
     $reloaded = Node::find()->id($node->id)->status(null)->one();
 
     expect($reloaded?->title)->toBe('Custom menu label');
+    expect($reloaded?->hasOverriddenTitle())->toBeTrue();
+});
+
+it('resumes title syncing when a custom title is reset to the linked entry title', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $entry = NavigationFixtureFactory::entries(1)[0];
+    $node = NavigationFixtureFactory::entryNode($nav, $entry);
+
+    $node->title = 'Custom menu label';
+    Craft::$app->getElements()->saveElement($node);
+
+    $node->title = $entry->title;
+    Craft::$app->getElements()->saveElement($node);
+
+    expect($node->hasOverriddenTitle())->toBeFalse();
+
+    $entry->title = 'Another entry title';
+    Craft::$app->getElements()->saveElement($entry);
+
+    $reloaded = Node::find()->id($node->id)->status(null)->one();
+
+    expect($reloaded?->title)->toBe('Another entry title');
+    expect($reloaded?->hasOverriddenTitle())->toBeFalse();
 });
 
 it('removes dynamic section nodes when the source section is deleted', function() {

@@ -17,6 +17,7 @@ use verbb\navigation\gql\queries\NodeQuery;
 use verbb\navigation\gql\types\generators\MenuGenerator;
 use verbb\navigation\gql\types\ProjectedNodeType;
 use verbb\navigation\helpers\Gql as GqlHelper;
+use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\ProjectConfigData;
 use verbb\navigation\integrations\NodeFeedMeElement;
 use verbb\navigation\models\Settings;
@@ -24,13 +25,17 @@ use verbb\navigation\services\Menus;
 use verbb\navigation\variables\NavigationVariable;
 
 use Craft;
+use craft\base\Element;
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
 use craft\console\Controller as ConsoleController;
 use craft\console\controllers\ResaveController;
+use craft\controllers\StructuresController;
 use craft\events\ConfigEvent;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\DefineFieldLayoutFieldsEvent;
+use craft\events\ElementEvent;
+use craft\events\ModelEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterGqlQueriesEvent;
@@ -75,7 +80,7 @@ class Navigation extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.8';
+    public string $schemaVersion = '4.0.9';
     public string $minVersionRequired = '1.4.24';
 
 
@@ -194,11 +199,21 @@ class Navigation extends Plugin
     private function _registerEventHandlers(): void
     {
         // Allow elements to update our nodes
-        Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT, [$this->getNodes(), 'onSaveElement']);
+        Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT, [$this->getNodes(), 'onBeforeSaveElement']);
         Event::on(Elements::class, Elements::EVENT_BEFORE_DELETE_ELEMENT, [$this->getNodes(), 'onBeforeDeleteElement']);
+        // Apply linked-node changes after the source accepts the operation, while
+        // Craft's source transaction can still undo a failed node save or delete.
+        Event::on(Element::class, Element::EVENT_AFTER_SAVE, function(ModelEvent $event) {
+            $this->getNodes()->onSaveElement(new ElementEvent([
+                'element' => $event->sender,
+                'isNew' => $event->isNew,
+            ]));
+        });
+        Event::on(Element::class, Element::EVENT_AFTER_DELETE, function(Event $event) {
+            $this->getNodes()->onDeleteElement(new ElementEvent(['element' => $event->sender]));
+        });
         Event::on(Elements::class, Elements::EVENT_AFTER_SAVE_ELEMENT, [$this->getNodes(), 'onAfterSaveNode']);
         Event::on(Elements::class, Elements::EVENT_AFTER_SAVE_ELEMENT, [$this->getNodes(), 'onAfterSaveProjectedContent']);
-        Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [$this->getNodes(), 'onDeleteElement']);
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [$this->getNodes(), 'onAfterDeleteNode']);
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [$this->getNodes(), 'onAfterDeleteProjectedContent']);
         Event::on(Elements::class, Elements::EVENT_AFTER_RESTORE_ELEMENT, [$this->getNodes(), 'onRestoreElement']);
@@ -215,8 +230,12 @@ class Navigation extends Plugin
         Event::on(Sites::class, Sites::EVENT_AFTER_DELETE_SITE, [$this->getMenus(), 'pruneDeletedSite']);
         Event::on(Sites::class, Sites::EVENT_AFTER_SAVE_SITE, [$this->getMenus(), 'afterSaveSite']);
 
+        // Craft's structure capability is menu-wide; native requests still need current site/node grants.
+        Event::on(StructuresController::class, StructuresController::EVENT_BEFORE_ACTION, [MenuAuth::class, 'requireNativeStructureAction']);
+
         // Handle validation of max levels when dragging items across levels in structure
-        Event::on(Structures::class, Structures::EVENT_BEFORE_MOVE_ELEMENT, [$this->getNodes(), 'onMoveElement']);
+        Event::on(Structures::class, Structures::EVENT_BEFORE_INSERT_ELEMENT, [$this->getNodes(), 'onMoveElement']);
+        Event::on(Structures::class, Structures::EVENT_BEFORE_UPDATE_ELEMENT, [$this->getNodes(), 'onMoveElement']);
     }
 
     private function _registerProjectConfigEventHandlers(): void

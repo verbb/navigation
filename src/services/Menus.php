@@ -9,6 +9,7 @@ use verbb\navigation\elements\Menu;
 use verbb\navigation\elements\Node;
 use verbb\navigation\events\MenuEvent;
 use verbb\navigation\helpers\ElementPickerHelper;
+use verbb\navigation\helpers\MenuConfigTransaction;
 use verbb\navigation\helpers\MenuContentFieldLayout;
 use verbb\navigation\helpers\MenuPermissions;
 use verbb\navigation\models\MenuSettings;
@@ -587,29 +588,7 @@ class Menus extends Component
 
     public function deleteMenu(MenuSettings $nav): bool
     {
-        // Fire a 'beforeDeleteMenu' event
-        if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_MENU)) {
-            $this->trigger(self::EVENT_BEFORE_DELETE_MENU, new MenuEvent([
-                'menu' => $nav,
-            ]));
-        }
-
-        /* @var Settings $settings */
-        $settings = Navigation::$plugin->getSettings();
-
-        // There's some edge-cases where devs know what they're doing.
-        // See https://github.com/verbb/navigation/issues/88
-        if ($settings->bypassProjectConfig && !Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $event = new ConfigEvent([
-                'tokenMatches' => [$nav->uid],
-            ]);
-
-            $this->handleDeletedMenu($event);
-        } else {
-            Craft::$app->getProjectConfig()->remove(self::CONFIG_MENU_KEY . '.' . $nav->uid);
-        }
-
-        return true;
+        return MenuConfigTransaction::run(fn() => $this->_deleteMenu($nav));
     }
 
     public function handleDeletedMenu(ConfigEvent $event): void
@@ -657,7 +636,9 @@ class Menus extends Component
                 }
 
                 $node->deletedWithMenu = true;
-                $elementsService->deleteElement($node);
+                if (!$elementsService->deleteElement($node)) {
+                    throw new RuntimeException('Could not delete a menu node.');
+                }
             }
 
             // Delete the structure
@@ -682,7 +663,9 @@ class Menus extends Component
                 ->one();
 
             if ($menuElement) {
-                $elementsService->deleteElement($menuElement);
+                if (!$elementsService->deleteElement($menuElement)) {
+                    throw new RuntimeException('Could not delete the menu element.');
+                }
             }
 
             $transaction->commit();
@@ -858,6 +841,33 @@ class Menus extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _deleteMenu(MenuSettings $nav): bool
+    {
+        // Fire a 'beforeDeleteMenu' event
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_MENU)) {
+            $this->trigger(self::EVENT_BEFORE_DELETE_MENU, new MenuEvent([
+                'menu' => $nav,
+            ]));
+        }
+
+        /* @var Settings $settings */
+        $settings = Navigation::$plugin->getSettings();
+
+        // There's some edge-cases where devs know what they're doing.
+        // See https://github.com/verbb/navigation/issues/88
+        if ($settings->bypassProjectConfig && !Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $event = new ConfigEvent([
+                'tokenMatches' => [$nav->uid],
+            ]);
+
+            $this->handleDeletedMenu($event);
+        } else {
+            Craft::$app->getProjectConfig()->remove(self::CONFIG_MENU_KEY . '.' . $nav->uid);
+        }
+
+        return true;
+    }
 
     private function _menus(): MemoizableArray
     {

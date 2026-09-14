@@ -166,7 +166,8 @@ class MenuElementCollisionRepair
             'archived' => false,
             'dateCreated' => $menu['dateCreated'] ?: $now,
             'dateUpdated' => $now,
-            'dateDeleted' => null,
+            // Remapping identity must preserve a legacy menu's trash state.
+            'dateDeleted' => $menu['dateDeleted'],
             'deletedWithOwner' => null,
             'uid' => $menu['uid'],
         ])->execute();

@@ -11,6 +11,7 @@ use verbb\navigation\Navigation;
 
 it('creates menu elements that do not reclaim existing entry ids', function() {
     $entry = NavigationFixtureFactory::entries(1)[0];
+    expect($entry->title)->not->toBeEmpty();
     $entryId = (int)$entry->id;
     $entryTitle = $entry->title;
 
@@ -38,8 +39,9 @@ it('creates menu elements that do not reclaim existing entry ids', function() {
     expect(Entry::find()->id($entryId)->status(null)->one()?->title)->toBe($entryTitle);
 });
 
-it('allocates exclusive element ids for legacy menu collisions without retyping content', function() {
+it('allocates exclusive element ids for legacy menu collisions without retyping content', function(bool $trashed) {
     $entry = NavigationFixtureFactory::entries(1)[0];
+    expect($entry->title)->not->toBeEmpty();
     $menu = NavigationFixtureFactory::menu();
     $parent = NavigationFixtureFactory::customNode($menu, 'Legacy parent', '/parent');
     $child = NavigationFixtureFactory::customNode($menu, 'Legacy child', '/child', $parent);
@@ -48,6 +50,8 @@ it('allocates exclusive element ids for legacy menu collisions without retyping 
     try {
         $row = (new Query())->from('{{%navigation_menus}}')->where(['id' => $menu->id])->one();
         $row['id'] = $entry->id;
+        $row['dateDeleted'] = $trashed ? craft\helpers\Db::prepareDateForDb(new DateTime()) : null;
+        if ($trashed) $db->createCommand()->update('{{%structures}}', ['dateDeleted' => $row['dateDeleted']], ['id' => $menu->structureId])->execute();
         $db->createCommand()->insert('{{%navigation_menus}}', $row)->execute();
         $db->createCommand()->update('{{%navigation_nodes}}', ['menuId' => $entry->id], ['menuId' => $menu->id])->execute();
         $db->createCommand()->update('{{%navigation_menus_sites}}', ['menuId' => $entry->id], ['menuId' => $menu->id])->execute();
@@ -55,14 +59,15 @@ it('allocates exclusive element ids for legacy menu collisions without retyping 
         $db->createCommand()->delete(Table::ELEMENTS, ['id' => $menu->id])->execute();
         expect(Menu::find()->id($entry->id)->status(null)->one())->toBeNull();
         expect(verbb\navigation\helpers\MenuElementCollisionRepair::migrateLegacyMenuIds())->toBe(1);
-        $reloaded = Navigation::$plugin->getMenus()->getMenuByUid($menu->uid);
-        expect($reloaded->id)->not->toBe($entry->id);
-        expect(Menu::find()->id($reloaded->id)->one()?->uid)->toBe($menu->uid);
+        $newId = (int)(new Query())->select('id')->from('{{%navigation_menus}}')->where(['uid' => $menu->uid])->scalar();
+        expect($newId)->not->toBe($entry->id);
+        expect(Menu::find()->id($newId)->trashed($trashed)->status(null)->one()?->uid)->toBe($menu->uid);
+        expect(Menu::find()->id($newId)->trashed(!$trashed)->status(null)->one())->toBeNull();
         expect(Entry::find()->id($entry->id)->one()?->title)->toBe($entry->title);
-        expect(verbb\navigation\elements\Node::find()->id($child->id)->one()?->getParent()?->id)->toBe($parent->id);
+        if (!$trashed) expect(verbb\navigation\elements\Node::find()->id($child->id)->one()?->getParent()?->id)->toBe($parent->id);
         expect(verbb\navigation\helpers\MenuElementCollisionRepair::migrateLegacyMenuIds())->toBe(0);
     } finally {
         $transaction->rollBack();
         Navigation::$plugin->getMenus()->resetCache();
     }
-});
+})->with([false, true]);

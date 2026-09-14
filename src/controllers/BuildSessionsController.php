@@ -10,6 +10,7 @@ use Craft;
 use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
+use yii\web\ConflictHttpException;
 use yii\web\Response;
 
 use Throwable;
@@ -35,7 +36,7 @@ class BuildSessionsController extends Controller
         $applyStructure = (bool)$this->request->getBodyParam('applyStructure', false);
         $moves = $this->request->getBodyParam('moves', []);
 
-        if (!is_array($moves)) {
+        if (!is_array($moves) || ($applyStructure && $moves === [])) {
             throw new BadRequestHttpException('Invalid moves payload.');
         }
 
@@ -47,7 +48,8 @@ class BuildSessionsController extends Controller
 
         MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
-        $publish = fn() => $this->_publishSession($menuId, $siteId, $applyStructure, $moves);
+        $publish = fn() => BuilderStructureRevision::trackMutation($nav,
+            fn() => $this->_publishSession($menuId, $siteId, $applyStructure, $moves));
         if ($applyStructure && $moves !== []) {
             return BuilderStructureRevision::apply(
                 $nav, $this->request->getBodyParam('structureRevision'), $publish,
@@ -88,6 +90,8 @@ class BuildSessionsController extends Controller
 
         try {
             $buildSessions->discard($session);
+        } catch (ConflictHttpException $e) {
+            throw $e;
         } catch (Throwable $e) {
             Craft::error('Failed to discard menu build session: ' . $e->getMessage(), __METHOD__);
 
@@ -137,6 +141,8 @@ class BuildSessionsController extends Controller
 
         try {
             $buildSessions->unstageDelete($session, $node);
+        } catch (ConflictHttpException $e) {
+            throw $e;
         } catch (Throwable $e) {
             Craft::error('Failed to restore staged node deletion: ' . $e->getMessage(), __METHOD__);
 
@@ -166,6 +172,10 @@ class BuildSessionsController extends Controller
         $hasStructurePayload = $applyStructure && $moves !== [];
 
         if ($hasStructurePayload) {
+            MenuAuth::requireStructureMoves(
+                Navigation::$plugin->getMenus()->getMenuById($menuId), $siteId, $moves,
+                array_map('intval', array_column($session->stagedDeletes, 'nodeId')),
+            );
             $buildSessions->setStructureMoves($session, $moves);
             $session = $buildSessions->getSession($menuId, $siteId);
         }
@@ -179,6 +189,8 @@ class BuildSessionsController extends Controller
             }
         } catch (BadRequestHttpException $e) {
             return $this->asFailure($e->getMessage());
+        } catch (ConflictHttpException $e) {
+            throw $e;
         } catch (Throwable $e) {
             Craft::error('Failed to save menu build session: ' . $e->getMessage(), __METHOD__);
 

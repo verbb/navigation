@@ -13,6 +13,10 @@ it('round-trips a menu export and import with nested nodes', function() {
     $menu = NavigationFixtureFactory::menu('importExportRoundTrip');
 
     $parent = NavigationFixtureFactory::customNode($menu, 'About', '/about');
+    $parent->urlSuffix = '?from=menu';
+    $parent->newWindow = true;
+    $parent->classes = 'featured';
+    expect(Craft::$app->getElements()->saveElement($parent))->toBeTrue();
     NavigationFixtureFactory::customNode($menu, 'Team', '/about/team', $parent);
     NavigationFixtureFactory::customNode($menu, 'Contact', '/contact');
 
@@ -42,7 +46,15 @@ it('round-trips a menu export and import with nested nodes', function() {
 
     expect($about)->not->toBeNull()
         ->and($about->children)->toHaveCount(1)
-        ->and($about->children[0]->title)->toBe('Team');
+        ->and($about->children[0]->title)->toBe('Team')
+        ->and(array_column($importedNodes, 'title'))->toBe(['About', 'Contact'])
+        ->and($about->getRawUrl())->toBe('/about')
+        ->and($about->urlSuffix)->toBe('?from=menu')
+        ->and((bool)$about->newWindow)->toBeTrue()
+        ->and($about->classes)->toBe('featured')
+        ->and($about->children[0]->getRawUrl())->toBe('/about/team')
+        ->and((bool)$about->children[0]->newWindow)->toBeFalse()
+        ->and($importedNodes[1]->getRawUrl())->toBe('/contact');
 });
 
 it('imports with update action replacing an existing menu tree', function() {

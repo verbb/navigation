@@ -12,11 +12,19 @@ use verbb\navigation\Navigation;
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Asset as AssetElement;
+use craft\elements\User;
 
 class AssetVolumeDynamicSource extends DynamicSource
 {
     // Static Methods
     // =========================================================================
+
+    public static function canAuthorNode(Node $node, User $user): bool
+    {
+        $source = AssetVolumeSettings::getVolumeFromNode($node);
+
+        return $source !== null && $user->can('viewAssets:' . $source->uid);
+    }
 
     public static function handle(): string
     {

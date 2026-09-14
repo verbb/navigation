@@ -5,18 +5,30 @@ import { getCraft } from './utils/cp';
 // older response alone cannot prevent that older request from winning on the server.
 const requests = new Map<string, Promise<unknown>>();
 const serverStructureRevisions = new Map<string, string>();
+// Only call when the store adopts a server tree, never while retaining dirty structure.
+export function acceptStructureRevision(menuId: number, revision?: string): void {
+  if (revision) serverStructureRevisions.set(String(menuId), revision);
+  else serverStructureRevisions.delete(String(menuId));
+}
 function sendBuilderRequest(...args: Parameters<ReturnType<typeof getCraft>['sendActionRequest']>) {
   const data = args[2]?.data;
   const firstNode = (data?.nodes as Array<Record<string, unknown>> | undefined)?.[0];
   const key = String(data?.menuId ?? firstNode?.menuId ?? 'legacy');
   const previous = requests.get(key);
   const send = () => {
-    if (['navigation/builder/apply-structure', 'navigation/build-sessions/publish'].includes(args[1]) && data && serverStructureRevisions.has(key)) {
+    if (['navigation/builder/apply-structure', 'navigation/build-sessions/publish', 'navigation/builder/save-draft'].includes(args[1]) && data && serverStructureRevisions.has(key)) {
       data.structureRevision = serverStructureRevisions.get(key);
     }
     return getCraft().sendActionRequest(...args).then((response) => {
       const revision = response.data?.structureRevision;
-      if (typeof revision === 'string') serverStructureRevisions.set(key, revision);
+      const before = response.data?.previousStructureRevision;
+      const baseline = serverStructureRevisions.get(key);
+      const guardedMove = args[1] === 'navigation/builder/apply-structure'
+        && data?.structureRevision === baseline;
+      // A mutation may have followed someone else's save. Its new token is ours
+      // only when the before token matches the tree we were editing.
+      if (typeof revision === 'string' && baseline
+        && (before === baseline || guardedMove)) serverStructureRevisions.set(key, revision);
       return response;
     });
   };
@@ -39,9 +51,10 @@ export async function saveDraft(
   menuId: number,
   siteId: number,
   structureMoves: StructureMove[],
+  structureRevision?: string,
 ): Promise<Record<string, unknown>> {
   const response = await sendBuilderRequest('POST', 'navigation/builder/save-draft', {
-    data: { menuId, siteId, structureMoves },
+    data: { menuId, siteId, structureMoves, structureRevision },
   });
 
   return response.data;
@@ -88,12 +101,12 @@ export async function stageDelete(
   siteId: number,
   nodeId: number,
   withDescendants = false,
-): Promise<{ nodes?: BuilderNode[]; session?: Record<string, unknown>; message?: string }> {
+): Promise<{ structureRevision?: string; nodes?: BuilderNode[]; session?: Record<string, unknown>; message?: string }> {
   const response = await sendBuilderRequest('POST', 'navigation/builder/stage-delete', {
     data: { menuId, siteId, nodeId, withDescendants },
   });
 
-  return response.data as { nodes?: BuilderNode[]; session?: Record<string, unknown>; message?: string };
+  return response.data as { structureRevision?: string; nodes?: BuilderNode[]; session?: Record<string, unknown>; message?: string };
 }
 
 export async function setNodeStatus(
@@ -101,12 +114,12 @@ export async function setNodeStatus(
   siteId: number,
   nodeIds: number[],
   status: 'enabled' | 'disabled',
-): Promise<{ nodes?: BuilderNode[]; session?: BuilderState['session']; message?: string }> {
+): Promise<{ structureRevision?: string; nodes?: BuilderNode[]; session?: BuilderState['session']; message?: string }> {
   const response = await sendBuilderRequest('POST', 'navigation/builder/set-node-status', {
     data: { menuId, siteId, nodeIds, status },
   });
 
-  return response.data as { nodes?: BuilderNode[]; session?: BuilderState['session']; message?: string };
+  return response.data as { structureRevision?: string; nodes?: BuilderNode[]; session?: BuilderState['session']; message?: string };
 }
 
 export async function duplicateNodes(
@@ -138,12 +151,12 @@ export async function unstageDelete(
   menuId: number,
   siteId: number,
   nodeId: number,
-): Promise<{ nodes?: BuilderNode[]; session?: BuilderState['session']; changeCount?: number; message?: string }> {
+): Promise<{ structureRevision?: string; nodes?: BuilderNode[]; session?: BuilderState['session']; changeCount?: number; message?: string }> {
   const response = await sendBuilderRequest('POST', 'navigation/build-sessions/unstage-delete', {
     data: { menuId, siteId, nodeId },
   });
 
-  return response.data as { nodes?: BuilderNode[]; session?: BuilderState['session']; changeCount?: number; message?: string };
+  return response.data as { structureRevision?: string; nodes?: BuilderNode[]; session?: BuilderState['session']; changeCount?: number; message?: string };
 }
 
 export async function copyNodesToSite(

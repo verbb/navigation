@@ -7,6 +7,7 @@ use verbb\navigation\base\ProjectingNodeType;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\elements\Node as NodeElement;
+use verbb\navigation\helpers\NodeHierarchy;
 use verbb\navigation\models\ProjectedNode;
 
 use Craft;
@@ -223,58 +224,19 @@ class NodeRead extends Component
             $this->eagerLoadLinkedElements($nodes);
         }
 
-        $nodeStack = [];
-        $childrenByParentKey = [];
+        $childrenByParentKey = NodeHierarchy::childrenByParent($nodes);
         $childrenPlan = new EagerLoadPlan(['handle' => 'children', 'alias' => 'children']);
-        $nodesByKey = [];
 
         foreach ($nodes as $node) {
             if ($node instanceof NodeElement) {
-                $nodesByKey[$this->_nodeSiteKey($node)] = $node;
+                $node->setParent(null);
             }
         }
 
         foreach ($nodes as $node) {
-            if (!$node instanceof NodeElement) {
-                continue;
-            }
-
-            $level = max(1, (int)$node->level);
-
-            if ($level === 1) {
-                $node->setParent(null);
-            } else if (isset($nodeStack[$level - 1])) {
-                $parent = $nodeStack[$level - 1];
-
-                if ((int)$parent->siteId === (int)$node->siteId) {
-                    $node->setParent($parent);
-                    $childrenByParentKey[$this->_nodeSiteKey($parent)][] = $node;
-                } else {
-                    $node->setParent(null);
-                    $level = 1;
-                }
-            } else {
-                $parent = $node->getParent();
-
-                if (
-                    $parent instanceof NodeElement
-                    && (int)$parent->siteId === (int)$node->siteId
-                    && isset($nodesByKey[$this->_nodeSiteKey($parent)])
-                ) {
-                    $node->setParent($parent);
-                    $childrenByParentKey[$this->_nodeSiteKey($parent)][] = $node;
-                    $level = (int)$parent->level + 1;
-                } else {
-                    $node->setParent(null);
-                    $level = 1;
-                }
-            }
-
-            $nodeStack[$level] = $node;
-
-            foreach (array_keys($nodeStack) as $stackLevel) {
-                if ($stackLevel > $level) {
-                    unset($nodeStack[$stackLevel]);
+            if ($node instanceof NodeElement) {
+                foreach ($childrenByParentKey[$this->_nodeSiteKey($node)] ?? [] as $child) {
+                    $child->setParent($node);
                 }
             }
         }
@@ -454,8 +416,7 @@ class NodeRead extends Component
         $projectedChildren = $this->_projectedChildrenForNode($node);
 
         if ($projectedChildren !== []) {
-            $node->rgt = (int)$node->lft + 1 + (count($projectedChildren) * 2);
-
+            // Projections use synthetic positions; never overwrite stored structure bounds.
             foreach ($projectedChildren as $childIdx => $projectedNode) {
                 $projectedNode->lft = (int)$node->lft + 1 + ($childIdx * 2);
                 $projectedNode->rgt = $projectedNode->lft + 1;

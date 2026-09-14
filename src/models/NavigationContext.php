@@ -63,14 +63,14 @@ class NavigationContext extends Model
             $ancestors = [];
 
             if ($current->parent instanceof NodeElement) {
-                $ancestors = array_reverse($current->parent->getAncestors()->all());
+                $ancestors = $current->parent->getAncestors()->all();
                 $ancestors[] = $current->parent;
             }
 
             return $ancestors;
         }
 
-        return array_reverse($current->getAncestors()->all());
+        return $current->getAncestors()->all();
     }
 
     public function siblings(): array
@@ -94,6 +94,7 @@ class NavigationContext extends Model
         if (!$parent) {
             return NodeElement::find()
                 ->menuHandle($this->menuHandle)
+                ->siteId($current->siteId)
                 ->level(1)
                 ->all();
         }

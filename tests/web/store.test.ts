@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { useBuilderStore as store } from '../../src/web/src/store';
+import { acceptStructureRevision } from '../../src/web/src/api';
 import { baselineMoves } from '../../src/web/src/utils/tree';
 import type { BuilderNode, BuilderState } from '../../src/web/src/types';
 
@@ -10,6 +11,7 @@ const state = () => ({ nodes, stagingEnabled: true, session: { changeCount: 0, h
   menu: { maxLevels: null }, builderTabs: [] }) as unknown as BuilderState;
 const tick = () => new Promise(resolve => setImmediate(resolve));
 function reset(send: (method: string, action: string, options: any) => Promise<any>) {
+  acceptStructureRevision(1);
   (globalThis as any).window = { Craft: { t: (_: string, s: string) => s,
     cp: { displayNotice() {}, displayError() {} }, sendActionRequest: send } };
   (globalThis as any).confirm = () => true;
@@ -111,7 +113,8 @@ test('queued live structure writes carry forward the preceding successful revisi
     if (sent.length === 1) return new Promise(resolve => { complete = resolve; });
     return { data: { structureRevision: 'second' } };
   });
-  await api.fetchBuilderState(1, 1);
+  const loaded = await api.fetchBuilderState(1, 1);
+  api.acceptStructureRevision(1, loaded.structureRevision);
   const first = api.applyStructure(1, 1, [], 'baseline');
   const second = api.applyStructure(1, 1, [], 'baseline');
   complete({ data: { structureRevision: 'first' } });
@@ -125,12 +128,106 @@ test('publishing after duplication uses the returned structure baseline', async 
   let sent: string | undefined;
   reset(async (_method, action, options) => {
     if (action.endsWith('get-state')) return { data: { ...state(), structureRevision: 'before-duplicate' } };
-    if (action.endsWith('duplicate-nodes')) return { data: { structureRevision: 'after-duplicate' } };
+    if (action.endsWith('duplicate-nodes')) return { data: { previousStructureRevision: 'before-duplicate', structureRevision: 'after-duplicate' } };
     sent = options.data.structureRevision;
     return { data: {} };
   });
-  await api.fetchBuilderState(1, 1);
+  const loaded = await api.fetchBuilderState(1, 1);
+  api.acceptStructureRevision(1, loaded.structureRevision);
   await api.duplicateNodes(1, 1, [1]);
   await api.publishMenu(1, 1, true, [], 'before-duplicate');
   assert.equal(sent, 'after-duplicate');
+});
+
+
+for (const mutation of ['status', 'refresh', 'duplicate'] as const) {
+  test(`a ${mutation} response cannot bless a dirty tree after another editor saves`, async () => {
+    let revision = 'original';
+    let serverNodes = nodes;
+    let sent: any;
+    reset(async (_method, action, options) => {
+      if (action.endsWith('get-state')) return { data: { ...state(), nodes: serverNodes, structureRevision: revision } };
+      if (action.endsWith('publish')) { sent = { ...options.data }; return { data: {} }; }
+      return { data: { nodes: serverNodes, session: null, previousStructureRevision: revision, structureRevision: revision } };
+    });
+    await store.getState().init(1, 1);
+    store.getState().setNodes([nodes[1], nodes[0], nodes[2]]);
+    revision = 'other-editor';
+    serverNodes = [nodes[2], nodes[0], nodes[1]];
+    if (mutation === 'refresh') await store.getState().refresh();
+    else if (mutation === 'duplicate') await store.getState().duplicateNode(1);
+    else {
+      store.getState().setSelectedNodeIds([1]);
+      await store.getState().setSelectedNodesStatus('disabled');
+    }
+    await store.getState().publish();
+    assert.equal(sent.structureRevision, 'original');
+    assert.deepEqual(sent.moves.map((move: any) => move.elementId), [2, 1, 3]);
+  });
+}
+
+test('reopening a saved draft retains the revision its ordering was based on', async () => {
+  let sent: any;
+  reset(async (_method, action, options) => {
+    if (action.endsWith('get-state')) return { data: { ...state(), nodes: [nodes[2], nodes[0], nodes[1]],
+      structureRevision: 'other-editor', session: { ...state().session, hasStructureMoves: true,
+        structureRevision: 'draft-baseline', structureMoves: baselineMoves([nodes[1], nodes[0], nodes[2]]) } } };
+    sent = { ...options.data };
+    return { data: {} };
+  });
+  await store.getState().init(1, 1);
+  await store.getState().publish();
+  assert.equal(sent.structureRevision, 'draft-baseline');
+});
+
+test('an older draft with no known baseline cannot adopt the current revision', async () => {
+  let sent: any;
+  reset(async (_method, action, options) => {
+    if (action.endsWith('get-state')) return { data: { ...state(), structureRevision: 'current',
+      session: { ...state().session, hasStructureMoves: true, structureMoves: baselineMoves([nodes[1], nodes[0], nodes[2]]) } } };
+    sent = { ...options.data };
+    return { data: {} };
+  });
+  await store.getState().init(1, 1);
+  await store.getState().publish();
+  assert.equal(sent.structureRevision, '');
+});
+
+test('saving a draft sends the baseline retained across an unrelated server change', async () => {
+  let revision = 'original';
+  let sent: any;
+  reset(async (_method, action, options) => {
+    if (action.endsWith('get-state')) return { data: { ...state(), structureRevision: revision } };
+    sent = { ...options.data };
+    return { data: {} };
+  });
+  await store.getState().init(1, 1);
+  store.getState().setNodes([nodes[1], nodes[0], nodes[2]]);
+  revision = 'other-editor';
+  await store.getState().refresh();
+  await store.getState().saveDraft();
+  assert.equal(sent.structureRevision, 'original');
+});
+
+test('rejected publication preserves edits and permits a successful retry', async () => {
+  let fail = true;
+  const saved = [nodes[2], nodes[0], nodes[1]];
+  reset(async (_method, action) => {
+    if (action.endsWith('get-state')) return { data: { ...state(), nodes: saved } };
+    if (fail) throw new Error('Rejected save');
+    return { data: {} };
+  });
+  const baseline = store.getState().baselineStructureMoves;
+  store.getState().setNodes(saved);
+  await store.getState().publish();
+  assert.deepEqual(store.getState().nodes, saved);
+  assert.deepEqual(store.getState().baselineStructureMoves, baseline);
+  assert.equal(store.getState().structureDirty, true);
+  assert.equal(store.getState().publishing, false);
+  assert.equal(store.getState().saveFeedbackState, 'error');
+  fail = false;
+  await store.getState().publish();
+  assert.deepEqual(ids(), [3, 1, 2]);
+  assert.equal(store.getState().structureDirty, false);
+  assert.equal(store.getState().publishing, false);
 });

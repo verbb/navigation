@@ -18,6 +18,7 @@ use craft\web\Response as CraftResponse;
 
 use yii\web\BadRequestHttpException;
 use yii\web\ConflictHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -27,6 +28,24 @@ class BuilderController extends Controller
 {
     // Public Methods
     // =========================================================================
+
+    public function actionStageDelete(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+        [, , $menu] = $this->_requireBuilderMenuContext();
+
+        return BuilderStructureRevision::trackMutation($menu, fn() => $this->_stageDelete());
+    }
+
+    public function actionDuplicateNodes(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+        [, , $menu] = $this->_requireBuilderMenuContext();
+
+        return BuilderStructureRevision::trackMutation($menu, fn() => $this->_duplicateNodes());
+    }
 
     public function actionGetState(): Response
     {
@@ -81,7 +100,8 @@ class BuilderController extends Controller
         }
 
         $session = $buildSessions->getOrCreate($menuId, $siteId);
-        $buildSessions->saveDraft($session, $structureMoves, $menuContentDraft);
+        $revision = $this->request->getBodyParam('structureRevision');
+        $buildSessions->saveDraft($session, $structureMoves, $menuContentDraft, is_string($revision) ? $revision : null);
 
         $session = $buildSessions->getSession($menuId, $siteId);
 
@@ -128,6 +148,7 @@ class BuilderController extends Controller
 
         try {
             BuilderStructureRevision::requireCurrent($nav, $this->request->getBodyParam('structureRevision'));
+            MenuAuth::requireStructureMoves($nav, $siteId, $moves);
             $buildSessions->applyStructureMoves($nav, $siteId, $moves);
             $structureRevision = BuilderStructureRevision::get($nav);
             $transaction->commit();
@@ -152,101 +173,6 @@ class BuilderController extends Controller
         ]);
     }
 
-    public function actionStageDelete(): Response
-    {
-        $this->requirePostRequest();
-        $this->requireAcceptsJson();
-
-        $buildSessions = Navigation::$plugin->getBuildSessions();
-        $menuId = (int)$this->request->getRequiredBodyParam('menuId');
-        $siteId = (int)$this->request->getRequiredBodyParam('siteId');
-        $nodeId = (int)$this->request->getRequiredBodyParam('nodeId');
-        $withDescendants = (bool)$this->request->getBodyParam('withDescendants', false);
-
-        $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
-
-        if (!$nav) {
-            throw new BadRequestHttpException("Invalid menu ID: $menuId");
-        }
-
-        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
-
-        $node = Node::find()
-            ->id($nodeId)
-            ->siteId($siteId)
-            ->menuId($menuId)
-            ->status(null)
-            ->one();
-
-        if (!$node || $node->getIsPendingDelete()) {
-            return $this->asFailure(Craft::t('navigation', 'Couldn’t stage node for deletion.'));
-        }
-
-        // Live Structure Saves: no build session — hard-delete immediately.
-        if (!$buildSessions->isStagingEnabled()) {
-            $elementsService = Craft::$app->getElements();
-            $toDelete = [$node];
-
-            if ($withDescendants) {
-                $descendants = Node::find()
-                    ->descendantOf($node)
-                    ->siteId($siteId)
-                    ->menuId($menuId)
-                    ->status(null)
-                    ->orderBy(['structureelements.lft' => SORT_DESC])
-                    ->all();
-
-                $toDelete = array_merge($descendants, $toDelete);
-            }
-
-            $transaction = Craft::$app->getDb()->beginTransaction();
-
-            try {
-                foreach ($toDelete as $deleteNode) {
-                    if (!$elementsService->deleteElement($deleteNode, true)) {
-                        throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t delete node.'));
-                    }
-                }
-
-                $transaction->commit();
-            } catch (Throwable $e) {
-                $transaction->rollBack();
-                Craft::error('Failed to delete node in live structure mode: ' . $e->getMessage(), __METHOD__);
-
-                return $this->asFailure(Craft::t('navigation', 'Couldn’t delete node.'));
-            }
-
-            Navigation::$plugin->getNavigationCache()->invalidateMenuSite($nav->uid, $siteId);
-
-            return $this->asSuccess(Craft::t('navigation', 'Node deleted.'), [
-                'structureRevision' => BuilderStructureRevision::get($nav),
-                'session' => null,
-                'nodes' => Navigation::$plugin->getBuilderState()->nodesToArray(
-                    Node::find()->menuId($menuId)->siteId($siteId)->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all(),
-                ),
-            ]);
-        }
-
-        $session = $buildSessions->getOrCreate($menuId, $siteId);
-
-        try {
-            $buildSessions->stageDelete($session, $node, $withDescendants);
-        } catch (Throwable $e) {
-            Craft::error('Failed to stage node deletion: ' . $e->getMessage(), __METHOD__);
-
-            return $this->asFailure(Craft::t('navigation', 'Couldn’t stage node for deletion.'));
-        }
-
-        $session = $buildSessions->getSession($menuId, $siteId);
-
-        return $this->asSuccess(Craft::t('navigation', 'Node staged for deletion. Save menu to apply.'), [
-            'structureRevision' => BuilderStructureRevision::get($nav),
-            'session' => $session ? $buildSessions->sessionToArray($session) : null,
-            'nodes' => Navigation::$plugin->getBuilderState()->nodesToArray(
-                Node::find()->menuId($menuId)->siteId($siteId)->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all(),
-            ),
-        ]);
-    }
 
     public function actionMenuContentSlideout(): Response
     {
@@ -401,6 +327,14 @@ class BuilderController extends Controller
             ->siteId($siteId)
             ->status(null);
 
+        // Craft's bulk action silently skips unauthorized elements. Reject the
+        // whole request here so pending work is neither published nor reported saved.
+        foreach ($query->all() as $node) {
+            if (!Craft::$app->getElements()->canSave($node)) {
+                throw new ForbiddenHttpException('User is not authorized to update this node.');
+            }
+        }
+
         if (!$action->performAction($query)) {
             return $this->asFailure($action->getMessage() ?? Craft::t('app', 'Could not update status due to a validation error.'));
         }
@@ -412,7 +346,108 @@ class BuilderController extends Controller
         );
     }
 
-    public function actionDuplicateNodes(): Response
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _stageDelete(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
+        $buildSessions = Navigation::$plugin->getBuildSessions();
+        $menuId = (int)$this->request->getRequiredBodyParam('menuId');
+        $siteId = (int)$this->request->getRequiredBodyParam('siteId');
+        $nodeId = (int)$this->request->getRequiredBodyParam('nodeId');
+        $withDescendants = (bool)$this->request->getBodyParam('withDescendants', false);
+
+        $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
+
+        if (!$nav) {
+            throw new BadRequestHttpException("Invalid menu ID: $menuId");
+        }
+
+        MenuAuth::requireManageMenuSite($this, $nav, $siteId);
+
+        $node = Node::find()
+            ->id($nodeId)
+            ->siteId($siteId)
+            ->menuId($menuId)
+            ->status(null)
+            ->one();
+
+        if (!$node || $node->getIsPendingDelete()) {
+            return $this->asFailure(Craft::t('navigation', 'Couldn’t stage node for deletion.'));
+        }
+
+        // Live Structure Saves: no build session — hard-delete immediately.
+        if (!$buildSessions->isStagingEnabled()) {
+            $elementsService = Craft::$app->getElements();
+            $toDelete = [$node];
+
+            if ($withDescendants) {
+                $descendants = Node::find()
+                    ->descendantOf($node)
+                    ->siteId($siteId)
+                    ->menuId($menuId)
+                    ->status(null)
+                    ->orderBy(['structureelements.lft' => SORT_DESC])
+                    ->all();
+
+                $toDelete = array_merge($descendants, $toDelete);
+            }
+
+            $transaction = Craft::$app->getDb()->beginTransaction();
+
+            try {
+                foreach ($toDelete as $deleteNode) {
+                    if (!$elementsService->deleteElement($deleteNode, true)) {
+                        throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t delete node.'));
+                    }
+                }
+
+                $transaction->commit();
+            } catch (Throwable $e) {
+                $transaction->rollBack();
+                Craft::error('Failed to delete node in live structure mode: ' . $e->getMessage(), __METHOD__);
+
+                return $this->asFailure(Craft::t('navigation', 'Couldn’t delete node.'));
+            }
+
+            Navigation::$plugin->getNavigationCache()->invalidateMenuSite($nav->uid, $siteId);
+
+            return $this->asSuccess(Craft::t('navigation', 'Node deleted.'), [
+                'structureRevision' => BuilderStructureRevision::get($nav),
+                'session' => null,
+                'nodes' => Navigation::$plugin->getBuilderState()->nodesToArray(
+                    Node::find()->menuId($menuId)->siteId($siteId)->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all(),
+                ),
+            ]);
+        }
+
+        $session = $buildSessions->getOrCreate($menuId, $siteId);
+
+        try {
+            $buildSessions->stageDelete($session, $node, $withDescendants);
+        } catch (Throwable $e) {
+            Craft::error('Failed to stage node deletion: ' . $e->getMessage(), __METHOD__);
+
+            return $this->asFailure(Craft::t('navigation', 'Couldn’t stage node for deletion.'));
+        }
+
+        $session = $buildSessions->getSession($menuId, $siteId);
+
+        return $this->asSuccess(Craft::t('navigation', 'Node staged for deletion. Save menu to apply.'), [
+            'structureRevision' => BuilderStructureRevision::get($nav),
+            'session' => $session ? $buildSessions->sessionToArray($session) : null,
+            'nodes' => Navigation::$plugin->getBuilderState()->nodesToArray(
+                Node::find()->menuId($menuId)->siteId($siteId)->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all(),
+            ),
+        ]);
+    }
+
+    private function _duplicateNodes(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -428,6 +463,10 @@ class BuilderController extends Controller
         if ($deep && (int)$nav->maxLevels === 1) {
             throw new BadRequestHttpException('This menu does not support nested nodes.');
         }
+
+        MenuAuth::requireDuplicatableNodes(
+            Node::find()->id($nodeIds)->menuId($menuId)->siteId($siteId)->status(null)->all(), $deep,
+        );
 
         $buildSessions = Navigation::$plugin->getBuildSessions();
         $deferPublish = $buildSessions->isStagingEnabled();
@@ -490,10 +529,6 @@ class BuilderController extends Controller
             $action->getMessage() ?? Craft::t('app', 'Elements duplicated.'),
         );
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private function _requireBuilderMenuContext(): array
     {

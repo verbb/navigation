@@ -3,6 +3,7 @@ import type { BuilderNode, BuilderState, BuilderTab, NodeStatusFilter, Structure
 import type { DropPosition } from './utils/dropTarget';
 import {
   fetchBuilderState,
+  acceptStructureRevision,
   saveDraft,
   publishMenu,
   applyStructure,
@@ -166,6 +167,9 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     try {
       const state = await fetchBuilderState(menuId, siteId);
       if (!isCurrent()) return;
+      // A restored draft retains its original baseline, including an unknown legacy baseline.
+      if (state.session?.structureMoves?.length) state.structureRevision = state.session.structureRevision ?? '';
+      acceptStructureRevision(menuId, state.structureRevision);
       let nodes = state.nodes;
 
       if (state.session?.structureMoves?.length) {
@@ -228,6 +232,15 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       } else {
         nodes = state.nodes;
         nextDirty = Boolean(state.session?.hasStructureMoves);
+      }
+
+      if (resetStructure || (!structureDirty && startingRevision === structureRevision && !state.session?.hasStructureMoves)) {
+        acceptStructureRevision(menuId, state.structureRevision);
+      } else if (!structureDirty && startingRevision === structureRevision && state.session?.structureMoves?.length) {
+        state.structureRevision = state.session.structureRevision ?? '';
+        acceptStructureRevision(menuId, state.structureRevision);
+      } else {
+        state.structureRevision = get().state?.structureRevision ?? state.structureRevision;
       }
 
       set({
@@ -500,7 +513,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
     try {
       const moves = get().getStructureMoves();
-      const data = await saveDraft(menuId, siteId, moves);
+      const data = await saveDraft(menuId, siteId, moves, get().state?.structureRevision);
       if (!isCurrent()) return;
 
       displayNotice((data.message as string) ?? t('Draft saved.'));
@@ -599,6 +612,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
       if (data.nodes) {
         get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty || startingRevision !== structureRevision);
+        if (!get().structureDirty && data.structureRevision) acceptStructureRevision(menuId, data.structureRevision);
       } else {
         await get().refresh();
         if (!isCurrent()) return;
@@ -658,6 +672,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
         if (data.nodes) {
           get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty || startingRevision !== structureRevision);
+          if (!get().structureDirty && data.structureRevision) acceptStructureRevision(menuId, data.structureRevision);
         } else {
           await get().refresh();
           if (!isCurrent()) return;
@@ -701,6 +716,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
       if (data.nodes) {
         get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty || startingRevision !== structureRevision);
+        if (!get().structureDirty && data.structureRevision) acceptStructureRevision(menuId, data.structureRevision);
       } else {
         await get().refresh();
         if (!isCurrent()) return;
@@ -815,6 +831,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
       if (data.nodes) {
         get().applyMutationNodes(previousNodes, data.nodes, data.session, structureDirty || startingRevision !== structureRevision);
+        if (!get().structureDirty && data.structureRevision) acceptStructureRevision(menuId, data.structureRevision);
       } else {
         await get().refresh();
         if (!isCurrent()) return;

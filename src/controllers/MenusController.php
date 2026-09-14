@@ -11,6 +11,7 @@ use verbb\navigation\fieldlayoutelements\CustomAttributesField;
 use verbb\navigation\fieldlayoutelements\NewWindowField;
 use verbb\navigation\fieldlayoutelements\UrlSuffixField;
 use verbb\navigation\helpers\MenuAuth;
+use verbb\navigation\helpers\MenuConfigTransaction;
 use verbb\navigation\helpers\MenuContentFieldLayout;
 use verbb\navigation\helpers\MenuPermissions;
 use verbb\navigation\helpers\Plugin as NavigationPluginHelper;
@@ -19,12 +20,12 @@ use verbb\navigation\models\MenuSiteSettings;
 use verbb\navigation\models\Settings;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 use craft\models\FieldLayoutTab;
 use craft\web\Controller;
 
@@ -32,7 +33,7 @@ use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
-use Throwable;
+use RuntimeException;
 
 class MenusController extends Controller
 {
@@ -323,30 +324,74 @@ class MenusController extends Controller
         MenuAuth::requireManageMenu($this, $nav);
         MenuAuth::requireCreateMenus($this);
 
-        $newNav = clone $nav;
-        $newNav->id = null;
-        $newNav->handle = $newNav->handle . rand();
-        $newNav->structureId = null;
-        $newNav->uid = null;
-        $newNav->fieldLayoutId = null;
-        $newNav->setSiteSettings($nav->getSiteSettings());
-
-        if (!Navigation::$plugin->getMenus()->saveMenu($newNav)) {
-            $this->setFailFlash(Craft::t('navigation', 'Unable to duplicate menu.'));
-
-            return null;
+        // A menu copy can include propagated content from every enabled site.
+        foreach ($nav->getSiteIds() as $siteId) {
+            MenuAuth::requireManageMenuSite($this, $nav, (int)$siteId);
+        }
+        $sources = NodeElement::find()->menuId($nav->id)->site('*')->unique()
+            ->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all();
+        MenuAuth::requireDuplicatableNodes($sources);
+        foreach ($sources as $source) {
+            if ($source->getIsPendingPublish() || $source->getIsPendingDelete()) {
+                throw new BadRequestHttpException('Save or discard pending changes before duplicating this menu.');
+            }
         }
 
-        $elements = NodeElement::find()
-            ->menuId($nav->id)
-            ->level(1)
-            ->status(null)
-            ->all();
+        return MenuConfigTransaction::run(function() use ($nav, $sources) {
+            $newNav = clone $nav;
+            $newNav->id = null;
+            $newNav->handle .= rand();
+            $newNav->structureId = null;
+            $newNav->uid = null;
+            $newNav->fieldLayoutId = null;
+            $newNav->menuFieldLayoutId = null;
+            $newNav->setSiteSettings($nav->getSiteSettings());
 
-        $newAttributes = ['menuId' => $newNav->id];
-        $this->_duplicateElements($elements, $newAttributes);
+            // Independent layouts prevent edits/deletion of the copy affecting its source.
+            // Rehydrate before resetting UUIDs so nested tabs/elements are not shared objects.
+            $nodeLayout = FieldLayout::createFromConfig($nav->getFieldLayout()->getConfig() ?? []);
+            $nodeLayout->type = NodeElement::class;
+            $nodeLayout->resetUids();
+            $newNav->setFieldLayout($nodeLayout);
+            $menuLayout = FieldLayout::createFromConfig($nav->getMenuFieldLayout()->getConfig() ?? []);
+            $menuLayout->type = Menu::class;
+            $menuLayout->resetUids();
+            $newNav->setMenuFieldLayout($menuLayout);
 
-        return $this->asSuccess();
+            if (!Navigation::$plugin->getMenus()->saveMenu($newNav)) {
+                throw new RuntimeException('Unable to duplicate menu.');
+            }
+
+            $newNav = Navigation::$plugin->getMenus()->getMenuById($newNav->id);
+
+            // Snapshot the source traversal before writing; copies must never become source children.
+            $copies = [];
+            $structures = Craft::$app->getStructures();
+            foreach ($sources as $source) {
+                $copy = Craft::$app->getElements()->duplicateElement($source, ['menuId' => $newNav->id, 'fieldLayoutId' => $newNav->fieldLayoutId, 'parentId' => null, 'parent' => null], false);
+                $parent = $copies[$source->getParentId()] ?? null;
+                $placed = $parent
+                    ? $structures->append($newNav->structureId, $copy, $parent)
+                    : $structures->appendToRoot($newNav->structureId, $copy);
+                if (!$placed) {
+                    throw new RuntimeException('Unable to duplicate menu structure.');
+                }
+                $copies[$source->id] = $copy;
+            }
+
+            foreach ($nav->getSiteIds() as $siteId) {
+                $source = Menu::find()->id($nav->id)->siteId($siteId)->status(null)->one();
+                $target = Menu::find()->id($newNav->id)->siteId($siteId)->status(null)->one();
+                if ($source && $target) {
+                    $target->setFieldValues($source->getFieldValues());
+                    if (!Craft::$app->getElements()->saveElement($target)) {
+                        throw new RuntimeException('Unable to duplicate menu content.');
+                    }
+                }
+            }
+
+            return $this->asSuccess();
+        });
     }
 
 
@@ -358,44 +403,4 @@ class MenusController extends Controller
         return Navigation::$plugin->getMenus()->saveMenuContentFromRequest((int)$nav->id);
     }
 
-    private function _duplicateElements(array $elements, array $newAttributes = [], array &$duplicatedElementIds = [], ?ElementInterface $newParent = null): void
-    {
-        $elementsService = Craft::$app->getElements();
-        $structuresService = Craft::$app->getStructures();
-
-        foreach ($elements as $element) {
-            // Make sure this element wasn't already duplicated, which could
-            // happen if it's the descendant of a previously duplicated element
-            if (isset($duplicatedElementIds[$element->id])) {
-                continue;
-            }
-
-            try {
-                $duplicate = $elementsService->duplicateElement($element, $newAttributes);
-            } catch (Throwable) {
-                // Validation error
-                continue;
-            }
-
-            $duplicatedElementIds[$element->id] = true;
-
-            if ($newParent) {
-                // Append it to the duplicate of $element’s parent
-                $structuresService->append($element->structureId, $duplicate, $newParent);
-            } elseif ($element->structureId) {
-                // Place it right next to the original element
-                $structuresService->moveAfter($element->structureId, $duplicate, $element);
-            }
-
-            // Don't use $element->children() here in case its lft/rgt values have changed
-            $children = $element::find()
-                ->siteId($element->siteId)
-                ->descendantOf($element->id)
-                ->descendantDist(1)
-                ->status(null)
-                ->all();
-
-            $this->_duplicateElements($children, $newAttributes, $duplicatedElementIds, $duplicate);
-        }
-    }
 }

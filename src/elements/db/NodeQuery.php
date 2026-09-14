@@ -8,6 +8,7 @@ use verbb\navigation\models\MenuSettings;
 
 use Craft;
 use craft\elements\db\ElementQuery;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 
 class NodeQuery extends ElementQuery
@@ -118,7 +119,7 @@ class NodeQuery extends ElementQuery
         return $this->handle($value);
     }
 
-    public function hasUrl(bool $value = false): static
+    public function hasUrl(bool $value = true): static
     {
         $this->hasUrl = $value;
         return $this;
@@ -256,7 +257,14 @@ class NodeQuery extends ElementQuery
         }
         unset($row);
 
-        $rows = parent::populate($rows);
+        // Hierarchy/projection traversal needs an ordered list. Apply caller keys only afterward.
+        $indexBy = $this->indexBy;
+        $this->indexBy = null;
+        try {
+            $rows = parent::populate($rows);
+        } finally {
+            $this->indexBy = $indexBy;
+        }
 
         if ($rows) {
             foreach ($rows as $node) {
@@ -309,7 +317,7 @@ class NodeQuery extends ElementQuery
             }
         }
 
-        return $rows;
+        return $indexBy !== null ? ArrayHelper::index($rows, $indexBy) : $rows;
     }
 
 
@@ -380,24 +388,13 @@ class NodeQuery extends ElementQuery
         if ($this->hasUrl) {
             $this->subQuery->andWhere(['or',
                 ['not', ['navigation_nodes.elementId' => null]],
-                ['not', ['node_sites.url' => null]],
-                ['not', ['node_sites.url' => '']],
+                ['and', ['not', ['node_sites.url' => null]], ['not', ['node_sites.url' => '']]],
             ]);
         }
 
         if (!parent::beforePrepare()) {
             return false;
         }
-
-        // Subquery: Craft may still emit custom joins before elements_sites, so use a
-        // concrete site id there. Outer query correlates to each row's elements_sites.siteId
-        // so site('*') / multi-site reads keep per-locale link data (A09).
-        $fallbackSiteId = $this->resolveFallbackSiteId();
-
-        $this->subQuery->leftJoin(
-            '{{%navigation_nodes_sites}} node_sites',
-            '[[node_sites.nodeId]] = [[navigation_nodes.id]] AND [[node_sites.siteId]] = ' . $fallbackSiteId,
-        );
 
         $this->query->leftJoin(
             '{{%navigation_nodes_sites}} node_sites',
@@ -409,6 +406,13 @@ class NodeQuery extends ElementQuery
 
     protected function afterPrepare(): bool
     {
+        // Craft has now joined elements_sites into the filtering subquery. Correlate
+        // each locale here as well as in hydration, including site('*') and site arrays.
+        $this->subQuery->leftJoin(
+            '{{%navigation_nodes_sites}} node_sites',
+            '[[node_sites.nodeId]] = [[navigation_nodes.id]] AND [[node_sites.siteId]] = [[elements_sites.siteId]]',
+        );
+
         $this->query->leftJoin(
             '{{%elements_sites}} element_item_sites',
             '[[navigation_nodes.elementId]] = [[element_item_sites.elementId]] AND [[element_item_sites.siteId]] = COALESCE([[node_sites.linkedElementSiteId]], [[elements_sites.siteId]])',
@@ -417,19 +421,4 @@ class NodeQuery extends ElementQuery
         return parent::afterPrepare();
     }
 
-    /**
-     * Site id used only for subquery joins where elements_sites is not yet addressable.
-     */
-    protected function resolveFallbackSiteId(): int
-    {
-        if ($this->siteId !== null && $this->siteId !== '*') {
-            if (is_array($this->siteId)) {
-                return (int)reset($this->siteId);
-            }
-
-            return (int)$this->siteId;
-        }
-
-        return (int)Craft::$app->getSites()->getCurrentSite()->id;
-    }
 }

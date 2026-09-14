@@ -49,6 +49,7 @@ const ROOT_NODE: BuilderNode = {
   enabledForSite: true,
   hasDescendants: true,
   isElementLinked: false,
+  hasTitleOverride: false,
 };
 
 export function NodeTree() {

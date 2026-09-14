@@ -91,14 +91,8 @@ class m260627_000000_nodes_sites_and_menu_elements extends Migration
             return;
         }
 
-        $existing = (new \craft\db\Query())
-            ->from(['{{%navigation_nodes_sites}}'])
-            ->exists($this->db);
-
-        if ($existing) {
-            return;
-        }
-
+        // MySQL DDL can commit an interrupted migration's earlier writes. Resume
+        // missing pairs rather than treating any existing row as a complete backfill.
         $nodeSiteRows = (new \craft\db\Query())
             ->select([
                 'es.elementId AS nodeId',
@@ -110,6 +104,8 @@ class m260627_000000_nodes_sites_and_menu_elements extends Migration
             ->from(['es' => '{{%elements_sites}}'])
             ->innerJoin(['n' => '{{%navigation_nodes}}'], '[[n.id]] = [[es.elementId]]')
             ->innerJoin(['e' => '{{%elements}}'], '[[e.id]] = [[n.id]]')
+            ->leftJoin(['ns' => '{{%navigation_nodes_sites}}'], '[[ns.nodeId]] = [[n.id]] AND [[ns.siteId]] = [[es.siteId]]')
+            ->where(['ns.id' => null])
             ->all($this->db);
 
         $now = Db::prepareDateForDb(new \DateTime());
@@ -228,11 +224,19 @@ class m260627_000000_nodes_sites_and_menu_elements extends Migration
             return;
         }
 
-        Db::update('{{%elements_sites}}', ['slug' => null], [
-            'and',
-            ['elementId' => $nodeIds],
-            '[[slug]] REGEXP \'^[0-9]+$\'',
-        ]);
+        $rows = (new \craft\db\Query())
+            ->select(['id', 'slug'])
+            ->from('{{%elements_sites}}')
+            ->where(['elementId' => $nodeIds])
+            ->all($this->db);
+
+        $ids = array_column(array_filter($rows, static fn(array $row) =>
+            $row['slug'] !== null && ctype_digit((string)$row['slug'])
+        ), 'id');
+
+        if ($ids !== []) {
+            Db::update('{{%elements_sites}}', ['slug' => null], ['id' => $ids]);
+        }
     }
 
     private function _migrateMenuElements(): void
@@ -254,12 +258,19 @@ class m260627_000000_nodes_sites_and_menu_elements extends Migration
         }
 
         foreach ($navs as $nav) {
-            $exists = (new \craft\db\Query())
+            $existingElement = (new \craft\db\Query())
+                ->select(['type', 'uid'])
                 ->from(['{{%elements}}'])
                 ->where(['id' => $nav['id']])
-                ->exists($this->db);
+                ->one($this->db);
 
-            if (!$exists) {
+            // The later collision migration allocates an exclusive menu ID. Until then,
+            // adding site rows here would propagate the unrelated entry/user/node.
+            if ($existingElement && ($existingElement['type'] !== Menu::class || $existingElement['uid'] !== $nav['uid'])) {
+                continue;
+            }
+
+            if (!$existingElement) {
                 $this->insert('{{%elements}}', [
                     'id' => $nav['id'],
                     'canonicalId' => $nav['id'],
@@ -276,9 +287,6 @@ class m260627_000000_nodes_sites_and_menu_elements extends Migration
                     'uid' => $nav['uid'],
                 ]);
             }
-            // Never reclaim an existing elements.id (entries/users/nodes/…). Colliding menus
-            // are remapped via `php craft navigation/menus/fix-menu-element-collisions`.
-
             if (!$tables['sites']) {
                 continue;
             }

@@ -27,6 +27,25 @@ it('registers a handle_Menu GraphQL query for each saved menu', function() {
 it('resolves menu queries by site handle instead of language', function() {
     $secondarySite = NavigationFixtureFactory::existingSecondarySite();
     $nav = NavigationFixtureFactory::menu();
+    $field = new \craft\fields\PlainText([
+        'name' => 'Locale label',
+        'handle' => 'localeLabel' . uniqid(),
+        'translationMethod' => \craft\base\Field::TRANSLATION_METHOD_SITE,
+    ]);
+    expect(Craft::$app->getFields()->saveField($field))->toBeTrue();
+    $layout = new \craft\models\FieldLayout(['type' => Menu::class]);
+    $layout->setTabs([new \craft\models\FieldLayoutTab([
+        'layout' => $layout,
+        'name' => 'Content',
+        'elements' => [['type' => \craft\fieldlayoutelements\CustomField::class, 'fieldUid' => $field->uid]],
+    ])]);
+    $nav->setMenuFieldLayout($layout);
+    expect(\verbb\navigation\Navigation::$plugin->getMenus()->saveMenu($nav))->toBeTrue();
+    foreach ([Craft::$app->getSites()->getPrimarySite()->id => 'Primary label', $secondarySite->id => 'Secondary label'] as $siteId => $label) {
+        $variant = Menu::find()->id($nav->id)->siteId($siteId)->status(null)->one();
+        $variant->setFieldValue($field->handle, $label);
+        expect(Craft::$app->getElements()->saveElement($variant))->toBeTrue();
+    }
     $menuElement = Menu::find()->id($nav->id)->status(null)->one();
 
     expect($menuElement)->not->toBeNull();
@@ -38,6 +57,8 @@ it('resolves menu queries by site handle instead of language', function() {
     expect($result)->toBeInstanceOf(Menu::class);
     expect($result->id)->toBe($menuElement->id);
     expect($result->handle)->toBe($nav->handle);
+    expect((int)$result->siteId)->toBe((int)$secondarySite->id);
+    expect($result->getFieldValue($field->handle))->toBe('Secondary label');
 });
 
 it('returns navigationMenuBreadcrumbs for the current request', function() {

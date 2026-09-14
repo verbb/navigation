@@ -211,7 +211,7 @@ class EntrySectionSettings
 
         if ($orderBy === self::ORDER_DEFAULT) {
             if ($section?->type === Section::TYPE_STRUCTURE) {
-                $query->orderBy('structure');
+                $query->orderBy(['lft' => SORT_ASC]);
             } else {
                 $query->orderBy('postDate desc');
             }
@@ -220,7 +220,7 @@ class EntrySectionSettings
         }
 
         if ($orderBy === self::ORDER_STRUCTURE && $section?->type === Section::TYPE_STRUCTURE) {
-            $query->orderBy('structure');
+            $query->orderBy(['lft' => SORT_ASC]);
 
             return;
         }

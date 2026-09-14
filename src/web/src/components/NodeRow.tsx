@@ -4,6 +4,7 @@ import { Button } from '@verbb/plugin-kit-react/components/Button';
 import { Checkbox } from '@verbb/plugin-kit-react/components/Checkbox';
 import { Icon } from '@verbb/plugin-kit-react/components/Icon';
 import { Status } from '@verbb/plugin-kit-react/components/Status';
+import { Tooltip } from '@verbb/plugin-kit-react/components/Tooltip';
 import { cn } from '../utils/cn';
 import { asPkStatusVariant } from '../utils/pluginKitEvents';
 import type { BuilderNode } from '../types';
@@ -247,14 +248,14 @@ export function NodeRow({
         </span>
 
         {isSelectable && (
-          <span className="relative inline-flex shrink-0">
+          <span className="relative inline-flex size-3.5 shrink-0">
             <Button
               type="button"
               variant="none"
               size="xs"
               data-no-row-select
               className="absolute top-1/2 left-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded bg-transparent p-0 text-gray-400 outline-none hover:bg-transparent hover:text-gray-600 focus:outline-none focus-visible:outline-none focus-visible:ring-0 [&::part(base)]:cursor-move"
-              title="Drag to reorder"
+              aria-label={t('Drag to reorder')}
               onClick={(event) => event.stopPropagation()}
               onDragStart={(event) => {
                 if (event.dataTransfer) {
@@ -266,9 +267,6 @@ export function NodeRow({
             >
               <Icon slot="start" icon="grip-move" className="size-3.5" />
             </Button>
-            <span className="invisible inline-flex size-3.5" aria-hidden>
-              <Icon icon="grip-move" className="size-3.5" />
-            </span>
           </span>
         )}
 
@@ -283,12 +281,36 @@ export function NodeRow({
           {node.title || '(Untitled)'}
         </span>
 
+        {node.hasTitleOverride && (
+          <Tooltip
+            className="inline-flex shrink-0 self-center"
+            content={t('Custom title')}
+          >
+            <span
+              slot="trigger"
+              tabIndex={0}
+              data-no-row-select
+              data-title-override
+              aria-label={t('Custom title')}
+              className="inline-flex shrink-0 text-gray-400/80"
+            >
+              <Icon icon="pen" className="size-3" />
+            </span>
+          </Tooltip>
+        )}
+
         {node.newWindow && (
-          <Icon
-            icon="arrow-up-right-from-square"
-            className="size-2.5 shrink-0 text-gray-400/80"
-            label="Opens in a new window"
-          />
+          <Tooltip className="inline-flex shrink-0 self-center" content={t('Opens in a new window')}>
+            <span
+              slot="trigger"
+              tabIndex={0}
+              data-no-row-select
+              aria-label={t('Opens in a new window')}
+              className="inline-flex text-gray-400/80"
+            >
+              <Icon icon="arrow-up-right-from-square" className="size-2.5" />
+            </span>
+          </Tooltip>
         )}
 
         {classLabel && (

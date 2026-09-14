@@ -5,6 +5,7 @@ use verbb\navigation\Navigation;
 use verbb\navigation\base\NodeType;
 use verbb\navigation\base\ProjectingNodeType;
 use verbb\navigation\elements\Node;
+use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\NodeTypeSchemaFields;
 use verbb\navigation\models\ProjectedNode;
 
@@ -142,6 +143,16 @@ JS);
         }
 
         $class::applyPostData($this->node);
+
+        // Native element editors apply provider fields during the save lifecycle, after their
+        // initial canSave check. Recheck the final source before persisting that change.
+        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+            $user = Craft::$app->getUser()->getIdentity();
+            if (!$user || !MenuAuth::canAuthorDynamicSource($this->node, $user)) {
+                $this->node->addError('data', Craft::t('navigation', 'This dynamic source is not available.'));
+                return false;
+            }
+        }
 
         return $class::validateNode($this->node);
     }

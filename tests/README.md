@@ -69,3 +69,19 @@ Builder checks: `npm ci`, `npm run test:builder`, `npm run test:builder:browser`
 and `npm run test:builder:assets` (install Playwright Chromium for the browser check).
 Validate a freshly created Composer distribution with
 `php tests/bin/check-release-archive.php /absolute/path/to/package.zip`.
+
+For a real Craft browser workflow, first finish `ddev test`, then run
+`npm run test:builder:craft`. This uses the same disposable application and its
+bundled CP assets. It creates a temporary menu through the UI, adds two links,
+drags one beneath the other, edits it in Craft's slideout, saves and reloads the
+menu, then verifies the persisted hierarchy and URLs. Cleanup removes its menu.
+The check waits for Craft’s native autosave before submitting the editor.
+Automatic queue execution is disabled in this web scaffold because PHP fixtures
+can leave jobs referencing deliberately deleted elements.
+Screenshots and results are written to `.cache/builder-craft/`.
+
+Run this check serially with the PHP runner: the test application's web entry
+point rejects requests while the database is being reset. It only boots the
+owned DDEV runtime and does not use the paired development site. The existing
+`test:builder:browser` check remains a faster component/transport check using
+synthetic responses; the Craft workflow covers the actual controls and server.

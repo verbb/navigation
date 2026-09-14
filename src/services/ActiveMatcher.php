@@ -3,6 +3,7 @@ namespace verbb\navigation\services;
 
 use verbb\navigation\deprecations\ActiveMatcherDeprecations;
 use verbb\navigation\elements\Node as NodeElement;
+use verbb\navigation\helpers\NodeHierarchy;
 use verbb\navigation\models\NodeActiveState;
 use verbb\navigation\models\ProjectedNode;
 
@@ -35,6 +36,8 @@ class ActiveMatcher extends Component
      */
     public function resolve(array $nodes): void
     {
+        $nodes = $this->_withLoadedDescendants($nodes);
+
         if ($this->_shouldSkipActiveResolution()) {
             foreach ($nodes as $node) {
                 if ($node instanceof NodeElement) {
@@ -45,7 +48,7 @@ class ActiveMatcher extends Component
             return;
         }
 
-        $childrenByParentKey = $this->_buildChildrenMap($nodes);
+        $childrenByParentKey = NodeHierarchy::childrenByParent($nodes);
         $statesByKey = [];
 
         foreach ($nodes as $node) {
@@ -268,6 +271,31 @@ class ActiveMatcher extends Component
     // Private Methods
     // =========================================================================
 
+    private function _withLoadedDescendants(array $nodes): array
+    {
+        // A filtered query can return only roots while its eager-loaded hierarchy
+        // contains the current page. Resolve that hierarchy without issuing queries.
+        $resolved = [];
+
+        while ($nodes) {
+            $node = array_pop($nodes);
+
+            if (!$node instanceof NodeElement || isset($resolved[spl_object_id($node)])) {
+                continue;
+            }
+
+            $resolved[spl_object_id($node)] = $node;
+
+            foreach ($node->getEagerLoadedElements('children') ?? [] as $child) {
+                if ($child instanceof NodeElement) {
+                    $nodes[] = $child;
+                }
+            }
+        }
+
+        return array_values($resolved);
+    }
+
     private function _matchType(NodeElement $node): int
     {
         $request = Craft::$app->getRequest();
@@ -305,18 +333,19 @@ class ActiveMatcher extends Component
         $rawElementUrl = $node->getRawElementUrl();
 
         if ($rawElementUrl !== null) {
-            if ($rawElementUrl === '__home__') {
-                $sitePath = parse_url(UrlHelper::siteUrl('', null, null, $node->siteId), PHP_URL_PATH) ?: '';
-                $nodeUrl = trim(strtolower(rtrim($request->hostInfo, '/') . trim($sitePath, '/')), '/');
-            } else {
-                $nodeUrl = $this->_normalizeNodeUrl($node, '/' . ltrim($rawElementUrl, '/'), $request);
+            // Reuse the joined URI without loading the element, but retain the linked
+            // site's domain and base path exactly as the rendered link does.
+            $nodeUrl = $node->getElementUrl();
+
+            if (!$nodeUrl) {
+                return null;
             }
 
             if ($node->urlSuffix) {
-                $nodeUrl .= strtolower($node->urlSuffix);
+                $nodeUrl .= $node->urlSuffix;
             }
 
-            return $nodeUrl;
+            return $this->_normalizeNodeUrl($node, $nodeUrl, $request);
         }
 
         $nodeUrl = (string)$node->getUrl(true);
@@ -356,38 +385,6 @@ class ActiveMatcher extends Component
         return trim($nodeUrl, '/');
     }
 
-    private function _buildChildrenMap(array $nodes): array
-    {
-        $childrenByParentKey = [];
-        $stack = [];
-
-        foreach ($nodes as $node) {
-            if (!$node instanceof NodeElement) {
-                continue;
-            }
-
-            $level = max(1, (int)$node->level);
-
-            foreach (array_keys($stack) as $stackLevel) {
-                if ($stackLevel >= $level) {
-                    unset($stack[$stackLevel]);
-                }
-            }
-
-            if ($level > 1 && isset($stack[$level - 1])) {
-                $parent = $stack[$level - 1];
-                // Only wire same-site parents — site('*') batches must not cross locales.
-                if ((int)$parent->siteId === (int)$node->siteId) {
-                    $childrenByParentKey[$this->_nodeSiteKey($parent)][] = $node;
-                }
-            }
-
-            $stack[$level] = $node;
-        }
-
-        return $childrenByParentKey;
-    }
-
     /**
      * Composite identity for multi-site node lists (same pattern as NodeQuery::populate).
      */
@@ -405,6 +402,12 @@ class ActiveMatcher extends Component
 
     private function _resolveProjectionsForNode(NodeElement $node): void
     {
+        // A newly duplicated/unplaced node has no stored children. Asking Craft
+        // to resolve its child query reloads the same node and re-enters this pass.
+        if (!$node->lft) {
+            return;
+        }
+
         $hasActiveChild = false;
 
         foreach ($node->getChildren()->all() as $child) {
@@ -418,11 +421,11 @@ class ActiveMatcher extends Component
                     $hasActiveChild = true;
                 }
             } elseif ($child instanceof NodeElement) {
+                $this->_resolveProjectionsForNode($child);
+
                 if ($child->hasResolvedActiveState() && ($child->getActiveState()->isCurrent || $child->getActiveState()->isActive)) {
                     $hasActiveChild = true;
                 }
-
-                $this->_resolveProjectionsForNode($child);
             }
         }
 

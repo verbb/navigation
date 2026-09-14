@@ -7,6 +7,7 @@ use verbb\navigation\elements\Node as NodeElement;
 use verbb\navigation\events\CopyNodeToSiteEvent;
 use verbb\navigation\helpers\DynamicSourceTypes;
 use verbb\navigation\helpers\NodeTypeHelper;
+use verbb\navigation\helpers\StructureLimits;
 use verbb\navigation\models\NodeSiteSettings;
 use verbb\navigation\nodetypes\Dynamic;
 
@@ -24,8 +25,9 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\ElementHelper;
 
-use Throwable;
 use yii\base\UserException;
+
+use Throwable;
 
 class Nodes extends Component
 {
@@ -39,6 +41,9 @@ class Nodes extends Component
     // =========================================================================
 
     private array $_tempNodes = [];
+    private array $_linkedElementSaveState = [];
+    private array $_nodesPendingHardDelete = [];
+    private array $_syncingLinkedNodes = [];
 
 
     // Public Methods
@@ -118,14 +123,17 @@ class Nodes extends Component
         return $count;
     }
 
-    public function onSaveElement(ElementEvent $event): void
+    public function onBeforeSaveElement(ElementEvent $event): void
     {
+        $element = $event->element;
+        $key = $element->id . ':' . $element->siteId;
+        unset($this->_linkedElementSaveState[$key]);
+
         // Skip this when updating Craft is currently in progress
         if (Craft::$app->getUpdates()->getAreMigrationsPending()) {
             return;
         }
 
-        $element = $event->element;
         $isNew = $event->isNew;
 
         // We only care about already-existing elements and if they have a URL
@@ -153,10 +161,39 @@ class Nodes extends Component
             ->elementId($element->id)
             ->status(null)
             ->type($typeClass)
+            ->site('*')
             ->all();
 
+        if ($nodes === []) {
+            return;
+        }
+
+        // EVENT_BEFORE_SAVE_ELEMENT lets us compare against the persisted title/status.
+        // Resolve it once, then share it across every linked node to avoid an N+1 lookup.
+        $currentElement = Craft::$app->getElements()->getElementById(
+            $element->id,
+            get_class($element),
+            $element->siteId,
+        );
+
+        // A source validation failure or veto must leave linked nodes untouched.
+        $this->_linkedElementSaveState[$key] = [$nodes, $currentElement];
+    }
+
+    public function onSaveElement(ElementEvent $event): void
+    {
+        $element = $event->element;
+        $key = $element->id . ':' . $element->siteId;
+        [$nodes, $currentElement] = $this->_linkedElementSaveState[$key] ?? [[], null];
+        unset($this->_linkedElementSaveState[$key]);
+        $globalStatusChanged = $currentElement && $element->enabled !== $currentElement->enabled;
+        $linkedElements = [(int)$element->siteId => $currentElement];
+
         foreach ($nodes as $node) {
-            if ($node->getElementSiteId() !== (int)$element->siteId) {
+            $linkedSiteId = $node->getElementSiteId();
+            $sameSite = $linkedSiteId === (int)$element->siteId;
+
+            if (!$sameSite && !$globalStatusChanged) {
                 continue;
             }
 
@@ -175,24 +212,35 @@ class Nodes extends Component
                 continue;
             }
 
-            $currentElement = Craft::$app->getElements()->getElementById($element->id, get_class($element), $element->siteId);
+            if ($sameSite) {
+                if ($element->uri) {
+                    $node->url = $element->uri;
+                }
 
-            if ($element->uri) {
-                $node->url = $element->uri;
+                // Only update titles that still mirror this linked locale.
+                $node->setElement($currentElement);
+
+                if (!$node->hasOverriddenTitle()) {
+                    $node->title = $element->title;
+                }
             }
 
-            // Only update the node title when it still mirrors the linked element title.
-            if (!$node->hasOverriddenTitle()) {
-                $node->title = $element->title;
-            }
-
-            if ($currentElement) {
+            if ($currentElement && !$node->getIsPendingPublish()) {
                 $isMultiSite = Craft::$app->getIsMultiSite() && count($node->getSupportedSites()) > 1;
 
-                // Sync the enabled status - if it's changed. Note that there's an inconsistency with reporting of a node is enabled for multi-site
+                // A global source toggle affects every linked locale. Resolve each
+                // locale once, retaining its own enabled flag and authored title.
+                if (!array_key_exists($linkedSiteId, $linkedElements)) {
+                    $linkedElements[$linkedSiteId] = Craft::$app->getElements()->getElementById(
+                        $element->id, get_class($element), $linkedSiteId,
+                    );
+                }
+
+                $siteWasEnabled = $linkedElements[$linkedSiteId]?->getEnabledForSite() ?? false;
+                $siteIsEnabled = $element->getEnabledForSite($linkedSiteId) ?? $siteWasEnabled;
                 $nodeEnabled = $isMultiSite ? $node->getEnabledForSite() : $node->enabled;
-                $elementEnabled = $isMultiSite ? $element->getEnabledForSite() : $element->enabled;
-                $currentElementEnabled = $isMultiSite ? $currentElement->getEnabledForSite() : $currentElement->enabled;
+                $elementEnabled = $element->enabled && $siteIsEnabled;
+                $currentElementEnabled = $currentElement->enabled && $siteWasEnabled;
 
                 // Is the status different between the element and the node?
                 if ($elementEnabled !== $currentElementEnabled && $elementEnabled !== $nodeEnabled) {
@@ -206,15 +254,19 @@ class Nodes extends Component
                 }
             }
 
-            $node->setElementSiteId($element->siteId);
-
-            Craft::$app->getElements()->saveElement($node, true, false);
+            $this->_saveLinkedNode($node);
         }
+    }
+
+    public function isSyncingLinkedNode(NodeElement $node): bool
+    {
+        return isset($this->_syncingLinkedNodes[spl_object_id($node)]);
     }
 
     public function onBeforeDeleteElement(DeleteElementEvent $event): void
     {
         $element = $event->element;
+        unset($this->_nodesPendingHardDelete[$element->id]);
         $hardDelete = $event->hardDelete || (bool)($element->hardDelete ?? false);
 
         if (!$hardDelete) {
@@ -227,20 +279,15 @@ class Nodes extends Component
             return;
         }
 
-        $nodes = NodeElement::find()
+        // The foreign key clears elementId on hard delete. Remember identities now,
+        // but defer removal until the source's cancellable beforeDelete has passed.
+        $this->_nodesPendingHardDelete[$element->id] = NodeElement::find()
             ->elementId($element->id)
             ->status(null)
             ->type($typeClass)
             ->site('*')
-            ->all();
-
-        foreach ($nodes as $node) {
-            if ($node->getElementSiteId() !== (int)$element->siteId) {
-                continue;
-            }
-
-            Craft::$app->getElements()->deleteElement($node, true);
-        }
+            ->unique()
+            ->ids();
     }
 
     public function onDeleteElement(ElementEvent $event): void
@@ -253,6 +300,19 @@ class Nodes extends Component
         }
 
         if ((bool)($element->hardDelete ?? false)) {
+            $nodeIds = $this->_nodesPendingHardDelete[$element->id] ?? [];
+            unset($this->_nodesPendingHardDelete[$element->id]);
+
+            if ($nodeIds) {
+                $nodes = NodeElement::find()->id($nodeIds)->site('*')->unique()->status(null)->all();
+
+                foreach ($nodes as $node) {
+                    if (!Craft::$app->getElements()->deleteElement($node, true)) {
+                        throw new UserException(Craft::t('navigation', 'Couldn’t delete node.'));
+                    }
+                }
+            }
+
             return;
         }
 
@@ -263,12 +323,13 @@ class Nodes extends Component
             ->site('*')
             ->all();
 
+        // Craft deletes the element across all sites. Node data is shared, so carry
+        // each saved site's restore state forward to the next localized instance.
+        $dataById = [];
         foreach ($nodes as $node) {
-            if ($node->getElementSiteId() !== (int)$element->siteId) {
-                continue;
-            }
-
+            $node->data = $dataById[$node->id] ?? $node->data;
             $this->disableNodeForLinkedElement($node);
+            $dataById[$node->id] = $node->data;
         }
     }
 
@@ -285,16 +346,18 @@ class Nodes extends Component
             ->elementId($element->id)
             ->status(null)
             ->type($typeClass)
+            ->site('*')
             ->all();
 
+        $dataById = [];
         foreach ($nodes as $node) {
-            if ($node->getElementSiteId() !== (int)$element->siteId) {
-                continue;
-            }
+            $node->data = $dataById[$node->id] ?? $node->data;
 
             if ($node->getIsDisabledByLinkedElement()) {
                 $this->restoreNodeFromLinkedElement($node);
             }
+
+            $dataById[$node->id] = $node->data;
         }
     }
 
@@ -348,14 +411,13 @@ class Nodes extends Component
         $node->setDisabledByLinkedElement(true);
 
         if ($isMultiSite) {
-            $node->enabled = true;
             $node->setEnabledForSite(false);
         } else {
             $node->enabled = false;
             $node->setEnabledForSite(true);
         }
 
-        Craft::$app->getElements()->saveElement($node, true, false);
+        $this->_saveLinkedNode($node);
     }
 
     public function restoreNodeFromLinkedElement(NodeElement $node): void
@@ -376,7 +438,7 @@ class Nodes extends Component
         }
 
         $node->clearLinkedElementDisabledState();
-        Craft::$app->getElements()->saveElement($node, true, false);
+        $this->_saveLinkedNode($node);
     }
 
     public function onAfterSaveNode(ElementEvent $event): void
@@ -385,8 +447,10 @@ class Nodes extends Component
             return;
         }
 
-        // Pending bulk adds and staged deletes are not front-end visible; defer cache churn until publish.
-        if ($event->element->getIsPendingPublish() || $event->element->getIsPendingDelete()) {
+        // Staging metadata does not change public output, but linked content updates
+        // still affect live nodes whose menu deletion has only been staged.
+        if ($event->element->getIsPendingPublish()
+            || ($event->element->getIsPendingDelete() && !$this->isSyncingLinkedNode($event->element))) {
             return;
         }
 
@@ -418,25 +482,7 @@ class Nodes extends Component
             return;
         }
 
-        $nav = Navigation::$plugin->getMenus()->getMenuById($event->element->menuId);
-
-        // The element we're moving won't have its destination level set yet, 
-        // so use the target element (where we're moving to) to deduce that.
-        $event->element->level = $event->getTargetElement()->level ?? $event->element->level;
-
-        // Check if we are adding a new node to a parent. It's more complicated than it should
-        // as `getTargetElement()` doesn't report the new level.
-        if ($event->getTargetElement() && $event->action === 'prepend') {
-            $event->element->level++;
-        }
-
-        if ($nav->maxNodesSettings) {
-            Navigation::$plugin->getNodes()->setTempNodes([$event->element]);
-
-            if ($nav->isOverMaxLevel($event->element, $event->getTargetElement())) {
-                throw new UserException('Unable to move node due to the maximum nodes per level.');
-            }
-        }
+        StructureLimits::requireMove($event);
 
         $this->_invalidateNodeCache($event->element);
     }
@@ -602,6 +648,20 @@ class Nodes extends Component
     // Private Methods
     // =========================================================================
 
+    private function _saveLinkedNode(NodeElement $node): void
+    {
+        $key = spl_object_id($node);
+        $this->_syncingLinkedNodes[$key] = true;
+
+        try {
+            if (!Craft::$app->getElements()->saveElement($node, true, false)) {
+                throw new UserException(Craft::t('navigation', 'Couldn’t save node.'));
+            }
+        } finally {
+            unset($this->_syncingLinkedNodes[$key]);
+        }
+    }
+
     private function _handleSourceDelete(string $sourceType, int $sourceId): void
     {
         $this->onDeleteDynamicSource($sourceType, $sourceId);
@@ -658,30 +718,37 @@ class Nodes extends Component
                 continue;
             }
 
+            // A failed save or placement must not leave a pending copy outside its session.
+            $transaction = Craft::$app->getDb()->beginTransaction();
             try {
                 $duplicate = $elementsService->duplicateElement(
                     $element,
                     $this->_duplicateAttributesForBuilder($element, $deferPublish),
                 );
-            } catch (Throwable) {
-                $failCount++;
-                continue;
-            }
 
-            if (!$duplicate instanceof NodeElement) {
-                $failCount++;
-                continue;
-            }
-
-            if ($deferPublish) {
-                // Global + current site: pending duplicates must not appear on any site until Save.
-                $duplicate->enabled = false;
-                $duplicate->setEnabledForSite(false);
-
-                if (!$elementsService->saveElement($duplicate)) {
-                    $failCount++;
-                    continue;
+                if (!$duplicate instanceof NodeElement) {
+                    throw new UserException('Could not duplicate node.');
                 }
+
+                if ($deferPublish) {
+                    $duplicate->enabled = false;
+                    $duplicate->setEnabledForSite(false);
+                    if (!$elementsService->saveElement($duplicate)) {
+                        throw new UserException('Could not save pending duplicate.');
+                    }
+                }
+
+                $placed = $newParent
+                    ? $structuresService->append($element->structureId, $duplicate, $newParent)
+                    : $structuresService->moveAfter($element->structureId, $duplicate, $element);
+                if (!$placed) {
+                    throw new UserException('Could not place duplicate.');
+                }
+                $transaction->commit();
+            } catch (Throwable $e) {
+                $transaction->rollBack();
+                $failCount++;
+                continue;
             }
 
             $successCount++;
@@ -694,12 +761,6 @@ class Nodes extends Component
                     'sourceId' => (int)$element->id,
                     'duplicateId' => (int)$duplicate->id,
                 ];
-            }
-
-            if ($newParent) {
-                $structuresService->append($element->structureId, $duplicate, $newParent);
-            } elseif ($element->structureId) {
-                $structuresService->moveAfter($element->structureId, $duplicate, $element);
             }
 
             if ($deep) {
@@ -750,54 +811,49 @@ class Nodes extends Component
                 continue;
             }
 
+            $transaction = Craft::$app->getDb()->beginTransaction();
+            $previousRemapped = $remappedLinkedElementCount;
+            $previousSkipped = $skippedLinkedElementRemapCount;
             try {
-                $duplicate = $elementsService->duplicateElement($element, [
-                    'siteId' => $targetSiteId,
-                ]);
-            } catch (Throwable) {
+                $duplicate = $elementsService->duplicateElement($element, ['siteId' => $targetSiteId]);
+                if (!$duplicate instanceof NodeElement) {
+                    throw new UserException('Could not copy node.');
+                }
+
+                $this->_copyNodeSiteSettings(
+                    $element, $duplicate, $targetSiteId, $remapLinkedElements,
+                    $remappedLinkedElementCount, $skippedLinkedElementRemapCount,
+                );
+
+                $nav = Navigation::$plugin->getMenus()->getMenuById($element->menuId);
+                $structureId = (int)$nav->structureId;
+                $structureParent = $newParent;
+                if (!$structureParent) {
+                    $structureParent = $copiedSourceToTargetIds[$element->getParentId()] ?? null;
+                }
+
+                // Remove the inherited position and count success only after target placement.
+                if (!$structuresService->remove($structureId, $duplicate)) {
+                    throw new UserException('Could not remove inherited copy position.');
+                }
+                $placed = $structureParent
+                    ? $structuresService->append($structureId, $duplicate, $structureParent)
+                    : $structuresService->appendToRoot($structureId, $duplicate);
+                if (!$placed) {
+                    throw new UserException('Could not place copied node.');
+                }
+                $transaction->commit();
+            } catch (Throwable $e) {
+                $transaction->rollBack();
+                $remappedLinkedElementCount = $previousRemapped;
+                $skippedLinkedElementRemapCount = $previousSkipped;
                 $failCount++;
                 continue;
             }
-
-            if (!$duplicate instanceof NodeElement) {
-                $failCount++;
-                continue;
-            }
-
-            $this->_copyNodeSiteSettings(
-                $element,
-                $duplicate,
-                $targetSiteId,
-                $remapLinkedElements,
-                $remappedLinkedElementCount,
-                $skippedLinkedElementRemapCount,
-            );
 
             $successCount++;
             $copiedSourceToTargetIds[$element->id] = $duplicate;
             $copiedNodeIds[] = (int)$duplicate->id;
-
-            $nav = Navigation::$plugin->getMenus()->getMenuById($element->menuId);
-            $structureId = (int)$nav->structureId;
-            $structureParent = $newParent;
-
-            if (!$structureParent) {
-                $sourceParentId = $element->getParentId();
-
-                if ($sourceParentId && isset($copiedSourceToTargetIds[$sourceParentId])) {
-                    $structureParent = $copiedSourceToTargetIds[$sourceParentId];
-                }
-            }
-
-            // Cross-site duplicates inherit the source node's structure position. Drop that
-            // before re-placing the copy on the target site so children survive a reload.
-            $structuresService->remove($structureId, $duplicate);
-
-            if ($structureParent) {
-                $structuresService->append($structureId, $duplicate, $structureParent);
-            } else {
-                $structuresService->appendToRoot($structureId, $duplicate);
-            }
 
             if ($deep) {
                 $childQuery = NodeElement::find()
@@ -878,14 +934,16 @@ class Nodes extends Component
 
             $this->trigger(self::EVENT_BEFORE_COPY_NODE_TO_SITE, $event);
 
-            if ($event->isValid === false) {
-                return;
+            if (!$event->isValid) {
+                throw new UserException(Craft::t('navigation', 'Node copy cancelled.'));
             }
 
             $targetSettings = $event->targetSettings;
         }
 
-        Navigation::$plugin->getNodeSites()->saveSettings($targetSettings);
+        if (!Navigation::$plugin->getNodeSites()->saveSettings($targetSettings)) {
+            throw new UserException('Could not save copied node site settings.');
+        }
     }
 
     private function _duplicateAttributesForBuilder(NodeElement $element, bool $deferPublish): array

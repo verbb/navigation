@@ -51,3 +51,7 @@ node_modules
 /.cache/
 
 /.phpunit.result.cache
+/tests/runtime/.phpunit.result.cache
+
+# Disposable browser-test resources
+/tests/runtime/web/cpresources/

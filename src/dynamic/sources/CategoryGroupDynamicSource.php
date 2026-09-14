@@ -12,11 +12,19 @@ use verbb\navigation\Navigation;
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Category as CategoryElement;
+use craft\elements\User;
 
 class CategoryGroupDynamicSource extends DynamicSource
 {
     // Static Methods
     // =========================================================================
+
+    public static function canAuthorNode(Node $node, User $user): bool
+    {
+        $source = CategoryGroupSettings::getGroupFromNode($node);
+
+        return $source !== null && $user->can('viewCategories:' . $source->uid);
+    }
 
     public static function handle(): string
     {

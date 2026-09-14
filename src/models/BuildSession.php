@@ -14,6 +14,7 @@ class BuildSession extends Model
     public ?int $siteId = null;
     public ?int $userId = null;
     public array $structureMoves = [];
+    public ?string $structureRevision = null;
     public array $addedNodeIds = [];
     public array $stagedDeletes = [];
     public ?int $menuDraftId = null;
@@ -21,9 +22,22 @@ class BuildSession extends Model
     public array $nodeDraftMap = [];
     public ?string $uid = null;
 
+    private ?string $_storageRevision = null;
+
 
     // Public Methods
     // =========================================================================
+
+    /** Internal persistence baseline; distinct from the builder tree revision. */
+    public function getStorageRevision(): ?string
+    {
+        return $this->_storageRevision;
+    }
+
+    public function setStorageRevision(string $revision): void
+    {
+        $this->_storageRevision = $revision;
+    }
 
     public function getChangeCount(bool $includeStructure = true): int
     {

@@ -7,6 +7,7 @@ use Craft;
 use craft\db\Query;
 
 use yii\web\ConflictHttpException;
+use yii\web\Response;
 
 /** Optimistic protection for complete tree order submitted by separate editors. */
 class BuilderStructureRevision
@@ -29,12 +30,10 @@ class BuilderStructureRevision
     /** Must run inside the transaction that applies the structure. */
     public static function requireCurrent(MenuSettings $menu, mixed $expected): void
     {
-        Craft::$app->getDb()
-            ->createCommand('SELECT [[id]] FROM {{%navigation_menus}} WHERE [[id]] = :id FOR UPDATE', [':id' => $menu->id])
-            ->queryScalar();
+        self::_lock($menu);
 
         if (!is_string($expected) || !hash_equals(self::get($menu), $expected)) {
-            throw new ConflictHttpException(Craft::t('navigation', 'This menu structure changed in another tab or session. Reload the menu before saving.'));
+            throw new ConflictHttpException(Craft::t('navigation', 'This menu structure changed in another tab or session. Discard your pending changes and reload the menu before saving.'));
         }
     }
 
@@ -46,4 +45,28 @@ class BuilderStructureRevision
             return $callback();
         });
     }
+
+    /** Report a causal before/after pair so clients cannot adopt unrelated editor revisions. */
+    public static function trackMutation(MenuSettings $menu, callable $callback): Response
+    {
+        return Craft::$app->getDb()->transaction(function() use ($menu, $callback) {
+            self::_lock($menu);
+            $before = self::get($menu);
+            $response = $callback();
+            if ($response->getStatusCode() < 400) {
+                $response->data['previousStructureRevision'] = $before;
+                $response->data['structureRevision'] = self::get($menu);
+            }
+
+            return $response;
+        });
+    }
+
+    private static function _lock(MenuSettings $menu): void
+    {
+        Craft::$app->getDb()
+            ->createCommand('SELECT [[id]] FROM {{%navigation_menus}} WHERE [[id]] = :id FOR UPDATE', [':id' => $menu->id])
+            ->queryScalar();
+    }
+
 }

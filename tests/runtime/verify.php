@@ -8,6 +8,9 @@ $plugin = $app->getPlugins()->getPlugin($handle);
 if (!$app->getIsInstalled() || !$plugin || !$app->getPlugins()->isPluginInstalled($handle) || !$app->getPlugins()->isPluginEnabled($handle) || $app->getPlugins()->isPluginUpdatePending($plugin)) {
     throw new RuntimeException('Fresh plugin installation is incomplete: ' . $handle);
 }
+// The disposable application boots as Solo before the Pro test override.
+// Register the same permissions as a normal Pro boot for every test selection/order.
+(new ReflectionMethod($plugin, '_registerPermissions'))->invoke($plugin);
 $source = (new ReflectionClass($plugin))->getFileName();
 if (!str_starts_with(realpath($source), realpath(dirname(__DIR__, 2) . '/src') . '/')) {
     throw new RuntimeException('Craft loaded a different plugin checkout.');

@@ -64,6 +64,12 @@ class ImportExportHelper
             }
         }
 
+        if (!is_array($json)) {
+            $result->addImportError('The import must contain a menu object.');
+
+            return $result;
+        }
+
         if (isset($json[0]) && is_array($json[0])) {
             $json = $json[0];
         }
@@ -170,7 +176,7 @@ class ImportExportHelper
 
     public const EXPORT_VERSION = '1.0.0';
 
-    public const IMPORT_FILENAME_PATTERN = '/^navigation-import-\d{6}_\d{6}\.json$/';
+    public const IMPORT_FILENAME_PATTERN = '/^navigation-import-\d{6}_\d{6}(?:-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})?\.json$/D';
 
 
     // Private Methods
@@ -575,7 +581,9 @@ class ImportExportHelper
                     : null,
             ]);
 
-            Navigation::$plugin->getNodeSites()->saveSettings($settings);
+            if (!Navigation::$plugin->getNodeSites()->saveSettings($settings)) {
+                $result->addImportError("Failed saving node site overrides for site “{$siteHandle}”.");
+            }
         }
     }
 
@@ -614,7 +622,9 @@ class ImportExportHelper
             ->all();
 
         foreach ($nodes as $node) {
-            Craft::$app->getElements()->deleteElement($node, true);
+            if (!Craft::$app->getElements()->deleteElement($node, true)) {
+                throw new RuntimeException('Could not replace menu: an existing node could not be deleted.');
+            }
         }
     }
 

@@ -4,6 +4,7 @@ namespace verbb\navigation\elements;
 use verbb\navigation\Navigation;
 use verbb\navigation\base\ElementNodeType;
 use verbb\navigation\deprecations\NodeDeprecations;
+use verbb\navigation\elementactions\Restore;
 use verbb\navigation\elementactions\StageDelete;
 use verbb\navigation\elementactions\UnstageDelete;
 use verbb\navigation\elements\conditions\NodeCondition;
@@ -13,6 +14,7 @@ use verbb\navigation\events\NodeActiveEvent;
 use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\NodeOutputSafety;
 use verbb\navigation\helpers\NodeTypeHelper;
+use verbb\navigation\helpers\StructureLimits;
 use verbb\navigation\models\MenuSettings;
 use verbb\navigation\models\NodeActiveState;
 use verbb\navigation\models\ProjectedNode;
@@ -32,7 +34,6 @@ use craft\db\Query;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Duplicate;
 use craft\elements\actions\Edit;
-use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQuery;
@@ -56,6 +57,7 @@ use craft\services\Structures;
 
 use yii\base\Event;
 use yii\base\InvalidConfigException;
+use yii\base\UserException;
 use yii\helpers\BaseHtml;
 use yii\validators\Validator;
 
@@ -367,6 +369,7 @@ class Node extends Element
 
     private ?string $_url = null;
     private ?ElementInterface $_element = null;
+    private bool $_elementResolved = false;
     private array $_nodeTypes = [];
     private ?string $_elementUrl = null;
     private ?NodeActiveState $_activeState = null;
@@ -429,20 +432,23 @@ class Node extends Element
             return [
                 'enabled' => (bool)($state['enabled'] ?? true),
                 'enabledForSite' => (bool)($state['enabledForSite'] ?? true),
+                'restoreEnabledState' => (bool)($state['restoreEnabledState'] ?? true),
             ];
         }
 
         return [
             'enabled' => true,
             'enabledForSite' => true,
+            'restoreEnabledState' => true,
         ];
     }
 
-    public function setPendingDeleteRestoreState(bool $enabled, bool $enabledForSite): void
+    public function setPendingDeleteRestoreState(bool $enabled, bool $enabledForSite, bool $restoreEnabledState = true): void
     {
         $this->data[self::PENDING_DELETE_STATE_DATA_KEY] = [
             'enabled' => $enabled,
             'enabledForSite' => $enabledForSite,
+            'restoreEnabledState' => $restoreEnabledState,
         ];
     }
 
@@ -467,6 +473,12 @@ class Node extends Element
 
     public function getIsDisabledByLinkedElement(): bool
     {
+        $state = $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] ?? [];
+
+        if (isset($state['sites'])) {
+            return isset($state['sites'][$this->siteId]);
+        }
+
         return !empty($this->data[self::LINKED_ELEMENT_DISABLED_DATA_KEY]);
     }
 
@@ -483,6 +495,10 @@ class Node extends Element
     {
         $state = $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] ?? null;
 
+        if (isset($state['sites'])) {
+            $state = $state['sites'][$this->siteId] ?? null;
+        }
+
         if (is_array($state)) {
             return [
                 'enabled' => (bool)($state['enabled'] ?? true),
@@ -498,14 +514,29 @@ class Node extends Element
 
     public function setLinkedElementDisabledRestoreState(bool $enabled, bool $enabledForSite): void
     {
-        $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] = [
+        // Node data is shared across sites; keep each localized enabled state separately.
+        $state = $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] ?? [];
+        $sites = is_array($state['sites'] ?? null) ? $state['sites'] : [];
+        $sites[$this->siteId] = [
             'enabled' => $enabled,
             'enabledForSite' => $enabledForSite,
         ];
+        $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] = ['sites' => $sites];
     }
 
     public function clearLinkedElementDisabledState(): void
     {
+        $state = $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] ?? [];
+
+        if (isset($state['sites'])) {
+            unset($state['sites'][$this->siteId]);
+
+            if ($state['sites']) {
+                $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] = $state;
+                return;
+            }
+        }
+
         $this->setDisabledByLinkedElement(false);
         unset($this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY]);
     }
@@ -576,7 +607,8 @@ class Node extends Element
             return false;
         }
 
-        return $this->_userCanManageMenu($user);
+        return $this->_userCanManageMenu($user)
+            && Navigation::$plugin->getBuildSessions()->canAuthorPendingNode($this, (int)$user->id);
     }
 
     public function canDelete(User $user): bool
@@ -585,12 +617,14 @@ class Node extends Element
             return false;
         }
 
-        return $this->_userCanManageMenu($user);
+        return $this->_userCanManageMenu($user)
+            && Navigation::$plugin->getBuildSessions()->canAuthorPendingNode($this, (int)$user->id);
     }
 
     public function canCreateDrafts(User $user): bool
     {
-        return $this->_userCanManageMenu($user);
+        return $this->_userCanManageMenu($user)
+            && Navigation::$plugin->getBuildSessions()->canAuthorPendingNode($this, (int)$user->id);
     }
 
     public function getStatus(): ?string
@@ -612,7 +646,7 @@ class Node extends Element
 
     public function getElement(): ?ElementInterface
     {
-        if ($this->_element !== null) {
+        if ($this->_elementResolved) {
             return $this->_element;
         }
 
@@ -620,25 +654,33 @@ class Node extends Element
         // Otherwise, in some rare scenarios where there's elementId info for a node, but a non-element node type
         // this can really go bananas.
         if (!$this->elementId || !$this->isElement()) {
+            $this->_elementResolved = true;
+
             return null;
         }
 
         $nodeType = $this->nodeType();
 
         if (!$nodeType instanceof ElementNodeType) {
+            $this->_elementResolved = true;
+
             return null;
         }
 
-        return $this->_element = Craft::$app->getElements()->getElementById(
+        $this->_element = Craft::$app->getElements()->getElementById(
             $this->elementId,
             $nodeType::getElementType(),
             $this->getElementSiteId(),
         );
+        $this->_elementResolved = true;
+
+        return $this->_element;
     }
 
     public function setElement($element = null): void
     {
         $this->_element = $element;
+        $this->_elementResolved = true;
     }
 
     public function getElementSiteId(): ?int
@@ -660,7 +702,14 @@ class Node extends Element
 
     public function setElementSiteId($value): void
     {
-        $this->_linkedElementSiteId = $value ? (int)$value : null;
+        $siteId = $value ? (int)$value : null;
+
+        if ($this->_linkedElementSiteId !== $siteId) {
+            $this->_element = null;
+            $this->_elementResolved = false;
+        }
+
+        $this->_linkedElementSiteId = $siteId;
     }
 
     public function getElementSlug(): ?string
@@ -858,10 +907,15 @@ class Node extends Element
 
     public function getElementUrl()
     {
+        $siteId = $this->getElementSiteId();
+        if (!$siteId || !Craft::$app->getSites()->getSiteById($siteId)) {
+            return null;
+        }
+
         if ($this->_elementUrl !== null) {
             $path = ($this->_elementUrl === '__home__') ? '' : $this->_elementUrl;
 
-            return UrlHelper::siteUrl($path, null, null, $this->getElementSiteId());
+            return UrlHelper::siteUrl($path, null, null, $siteId);
         }
 
         $element = $this->getElement();
@@ -1003,7 +1057,7 @@ class Node extends Element
         );
 
         $type = 'node-type-' . StringHelper::toKebabCase($className);
-        $item = Html::tag('span', $this->getTypeLabel(), ['class' => $type, 'title' => $this->url]);
+        $item = Html::tag('span', Html::encode($this->getTypeLabel()), ['class' => $type, 'title' => $this->url]);
 
         return Html::tag('div', $item, ['class' => 'node-type', 'style' => $style]);
     }
@@ -1196,6 +1250,7 @@ class Node extends Element
             && !$this->propagating
             && $this->getIsPendingDelete()
             && Navigation::$plugin->getBuildSessions()->isStagingEnabled()
+            && !Navigation::$plugin->getNodes()->isSyncingLinkedNode($this)
         ) {
             $existing = Craft::$app->getElements()->getElementById($this->id, self::class, $this->siteId);
 
@@ -1270,8 +1325,9 @@ class Node extends Element
             $this->setLinkedElementSiteId(null);
         }
 
-        if ($this->nodeType()) {
-            $this->nodeType()->beforeSaveNode($isNew);
+        // Node types can reject invalid source settings or veto persistence.
+        if ($this->nodeType() && !$this->nodeType()->beforeSaveNode($isNew)) {
+            return false;
         }
 
         if ($isNew && !$this->propagating && $nav->getHasMultiSiteNodes()) {
@@ -1308,6 +1364,8 @@ class Node extends Element
                 $record->id = (int)$this->id;
             }
 
+            $wasPendingPublish = $this->getIsPendingPublish();
+
             // Manual publish (slide-out, Enable, or Save menu) clears the deferred-builder flag.
             // Never clear on the creating save — add-nodes may still be writing `_pendingPublish`.
             if (!$isNew && $this->enabled && $this->getEnabledForSite()) {
@@ -1327,7 +1385,13 @@ class Node extends Element
             // Capture the dirty attributes from the record
             $dirtyAttributes = array_keys($record->getDirtyAttributes());
 
-            $record->save(false);
+            if (!$record->save(false)) {
+                throw new UserException(Craft::t('navigation', 'Couldn’t save node.'));
+            }
+
+            if (!$isNew && $wasPendingPublish && !$this->getIsPendingPublish()) {
+                Navigation::$plugin->getBuildSessions()->releasePublishedAddition($this);
+            }
 
             Navigation::$plugin->getNodeSites()->saveFromNode($this);
 
@@ -1374,6 +1438,20 @@ class Node extends Element
         return true;
     }
 
+    public function afterDelete(): void
+    {
+        parent::afterDelete();
+
+        // Craft has promoted children but has not committed the deletion yet.
+        // Whole-menu removal intentionally discards the entire constrained tree.
+        if (!$this->deletedWithMenu && $this->getIsCanonical()) {
+            $menu = Navigation::$plugin->getMenus()->getMenuById($this->menuId);
+            if ($menu) {
+                StructureLimits::requireCurrent($menu, (int)$this->siteId);
+            }
+        }
+    }
+
     public function afterRestore(): void
     {
         // Menu-level soft-delete marker must clear so the node is a normal live row again.
@@ -1386,39 +1464,7 @@ class Node extends Element
             ], [], false);
         }
 
-        $nav = $this->getMenuSettings();
-        $structureId = (int)$nav->structureId;
-
-        $parentId = (new Query())
-            ->select(['parentId'])
-            ->from(['{{%navigation_nodes}}'])
-            ->where(['id' => $this->id])
-            ->scalar();
-
-        $structuresService = Craft::$app->getStructures();
-
-        if ($parentId) {
-            $parentInStructure = (new Query())
-                ->from(['{{%structureelements}}'])
-                ->where([
-                    'structureId' => $structureId,
-                    'elementId' => $parentId,
-                ])
-                ->exists();
-
-            if ($parentInStructure) {
-                $parent = self::find()->id($parentId)->status(null)->one();
-
-                if ($parent) {
-                    $structuresService->append($structureId, $this, $parent);
-                    parent::afterRestore();
-
-                    return;
-                }
-            }
-        }
-
-        $structuresService->appendToRoot($structureId, $this);
+        $this->_restoreStructure([]);
 
         parent::afterRestore();
     }
@@ -1484,6 +1530,8 @@ class Node extends Element
 
     public function setLinkedElementId($value): void
     {
+        $previousElementId = $this->elementId;
+
         // This is a required proxy variable when editing a node, due to a conflicting `elementId`.
         if (is_array($value)) {
             $this->elementId = $value[0];
@@ -1494,6 +1542,11 @@ class Node extends Element
         // Also check for `0` (string or int) and set correct value for type
         if (!$this->elementId) {
             $this->elementId = null;
+        }
+
+        if ($this->elementId !== $previousElementId) {
+            $this->_element = null;
+            $this->_elementResolved = false;
         }
     }
 
@@ -1839,6 +1892,55 @@ EOD;
         return $parentOptionCriteria;
     }
 
+    private function _restoreStructure(array $ancestors): void
+    {
+        $structureId = (int)$this->getMenuSettings()->structureId;
+        $row = (new Query())
+            ->from('{{%structureelements}}')
+            ->where(['structureId' => $structureId, 'elementId' => $this->id])
+            ->one();
+
+        // A child’s restore callback may already have placed this ancestor.
+        if ($row) {
+            foreach (['root', 'lft', 'rgt', 'level'] as $attribute) {
+                $this->$attribute = (int)$row[$attribute];
+            }
+            return;
+        }
+
+        if (isset($ancestors[$this->id])) {
+            throw new UserException(Craft::t('navigation', 'Couldn’t restore a circular node hierarchy.'));
+        }
+        $ancestors[$this->id] = true;
+
+        $parentId = (new Query())
+            ->select('parentId')
+            ->from('{{%navigation_nodes}}')
+            ->where(['id' => $this->id])
+            ->scalar();
+        $parent = $parentId ? self::find()
+            ->id($parentId)
+            ->menuId($this->menuId)
+            ->siteId($this->siteId)
+            ->status(null)
+            ->one() : null;
+
+        // Craft untrashes the whole batch before calling afterRestore. Place live
+        // ancestors first without restoring unselected parents or firing callbacks twice.
+        if ($parent) {
+            $parent->_restoreStructure($ancestors);
+        }
+
+        $structures = Craft::$app->getStructures();
+        $placed = $parent
+            ? $structures->append($structureId, $this, $parent)
+            : $structures->appendToRoot($structureId, $this);
+
+        if (!$placed) {
+            throw new UserException(Craft::t('navigation', 'Couldn’t restore node within the menu structure limits.'));
+        }
+    }
+
     private function _placeInStructure(bool $isNew, MenuSettings $nav): void
     {
         $parentId = $this->getParentId();
@@ -1862,17 +1964,17 @@ EOD;
         $mode = $isNew ? Structures::MODE_INSERT : Structures::MODE_AUTO;
 
         if (!$parentId) {
-            if ($nav->defaultPlacement === MenuSettings::DEFAULT_PLACEMENT_BEGINNING) {
-                $structuresService->prependToRoot($this->structureId, $this, $mode);
-            } else {
-                $structuresService->appendToRoot($this->structureId, $this, $mode);
-            }
+            $placed = $nav->defaultPlacement === MenuSettings::DEFAULT_PLACEMENT_BEGINNING
+                ? $structuresService->prependToRoot($this->structureId, $this, $mode)
+                : $structuresService->appendToRoot($this->structureId, $this, $mode);
         } else {
-            if ($nav->defaultPlacement === MenuSettings::DEFAULT_PLACEMENT_BEGINNING) {
-                $structuresService->prepend($this->structureId, $this, $this->getParent(), $mode);
-            } else {
-                $structuresService->append($this->structureId, $this, $this->getParent(), $mode);
-            }
+            $placed = $nav->defaultPlacement === MenuSettings::DEFAULT_PLACEMENT_BEGINNING
+                ? $structuresService->prepend($this->structureId, $this, $this->getParent(), $mode)
+                : $structuresService->append($this->structureId, $this, $this->getParent(), $mode);
+        }
+
+        if (!$placed) {
+            throw new UserException(Craft::t('navigation', 'Couldn’t place node within the menu structure limits.'));
         }
     }
 }

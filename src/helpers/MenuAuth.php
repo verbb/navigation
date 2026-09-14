@@ -5,12 +5,17 @@ use verbb\navigation\Navigation;
 use verbb\navigation\base\ElementNodeType;
 use verbb\navigation\elements\Node;
 use verbb\navigation\models\MenuSettings;
+use verbb\navigation\nodetypes\Dynamic;
 
 use Craft;
+use craft\controllers\StructuresController;
+use craft\db\Query;
 use craft\elements\User;
 use craft\helpers\ElementHelper;
 use craft\web\Controller;
 
+use yii\base\ActionEvent;
+use yii\caching\ArrayCache;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 
@@ -158,14 +163,21 @@ class MenuAuth
         if (!self::canManageMenuSite($user, $menu, (int)$node->siteId)) {
             return false;
         }
+        if (!Navigation::$plugin->getBuildSessions()->canAuthorPendingNode($node, (int)$user->id)) {
+            return false;
+        }
         $type = $node->nodeType();
         if (!$type || !MenuPermissions::isTypeEnabled($menu->permissions ?? [], $type::class, $type->getPermissionEnabledDefault())) {
             return false;
         }
         if ($parentId = $node->getParentId()) {
-            if (!Node::find()->id($parentId)->menuId($menu->id)->siteId($node->siteId)->status(null)->exists()) {
+            $parent = Node::find()->id($parentId)->menuId($menu->id)->siteId($node->siteId)->status(null)->one();
+            if (!$parent || !Navigation::$plugin->getBuildSessions()->canAuthorPendingNode($parent, (int)$user->id)) {
                 return false;
             }
+        }
+        if ($type instanceof Dynamic && !self::canAuthorDynamicSource($node, $user)) {
+            return false;
         }
         if (!$type instanceof ElementNodeType || !$node->elementId) {
             return true; // Missing required element IDs are reported by model validation.
@@ -203,9 +215,199 @@ class MenuAuth
         return false;
     }
 
+    public static function canAuthorDynamicSource(Node $node, User $user): bool
+    {
+        $provider = Navigation::$plugin->getDynamicSources()->getProviderClassForNode($node);
 
-    // Private Methods
-    // =========================================================================
+        return $provider !== null && (!method_exists($provider, 'canAuthorNode') || $provider::canAuthorNode($node, $user));
+    }
+
+    /** Authorize every source before a traversal creates any copies. */
+    public static function requireDuplicatableNodes(array $nodes, bool $deep = false, ?int $targetSiteId = null): void
+    {
+        $user = Craft::$app->getUser()->getIdentity();
+        $elements = Craft::$app->getElements();
+        foreach ($nodes as $node) {
+            $sources = $deep ? array_merge([$node], $node->getDescendants()->status(null)->all()) : [$node];
+            foreach ($sources as $source) {
+                if (!$user || !$elements->canDuplicate($source, $user) || !self::canAuthorNode($user, $source)) {
+                    throw new ForbiddenHttpException('User is not authorized to duplicate this node.');
+                }
+                if ($targetSiteId !== null) {
+                    // Cross-site copies have no destination build-session ownership.
+                    if ($source->getIsPendingPublish() || $source->getIsPendingDelete()) {
+                        throw new BadRequestHttpException('Save or discard pending changes before copying this node.');
+                    }
+                    $target = clone $source;
+                    $target->id = null;
+                    $target->siteId = $targetSiteId;
+                    $target->setParentId(null);
+                    if (!self::canAuthorNode($user, $target)) {
+                        throw new ForbiddenHttpException('User is not authorized to copy this node to the target site.');
+                    }
+                }
+            }
+        }
+    }
+
+
+    /** Supplement Craft's coarse structure capability only on its native request boundary. */
+    public static function requireNativeStructureAction(ActionEvent $event): void
+    {
+        $controller = $event->action->controller;
+        if (!$controller instanceof StructuresController || $event->action->id !== 'move-element') {
+            return;
+        }
+
+        $request = Craft::$app->getRequest();
+        $rawElementId = $request->getBodyParam('elementId');
+        // Element identity is global: a missing site variant must never bypass a Node guard.
+        if (!is_scalar($rawElementId) || !is_numeric($rawElementId)
+            || !is_a(Craft::$app->getElements()->getElementTypeById((int)$rawElementId) ?? '', Node::class, true)) {
+            return; // Craft validates identifiers and permissions for other element types.
+        }
+        $elementId = self::_moveId($rawElementId);
+        $siteId = self::_moveId($request->getBodyParam('siteId'));
+        $node = Node::find()->id($elementId)
+            ->siteId($siteId)->status(null)
+            ->drafts(null)->provisionalDrafts(null)->one();
+        if (!$node) {
+            throw new BadRequestHttpException('Node is not available on this site.');
+        }
+
+        $controller->requirePostRequest();
+        $menu = self::requireManageMenuSite($controller,
+            Navigation::$plugin->getMenus()->getMenuById($node->menuId), (int)$node->siteId);
+        if (self::_moveId($request->getBodyParam('structureId')) !== (int)$menu->structureId) {
+            throw new BadRequestHttpException('Invalid menu structure.');
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+        $nodes = array_merge([$node], $node->getDescendants()->status(null)->all());
+        foreach (['parentId', 'prevId'] as $param) {
+            if ($id = self::_moveId($request->getBodyParam($param), true)) {
+                $target = Node::find()->id($id)->menuId($menu->id)->siteId($node->siteId)->status(null)->one();
+                if (!$target) {
+                    throw new BadRequestHttpException('Invalid move target.');
+                }
+                $nodes[] = $target;
+            }
+        }
+        foreach ($nodes as $candidate) {
+            if (!$candidate->canSave($user)) {
+                throw new ForbiddenHttpException('User is not authorized to move this node.');
+            }
+        }
+    }
+
+    /** Simulate the submitted order before any write, authorizing only effective moves. */
+    public static function requireStructureMoves(MenuSettings $menu, int $siteId, array $moves, array $skipIds = []): void
+    {
+        $db = Craft::$app->getDb();
+        $previousCache = $db->queryCache;
+        $previousEnabled = $db->enableQueryCache;
+        // This preflight performs no writes. Deduplicate its repeated permission reads
+        // in memory only; never reuse authorization data in another call or request.
+        $db->queryCache = new ArrayCache();
+        $db->enableQueryCache = true;
+        try {
+            $db->cache(fn() => self::_requireStructureMoves($menu, $siteId, $moves, $skipIds));
+        } finally {
+            $db->queryCache = $previousCache;
+            $db->enableQueryCache = $previousEnabled;
+        }
+    }
+
+    private static function _requireStructureMoves(MenuSettings $menu, int $siteId, array $moves, array $skipIds): void
+    {
+        $nodes = Node::find()->menuId($menu->id)->siteId($siteId)->status(null)
+            ->drafts(null)->provisionalDrafts(null)->withNodeHierarchy(false)->withProjectedChildren(false)->indexBy('id')->all();
+        $rows = (new Query())->select(['elementId', 'lft', 'rgt'])
+            ->from('{{%structureelements}}')->where(['structureId' => $menu->structureId])
+            ->orderBy(['lft' => SORT_ASC])->all();
+        $parents = [];
+        $children = [];
+        $stack = [];
+        foreach ($rows as $row) {
+            if (!$row['elementId']) {
+                continue;
+            }
+            while ($stack && end($stack)['rgt'] < $row['lft']) {
+                array_pop($stack);
+            }
+            $id = (int)$row['elementId'];
+            $parent = $stack ? (int)end($stack)['elementId'] : 0;
+            // The complete physical tree already supplies parent IDs; avoid lazy ancestor reads.
+            if (isset($nodes[$id])) {
+                $nodes[$id]->setParentId($parent ?: null);
+            }
+            $parents[$id] = $parent;
+            $children[$parent][] = $id;
+            $stack[] = $row;
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+        foreach ($moves as $move) {
+            if (!is_array($move)) {
+                throw new BadRequestHttpException('Invalid move payload.');
+            }
+            $id = self::_moveId($move['elementId'] ?? null);
+            if (in_array($id, $skipIds, true)) {
+                continue;
+            }
+            $parent = self::_moveId($move['parentId'] ?? null, true) ?? 0;
+            $prev = self::_moveId($move['prevId'] ?? null, true);
+            foreach (array_filter([$id, $parent, $prev]) as $targetId) {
+                if (!isset($nodes[$targetId], $parents[$targetId])) {
+                    throw new BadRequestHttpException('Invalid move node or target.');
+                }
+            }
+            $destination = $prev ? $parents[$prev] : $parent;
+            if ($prev === $id || $destination === $id) {
+                throw new BadRequestHttpException('Invalid move target.');
+            }
+            $oldParent = $parents[$id];
+            $oldIndex = array_search($id, $children[$oldParent], true);
+            $oldPrev = $oldIndex ? $children[$oldParent][$oldIndex - 1] : null;
+            if ($oldParent === $destination && $oldPrev === $prev) {
+                continue;
+            }
+
+            // A parent move carries descendants, including nodes absent from the posted tree.
+            $affected = [$id];
+            for ($i = 0; $i < count($affected); $i++) {
+                array_push($affected, ...($children[$affected[$i]] ?? []));
+            }
+            if (in_array($destination, $affected, true)) {
+                throw new BadRequestHttpException('Cannot move a node beneath its descendant.');
+            }
+            foreach (array_unique(array_merge($affected, array_filter([$parent, $prev]))) as $candidateId) {
+                if (!isset($nodes[$candidateId]) || !$nodes[$candidateId]->canSave($user)) {
+                    throw new ForbiddenHttpException('User is not authorized to move this node.');
+                }
+            }
+
+            array_splice($children[$oldParent], $oldIndex, 1);
+            $children[$destination] ??= [];
+            $index = $prev ? array_search($prev, $children[$destination], true) + 1 : 0;
+            array_splice($children[$destination], $index, 0, [$id]);
+            $parents[$id] = $destination;
+        }
+    }
+
+    /** Move endpoints accept identifiers, not ElementQuery selectors or coerced numbers. */
+    private static function _moveId(mixed $value, bool $optional = false): ?int
+    {
+        if ($optional && in_array($value, [null, '', 0, '0'], true)) {
+            return null;
+        }
+        if ((!is_int($value) && !is_string($value))
+            || !preg_match('/^[1-9][0-9]*$/D', (string)$value)
+            || filter_var($value, FILTER_VALIDATE_INT) === false) {
+            throw new BadRequestHttpException('Invalid move identifier.');
+        }
+        return (int)$value;
+    }
 
     private static function _requireMenu(?MenuSettings $menu): MenuSettings
     {

@@ -159,6 +159,7 @@ class MigrateFromFreeNav extends BasePluginMigrator
                 'n.visibilityRules',
                 'es.title',
                 'e.enabled',
+                'enabledForSite' => 'es.enabled',
                 'se.level',
                 'se.lft',
             ])
@@ -240,7 +241,7 @@ class MigrateFromFreeNav extends BasePluginMigrator
                 'customAttributes' => PluginMigrationHelper::parseCustomAttributes($row['customAttributes'] ?? null),
                 'data' => is_array($data) ? $data : [],
                 'enabled' => (bool)($row['enabled'] ?? true),
-                'enabledForSite' => true,
+                'enabledForSite' => (bool)$row['enabledForSite'],
             ];
 
             if ($linkedElementUid && $linkedElementType) {

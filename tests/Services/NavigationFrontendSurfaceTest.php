@@ -59,6 +59,17 @@ it('uses getTag for passive node link helpers', function() {
     expect((string)$node->getLinkAttributes())->not->toContain('href=');
 });
 
+it('renders site nodes as links in templates and link helpers', function() {
+    $site = NavigationFixtureFactory::existingSecondarySite();
+    $nav = NavigationFixtureFactory::menu();
+    $node = NavigationFixtureFactory::siteNode($nav, $site);
+    $href = 'href="' . htmlspecialchars(rtrim($site->getBaseUrl(), '/'), ENT_QUOTES) . '"';
+
+    expect((string)(new NavigationVariable())->render(['handle' => $nav->handle]))->toContain($href);
+    expect((string)$node->getLink())->toStartWith('<a')->toContain($href);
+    expect((string)$node->getLinkAttributes())->toContain($href);
+});
+
 it('renders newWindow as target and rel on custom nodes', function() {
     $nav = NavigationFixtureFactory::menu();
     $node = NavigationFixtureFactory::customNode($nav, 'Docs', 'https://example.com/docs');

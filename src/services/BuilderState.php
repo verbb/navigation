@@ -14,10 +14,11 @@ use verbb\navigation\models\MenuSettings;
 
 use Craft;
 use craft\base\Component;
-use craft\helpers\Markdown;
+use craft\helpers\HtmlPurifier;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
+use yii\helpers\Markdown;
 use yii\web\NotFoundHttpException;
 
 use Throwable;
@@ -54,6 +55,10 @@ class BuilderState extends Component
             ->orderBy(['structureelements.lft' => SORT_ASC])
             ->all();
 
+        // CP queries do not wire hierarchy automatically. Batch parents and linked
+        // elements for serialization, without adding public dynamic projections.
+        $nodes = Navigation::$plugin->getNodeRead()->assembleNodeHierarchy($nodes, true, false);
+
         $parentOptions = $nodesService->getParentOptions($nodes, $nav);
         $menuElement = Menu::find()->id($menuId)->siteId($siteId)->status(null)->one();
         $menuFieldLayout = $menuElement ? MenuContentFieldLayout::withoutTitle($menuElement->getFieldLayout()) : null;
@@ -67,7 +72,8 @@ class BuilderState extends Component
                 'name' => $nav->name,
                 'handle' => $nav->handle,
                 'instructions' => $nav->instructions,
-                'instructionsHtml' => $nav->instructions ? Markdown::process($nav->instructions) : null,
+                // Menu settings can be authored by non-admins; Markdown alone allows executable HTML.
+                'instructionsHtml' => $nav->instructions ? HtmlPurifier::process(Markdown::process($nav->instructions)) : null,
                 'maxLevels' => $nav->maxLevels ? (int)$nav->maxLevels : null,
                 'structureId' => $nav->structureId,
                 'showSiteMenu' => (bool)$nav->showSiteMenu,
@@ -104,6 +110,7 @@ class BuilderState extends Component
         return [
             'uid' => $session->uid,
             'structureMoves' => $session->structureMoves,
+            'structureRevision' => $session->structureRevision,
             'addedNodeIds' => $session->addedNodeIds,
             'stagedDeletes' => $session->stagedDeletes,
             'menuContentDraft' => $session->menuContentDraft,
@@ -192,6 +199,7 @@ class BuilderState extends Component
             'enabledForSite' => (bool)$node->getEnabledForSite(),
             'hasDescendants' => $hasDescendants,
             'isElementLinked' => (bool)($node->elementId && $node->isElement()),
+            'hasTitleOverride' => $node->hasOverriddenTitle(),
         ];
     }
 

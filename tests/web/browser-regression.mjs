@@ -35,16 +35,29 @@ try {
   });
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   await page.getByRole('row').filter({ hasText: 'Node 2' }).waitFor();
+  const titleOverride = page.locator('[data-node-id="1"] [data-title-override]');
+  assert.equal(await titleOverride.count(), 1);
+  assert.equal(await page.locator('[data-node-id="2"] [data-title-override]').count(), 0);
+  assert.equal(await titleOverride.getAttribute('tabindex'), '0');
+  await titleOverride.focus();
+  await page.getByText('Custom title', { exact: true }).waitFor({ state: 'visible' });
+  assert.equal(await titleOverride.locator('[title], svg title').count(), 0);
+  assert.equal(await titleOverride.getAttribute('title'), null);
+  const newWindow = page.locator('[data-node-id="1"] [aria-label="Opens in a new window"]');
+  await newWindow.focus();
+  await page.getByText('Opens in a new window', { exact: true }).waitFor({ state: 'visible' });
+  assert.equal(await newWindow.locator('[title], svg title').count(), 0);
+  assert.equal(await newWindow.getAttribute('title'), null);
   await page.locator('#delete').click();
   // Exercise the actual tree drag handlers with a browser DataTransfer object.
   const source = page.getByRole('row').filter({ hasText: 'Node 2' });
   const target = page.getByRole('row').filter({ hasText: 'Node 1' });
   const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
-  await source.locator('[title="Drag to reorder"]').dispatchEvent('dragstart', { dataTransfer });
+  await source.locator('[aria-label="Drag to reorder"]').dispatchEvent('dragstart', { dataTransfer });
   const box = await target.boundingBox();
   await target.dispatchEvent('dragover', { dataTransfer, clientX: box.x + 100, clientY: box.y + 1 });
   await target.dispatchEvent('drop', { dataTransfer, clientX: box.x + 100, clientY: box.y + 1 });
-  await source.locator('[title="Drag to reorder"]').dispatchEvent('dragend', { dataTransfer });
+  await source.locator('[aria-label="Drag to reorder"]').dispatchEvent('dragend', { dataTransfer });
   await page.waitForFunction(() => window.boundary.store.getState().nodes[0]?.id === 2);
   finishDelete();
   await page.waitForFunction(() => window.boundary.store.getState().state.session.changeCount === 1);
@@ -55,7 +68,7 @@ try {
   await page.waitForFunction(() => !window.boundary.store.getState().structureDirty);
   assert.deepEqual(await page.evaluate(() => window.boundary.store.getState().nodes.map(n => n.id)), [1, 2, 3]);
   assert.deepEqual(errors, []);
-  console.log('PASS: real tree drag during delayed delete; discard restores baseline (synthetic Craft HTTP responses).');
+  console.log('PASS: title override marker; real tree drag during delayed delete; discard restores baseline (synthetic Craft HTTP responses).');
 } catch (error) {
   console.error({ errors, body: await page?.locator('body').innerText() });
   throw error;

@@ -143,7 +143,8 @@ class Menu extends Element
 
     public function canDelete(User $user): bool
     {
-        return $this->canView($user);
+        // Canonical menus must be removed through their project-config lifecycle.
+        return $this->getIsDraft() && $this->canView($user);
     }
 
 

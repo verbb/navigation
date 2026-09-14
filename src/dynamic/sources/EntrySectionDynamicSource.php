@@ -12,12 +12,20 @@ use verbb\navigation\Navigation;
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Entry as EntryElement;
+use craft\elements\User;
 use craft\models\Section;
 
 class EntrySectionDynamicSource extends DynamicSource
 {
     // Static Methods
     // =========================================================================
+
+    public static function canAuthorNode(Node $node, User $user): bool
+    {
+        $source = EntrySectionSettings::getSectionFromNode($node);
+
+        return $source !== null && $user->can('viewEntries:' . $source->uid);
+    }
 
     public static function handle(): string
     {

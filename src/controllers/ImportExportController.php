@@ -14,7 +14,6 @@ use craft\web\UploadedFile;
 
 use stdClass;
 
-use yii\helpers\Markdown;
 use yii\web\BadRequestHttpException;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
@@ -63,6 +62,7 @@ class ImportExportController extends Controller
 
     public function actionImport(): ?Response
     {
+        $this->requirePostRequest();
         $uploadedFile = UploadedFile::getInstanceByName('file');
 
         if (!$uploadedFile) {
@@ -75,14 +75,17 @@ class ImportExportController extends Controller
             return null;
         }
 
-        $filename = 'navigation-import-' . gmdate('ymd_His') . '.json';
+        // Separate concurrent uploads even when they arrive in the same second.
+        $filename = 'navigation-import-' . gmdate('ymd_His') . '-' . StringHelper::UUID() . '.json';
 
         if (!preg_match(ImportExportHelper::IMPORT_FILENAME_PATTERN, $filename)) {
             throw new BadRequestHttpException('Invalid import filename.');
         }
 
         $fileLocation = Craft::$app->getPath()->getTempPath() . DIRECTORY_SEPARATOR . $filename;
-        $uploadedFile->saveAs($fileLocation, false);
+        if (!$uploadedFile->saveAs($fileLocation, false)) {
+            throw new BadRequestHttpException('Could not store the uploaded import file.');
+        }
 
         $object = new stdClass();
         $object->filename = $filename;
@@ -140,8 +143,10 @@ class ImportExportController extends Controller
 
     public function actionImportComplete(): ?Response
     {
-        $filename = (string)$this->request->getParam('filename');
-        $menuAction = (string)$this->request->getParam('menuAction', 'create');
+        $this->requirePostRequest();
+
+        $filename = (string)$this->request->getRequiredBodyParam('filename');
+        $menuAction = (string)$this->request->getBodyParam('menuAction', 'create');
         $fileLocation = ImportExportHelper::resolveImportFileLocation($filename);
 
         if (!$fileLocation || !file_exists($fileLocation)) {
@@ -245,7 +250,8 @@ class ImportExportController extends Controller
             $class = 'color-' . $color;
         }
 
-        echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
+        // Imported metadata is text, including anything that resembles HTML or Markdown.
+        echo '<div class="log-label ' . $class . '">' . Html::encode($string) . '</div>';
     }
 
     private function _stdoutNodes(array $nodes, int $depth = 2): void
@@ -253,8 +259,8 @@ class ImportExportController extends Controller
         $prefix = str_repeat('    ', $depth);
 
         foreach ($nodes as $node) {
-            $type = Html::encode($node['type'] ?? 'unknown');
-            $title = Html::encode($node['title'] ?? '');
+            $type = $node['type'] ?? 'unknown';
+            $title = $node['title'] ?? '';
 
             $this->_stdout("{$prefix}> {$type}: “{$title}”.", Console::FG_GREEN);
             $this->_stdoutNodes($node['children'] ?? [], $depth + 1);

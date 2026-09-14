@@ -57,6 +57,13 @@ it('saves menu content field values from the publish request payload', function(
 
     $nav = Navigation::$plugin->getMenus()->getMenuById($nav->id);
 
+    // Clearing must remove persisted content, not merely preserve an empty fixture.
+    $content = Menu::find()->id($nav->id)->siteId($siteId)->status(null)->one();
+    $content->setFieldValue($plainText2->handle, 'Previously saved');
+    expect(Craft::$app->getElements()->saveElement($content))->toBeTrue();
+    $before = Menu::find()->id($nav->id)->siteId($siteId)->status(null)->one();
+    expect($before->getFieldValue($plainText2->handle))->toBe('Previously saved');
+
     $request = Craft::createObject([
         'class' => Request::class,
         'bodyParams' => [

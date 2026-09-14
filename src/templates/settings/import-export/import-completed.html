@@ -7,8 +7,8 @@
 <h2>{{ 'Import Completed' | t('navigation') }}</h2>
 
 <p>{{ 'Your menu “{name}” has been imported. <a href="{cpEditUrl}">Edit Menu</a>' | t('navigation', {
-    name: menu.name,
-    cpEditUrl: cpUrl('navigation/menus/build/' ~ menu.id),
+    name: menu.name | e,
+    cpEditUrl: cpUrl('navigation/menus/build/' ~ menu.id) | e('html_attr'),
 }) | raw }}</p>
 
 {% endblock %}

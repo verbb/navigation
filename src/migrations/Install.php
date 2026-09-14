@@ -111,6 +111,7 @@ class Install extends Migration
             'siteId' => $this->integer()->notNull(),
             'userId' => $this->integer()->notNull(),
             'structureMoves' => $this->text()->null(),
+            'structureRevision' => $this->string(64)->null(),
             'addedNodeIds' => $this->text()->null(),
             'stagedDeletes' => $this->text()->null(),
             'menuDraftId' => $this->integer()->null(),

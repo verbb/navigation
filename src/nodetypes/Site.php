@@ -28,6 +28,12 @@ class Site extends NodeType
         return false;
     }
 
+    public static function getTag(): string
+    {
+        // Site links derive their URL from the selected site rather than a URL input.
+        return 'a';
+    }
+
     public static function hasNewWindow(): bool
     {
         return false;

@@ -27,6 +27,7 @@ export type BuilderNode = {
   enabledForSite: boolean;
   hasDescendants: boolean;
   isElementLinked: boolean;
+  hasTitleOverride: boolean;
 };
 
 export type StructureMove = {
@@ -63,6 +64,7 @@ export type MenuContentTab = {
 export type BuilderSession = {
   uid: string;
   structureMoves: StructureMove[];
+  structureRevision?: string | null;
   addedNodeIds: number[];
   stagedDeletes: Array<{ nodeId: number; enabled: boolean; enabledForSite: boolean }>;
   menuContentDraft: Record<string, unknown>;

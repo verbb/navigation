@@ -81,7 +81,7 @@ class Breadcrumbs extends Component
             'element' => $element,
             'elementId' => $elementId,
             'elementType' => $elementType,
-            'link' => Html::tag('a', $title, ['href' => $url]),
+            'link' => Html::tag('a', Html::encode($title), ['href' => $url]),
         ];
     }
 }

@@ -4,9 +4,9 @@ namespace verbb\navigation\events;
 use verbb\navigation\elements\Node;
 use verbb\navigation\models\NodeSiteSettings;
 
-use yii\base\Event;
+use craft\events\CancelableEvent;
 
-class CopyNodeToSiteEvent extends Event
+class CopyNodeToSiteEvent extends CancelableEvent
 {
     // Properties
     // =========================================================================

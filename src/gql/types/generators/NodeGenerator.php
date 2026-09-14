@@ -12,7 +12,6 @@ use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\helpers\Gql as CraftGqlHelper;
 
 class NodeGenerator extends Generator implements GeneratorInterface, SingleGeneratorInterface
 {
@@ -25,12 +24,9 @@ class NodeGenerator extends Generator implements GeneratorInterface, SingleGener
         $gqlTypes = [];
 
         foreach ($navs as $nav) {
-            $requiredContexts = Node::gqlScopesByContext($nav);
-
-            if (!CraftGqlHelper::isSchemaAwareOf($requiredContexts)) {
-                if (!NavigationGqlHelper::canSchema('navigationMenus.all') && !NavigationGqlHelper::canSchema('navigationNavs.all')) {
-                    continue;
-                }
+            // Use the same canonical/legacy grant policy as the node resolver.
+            if (!NavigationGqlHelper::canQueryMenu($nav)) {
+                continue;
             }
 
             $type = static::generateType($nav);

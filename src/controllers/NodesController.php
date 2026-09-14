@@ -3,6 +3,7 @@ namespace verbb\navigation\controllers;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node;
+use verbb\navigation\helpers\BuilderStructureRevision;
 use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\models\MenuSettings;
 
@@ -23,6 +24,130 @@ class NodesController extends Controller
     // =========================================================================
 
     public function actionAddNodes(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+        $nodes = $this->request->getRequiredParam('nodes');
+        $first = is_array($nodes) ? reset($nodes) : null;
+        $menu = MenuAuth::requireManageMenuById($this, is_array($first) ? (int)($first['menuId'] ?? 0) : null);
+
+        return BuilderStructureRevision::trackMutation($menu, fn() => $this->_addNodes());
+    }
+
+    public function actionGetParentOptions(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
+        $nodesService = Navigation::$plugin->getNodes();
+        $buildSessions = Navigation::$plugin->getBuildSessions();
+        $menuId = (int)$this->request->getRequiredParam('menuId');
+        $siteId = $this->request->getParam('siteId');
+        $siteId = $siteId ? (int)$siteId : (int)Craft::$app->getSites()->getCurrentSite()->id;
+
+        MenuAuth::requireManageMenuSite(
+            $this,
+            Navigation::$plugin->getMenus()->getMenuById($menuId),
+            $siteId,
+        );
+
+        $nodes = $nodesService->getNodesForNav($menuId, $siteId);
+
+        $options = [];
+
+        if ($nodes) {
+            $options = $nodesService->getParentOptions($nodes, Navigation::$plugin->getMenus()->getMenuById($nodes[0]->menuId));
+        }
+
+        return $this->asJson([
+            'options' => $options,
+            'changeCount' => $buildSessions->isStagingEnabled()
+                ? $buildSessions->getChangeCount($menuId, $siteId)
+                : 0,
+        ]);
+    }
+
+    public function actionCopyToSite(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
+        $targetSiteId = (int)$this->request->getRequiredBodyParam('siteId');
+        $deep = (bool)$this->request->getBodyParam('deep', false);
+        $remapLinkedElements = (bool)$this->request->getBodyParam('remapLinkedElements', false);
+        $nodeIds = $this->_normalizeCopyNodeIds();
+
+        $firstNode = Node::find()->id($nodeIds[0])->status(null)->site('*')->unique()->one();
+
+        if (!$firstNode) {
+            return $this->asFailure(Craft::t('navigation', 'Node not found.'));
+        }
+
+        $menuId = (int)($this->request->getBodyParam('menuId') ?? $firstNode->menuId);
+        $sourceSiteId = (int)($this->request->getBodyParam('sourceSiteId') ?? $firstNode->siteId);
+
+        $nav = MenuAuth::requireManageMenuSite($this, Navigation::$plugin->getMenus()->getMenuById($menuId), $sourceSiteId);
+        MenuAuth::requireManageMenuSite($this, $nav, $targetSiteId);
+
+        if ($nav->propagationMethod !== MenuSettings::PROPAGATION_METHOD_NONE) {
+            return $this->asFailure(Craft::t('navigation', 'Nodes in this menu are propagated automatically. Switch sites to edit them instead of copying.'));
+        }
+
+        if ($deep && (int)$nav->maxLevels === 1) {
+            throw new BadRequestHttpException('This menu does not support nested nodes.');
+        }
+
+        MenuAuth::requireDuplicatableNodes(
+            Node::find()->id($nodeIds)->menuId($menuId)->siteId($sourceSiteId)->status(null)->all(), $deep, $targetSiteId,
+        );
+
+        $result = Navigation::$plugin->getNodes()->copyNodesToSite(
+            $menuId,
+            $sourceSiteId,
+            $nodeIds,
+            $targetSiteId,
+            $deep,
+            $remapLinkedElements,
+        );
+
+        if ($result['successCount'] === 0) {
+            return $this->asFailure(Craft::t('navigation', 'Couldn’t copy node to site.'));
+        }
+
+        $message = $result['successCount'] === 1
+            ? Craft::t('navigation', 'Node copied to site.')
+            : Craft::t('navigation', '{count} nodes copied to site.', ['count' => $result['successCount']]);
+
+        if ($result['failCount'] > 0) {
+            $message .= ' ' . Craft::t('navigation', 'Some nodes could not be copied.');
+        }
+
+        if ($result['skippedLinkedElementRemapCount'] > 0) {
+            $message .= ' ' . Craft::t(
+                'navigation',
+                '{count, plural, =1{1 element-linked node kept its original link because the element isn’t available on the target site.} other{# element-linked nodes kept their original links because the elements aren’t available on the target site.}}',
+                ['count' => $result['skippedLinkedElementRemapCount']],
+            );
+        }
+
+        return $this->asSuccess($message, [
+            'nodeId' => $result['copiedNodeIds'][0] ?? null,
+            'copiedNodeIds' => $result['copiedNodeIds'],
+            'remappedLinkedElementCount' => $result['remappedLinkedElementCount'],
+            'skippedLinkedElementRemapCount' => $result['skippedLinkedElementRemapCount'],
+        ]);
+    }
+
+    public function actionSaveStructure(): Response
+    {
+        return (new BuildSessionsController('build-sessions', Navigation::$plugin))->actionPublish();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _addNodes(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
@@ -132,160 +257,6 @@ class NodesController extends Controller
                 : 0,
         ]);
     }
-
-    public function actionGetParentOptions(): Response
-    {
-        $this->requirePostRequest();
-        $this->requireAcceptsJson();
-
-        $nodesService = Navigation::$plugin->getNodes();
-        $buildSessions = Navigation::$plugin->getBuildSessions();
-        $menuId = (int)$this->request->getRequiredParam('menuId');
-        $siteId = $this->request->getParam('siteId');
-        $siteId = $siteId ? (int)$siteId : null;
-
-        MenuAuth::requireManageMenuSite(
-            $this,
-            Navigation::$plugin->getMenus()->getMenuById($menuId),
-            $siteId,
-        );
-
-        $nodes = $nodesService->getNodesForNav($menuId, $siteId);
-
-        $options = [];
-
-        if ($nodes) {
-            $options = $nodesService->getParentOptions($nodes, Navigation::$plugin->getMenus()->getMenuById($nodes[0]->menuId));
-        }
-
-        return $this->asJson([
-            'options' => $options,
-            'changeCount' => $buildSessions->isStagingEnabled()
-                ? $buildSessions->getChangeCount($menuId, $siteId)
-                : 0,
-        ]);
-    }
-
-    public function actionCopyToSite(): Response
-    {
-        $this->requirePostRequest();
-        $this->requireAcceptsJson();
-
-        $targetSiteId = (int)$this->request->getRequiredBodyParam('siteId');
-        $deep = (bool)$this->request->getBodyParam('deep', false);
-        $remapLinkedElements = (bool)$this->request->getBodyParam('remapLinkedElements', false);
-        $nodeIds = $this->_normalizeCopyNodeIds();
-
-        $firstNode = Node::find()->id($nodeIds[0])->status(null)->site('*')->unique()->one();
-
-        if (!$firstNode) {
-            return $this->asFailure(Craft::t('navigation', 'Node not found.'));
-        }
-
-        $menuId = (int)($this->request->getBodyParam('menuId') ?? $firstNode->menuId);
-        $sourceSiteId = (int)($this->request->getBodyParam('sourceSiteId') ?? $firstNode->siteId);
-
-        $nav = MenuAuth::requireManageMenuSite($this, Navigation::$plugin->getMenus()->getMenuById($menuId), $sourceSiteId);
-        MenuAuth::requireManageMenuSite($this, $nav, $targetSiteId);
-
-        if ($nav->propagationMethod !== MenuSettings::PROPAGATION_METHOD_NONE) {
-            return $this->asFailure(Craft::t('navigation', 'Nodes in this menu are propagated automatically. Switch sites to edit them instead of copying.'));
-        }
-
-        if ($deep && (int)$nav->maxLevels === 1) {
-            throw new BadRequestHttpException('This menu does not support nested nodes.');
-        }
-
-        $result = Navigation::$plugin->getNodes()->copyNodesToSite(
-            $menuId,
-            $sourceSiteId,
-            $nodeIds,
-            $targetSiteId,
-            $deep,
-            $remapLinkedElements,
-        );
-
-        if ($result['successCount'] === 0) {
-            return $this->asFailure(Craft::t('navigation', 'Couldn’t copy node to site.'));
-        }
-
-        $message = $result['successCount'] === 1
-            ? Craft::t('navigation', 'Node copied to site.')
-            : Craft::t('navigation', '{count} nodes copied to site.', ['count' => $result['successCount']]);
-
-        if ($result['skippedLinkedElementRemapCount'] > 0) {
-            $message .= ' ' . Craft::t(
-                'navigation',
-                '{count, plural, =1{1 element-linked node kept its original link because the element isn’t available on the target site.} other{# element-linked nodes kept their original links because the elements aren’t available on the target site.}}',
-                ['count' => $result['skippedLinkedElementRemapCount']],
-            );
-        }
-
-        return $this->asSuccess($message, [
-            'nodeId' => $result['copiedNodeIds'][0] ?? null,
-            'copiedNodeIds' => $result['copiedNodeIds'],
-            'remappedLinkedElementCount' => $result['remappedLinkedElementCount'],
-            'skippedLinkedElementRemapCount' => $result['skippedLinkedElementRemapCount'],
-        ]);
-    }
-
-    public function actionSaveStructure(): Response
-    {
-        $this->requirePostRequest();
-        $this->requireAcceptsJson();
-
-        $buildSessions = Navigation::$plugin->getBuildSessions();
-
-        if (!$buildSessions->isStagingEnabled()) {
-            throw new BadRequestHttpException('Builder staging is disabled.');
-        }
-
-        $menuId = (int)$this->request->getRequiredBodyParam('menuId');
-        $siteId = (int)$this->request->getRequiredBodyParam('siteId');
-        $applyStructure = (bool)$this->request->getBodyParam('applyStructure', false);
-        $moves = $this->request->getBodyParam('moves', []);
-
-        if (!is_array($moves)) {
-            throw new BadRequestHttpException('Invalid moves payload.');
-        }
-
-        MenuAuth::requireManageMenuSite(
-            $this,
-            Navigation::$plugin->getMenus()->getMenuById($menuId),
-            $siteId,
-        );
-
-        $session = $buildSessions->getOrCreate($menuId, $siteId);
-        $changeCount = $session->getChangeCount(false);
-
-        if ($applyStructure && $moves === []) {
-            throw new BadRequestHttpException('Invalid moves payload.');
-        }
-
-        if ($applyStructure && $moves !== []) {
-            $buildSessions->setStructureMoves($session, $moves);
-        }
-
-        try {
-            $result = $buildSessions->publish($session, $applyStructure, $applyStructure ? $moves : null);
-        } catch (BadRequestHttpException $e) {
-            return $this->asFailure($e->getMessage());
-        } catch (Throwable $e) {
-            Craft::error('Failed to save menu: ' . $e->getMessage(), __METHOD__);
-
-            return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu.'));
-        }
-
-        return $this->asSuccess(Craft::t('navigation', 'Menu saved.'), [
-            'changeCount' => 0,
-            'publishedCount' => $result['publishedCount'],
-            'deletedCount' => $result['deletedCount'],
-        ]);
-    }
-
-
-    // Private Methods
-    // =========================================================================
 
     private function _setNodeFromPost($prefix = ''): Node
     {

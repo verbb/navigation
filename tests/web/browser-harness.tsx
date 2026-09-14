@@ -8,9 +8,10 @@ import { registerNavigationIcons } from '../../src/web/src/icons/registerNavigat
 
 const nodes = [1, 2, 3].map(id => ({ id, title: `Node ${id}`, type: 'Custom', typeLabel: 'Custom',
   typeClass: 'Custom', typeColorRgb: '0,0,0', typeTextColorRgb: '0,0,0', url: `/node-${id}`,
-  level: 1, parentId: null, status: 'live', newWindow: false, classes: null,
+  level: 1, parentId: null, status: 'live', newWindow: id === 1, classes: null,
   pendingAdd: false, pendingDelete: false, pendingEdit: false, enabled: true,
-  enabledForSite: true, hasDescendants: false, isElementLinked: false }));
+  enabledForSite: true, hasDescendants: false, isElementLinked: id === 1,
+  hasTitleOverride: id === 1 }));
 const fixture = { nodes, canCopyToSite: false, copyToSiteTargets: [], elementType: 'Node', menu: { maxLevels: 1 }, builderTabs: [], stagingEnabled: true,
   session: { changeCount: 0, hasStructureMoves: false } };
 (window as any).Craft = { t: (_: string, text: string) => text,
