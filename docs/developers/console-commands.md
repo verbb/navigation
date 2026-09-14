@@ -10,7 +10,7 @@ Repairs missing menu site settings rows in the database.
 php craft navigation/menus/fix-sites
 ```
 
-## Resaving nodes
+## Resaving Nodes
 
 Use Craft's built-in resave command with the `--menuId` parameter:
 
@@ -20,7 +20,7 @@ php craft resave/navigation-nodes --menuId=1
 
 ## `navigation/import-export/*`
 
-Portable menu JSON export and import (see [JSON import and export](/guides/configuration/json-import-export)).
+Portable menu JSON export and import (see [JSON Import and Export](/user-guides/configuration/json-import-and-export)).
 
 ```bash
 php craft navigation/import-export/list
@@ -32,7 +32,7 @@ php craft navigation/import-export/import-json ./mainMenu.json --update
 
 ## `navigation/migrate/*`
 
-Copy menus from third-party navigation plugins (see [Migrations](/guides/migrations-upgrades/)).
+Copy menus from third-party navigation plugins (see [Migrations](/user-guides/migrations-upgrades/migrating-from-freenav)).
 
 ```bash
 php craft navigation/migrate/free-nav

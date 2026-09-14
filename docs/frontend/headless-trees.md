@@ -2,7 +2,7 @@
 
 `craft.navigation.tree()` returns a nested **array** tree — useful for JSON APIs, JavaScript menus, and static site generators.
 
-## Basic usage
+## Basic Usage
 
 ```twig
 {% set tree = craft.navigation.tree('mainMenu') %}
@@ -15,7 +15,7 @@ You can pass criteria like a node query:
 {% set tree = craft.navigation.tree({ handle: 'mainMenu', level: 1 }) %}
 ```
 
-## Array shape
+## Array Shape
 
 Each node array includes keys such as:
 
@@ -27,7 +27,7 @@ Each node array includes keys such as:
 | `children` | Nested arrays |
 | `element` | Linked element array when present — `null` by default; populated when `withLinkedElements` is enabled |
 
-## Example output
+## Example Output
 
 A small `mainMenu` on `/products/widget` might serialise like this:
 
@@ -86,11 +86,11 @@ With `withLinkedElements: true`, `element` holds the linked entry (or category, 
 }) %}
 ```
 
-Unlike `nodes()`, linked element hydration is **opt-in** for `tree()`. Without `withLinkedElements`, `element` is `null`.
+`tree()` and node queries both leave linked elements unloaded by default. Without the `withLinkedElements` output option, the tree’s `element` key is `null`. This option loads elements after the underlying node fetch, which can still use the tree cache. Setting `withLinkedElements` in the query criteria instead bypasses that cache for the node fetch.
 
 `tree()` runs through the same read pipeline as `nodes().all()` — caching and active-state rules apply to the underlying fetch. See [Performance & Caching](/frontend/performance-and-caching).
 
-## Dynamic projection
+## Dynamic Projection
 
 Projected Dynamic children appear in `children` with `isProjected: true` unless you opt out with `withProjectedChildren(false)` on the underlying query criteria.
 

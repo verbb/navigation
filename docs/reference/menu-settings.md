@@ -12,19 +12,101 @@ MenuSettings is a PHP-only API. In Twig, use `craft.navigation.menu('handle').on
 
 ## Properties
 
-| Property | Description |
-| --- | --- |
-| `id` | Menu ID |
-| `name` | Display name |
-| `handle` | Handle (used in Twig/GraphQL) |
-| `instructions` | CP instructions |
-| `maxLevels` | Maximum nesting depth |
-| `maxNodes` | Maximum total nodes |
-| `propagationMethod` | Multisite propagation for nodes |
-| `titleTranslationMethod` | How node titles propagate across sites (`none`, `site`, `siteGroup`, `language`, `custom`) |
-| `titleTranslationKeyFormat` | Custom translation key template when `titleTranslationMethod` is `custom` |
-| `defaultEnabledForPropagatedSites` | Default **Enabled On Other Sites By Default** value for new nodes when propagation is not `none` |
-| `structureId` | Craft structure ID for the node tree |
-| `fieldLayoutId` | Node custom field layout |
+::: reference
+### `id`
+
+**Type:** `int|null`
+
+Menu ID
+:::
+
+::: reference
+### `name`
+
+**Type:** `string|null`
+
+Display name
+:::
+
+::: reference
+### `handle`
+
+**Type:** `string|null`
+
+Handle (used in Twig/GraphQL)
+:::
+
+::: reference
+### `instructions`
+
+**Type:** `string|null`
+
+CP instructions
+:::
+
+::: reference
+### `maxLevels`
+
+**Type:** `int|null`
+
+Maximum nesting depth
+:::
+
+::: reference
+### `maxNodes`
+
+**Type:** `int|null`
+
+Maximum total nodes
+:::
+
+::: reference
+### `propagationMethod`
+
+**Type:** `string`
+
+Multisite propagation for nodes
+:::
+
+::: reference
+### `titleTranslationMethod`
+
+**Type:** `string`
+
+How node titles propagate across sites (`none`, `site`, `siteGroup`, `language`, `custom`)
+:::
+
+::: reference
+### `titleTranslationKeyFormat`
+
+**Type:** `string|null`
+
+Custom translation key template when `titleTranslationMethod` is `custom`
+:::
+
+::: reference
+### `defaultEnabledForPropagatedSites`
+
+**Type:** `bool`
+
+Default **Enabled On Other Sites By Default** value for new nodes when propagation is not `none`
+:::
+
+::: reference
+### `structureId`
+
+**Type:** `int|null`
+
+Craft structure ID for the node tree
+:::
+
+::: reference
+### `fieldLayoutId`
+
+**Type:** `int|null`
+
+Node custom field layout
+:::
+
 
 For menu-level **field values**, use `craft.navigation.menu('handle').one()`.

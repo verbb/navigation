@@ -82,7 +82,17 @@ const transformSidebarEntry = (entry: SidebarEntry) => {
     return item;
 };
 
+// Root entry routes lead into the docs; category indexes retain their guide-card content.
+const indexRedirects: Record<string, string> = {
+    'index.md': '/get-started/installation-setup',
+    'user-guides/index.md': '/user-guides/templating/build-a-header-menu-with-dropdowns',
+};
+
 export default defineConfig({
+    transformHead({ pageData }) {
+        const target = indexRedirects[pageData.relativePath];
+        return target ? [['meta', { 'http-equiv': 'refresh', content: `0;url=${target}` }]] : [];
+    },
     title: 'Navigation',
     description: 'Local preview for the main Navigation plugin docs.',
     cleanUrls: true,

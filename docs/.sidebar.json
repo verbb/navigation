@@ -4,29 +4,30 @@
         "collapsable": false,
         "children": [
             "get-started/installation-setup",
+            "get-started/creating-your-first-menu",
             "get-started/requirements",
             "get-started/configuration",
             "get-started/upgrading-from-v3"
         ]
     },
     {
-        "title": "Menus",
+        "title": "Feature Tour",
         "collapsable": false,
         "children": [
-            "menus/overview",
-            "menus/menu-fields",
-            "menus/node-types"
+            "feature-tour/overview",
+            "feature-tour/menu-fields",
+            "feature-tour/node-types"
         ]
     },
     {
-        "title": "Templates",
+        "title": "Template Guides",
         "collapsable": false,
         "children": [
-            "templates/rendering-nodes",
-            "templates/active-state-and-context",
-            "templates/context-and-breadcrumbs",
-            "templates/navigation-field",
-            "templates/custom-rendering"
+            "template-guides/rendering-nodes",
+            "template-guides/active-state-and-context",
+            "template-guides/context-and-breadcrumbs",
+            "template-guides/navigation-field",
+            "template-guides/custom-rendering"
         ]
     },
     {
@@ -45,18 +46,18 @@
         ]
     },
     {
+        "title": "Integrations",
+        "collapsable": false,
+        "children": [
+            "integrations/feed-me"
+        ]
+    },
+    {
         "title": "GraphQL",
         "collapsable": false,
         "children": [
             "graphql/query-nodes",
             "graphql/context-and-breadcrumbs"
-        ]
-    },
-    {
-        "title": "Integrations",
-        "collapsable": false,
-        "children": [
-            "integrations/feed-me"
         ]
     },
     {
@@ -75,18 +76,61 @@
             "reference/node",
             "reference/menu",
             "reference/projected-node",
-            "reference/menu-settings"
+            "reference/menu-settings",
+            "reference/context"
         ]
     },
     {
-        "title": "Guides",
+        "title": "User Guides",
         "collapsable": false,
         "children": [
-            "guides/performance/index",
-            "guides/templating/index",
-            "guides/frontend-headless/index",
-            "guides/configuration/index",
-            "guides/migrations-upgrades/index"
+            {
+                "title": "Templating",
+                "path": "user-guides/templating/index",
+                "children": [
+                    "user-guides/templating/build-a-header-menu-with-dropdowns",
+                    "user-guides/templating/build-a-section-sidebar-with-context-api",
+                    "user-guides/templating/build-a-mega-menu",
+                    "user-guides/templating/breadcrumbs-url-trail-vs-menu-trail",
+                    "user-guides/templating/auto-list-a-section-with-dynamic-nodes",
+                    "user-guides/templating/node-custom-fields-for-icons-and-badges"
+                ]
+            },
+            {
+                "title": "Frontend & Headless",
+                "path": "user-guides/frontend-headless/index",
+                "children": [
+                    "user-guides/frontend-headless/expose-a-menu-as-json-for-a-js-frontend",
+                    "user-guides/frontend-headless/navigation-with-blitz-and-full-page-cache"
+                ]
+            },
+            {
+                "title": "Configuration",
+                "path": "user-guides/configuration/index",
+                "children": [
+                    "user-guides/configuration/choosing-between-render-nodes-and-tree",
+                    "user-guides/configuration/multisite-menus",
+                    "user-guides/configuration/json-import-and-export"
+                ]
+            },
+            {
+                "title": "Performance",
+                "path": "user-guides/performance/index",
+                "children": [
+                    "user-guides/performance/the-complete-guide-to-navigation-performance"
+                ]
+            },
+            {
+                "title": "Migrations",
+                "path": "user-guides/migrations-upgrades/index",
+                "children": [
+                    "user-guides/migrations-upgrades/migrating-from-freenav",
+                    "user-guides/migrations-upgrades/migrating-from-navigate",
+                    "user-guides/migrations-upgrades/migrating-from-navkit",
+                    "user-guides/migrations-upgrades/migrating-from-olivemenus",
+                    "user-guides/migrations-upgrades/migrating-from-tka-navigation"
+                ]
+            }
         ]
     }
 ]

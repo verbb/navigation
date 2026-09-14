@@ -1,96 +1,99 @@
 # Events
+Navigation provides a collection of events for extending its functionality. Modules and plugins can register event listeners, typically in their `init()` methods, to modify Navigation’s behaviour.
 
 ## Menu Events
 
-### The `beforeSaveMenu` event
-The event that is triggered before a menu is saved.
+Menu events provide a [Menu Settings](/reference/menu-settings) object through `$event->menu`. They concern menu configuration, rather than individual node edits or menu field values. `MenuEvent` does not support cancellation through `isValid`.
+
+### The `beforeSaveMenu` Event
+The event that is triggered before menu configuration is validated and saved.
 
 ```php
 use verbb\navigation\events\MenuEvent;
 use verbb\navigation\services\Menus;
 use yii\base\Event;
 
-Event::on(Menus::class, Menus::EVENT_BEFORE_SAVE_MENU, function (MenuEvent $event) {
+Event::on(Menus::class, Menus::EVENT_BEFORE_SAVE_MENU, function(MenuEvent $event) {
     $menu = $event->menu;
     $isNew = $event->isNew;
-    // ...
+    \Craft::info(($isNew ? 'Creating' : 'Updating') . " menu {$menu->handle}.", __METHOD__);
 });
 ```
 
-### The `afterSaveMenu` event
-The event that is triggered after a menu is saved.
+### The `afterSaveMenu` Event
+The event that is triggered after menu configuration has been saved.
 
 ```php
 use verbb\navigation\events\MenuEvent;
 use verbb\navigation\services\Menus;
 use yii\base\Event;
 
-Event::on(Menus::class, Menus::EVENT_AFTER_SAVE_MENU, function (MenuEvent $event) {
+Event::on(Menus::class, Menus::EVENT_AFTER_SAVE_MENU, function(MenuEvent $event) {
     $menu = $event->menu;
-    // ...
+    $isNew = $event->isNew;
+    \Craft::info(($isNew ? 'Creating' : 'Updating') . " menu {$menu->handle}.", __METHOD__);
 });
 ```
 
-### The `beforeDeleteMenu` event
-The event that is triggered before a menu is deleted.
+### The `beforeDeleteMenu` Event
+The event that is triggered before a menu deletion is requested.
 
 ```php
 use verbb\navigation\events\MenuEvent;
 use verbb\navigation\services\Menus;
 use yii\base\Event;
 
-Event::on(Menus::class, Menus::EVENT_BEFORE_DELETE_MENU, function (MenuEvent $event) {
+Event::on(Menus::class, Menus::EVENT_BEFORE_DELETE_MENU, function(MenuEvent $event) {
     $menu = $event->menu;
-    // ...
+    \Craft::info("Deleting menu {$menu->handle}.", __METHOD__);
 });
 ```
 
-### The `beforeApplyMenuDelete` event
-The event that is triggered before a menu delete is applied from project config.
+### The `beforeApplyMenuDelete` Event
+The event that is triggered before a menu deletion is applied from project config.
 
 ```php
 use verbb\navigation\events\MenuEvent;
 use verbb\navigation\services\Menus;
 use yii\base\Event;
 
-Event::on(Menus::class, Menus::EVENT_BEFORE_APPLY_MENU_DELETE, function (MenuEvent $event) {
+Event::on(Menus::class, Menus::EVENT_BEFORE_APPLY_MENU_DELETE, function(MenuEvent $event) {
     $menu = $event->menu;
-    // ...
+    \Craft::info("Applying deletion of menu {$menu->handle}.", __METHOD__);
 });
 ```
 
-### The `afterDeleteMenu` event
-The event that is triggered after a menu is deleted.
+### The `afterDeleteMenu` Event
+The event that is triggered after a menu has been deleted.
 
 ```php
 use verbb\navigation\events\MenuEvent;
 use verbb\navigation\services\Menus;
 use yii\base\Event;
 
-Event::on(Menus::class, Menus::EVENT_AFTER_DELETE_MENU, function (MenuEvent $event) {
+Event::on(Menus::class, Menus::EVENT_AFTER_DELETE_MENU, function(MenuEvent $event) {
     $menu = $event->menu;
-    // ...
+    \Craft::info("Deleted menu {$menu->handle}.", __METHOD__);
 });
 ```
 
 ## Node Events
 
-### The `beforeSaveNode` event
-The event that is triggered before a node is saved. You can set `$event->isValid` to `false` to prevent saving.
+### The `beforeSave` Event
+The event that is triggered before a node is saved. Read the node from `$event->sender`; set `$event->isValid` to `false` to prevent the save.
 
 ```php
 use craft\events\ModelEvent;
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Node::class, Node::EVENT_BEFORE_SAVE, function (ModelEvent $event) {
+Event::on(Node::class, Node::EVENT_BEFORE_SAVE, function(ModelEvent $event) {
     $node = $event->sender;
-    $event->isValid = false;
-    // ...
+    \Craft::info("Saving node {$node->title}.", __METHOD__);
 });
 ```
 
-### The `afterSaveNode` event
+### The `afterSave` Event
 The event that is triggered after a node is saved.
 
 ```php
@@ -98,35 +101,31 @@ use craft\events\ModelEvent;
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Node::class, Node::EVENT_AFTER_SAVE, function (ModelEvent $event) {
+Event::on(Node::class, Node::EVENT_AFTER_SAVE, function(ModelEvent $event) {
     $node = $event->sender;
-    // ...
+    \Craft::info("Saved node {$node->title}.", __METHOD__);
 });
 ```
 
-### The `modifyNodeActive` event
-The event that is triggered when resolving whether a node is active. Modify the `isActive` event property to change the result.
-
-This event is fired from `Node::getActive()`.
+### The `modifyNodeActive` Event
+The event that is triggered when a node’s active state is calculated. Set `$event->isActive` to override branch highlighting; this does not change the exact current-page match. This example highlights a node named Campaign.
 
 ```php
 use verbb\navigation\elements\Node;
 use verbb\navigation\events\NodeActiveEvent;
 use yii\base\Event;
 
-Event::on(Node::class, Node::EVENT_NODE_ACTIVE, function (NodeActiveEvent $event) {
-    $node = $event->node;
-    $event->isActive = true;
-    // ...
+Event::on(Node::class, Node::EVENT_NODE_ACTIVE, function(NodeActiveEvent $event) {
+    if ($event->node->title === 'Campaign') {
+        $event->isActive = true;
+    }
 });
 ```
 
 ## Structure Events
 
-### The `beforeMoveElement` event
-The event that is triggered before an element is moved in its structure.
-
-When handling navigation nodes, check that `$event->element` is an instance of `Node`.
+### The `beforeMoveElement` Event
+The event that is triggered before an element is moved in a structure. These Craft events apply to other element types too, so check that `$event->element` is a Navigation node.
 
 ```php
 use craft\events\MoveElementEvent;
@@ -134,17 +133,15 @@ use craft\services\Structures;
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Structures::class, Structures::EVENT_BEFORE_MOVE_ELEMENT, function (MoveElementEvent $event) {
-    $element = $event->element;
-
-    if ($element instanceof Node) {
-        // ...
+Event::on(Structures::class, Structures::EVENT_BEFORE_MOVE_ELEMENT, function(MoveElementEvent $event) {
+    if ($event->element instanceof Node) {
+        \Craft::info("Moving node {$event->element->title}.", __METHOD__);
     }
 });
 ```
 
-### The `afterMoveElement` event
-The event that is triggered after an element is moved in its structure.
+### The `afterMoveElement` Event
+The event that is triggered after an element is moved in a structure. These Craft events apply to other element types too, so check that `$event->element` is a Navigation node.
 
 ```php
 use craft\events\MoveElementEvent;
@@ -152,85 +149,76 @@ use craft\services\Structures;
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Structures::class, Structures::EVENT_AFTER_MOVE_ELEMENT, function (MoveElementEvent $event) {
-    $element = $event->element;
-
-    if ($element instanceof Node) {
-        // ...
+Event::on(Structures::class, Structures::EVENT_AFTER_MOVE_ELEMENT, function(MoveElementEvent $event) {
+    if ($event->element instanceof Node) {
+        \Craft::info("Moving node {$event->element->title}.", __METHOD__);
     }
 });
 ```
 
 ## Node Type Events
 
-### The `registerNodeTypes` event
-The event that is triggered when registering node types for the menu builder.
-
-For more examples, see [Node Types](/developers/node-types).
+### The `registerNodeTypes` Event
+The event that is triggered when Navigation registers its node types. Add classes to `$event->types`. This example registers the Group class from [Node Types](/developers/node-types).
 
 ```php
+use modules\sitemodule\nodetypes\Group;
 use verbb\navigation\events\RegisterNodeTypeEvent;
 use verbb\navigation\services\NodeTypes;
 use yii\base\Event;
 
-Event::on(NodeTypes::class, NodeTypes::EVENT_REGISTER_NODE_TYPES, function (RegisterNodeTypeEvent $event) {
-    $event->types[] = \modules\sitemodule\nodetypes\Group::class;
-    // ...
+Event::on(NodeTypes::class, NodeTypes::EVENT_REGISTER_NODE_TYPES, function(RegisterNodeTypeEvent $event) {
+    $event->types[] = Group::class;
 });
 ```
 
 ## Dynamic Source Events
 
-### The `registerDynamicSources` event
-The event that is triggered when registering dynamic sources for **Dynamic** nodes. Add provider class names to the `providers` array.
+### The `registerDynamicSources` Event
+The event that is triggered when Navigation registers its Dynamic source providers. Modify `$event->providers` to add or remove provider classes. This example removes asset volumes from the available Dynamic sources.
 
 ```php
-use verbb\navigation\base\DynamicSourceProvider;
-use verbb\navigation\elements\Node;
+use verbb\navigation\dynamic\sources\AssetVolumeDynamicSource;
 use verbb\navigation\events\RegisterDynamicSourceEvent;
-use verbb\navigation\models\ProjectedNode;
 use verbb\navigation\services\DynamicSources;
 use yii\base\Event;
 
-Event::on(DynamicSources::class, DynamicSources::EVENT_REGISTER_DYNAMIC_SOURCES, function (RegisterDynamicSourceEvent $event) {
-    $event->providers[] = MyEntrySectionSource::class;
+Event::on(DynamicSources::class, DynamicSources::EVENT_REGISTER_DYNAMIC_SOURCES, function(RegisterDynamicSourceEvent $event) {
+    $event->providers = array_values(array_filter(
+        $event->providers,
+        fn($provider) => $provider !== AssetVolumeDynamicSource::class,
+    ));
 });
 ```
 
-Each provider implements `DynamicSourceProvider` (prefer extending `DynamicSource`, which derives `displayName()` from `elementType()::pluralDisplayName()`). Provide a unique `handle()` (stored on the node as `data.dynamicSource`), builder schema fields, slide-out HTML, validation, projection logic, and cache tags. See `EntrySectionDynamicSource` in `src/dynamic/sources/` for a full example.
+Custom providers must implement `verbb\navigation\base\DynamicSourceProvider`, or extend `DynamicSource`. See [Dynamic Sources](/developers/node-types#dynamic-sources) for the extension contract.
 
 ## Cache Events
 
-### The `invalidateNavigationCache` event
-The event that is triggered when Navigation cache tags are invalidated — for example after a menu or node save, or when calling `craft.navigation.invalidateCache()`.
+### The `invalidateNavigationCache` Event
+The event that is triggered when Navigation invalidates its cache. The payload provides `tags`, plus nullable `menuUid`, `siteId`, and `nodeId` properties. Source-wide invalidations may have tags without menu, site, or node identifiers.
 
 ```php
 use verbb\navigation\events\NavigationCacheInvalidationEvent;
 use verbb\navigation\services\NavigationCache;
 use yii\base\Event;
 
-Event::on(NavigationCache::class, NavigationCache::EVENT_INVALIDATE, function (NavigationCacheInvalidationEvent $event) {
-    $tags = $event->tags;
-    $menuUid = $event->menuUid;
-    // ...
+Event::on(NavigationCache::class, NavigationCache::EVENT_INVALIDATE, function(NavigationCacheInvalidationEvent $event) {
+    \Craft::info('Invalidated navigation tags: ' . implode(', ', $event->tags), __METHOD__);
 });
 ```
 
-```twig
-{% do craft.navigation.invalidateCache('mainMenu') %}
-```
-
-Cache tags include `navigation:menu:{uid}`, `navigation:menu:{uid}:site:{id}`, `navigation:node:{id}`, and source tags such as `navigation:section:{uid}`, `navigation:categoryGroup:{uid}`, `navigation:volume:{uid}`, and `navigation:productType:{uid}` for Dynamic nodes.
-
-## Linked-Element Lifecycle
-
-Navigation keeps linked nodes in sync when Craft elements change. These behaviours are built in — you do not need to register event handlers for them.
-
-| Linked element event | Node behaviour |
+| Tag | Scope |
 | --- | --- |
-| Soft-deleted | Node is **disabled** (not deleted); prior enabled state is stored |
-| Restored from trash | Node is **re-enabled** to its prior state |
-| Hard-deleted | Linked node is **deleted** |
-| Source deleted (Dynamic nodes) | Matching Dynamic node is **deleted** (section, category group, volume, or product type) |
+| `navigation:menu:{uid}` | Menu |
+| `navigation:menu:{uid}:site:{id}` | Menu site |
+| `navigation:node:{id}` | Node |
+| `navigation:section:{uid}` | Dynamic entry section |
+| `navigation:categoryGroup:{uid}` | Dynamic category group |
+| `navigation:volume:{uid}` | Dynamic asset volume |
+| `navigation:productType:{uid}` | Dynamic product type |
 
-Entry title changes sync to linked nodes **only when the node title still mirrors the element title**. Custom per-site node titles are preserved.
+Menu-site invalidation also includes the shared menu tag. Use the emitted tags as invalidation information; do not assume an event only affects one site because `siteId` is populated.
+
+[Navigation with Blitz](/user-guides/frontend-headless/navigation-with-blitz-and-full-page-cache) shows a working tag-and-listener example.
+

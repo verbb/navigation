@@ -5,6 +5,11 @@
   "workspaces": [
     "docs"
   ],
+  "overrides": {
+    "vitepress": {
+      "vite": "^6.4.3"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -p src/web/tsconfig.json && vite build",
@@ -14,6 +19,7 @@
     "docs:screenshots": "npm --prefix docs run docs:screenshots --",
     "test:builder": "node --import tsx --test tests/web/store.test.ts",
     "test:builder:browser": "node tests/web/browser-regression.mjs",
+    "test:builder:craft": "node tests/web/craft-workflow.mjs",
     "test:builder:assets": "node tests/web/check-built-assets.mjs"
   },
   "dependencies": {

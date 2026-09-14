@@ -1,117 +1,97 @@
 # Performance & Caching
 
-Navigation reduces query count on front-end menu reads through in-memory hierarchy wiring, optional batch hydration, and tagged tree caching.
+Start with Navigation’s defaults when displaying a menu. Menu queries on frontend requests load parent and child relationships together and can reuse a cached tree. You generally only need additional loading options when your template reads custom data from linked entries or from the menu itself.
 
-For typical `render()` and `nodes()` usage, the default settings are enough. Tune performance when menus are large, heavily nested, or integrated with full-page cache plugins like [Blitz](https://putyourlightson.com/plugins/blitz).
+For a walkthrough of measuring a menu and choosing those options, see [The Complete Guide to Navigation Performance](/user-guides/performance/the-complete-guide-to-navigation-performance).
 
-::: tip User guide
-For before-and-after template examples and a walkthrough of when each flag matters, see [The complete guide to Navigation performance](/guides/performance/the-complete-guide-to-navigation-performance).
-:::
+## Load Nested Links
 
-## Automatic hierarchy
-
-On **front-end** menu-scoped reads, Navigation wires parent/child relationships in memory after the query executes. That happens on the node query — not because you use Craft's `{% nav %}` tag.
-
-::: code
-```twig [For loop]
-{% for node in nodes %}
-    {{ node.link }}
-
-    {% if node.children %}
-        <ul>
-            {% for child in node.children %}
-                <li>{{ child.link }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endfor %}
-```
-
-```twig [{% nav %}]
-{% nav node in nodes %}
-    {{ node.link }}
-    {% ifchildren %}<ul>{% children %}</ul>{% endifchildren %}
-{% endnav %}
-```
-:::
-
-Use **`node.children`** (or `node.getChildren()`) — not **`node.children.all()`**, which opts back into per-parent queries. You do **not** need Craft's `with(['children'])` for node hierarchy in most cases. Pass **`withNodeHierarchy(false)`** only if you want on-demand child queries.
-
-The `{% nav %}` tag works with wired hierarchies, but it carries Craft's own tree-walking rules (level limits, `{% ifchildren %}`, and so on). A plain `for` loop is often simpler when you control the markup. See [Rendering Nodes](/templates/rendering-nodes).
-
-## Opt-in hydration
-
-| Flag | Loads | Disables tree cache |
-| --- | --- | --- |
-| `withLinkedElements()` | Linked Craft elements (`node.element`) | Yes |
-| `withMenu()` | Parent Menu element + menu custom fields | Yes |
-| `withNavigationCache()` | — | No (opts **in** when cache mode is Manual) |
+This template displays a menu’s top level and its direct children. Put it in the partial where the menu belongs, replacing `mainMenu` with your saved menu handle:
 
 ```twig
-{% set nodes = craft.navigation.nodes()
-    .handle('mainMenu')
-    .withLinkedElements()
-    .withMenu()
-    .all() %}
+{% set nodes = craft.navigation.nodes('mainMenu').level(1).all() %}
+
+<ul>
+    {% for node in nodes %}
+        <li>
+            {{ node.link }}
+            {% if node.children|length %}
+                <ul>
+                    {% for child in node.children %}
+                        <li>{{ child.link }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
 ```
 
-`craft.navigation.render()` does not enable these flags — query nodes yourself when templates read linked element or menu fields.
+For this menu-scoped frontend query, Navigation loads the hierarchy automatically. `node.children` is then a collection of loaded elements. Calling `.all()` on that collection returns its items; it does not turn it back into a database query.
 
-Parameter details: [Node Queries](/getting-elements/node-queries).
+When hierarchy loading is disabled with `withNodeHierarchy(false)`, child access can instead return an element query and executing it can query the database. The distinction is whether the hierarchy is loaded, not whether your Twig expression ends in `.all()`.
 
-## Tree caching
+You can also use Craft’s `{% nav %}` tag for recursive markup. It does not enable hierarchy loading itself. See [Rendering Nodes](/template-guides/rendering-nodes).
 
-**Settings → Navigation → Performance** controls cache behaviour:
+## Load Linked Entries or Menu Fields
+
+A node already supplies its title and URL. If your design also reads `node.element`, use `withLinkedElements()` to load the linked Craft elements together. If it reads menu field values through many nodes, `withMenu()` loads their menus together.
+
+| Query option | Use when | Tree cache |
+| --- | --- | --- |
+| `withLinkedElements()` | You read fields from linked entries, categories, assets, or products | Bypassed |
+| `withMenu()` | You read menu field values through the returned nodes | Bypassed |
+| `withNavigationCache()` | Cache mode is Manual and this query should use the cache | Eligible queries can be cached |
+
+For example, add `withLinkedElements()` to a query before reading a linked entry’s fields. It loads the linked entry itself; any relational fields on that entry, such as an Assets field, can need their own eager-loading strategy.
+
+When promotional content is needed once above the menu, fetch `craft.navigation.menu('mainMenu').one()` separately. This keeps the node query eligible for tree caching. See [Menu Fields](/feature-tour/menu-fields).
+
+The second argument to `tree()` is an output-options array. Its `withLinkedElements` option loads linked elements after the node fetch and does not itself bypass the underlying tree cache. This differs from setting the flag on the node query. See [Headless Trees](/frontend/headless-trees).
+
+## Choose a Cache Mode
+
+Open **Navigation → Settings → Performance** to choose how Navigation caches trees:
 
 | Mode | Behaviour |
 | --- | --- |
-| `off` | No plugin tree cache |
-| `auto` | Cache eligible front-end menu-scoped reads (default) |
-| `static` | Auto + longer TTL |
-| `manual` | Only queries with `withNavigationCache()` |
+| Off | Fetch nodes without the plugin tree cache |
+| Auto | Cache eligible frontend menu queries; the default |
+| Static | Cache eligible queries using the configured duration |
+| Manual | Cache eligible queries only when they opt in with `withNavigationCache()` |
 
-**Never cached:** active/current flags (always resolved after a cache hit), CP/console reads, queries with `withLinkedElements()` or `withMenu()`.
+Caching is limited to supported menu-scoped query shapes. Additional filters such as search or arbitrary ordering can bypass it. Queries that request linked elements or menus through loading flags also bypass it. Control-panel, console, and preview reads do not use the public tree cache.
 
-### Invalidate cache
+Active and current flags are resolved for the current request after the tree loads, including after a cache hit. Cached structure can therefore be reused across pages without reusing their highlights. An outer HTML cache still stores the rendered highlights for its own page URL.
 
-After programmatic menu changes, or for Blitz integration:
+## Refresh Cached Menus
 
-::: code
-```twig [Twig]
+Normal menu and node saves invalidate Navigation’s cache automatically. Linked content and Dynamic source changes also trigger invalidation. To clear a menu explicitly while diagnosing a stale result, run this temporarily in a Twig template:
+
+```twig
 {% do craft.navigation.invalidateCache('mainMenu') %}
 ```
 
-```php [PHP]
+Remove the call after checking the result; leaving it in a shared partial clears the cache on every render. The PHP equivalent, for a custom module, is:
+
+```php
 use verbb\navigation\Navigation;
 
 Navigation::$plugin->getNavigationCache()->invalidateByHandle('mainMenu');
 ```
-:::
 
-Listen for invalidation (for example, to bust full-page cache tags):
+Full-page caches and CDNs are separate layers. See [Navigation with Blitz and Full-Page Cache](/user-guides/frontend-headless/navigation-with-blitz-and-full-page-cache) for connecting invalidation and diagnosing which layer is stale. The [cache event reference](/developers/events#cache-events) lists the event payload and tag formats.
 
-```php
-use verbb\navigation\services\NavigationCache;
-use yii\base\Event;
+## Explicit Hierarchy Loading
 
-Event::on(NavigationCache::class, NavigationCache::EVENT_INVALIDATE, function ($event) {
-    // React to cache busts
-});
-```
-
-Cache tags include `navigation:menu:{uid}`, `navigation:menu:{uid}:site:{id}`, `navigation:node:{id}`, and source tags such as `navigation:section:{uid}`, `navigation:categoryGroup:{uid}`, `navigation:volume:{uid}`, and `navigation:productType:{uid}` for Dynamic nodes.
-
-## Craft eager-loading
-
-If you opt out of auto hierarchy with `withNodeHierarchy(false)`, you can still use Craft's element eager-loading:
+Outside normal frontend rendering, use `withNodeHierarchy()` when you need Navigation to load relationships. If you deliberately disable it, Craft eager-loading remains available:
 
 ```twig
-{% set nodes = craft.navigation.nodes()
-    .handle('mainMenu')
+{% set nodes = craft.navigation.nodes('mainMenu')
     .level(1)
     .withNodeHierarchy(false)
     .with(['children'])
     .all() %}
 ```
 
-This pattern is rarely needed on front-end reads when auto hierarchy is enabled.
+This loads direct children through Craft. It is not needed for the default frontend query shown above.

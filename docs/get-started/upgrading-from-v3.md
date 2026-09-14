@@ -1,12 +1,12 @@
-# Upgrading From v3
+# Upgrading from v3
 
-Navigation 4 standardises **menu** terminology, adds menu-level custom fields, improves read performance and active-state handling, and stores per-site link settings in a dedicated table.
-
-Despite being a major release, we've kept breaking changes to a minimum.
+Use this page when upgrading Navigation 3 to Navigation 4. The database migration updates stored menu data; templates and custom modules can also need changes. Navigation 4 requires Craft CMS 5.9.11 or greater and PHP 8.2 or later.
 
 ## Breaking Changes
 
-### Database tables
+Review custom SQL, node-type filters, and templates that depend on active-node or nullable child-state results. These require changes even when the original method call still executes.
+
+### Database Tables
 
 If you have custom SQL or reports that reference Navigation tables directly, update them to the new names:
 
@@ -19,7 +19,7 @@ If you have custom SQL or reports that reference Navigation tables directly, upd
 
 Per-site URLs and link settings now live in **`navigation_nodes_sites`**.
 
-### Custom node type class names
+### Custom Node Type Class Names
 
 If you compare `node.type` (or filter node queries by type), update any references to the new class names. The migration updates stored rows automatically.
 
@@ -34,11 +34,7 @@ Other built-in types use the same namespace (e.g. `Custom`, `Passive`, `Site`, `
 
 Menu **Permissions** settings use the same node type classes as keys (not Craft element FQCNs or v3 `*Type` names). The migration rewrites stored keys automatically.
 
-## Behaviour Changes
-
-These are intentional improvements. They are not breaking in the sense that old call sites still run, but output or return values may differ from v3. Review templates and modules that depend on the previous behaviour.
-
-### Active node resolution
+### Active Node Resolution
 
 `craft.navigation.getActiveNode()` (default, without the second argument) now returns the **deepest node whose URL exactly matches the current page** — not the first branch-active ancestor encountered while walking the tree.
 
@@ -57,19 +53,32 @@ Products   → /products
 | `node.active` on Products | `true` | `true` (unchanged — branch highlighting still works) |
 | `node.getCurrent()` on Widget | `true` | `true` |
 
-Most sites only notice this if they used `getActiveNode()` to drive contextual sub-nav (e.g. `.descendantOf(activeNode)`). If you relied on the parent being returned, pass `true` as the second argument for branch/path matching, or use `craft.navigation.getActiveNodes()` / `getCurrentNodes()` when you need multiple matches.
+Update templates that used the first active ancestor to choose a section. Passing `true` as the second argument permits a path fallback when there is no exact match; it does **not** force a parent to be returned when an exact match exists.
 
-```twig
-{# v4: deepest exact match (current page node) #}
+For a sidebar that lists the current page’s siblings, replace the ancestor-based query with the Context API. These snippets belong where the sidebar obtains its items:
+
+::: code-group
+```twig [Navigation 3]
 {% set activeNode = craft.navigation.getActiveNode({ handle: 'mainMenu' }) %}
-
-{# Branch/path fallback when there is no exact node for the URL #}
-{% set sectionNode = craft.navigation.getActiveNode({ handle: 'mainMenu' }, true) %}
+{% set items = activeNode ? craft.navigation.nodes().handle('mainMenu').descendantOf(activeNode).all() : [] %}
 ```
 
-### `hasActiveChild()` return type
+```twig [Navigation 4]
+{% set items = craft.navigation.context('mainMenu').siblings() %}
+```
+:::
 
-`hasActiveChild()` now always returns a `bool`. Remove strict `=== null` checks if you had code branching on a nullable return.
+This example deliberately selects direct siblings. If your design needs all descendants, choose the intended section root explicitly instead. The [section sidebar guide](/user-guides/templating/build-a-section-sidebar-with-context-api) explains the available choices.
+
+### `hasActiveChild()` Return Type
+
+`hasActiveChild()` returns a `bool` in Navigation 4. If custom PHP checks strictly for `null` to detect the absence of an active child, replace that condition with `false`:
+
+| Navigation 3 | Navigation 4 |
+| --- | --- |
+| `$node->hasActiveChild() === null` | `$node->hasActiveChild() === false` |
+
+Ordinary truthy checks can remain unchanged.
 
 ## Deprecated Changes
 
@@ -85,7 +94,7 @@ These continue to work with deprecation notices. Work through **Utilities → De
 
 Deprecated method names (`getNavByHandle()`, `.navHandle()`, etc.) still work; use the menu equivalents when updating your project.
 
-### Twig and PHP naming (nav → menu)
+### Twig and PHP Naming (Nav → Menu)
 
 | v3 | v4 |
 | --- | --- |
@@ -96,9 +105,9 @@ Deprecated method names (`getNavByHandle()`, `.navHandle()`, etc.) still work; u
 | `Navigation::$plugin->getNavs()` | `Navigation::$plugin->getMenus()` |
 | `verbb\navigation\services\Navs::getNavByHandle()` / `saveNav()` / etc. | `verbb\navigation\services\Menus::getMenuByHandle()` / `saveMenu()` / etc. |
 
-Canonical **`craft.navigation.getMenuByHandle()`** returns a **`verbb\navigation\elements\Menu`**. Deprecated **`getNavByHandle()`** still returns **`verbb\navigation\models\MenuSettings`**. When you migrate call sites, use the return type that matches your needs (settings vs element field values).
+**`craft.navigation.getMenuByHandle()`** returns a **`verbb\navigation\elements\Menu`**. Deprecated **`getNavByHandle()`** still returns **`verbb\navigation\models\MenuSettings`**. When you migrate call sites, use the return type that matches your needs (settings vs element field values).
 
-### Node queries and properties
+### Node Queries and Properties
 
 | v3 | v4 |
 | --- | --- |
@@ -108,7 +117,7 @@ Canonical **`craft.navigation.getMenuByHandle()`** returns a **`verbb\navigation
 | `verbb\navigation\elements\Node::getNav()` | `verbb\navigation\elements\Node::getMenu()` |
 | `verbb\navigation\elements\Node::getIsActive()` | `verbb\navigation\elements\Node::getActive()` / `getActiveState()` |
 
-### PHP classes
+### PHP Classes
 
 | v3 | v4 |
 | --- | --- |
@@ -126,18 +135,22 @@ Canonical **`craft.navigation.getMenuByHandle()`** returns a **`verbb\navigation
 | Fields `navId`, `navHandle`, `navName` | `menuId`, `menuHandle`, `menuName` |
 | Schema scope `navigationNavs.*` | `navigationMenus.*` |
 
-### Control panel and console
+### Control Panel and Console
 
 | v3 | v4 |
 | --- | --- |
 | CP URLs `navigation/navs/*` | `navigation/menus/*` |
 | `./craft resave/navigation-nodes --navId=` | `--menuId=` |
 
+### Imported Node Type Aliases
+
+JSON imports accept legacy Navigation 3 node-type aliases and convert them to the registered Navigation 4 class names. Use the current class names when creating export data in custom code; see the mapping under Breaking Changes.
+
 ## Changes at a Glance
 
 Not every v4 improvement requires migration work.
 
-### Menu element and menu fields
+### Menu Element and Menu Fields
 
 ```twig
 {% set menu = craft.navigation.menu('mainMenu').one() %}
@@ -146,20 +159,20 @@ Not every v4 improvement requires migration work.
 
 **Settings** (`verbb\navigation\models\MenuSettings`, project config) and **field values** (`verbb\navigation\elements\Menu`) use separate save paths; both are editable from the menu settings screen.
 
-### Context API and menu breadcrumbs
+### Context API and Menu Breadcrumbs
 
 ```twig
 {% set ctx = craft.navigation.context('mainMenu') %}
 {% set trail = craft.navigation.menuBreadcrumbs('mainMenu') %}
 ```
 
-### Read pipeline
+### Read Pipeline
 
 v4 improves read performance without changing typical template output:
 
 - **`withLinkedElements()`** — batch-loads linked Craft elements. **`node.element`** still works without it (lazy-loaded per node).
-- **`withNodeHierarchy()`** — wires parent/child relationships in memory after the query. **`node.children`** and the `{% nav %}` tag still work without it (children load on demand). On menu-scoped front-end reads, hierarchy wiring is enabled automatically when you omit the flag; pass **`withNodeHierarchy(false)`** only if you want the old per-child query pattern.
-- **Tree caching** — defaults to **`auto`** on front-end menu reads. Active/current state is always resolved after a cache hit, so highlight behaviour stays correct. Set **`cacheMode`** to **`off`** in **Settings → Navigation → Performance** only when debugging or when you need every read to hit the database.
+- **`withNodeHierarchy()`** — wires parent/child relationships in memory after the query. **`node.children`** and the `{% nav %}` tag still work without it (children load on demand). On menu-scoped front-end reads, hierarchy wiring is enabled automatically when you omit the flag; pass **`withNodeHierarchy(false)`** to opt out of that loading.
+- **Tree caching** — defaults to **`auto`** on front-end menu reads. Active/current state is always resolved after a cache hit, so highlight behaviour stays correct. Set **`cacheMode`** to **`off`** in **Navigation → Settings → Performance** only when debugging or when you need every read to hit the database.
 - **`craft.navigation.tree()`** — returns nested arrays; linked element hydration is **opt-in** via `{ withLinkedElements: true }`. Use **`nodes()`** when you want element objects with the same opt-in defaults as queries.
 - **Passive / group nodes** — use **`node.getTag()`** in custom templates (`span` vs `a`); the default `render()` helper respects this for accessibility.
 

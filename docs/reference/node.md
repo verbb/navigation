@@ -4,53 +4,260 @@ A Node object represents a single item in a navigation menu tree — a link, a l
 
 ## Properties
 
-| Property | Description |
-| --- | --- |
-| `id` | Node element ID |
-| `elementId` | Linked Craft element ID (element-backed nodes) |
-| `element` | Linked Craft element — lazy-loaded; use `withLinkedElements()` on the query to batch-load |
-| `menuId` | Parent menu ID |
-| `menu` | Parent [Menu](/reference/menu) element — use `withMenu()` on the query to batch-load |
-| `url` | Full URL (linked element or custom) |
-| `nodeUri` | URI portion relative to the site |
-| `title` | Node title |
-| `type` | Node type class name (e.g. `verbb\navigation\nodetypes\Entry`) |
-| `classes` | CSS classes string |
-| `customAttributes` | Table of `{ attribute, value }` rows |
-| `urlSuffix` | Per-site suffix (anchor path, query string) |
-| `newWindow` | Open in new window |
-| `target` | `_blank` or empty string |
-| `status` / `enabled` / `enabledForSite` | Element status |
-| `children` | Child nodes — wired in memory when hierarchy is enabled |
-| `level` | Structure level |
-| `siteId` | Node site variant |
+::: reference
+### `id`
+
+**Type:** `int|null`
+
+Node element ID
+:::
+
+::: reference
+### `elementId`
+
+**Type:** `int|null`
+
+Linked Craft element ID (element-backed nodes)
+:::
+
+::: reference
+### `element`
+
+**Type:** `craft\base\ElementInterface|null`
+
+Linked Craft element — lazy-loaded; use `withLinkedElements()` on the query to batch-load
+:::
+
+::: reference
+### `menuId`
+
+**Type:** `int|null`
+
+Parent menu ID
+:::
+
+::: reference
+### `menu`
+
+**Type:** `verbb\navigation\elements\Menu|null`
+
+Parent [Menu](/reference/menu) element — use `withMenu()` on the query to batch-load
+:::
+
+::: reference
+### `url`
+
+**Type:** `string|null`
+
+Full URL (linked element or custom)
+:::
+
+::: reference
+### `nodeUri`
+
+**Type:** `string`
+
+URI portion relative to the site
+:::
+
+::: reference
+### `title`
+
+**Type:** `string|null`
+
+Node title
+:::
+
+::: reference
+### `type`
+
+**Type:** `string|null`
+
+Node type class name (e.g. `verbb\navigation\nodetypes\Entry`)
+:::
+
+::: reference
+### `classes`
+
+**Type:** `string|null`
+
+CSS classes string
+:::
+
+::: reference
+### `customAttributes`
+
+**Type:** `array`
+
+Table of `{ attribute, value }` rows
+:::
+
+::: reference
+### `urlSuffix`
+
+**Type:** `string|null`
+
+Per-site suffix (anchor path, query string)
+:::
+
+::: reference
+### `newWindow`
+
+**Type:** `bool`
+
+Open in new window
+:::
+
+::: reference
+### `target`
+
+**Type:** `string`
+
+`_blank` or empty string
+:::
+
+::: reference
+### `status` / `enabled` / `enabledForSite`
+
+Element status
+:::
+
+::: reference
+### `children`
+
+**Type:** `craft\elements\db\ElementQueryInterface|craft\elements\ElementCollection`
+
+Child nodes — wired in memory when hierarchy is enabled
+:::
+
+::: reference
+### `level`
+
+**Type:** `int|null`
+
+Structure level
+:::
+
+::: reference
+### `siteId`
+
+**Type:** `int|null`
+
+Node site variant
+:::
+
 
 Node custom fields (on the menu’s node field layout) are available by handle like any Craft element.
 
-## Active state
+## Active State
 
-| Method | Description |
-| --- | --- |
-| `getCurrent()` | Exact URL match |
-| `getActive()` | Current, path-section, or has active descendant |
-| `hasActiveChild()` | Descendant nav node is current (`bool`) |
-| `getActiveState()` | Underlying state object |
+::: reference
+### `getCurrent()`
 
-See [Active State & Context](/templates/active-state-and-context).
+**Returns:** `bool`
+
+Exact URL match
+:::
+
+::: reference
+### `getActive()`
+
+**Returns:** `bool|null`
+
+Current, path-section, or has active descendant
+:::
+
+::: reference
+### `hasActiveChild()`
+
+**Returns:** `bool`
+
+Descendant nav node is current (`bool`)
+:::
+
+::: reference
+### `getActiveState()`
+
+**Returns:** `verbb\navigation\models\NodeActiveState`
+
+Underlying state object
+:::
+
+
+See [Active State & Context](/template-guides/active-state-and-context).
 
 ## Methods
 
-| Method | Description |
-| --- | --- |
-| `getTag()` | HTML tag for this node type (`a`, `span`, …) |
-| `getTypeLabel()` | Display name for the node type |
-| `getLink()` | Full HTML anchor (or appropriate tag) with title |
-| `getLinkAttributes($extra)` | Rendered attribute string for custom markup |
-| `isElement()` | Element-backed node |
-| `isCustom()` | Custom URL node |
-| `isPassive()` | Passive (non-link) node |
-| `isSite()` | Site node |
-| `isGroupColumn()` | Group/column structural node |
+::: reference
+### `getTag()`
+
+**Returns:** `string`
+
+HTML tag for this node type (`a`, `span`, …)
+:::
+
+::: reference
+### `getTypeLabel()`
+
+Display name for the node type
+:::
+
+::: reference
+### `getLink()`
+
+**Returns:** `Twig\Markup|null`
+
+Full HTML anchor (or appropriate tag) with title
+:::
+
+::: reference
+### `getLinkAttributes($extra)`
+
+**Returns:** `Twig\Markup`
+
+Rendered attribute string for custom markup
+:::
+
+::: reference
+### `isElement()`
+
+**Returns:** `bool`
+
+Element-backed node
+:::
+
+::: reference
+### `isCustom()`
+
+**Returns:** `bool`
+
+Custom URL node
+:::
+
+::: reference
+### `isPassive()`
+
+**Returns:** `bool`
+
+Passive (non-link) node
+:::
+
+::: reference
+### `isSite()`
+
+**Returns:** `bool`
+
+Site node
+:::
+
+::: reference
+### `isGroupColumn()`
+
+**Returns:** `bool`
+
+Group/column structural node
+:::
+
 
 ## `linkAttributes`
 
@@ -70,7 +277,7 @@ Merges node classes, target, rel, and custom attributes with any extras you pass
 {% endfor %}>{{ node.title }}</a>
 ```
 
-## Linked element fields
+## Linked Element Fields
 
 ```twig
 {% if node.element %}

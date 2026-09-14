@@ -17,10 +17,10 @@ $myQuery = \verbb\navigation\elements\Node::find();
 Once you’ve created a node query, you can set parameters on it to narrow down the results, and then execute it by calling `.all()`. An array of [Node](/reference/node) objects will be returned.
 
 :::tip
-See [Element Queries](https://craftcms.com/docs/5.x/development/element-queries.html) in the Craft docs for standard parameters. For caching and hydration flags, see [Performance & Caching](/frontend/performance-and-caching).
+See [Element Queries](https://craftcms.com/docs/5.x/development/element-queries.html) in the Craft docs for standard parameters. For caching and loading options, see [Performance & Caching](/frontend/performance-and-caching).
 :::
 
-## Fetch nodes by menu handle
+## Fetch Nodes by Menu Handle
 
 ```twig
 {% set nodes = craft.navigation.nodes()
@@ -34,11 +34,14 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 
-## Example by level
+## Example by Level
+
+To list a menu’s top-level links, use its handle with `level(1)`. Put the following snippet in the Twig template where those links belong; it prints the titles of up to ten root nodes from `mainMenu`.
 
 ```twig
 {# Fetch nodes at level 1 #}
 {% set nodesQuery = craft.navigation.nodes()
+    .handle('mainMenu')
     .level(1)
     .limit(10)%}
 
@@ -117,7 +120,7 @@ This can be combined with [ancestorDist](#ancestordist) if you want to limit how
 
 ### `anyStatus`
 
-Clears out the [status()](https://docs.craftcms.com/api/v4/craft-elements-db-elementquery.html#method-status) and [enabledForSite()](https://docs.craftcms.com/api/v4/craft-elements-db-elementquery.html#method-enabledforsite) parameters.
+Clears out the [status()](https://docs.craftcms.com/api/v5/craft-elements-db-elementquery.html#method-status) and [enabledForSite()](https://docs.craftcms.com/api/v5/craft-elements-db-elementquery.html#method-enabledforsite) parameters.
 
 ::: code
 ```twig Twig
@@ -387,18 +390,18 @@ $nodes = \verbb\navigation\elements\Node::find()
 
 ### `hasUrl`
 
-Narrows the query results based on whether the nodes have a URL.
+Narrows the query results to nodes with a linked element or a non-empty stored URL. Call `hasUrl(false)` to remove this filter. URLs computed by node types, such as Site nodes, are not part of this stored-value filter.
 
 ::: code
 ```twig Twig
-{# Fetch nodes that have descendants #}
+{# Fetch nodes with a stored link destination #}
 {% set nodes = craft.navigation.nodes()
     .hasUrl()
     .all() %}
 ```
 
 ```php PHP
-// Fetch nodes that have descendants
+// Fetch nodes with a stored link destination
 $nodes = \verbb\navigation\elements\Node::find()
     ->hasUrl()
     ->all();
@@ -742,7 +745,7 @@ Possible values include:
 | Value | Fetches nodes…
 | - | -
 | `'foo'` | from the site with a handle of `foo`.
-| a `\craft\elements\db\Site` object | from the site represented by the object.
+| a `\craft\models\Site` object | from the site represented by the object.
 
 ::: code
 ```twig Twig
@@ -821,16 +824,16 @@ Narrows the query results based on the nodes’ type.
 
 ::: code
 ```twig Twig
-{# Fetch the node by its UID #}
+{# Fetch entry nodes #}
 {% set node = craft.navigation.nodes()
-    .type('craft\\elements\\Entry')
+    .type('verbb\\navigation\\nodetypes\\Entry')
     .all() %}
 ```
 
 ```php PHP
 // Fetch entry nodes
 $node = \verbb\navigation\elements\Node::find()
-    ->type('craft\\elements\\Entry')
+    ->type('verbb\\navigation\\nodetypes\\Entry')
     ->all();
 ```
 :::
@@ -839,7 +842,13 @@ Available values:
 - `verbb\navigation\nodetypes\Custom`
 - `verbb\navigation\nodetypes\Passive`
 - `verbb\navigation\nodetypes\Site`
-- Any Craft native element class
+- `verbb\navigation\nodetypes\Entry`
+- `verbb\navigation\nodetypes\Category`
+- `verbb\navigation\nodetypes\Asset`
+- `verbb\navigation\nodetypes\Product` (requires Commerce)
+- `verbb\navigation\nodetypes\GroupColumn`
+- `verbb\navigation\nodetypes\Dynamic`
+- A registered custom node type class
 
 
 

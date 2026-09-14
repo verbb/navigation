@@ -12,7 +12,7 @@ A Menu object represents menu-level custom field **values** for a navigation men
 {% endif %}
 ```
 
-Use `craft.navigation.menu()` to query menu elements. For batch-loading menus while looping nodes, use **`withMenu()`** on [node queries](/getting-elements/node-queries).
+Use `craft.navigation.menu()` to query menu elements. For batch-loading menus while looping nodes, use **`withMenu()`** on [Node Queries](/getting-elements/node-queries).
 
 ## Properties
 
@@ -20,11 +20,16 @@ Menu elements expose standard Craft element properties (`id`, `title`, `siteId`,
 
 ## Methods
 
-| Method | Description |
-| --- | --- |
-| `getMenuHandle()` | Menu handle string |
+::: reference
+### `getMenuHandle()`
 
-## Settings vs element
+**Returns:** `string`
+
+Menu handle string
+:::
+
+
+## Settings vs Element
 
 | API | Returns | Use for |
 | --- | --- | --- |

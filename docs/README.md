@@ -9,9 +9,9 @@ npm install
 npm run dev:plugin-docs
 ```
 
-The dev server runs at [http://localhost:5380](http://localhost:5380).
+The dev server runs at `http://localhost:5380`.
 
-## Screenshot automation
+## Screenshot Automation
 
 Screenshots are generated with **`@verbb/docs-screenshots`**, the published npm package for Craft CP screenshot automation. This docs package depends on it in **devDependencies** and the plugin root **`package.json`** exposes it as **`npm run docs:screenshots`**.
 
@@ -20,7 +20,7 @@ The harness creates its own disposable Craft install and database. Point it at a
 **Layout**
 
 - **`@verbb/docs-screenshots`** — CLI and shared capture tooling (see the package’s own README on npm for flags and behaviour).
-- **Navigation** — one **`.screenshot.ts` scenario** beside each page it illustrates (for example `menus/overview.screenshot.ts`), plus plugin-local bootstrap and fixtures under **`.screenshots/`** (Navigation-specific helpers under **`.screenshots/navigation/`**). Generated assets land under **`_screenshots/`** in this docs tree.
+- **Navigation** — one **`.screenshot.ts` scenario** beside each page it illustrates (for example `feature-tour/overview.screenshot.ts`), plus plugin-local bootstrap and fixtures under **`.screenshots/`** (Navigation-specific helpers under **`.screenshots/navigation/`**). Generated assets land under **`_screenshots/`** in this docs tree.
 
 **Typical workflow**
 
@@ -47,11 +47,13 @@ rg -n "id:" . -g "*.screenshot.ts"
 ## Sections
 
 - [Get Started](/get-started/installation-setup) for installation, requirements, configuration, and upgrading from v3.
-- [Menus](/menus/overview) for creating menus, menu fields, and node types in the control panel.
-- [Templates](/templates/rendering-nodes) for Twig patterns — rendering menus, active state, context sub-nav, and breadcrumbs.
-- [Frontend](/frontend/performance-and-caching) for caching, hydration flags, and headless tree output.
+- [Feature Tour](/feature-tour/overview) for creating menus, menu fields, and node types in the control panel.
+- [Template Guides](/template-guides/rendering-nodes) for Twig patterns — rendering menus, active state, context sub-nav, and breadcrumbs.
+- [Frontend](/frontend/performance-and-caching) for caching, loading options, and headless tree output.
 - [Getting Elements](/getting-elements/node-queries) for node query parameters.
 - [GraphQL](/graphql/query-nodes) for headless node queries, context, and breadcrumbs.
 - [Integrations](/integrations/feed-me) for Feed Me import mapping.
 - [Reference](/reference/node) for the core public objects most template authors work with.
 - [Developers](/developers/events) for extension points, events, custom node types, and command-line tooling.
+
+The sidebar uses **Feature Tour**, **Template Guides**, and **User Guides** with matching `feature-tour/` and `template-guides/` paths. User Guides uses the matching `user-guides/` folder and public path. The website supports historical `guides/` sources and URLs as legacy inputs. Guide category index files contain the titles, links, and descriptions used by the website’s card layouts. The local preview opens those indexes and also lists their guide pages in the sidebar.

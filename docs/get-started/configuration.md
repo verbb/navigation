@@ -1,69 +1,96 @@
 # Configuration
 
-Create a `navigation.php` file under your `/config` directory with the following options available to you. You can also use multi-environment options to change these settings per environment.
+You can customise Navigation’s settings using a PHP configuration file. This is optional: each setting has a default, so you only need to include the values you want to change.
 
-The example below shows the defaults already used by Navigation, so you only need to add the settings you want to change.
+To override a setting, create `navigation.php` in your Craft project’s `/config` directory and return an array of setting names and values. For example, the following will leave existing menus disabled for newly created sites:
 
 ```php
 <?php
 
 return [
-    '*' => [
-        'pluginName' => 'Navigation',
-        'bypassProjectConfig' => false,
-
-        // General
-        'autoEnableNewSites' => true,
-        'builderLiveStructure' => false,
-
-        // Performance
-        'cacheMode' => 'auto', // `off`, `auto`, `static`, or `manual`
-        'cacheProfile' => 'standard', // `lite`, `standard`, or `full`
-        'cacheDuration' => 86400,
-    ],
+    'autoEnableNewSites' => false,
 ];
 ```
 
-## Configuration options
+All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults.
 
-- `pluginName` sets a custom name for the plugin in the control panel.
-- `bypassProjectConfig` stores menus in the database instead of project config. Use with care — this bypasses Craft’s normal project-config workflow for menu definitions.
+## Configuration Options
+
+
+::: reference
+### `pluginName`
+
+**Type:** `string` · **Default:** `'Navigation'`
+
+Sets a custom name for the plugin in the control panel.
+:::
+
+
+::: reference
+### `bypassProjectConfig`
+
+**Type:** `bool` · **Default:** `false`
+
+Stores menus in the database instead of project config. Use with care — this bypasses Craft’s normal project-config workflow for menu definitions.
+:::
+
 
 ### General
 
-- `autoEnableNewSites` automatically enables all menus when a new site is created.
-- `builderLiveStructure` controls whether menu structure changes save immediately on drag-and-drop. When `false` (default), the menu builder keeps structure changes unsaved until you click **Save menu**.
+
+::: reference
+#### `autoEnableNewSites`
+
+**Type:** `bool` · **Default:** `true`
+
+Automatically enables all menus when a new site is created.
+:::
+
+
+::: reference
+#### `builderLiveStructure`
+
+**Type:** `bool` · **Default:** `false`
+
+Controls whether menu structure changes save immediately on drag-and-drop. When `false` (default), the menu builder keeps structure changes unsaved until you click **Save menu**.
+:::
+
 
 ### Performance
 
-- `cacheMode` controls plugin-managed tree caching for front-end navigation reads. Use `off`, `auto` (default), `static`, or `manual`. See [Performance & Caching](/frontend/performance-and-caching).
-- `cacheProfile` controls how much data is stored in the cache. Use `lite`, `standard` (default), or `full`.
-- `cacheDuration` sets the TTL in seconds when cache mode is `static`.
 
-### Menus (project config)
+::: reference
+#### `cacheMode`
 
-Menus are managed in the control panel under **Navigation → Menus**, but their definitions are stored in project config under `navigation.menus.{uid}` when `bypassProjectConfig` is `false`:
+**Type:** `string` · **Default:** `NavigationCache::MODE_AUTO`
 
-```yaml
-navigation:
-  menus:
-    7f3e2a1b-0000-4000-8000-000000000001:
-      name: Main Menu
-      handle: mainMenu
-      sortOrder: 1
-      propagationMethod: all
-      maxLevels: null
-      maxNodes: null
-      permissions: []
-      siteSettings:
-        1:
-          enabled: true
-      # field layouts, max node limits, and more…
-```
+Controls plugin-managed tree caching for front-end navigation reads. Use `off`, `auto` (default), `static`, or `manual`. See [Performance & Caching](/frontend/performance-and-caching).
+:::
 
-Each entry stores menu metadata, site settings, permissions, and field layout configuration. Node trees and menu field values are stored separately as Craft elements.
 
-See [Overview](/menus/overview) for control panel behaviour.
+::: reference
+#### `cacheProfile`
+
+**Type:** `string` · **Default:** `NavigationCache::PROFILE_STANDARD`
+
+Controls how much data is stored in the cache. Use `lite`, `standard` (default), or `full`.
+:::
+
+
+::: reference
+#### `cacheDuration`
+
+**Type:** `int|null` · **Default:** `86400`
+
+Sets the TTL in seconds when cache mode is `static`.
+:::
+
+
+### Menus (Project Config)
+
+Menu definitions are stored in Craft’s project config when `bypassProjectConfig` is `false`. This lets your development workflow carry menu settings, permissions, and field layouts between environments. Node trees and the values entered in menu fields are content, stored separately as Craft elements.
+
+Manage these settings in **Navigation → Menus**. You do not need to edit the generated YAML to create a menu. See [Overview](/feature-tour/overview) for the builder workflow.
 
 ## Control Panel
 
