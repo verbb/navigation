@@ -36,6 +36,7 @@ Copy menus from third-party navigation plugins (see [Migrations](/user-guides/mi
 
 ```bash
 php craft navigation/migrate/free-nav
+php craft navigation/migrate/menu-builder
 php craft navigation/migrate/navigate
 php craft navigation/migrate/navkit
 php craft navigation/migrate/olivemenus

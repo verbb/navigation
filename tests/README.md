@@ -60,7 +60,7 @@ requested maintenance tasks report `completed-task`, not a passing Pest suite.
 ## Audit regression coverage
 
 Provider migration tests create deterministic source-table fixtures for Navkit, current
-and historical FreeNav, and TKA Navigation. They use real Craft elements/structures,
+and historical FreeNav, MenuBuilder, and TKA Navigation. They use real Craft elements/structures,
 refuse existing provider tables, and clean up their source tables. They do not install
 third-party plugins or cover native provider UI and Navkit custom-field extraction.
 The `all` suite includes these fixtures; no external provider installation is required.

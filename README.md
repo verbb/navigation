@@ -16,7 +16,7 @@ Navigation is a Craft CMS plugin for building and rendering menus — nested lin
 - **Performance & caching** — tagged tree caching, smart hierarchy wiring, and opt-in linked-element hydration to cut down N+1 queries on large menus.
 - **Smarter active state** — single-pass matching with `getActiveNodes()`, `getCurrentNodes()`, and improved `tree()` output (`current`, `hasActiveChild`).
 - **GraphQL** — menu queries, context, menu breadcrumbs, and hydration flags for headless front ends.
-- **Third-party migrations** — import menus from [FreeNav](https://plugins.craftcms.com/free-nav), [Navigate](https://plugins.craftcms.com/navigate), [Olivemenus](https://plugins.craftcms.com/olivemenus), and [tka navigation](https://plugins.craftcms.com/tka-navigation).
+- **Third-party migrations** — import menus from [FreeNav](https://plugins.craftcms.com/free-nav), [MenuBuilder](https://plugins.craftcms.com/menubuilder?craft5), [Navigate](https://plugins.craftcms.com/navigate), [Navkit](https://plugins.craftcms.com/navkit?craft5), [Olivemenus](https://plugins.craftcms.com/olivemenus), and [tka navigation](https://plugins.craftcms.com/tka-navigation).
 
 ## Features
 
@@ -32,7 +32,7 @@ Navigation is a Craft CMS plugin for building and rendering menus — nested lin
 - Generate breadcrumbs from your menu structure or from URL segments
 - GraphQL support for menus, nodes, context, and breadcrumbs
 - Performance caching with tagged invalidation ([Blitz](https://plugins.craftcms.com/blitz)-friendly)
-- Migrate from [FreeNav](https://plugins.craftcms.com/free-nav), [Navigate](https://plugins.craftcms.com/navigate), [Olivemenus](https://plugins.craftcms.com/olivemenus), or [tka navigation](https://plugins.craftcms.com/tka-navigation)
+- Migrate from [FreeNav](https://plugins.craftcms.com/free-nav), [MenuBuilder](https://plugins.craftcms.com/menubuilder?craft5), [Navigate](https://plugins.craftcms.com/navigate), [Navkit](https://plugins.craftcms.com/navkit?craft5), [Olivemenus](https://plugins.craftcms.com/olivemenus), or [tka navigation](https://plugins.craftcms.com/tka-navigation)
 - [Feed Me](https://plugins.craftcms.com/feed-me) support for importing nodes
 
 ## Documentation

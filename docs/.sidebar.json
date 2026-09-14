@@ -125,6 +125,7 @@
                 "path": "user-guides/migrations-upgrades/index",
                 "children": [
                     "user-guides/migrations-upgrades/migrating-from-freenav",
+                    "user-guides/migrations-upgrades/migrating-from-menubuilder",
                     "user-guides/migrations-upgrades/migrating-from-navigate",
                     "user-guides/migrations-upgrades/migrating-from-navkit",
                     "user-guides/migrations-upgrades/migrating-from-olivemenus",

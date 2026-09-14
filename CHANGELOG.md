@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added migration support for MenuBuilder menus, hierarchical items, site restrictions, element links, link attributes, and compatible dynamic sources.
+
 ## 4.0.0-beta.8 - 2026-09-15
 
 ### Added

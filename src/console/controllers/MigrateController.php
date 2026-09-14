@@ -3,6 +3,7 @@ namespace verbb\navigation\console\controllers;
 
 use verbb\navigation\helpers\MigrationRenderer;
 use verbb\navigation\migrations\plugins\MigrateFromFreeNav;
+use verbb\navigation\migrations\plugins\MigrateFromMenuBuilder;
 use verbb\navigation\migrations\plugins\MigrateFromNavigate;
 use verbb\navigation\migrations\plugins\MigrateFromNavkit;
 use verbb\navigation\migrations\plugins\MigrateFromOlivemenus;
@@ -47,6 +48,11 @@ class MigrateController extends Controller
     public function actionFreeNav(): int
     {
         return $this->_run(MigrateFromFreeNav::class);
+    }
+
+    public function actionMenuBuilder(): int
+    {
+        return $this->_run(MigrateFromMenuBuilder::class);
     }
 
     public function actionNavigate(): int
