@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.8 - 2026-09-15
 
 ### Added
 - Dynamic projections support an explicit **pending/preview** opt-in (`NodeQuery::includePendingProjections()` / Craft Live Preview) that can include non-live sources; public cache is bypassed for those reads.
