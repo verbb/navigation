@@ -475,7 +475,7 @@ class NodeRead extends Component
         if ($children) {
             $nodeArray['children'] = array_map(function($child) use ($includeLinkedElements) {
                 if ($child instanceof ProjectedNode) {
-                    return $this->_projectedNodeToTreeArray($child);
+                    return $this->_projectedNodeToTreeArray($child, $includeLinkedElements);
                 }
 
                 if ($child instanceof NodeElement) {
@@ -489,7 +489,7 @@ class NodeRead extends Component
         return $nodeArray;
     }
 
-    private function _projectedNodeToTreeArray(ProjectedNode $node): array
+    private function _projectedNodeToTreeArray(ProjectedNode $node, bool $includeLinkedElements = false): array
     {
         return [
             'id' => $node->id,
@@ -500,9 +500,9 @@ class NodeRead extends Component
             'active' => $node->getActive(),
             'current' => $node->getCurrent(),
             'hasActiveChild' => $node->hasActiveChild(),
-            'element' => $node->getElement() ? $node->getElement()->toArray() : null,
+            'element' => $includeLinkedElements && $node->getElement() ? $node->getElement()->toArray() : null,
             'children' => array_map(
-                fn(ProjectedNode $child): array => $this->_projectedNodeToTreeArray($child),
+                fn(ProjectedNode $child): array => $this->_projectedNodeToTreeArray($child, $includeLinkedElements),
                 $node->getChildren(),
             ),
         ];

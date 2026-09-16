@@ -86,7 +86,7 @@ With `withLinkedElements: true`, `element` holds the linked entry (or category, 
 }) %}
 ```
 
-`tree()` and node queries both leave linked elements unloaded by default. Without the `withLinkedElements` output option, the tree’s `element` key is `null`. This option loads elements after the underlying node fetch, which can still use the tree cache. Setting `withLinkedElements` in the query criteria instead bypasses that cache for the node fetch.
+Stored nodes leave linked elements unloaded by default. Dynamic projections load their source elements to build their links, but the tree’s `element` key is `null` for both stored and projected nodes unless you enable the `withLinkedElements` output option. This option loads stored nodes’ linked elements after the underlying node fetch, which can still use the tree cache. Setting `withLinkedElements` in the query criteria instead bypasses that cache for the node fetch.
 
 `tree()` runs through the same read pipeline as `nodes().all()` — caching and active-state rules apply to the underlying fetch. See [Performance & Caching](/frontend/performance-and-caching).
 
