@@ -21,6 +21,7 @@
 - Fixed wrapped JSON imports creating a duplicate menu without an explicit import action.
 - Fixed default JSON exports omitting independent site branches and links from menus enabled only on a secondary site.
 - Fixed the relative Custom URL `0` being lost during JSON export.
+- Fixed JSON imports reversing node order when new nodes are placed at the beginning of a menu.
 - Fixed node type changes retaining an incompatible or missing linked element in the editor, and failing draft autosaves when clearing the element picker.
 
 ## 4.0.0-beta.8 - 2026-09-15

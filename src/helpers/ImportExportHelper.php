@@ -475,6 +475,12 @@ class ImportExportHelper
         int $siteId,
         MenuImportResult $result,
     ): void {
+        // Prepending each new sibling would otherwise reverse the exported
+        // order. Keep the menu's authoring preference, but invert insertion order.
+        if ($menu->defaultPlacement === MenuSettings::DEFAULT_PLACEMENT_BEGINNING) {
+            $nodes = array_reverse($nodes);
+        }
+
         foreach ($nodes as $nodeData) {
             $children = ArrayHelper::remove($nodeData, 'children', []);
             $siteOverrides = ArrayHelper::remove($nodeData, 'siteOverrides', []);
