@@ -331,7 +331,7 @@ class ImportExportHelper
             }
         }
 
-        if ($url = $node->getRawUrl()) {
+        if (($url = $node->getRawUrl()) !== null) {
             $data['url'] = $url;
         }
 
