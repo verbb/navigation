@@ -298,7 +298,7 @@ class NodesController extends Controller
         $node->setFieldValuesFromRequest('fields');
 
         // If no title, and an element-based node, get the element's title. Can't be done client side due to UI Label settings
-        if (!$node->title && $element = $node->getElement()) {
+        if (($node->title === null || $node->title === '') && $element = $node->getElement()) {
             $node->title = $element->title;
         }
 

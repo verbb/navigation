@@ -10,6 +10,7 @@
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
+- Fixed node titles set to `0` being replaced with their default titles when saving.
 - Fixed malformed JSON imports failing without a way to upload a corrected file.
 - Fixed zero-valued URLs and attributes being lost in link helpers, breadcrumbs, and active-state matching.
 - Fixed Feed Me failing to resolve linked elements by ID or custom-field value.

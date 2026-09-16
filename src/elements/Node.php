@@ -1338,7 +1338,7 @@ class Node extends Element
         }
 
         // If no title is set (for a custom node type for instance), generate one.
-        if (!$this->title && $this->nodeType()) {
+        if (($this->title === null || $this->title === '') && $this->nodeType()) {
             $this->title = $this->nodeType()->getDefaultTitle();
         }
 
