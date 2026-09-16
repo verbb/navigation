@@ -10,6 +10,7 @@
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
+- Fixed JSON backups losing translated node titles, custom fields, and per-site enabled states.
 - Fixed an information disclosure vulnerability.
 - Fixed nodes from disabled menu sites appearing in public queries and GraphQL.
 - Fixed stale linked-content deletion and restoration state when menu sites were disabled and re-enabled, and preserved disabled links when restoring into a single-site menu.

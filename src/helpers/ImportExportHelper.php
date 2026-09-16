@@ -406,6 +406,20 @@ class ImportExportHelper
             }
         }
 
+        // Shared identities still have independently authored Craft content.
+        foreach (Node::find()->id($node->id)->site('*')->status(null)->all() as $localized) {
+            $site = Craft::$app->getSites()->getSiteById($localized->siteId);
+            if (!$site || $site->id === $node->siteId) {
+                continue;
+            }
+
+            $overrides[$site->handle] = array_merge($overrides[$site->handle] ?? [], [
+                'title' => $localized->title,
+                'enabledForSite' => (bool)$localized->getEnabledForSite(),
+                'fieldValues' => $localized->getSerializedFieldValues(),
+            ]);
+        }
+
         return $overrides;
     }
 
@@ -636,6 +650,32 @@ class ImportExportHelper
                 $result->addWarning("Skipped node site override for unknown site “{$siteHandle}”.");
 
                 continue;
+            }
+
+            if (array_key_exists('title', $override) || array_key_exists('enabledForSite', $override) || array_key_exists('fieldValues', $override)) {
+                $localized = Node::find()->id($node->id)->siteId($siteId)->status(null)->one();
+
+                if (!$localized) {
+                    $result->addImportError("Missing node locale for site “{$siteHandle}”.");
+                    continue;
+                }
+
+                if (array_key_exists('title', $override)) {
+                    $localized->title = $override['title'];
+                }
+
+                if (array_key_exists('enabledForSite', $override)) {
+                    $localized->setEnabledForSite((bool)$override['enabledForSite']);
+                }
+
+                if (isset($override['fieldValues']) && is_array($override['fieldValues'])) {
+                    $localized->setFieldValues($override['fieldValues']);
+                }
+
+                if (!Craft::$app->getElements()->saveElement($localized, true, false)) {
+                    $result->addImportError("Failed saving node content for site “{$siteHandle}”.");
+                    continue;
+                }
             }
 
             $settings = new NodeSiteSettings([

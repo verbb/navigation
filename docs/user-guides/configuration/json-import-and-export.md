@@ -74,7 +74,7 @@ Control-panel and console exports include independent branches from every site, 
 | Data | Export strategy |
 | --- | --- |
 | Linked Craft elements | `linkedElementUid` + `linkedElementType` |
-| Per-site URLs / suffixes | `siteOverrides` keyed by site handle |
+| Per-site URLs, suffixes, titles, enabled states, and node fields | `siteOverrides` keyed by site handle |
 | Menu field values | `menuFieldValues` keyed by site handle |
 | Node custom fields | `fieldValues` keyed by field handle |
 | Node types | Registered node type class name |
