@@ -161,6 +161,13 @@ class ImportExportHelper
             } finally {
                 $config->muteEvents = $muteEvents;
             }
+            if ($existingMenu) {
+                // Reassert the original active layouts through Craft's service. This also
+                // clears cached replacement field-element UIDs left behind by rollback.
+                foreach (array_filter([$existingMenu->fieldLayoutId, $existingMenu->menuFieldLayoutId]) as $layoutId) {
+                    Craft::$app->getFields()->restoreLayoutById((int)$layoutId);
+                }
+            }
             Navigation::$plugin->getMenus()->resetCache();
             if (!$result->hasImportErrors()) {
                 $result->addImportError($e->getMessage());
