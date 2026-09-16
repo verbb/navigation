@@ -19,7 +19,10 @@
 <ul {{ attr(ulAttributes) }}>
     {% nav node in nodes %}
         {% set tag = node.getTag() %}
-        {% set liClasses = liAttributes.class | merge([node.classes]) | filter %}
+        {# Projected links have no authored node classes, window setting, or custom attributes. #}
+        {% set isProjected = node.isProjected ?? false %}
+        {% set newWindow = not isProjected and node.newWindow %}
+        {% set liClasses = liAttributes.class | merge(isProjected ? [] : [node.classes]) | filter %}
 
         {% if node.children | length %}
             {% set liClasses = liClasses | merge([hasChildrenClass]) %}
@@ -30,9 +33,9 @@
         {# getTag() is an a11y contract: passive/group/Dynamic items must not render empty anchors. #}
         {% set aNodeAttributes = aAttributes | merge({
             href: tag == 'a' ? (node.url ?? false) : false,
-            target: node.newWindow ? '_blank' : false,
-            rel: node.newWindow ? 'noopener' : false,
-        }) | merge(node.getCustomAttributesObject()) %}
+            target: newWindow ? '_blank' : false,
+            rel: newWindow ? 'noopener' : false,
+        }) | merge(isProjected ? {} : node.getCustomAttributesObject()) %}
 
         {% if node.active %}
             {% set aClasses = aNodeAttributes.class | merge([activeClass]) | filter %}
