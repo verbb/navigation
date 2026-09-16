@@ -197,18 +197,7 @@ class Nodes extends Component
                 continue;
             }
 
-            // If no nav for the node, skip. Just to protect against nodes in some cases
-            $nav = Navigation::$plugin->getMenus()->getMenuById($node->menuId);
-
-            if (!$nav) {
-                continue;
-            }
-
-            // Do not sync nodes for sites where this nav is disabled (avoids UnsupportedSiteException)
-            $supportedSites = ElementHelper::supportedSitesForElement($node);
-            $supportedSiteIds = ArrayHelper::getColumn($supportedSites, 'siteId');
-
-            if (!in_array($node->siteId, $supportedSiteIds, false)) {
+            if (!$this->_canSyncLinkedNode($node)) {
                 continue;
             }
 
@@ -323,14 +312,7 @@ class Nodes extends Component
             ->site('*')
             ->all();
 
-        // Craft deletes the element across all sites. Node data is shared, so carry
-        // each saved site's restore state forward to the next localized instance.
-        $dataById = [];
-        foreach ($nodes as $node) {
-            $node->data = $dataById[$node->id] ?? $node->data;
-            $this->disableNodeForLinkedElement($node);
-            $dataById[$node->id] = $node->data;
-        }
+        $this->_disableLinkedNodes($nodes);
     }
 
     public function onRestoreElement(ElementEvent $event): void
@@ -400,7 +382,7 @@ class Nodes extends Component
 
     public function disableNodeForLinkedElement(NodeElement $node): void
     {
-        if ($node->getIsDisabledByLinkedElement()) {
+        if (!$this->_canSyncLinkedNode($node) || $node->getIsDisabledByLinkedElement()) {
             return;
         }
 
@@ -422,7 +404,7 @@ class Nodes extends Component
 
     public function restoreNodeFromLinkedElement(NodeElement $node): void
     {
-        if (!$node->getIsDisabledByLinkedElement()) {
+        if (!$this->_canSyncLinkedNode($node) || !$node->getIsDisabledByLinkedElement()) {
             return;
         }
 
@@ -648,6 +630,28 @@ class Nodes extends Component
     // Private Methods
     // =========================================================================
 
+    private function _canSyncLinkedNode(NodeElement $node): bool
+    {
+        // A settings change can leave localized rows until Craft next resaves the
+        // node. Those unsupported locales must not block the source's lifecycle.
+        $menu = Navigation::$plugin->getMenus()->getMenuById($node->menuId);
+
+        return $menu && in_array($node->siteId, $menu->getSiteIds(), true);
+    }
+
+    private function _disableLinkedNodes(array $nodes): void
+    {
+        // Node data is shared across locales. Carry each saved site's restore
+        // state forward for individual deletions and bulk source deletions alike.
+        $dataById = [];
+
+        foreach ($nodes as $node) {
+            $node->data = $dataById[$node->id] ?? $node->data;
+            $this->disableNodeForLinkedElement($node);
+            $dataById[$node->id] = $node->data;
+        }
+    }
+
     private function _saveLinkedNode(NodeElement $node): void
     {
         $key = spl_object_id($node);
@@ -690,9 +694,7 @@ class Nodes extends Component
             ->site('*')
             ->all();
 
-        foreach ($nodes as $node) {
-            $this->disableNodeForLinkedElement($node);
-        }
+        $this->_disableLinkedNodes($nodes);
     }
 
     private function _duplicateNodesQuery(
