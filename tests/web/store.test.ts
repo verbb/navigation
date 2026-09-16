@@ -1,3 +1,6 @@
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { BuilderActions } from '../../src/web/src/components/BuilderActions';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { useBuilderStore as store } from '../../src/web/src/store';
@@ -283,4 +286,25 @@ test('a newer live move survives recovery from an earlier rejected move', async 
   await tick();
   assert.deepEqual(ids(), [3, 2, 1]);
   assert.equal(store.getState().structureDirty, false);
+});
+
+
+test('menu content remains available with live structure saves while staging controls stay hidden', () => {
+  const initial = store.getInitialState();
+  const snapshot = { ...initial };
+  try {
+    for (const stagingEnabled of [true, false]) {
+      Object.assign(initial, { loading: false, error: null, structureDirty: true,
+        state: { ...state(), stagingEnabled, settingsUrl: '/settings',
+          permissions: { canEditSettings: false }, menuContent: { hasFields: true } } });
+      const html = renderToStaticMarkup(React.createElement(BuilderActions, {
+        initialSettingsUrl: '/settings', initialCanEditSettings: false,
+      }));
+      assert.ok(html.includes('Menu content'));
+      assert.equal(html.includes('Discard'), stagingEnabled);
+      assert.equal(html.includes('>Save<'), stagingEnabled);
+    }
+  } finally {
+    Object.assign(initial, snapshot);
+  }
 });

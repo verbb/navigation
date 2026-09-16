@@ -10,7 +10,7 @@ Create a Plain Text field named **Tagline** with handle `tagline` under **Settin
 
 Edit the menu in **Navigation → Menus**, open **Menu Fields**, and add Tagline to the layout. Save the menu settings. The layout is stored in project config; the values entered for the menu are content and are saved separately.
 
-Open the menu builder’s **Menu Content** tab, enter a tagline, and save. In a multisite project, select the site you want to edit before entering its content. Values can also be edited on the menu settings screen.
+Click **Menu content** in the menu builder, enter a tagline, and save the slideout. In a multisite project, select the site you want to edit before entering its content. Menu content saves independently of the tree, including when live structure saves are enabled.
 
 ## Display the Tagline
 

@@ -49,7 +49,7 @@ export function BuilderActions({ initialSettingsUrl, initialCanEditSettings }: P
     };
   }, [publishing, saveFeedbackState]);
 
-  if (loading || error || !stagingEnabled) {
+  if (loading || error) {
     return canEditSettings ? (
       <Button
         href={settingsUrl}
@@ -92,7 +92,7 @@ export function BuilderActions({ initialSettingsUrl, initialCanEditSettings }: P
         </Button>
       )}
 
-      {hasUnsavedChanges && (
+      {stagingEnabled && hasUnsavedChanges && (
         <Button
           type="button"
           variant="default"
@@ -105,27 +105,29 @@ export function BuilderActions({ initialSettingsUrl, initialCanEditSettings }: P
         </Button>
       )}
 
-      <Button
-        type="button"
-        variant="primary"
-        loading={publishing}
-        disabled={isBusy}
-        onClick={() => void publish()}
-      >
-        <span
-          className={cn(
-            'inline-flex items-center',
-            showSavedState ? 'relative' : '',
-          )}
+      {stagingEnabled && (
+        <Button
+          type="button"
+          variant="primary"
+          loading={publishing}
+          disabled={isBusy}
+          onClick={() => void publish()}
         >
-          {showSavedState && (
-            <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <Icon icon="check" className="size-3 transition-opacity duration-300" />
-            </span>
-          )}
-          <span className={showSavedState ? 'text-transparent' : ''}>{saveLabel}</span>
-        </span>
-      </Button>
+          <span
+            className={cn(
+              'inline-flex items-center',
+              showSavedState ? 'relative' : '',
+            )}
+          >
+            {showSavedState && (
+              <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <Icon icon="check" className="size-3 transition-opacity duration-300" />
+              </span>
+            )}
+            <span className={showSavedState ? 'text-transparent' : ''}>{saveLabel}</span>
+          </span>
+        </Button>
+      )}
     </div>
   );
 }
