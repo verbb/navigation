@@ -124,8 +124,8 @@ Event::on(Node::class, Node::EVENT_NODE_ACTIVE, function(NodeActiveEvent $event)
 
 ## Structure Events
 
-### The `beforeMoveElement` Event
-The event that is triggered before an element is moved in a structure. These Craft events apply to other element types too, so check that `$event->element` is a Navigation node.
+### The `beforeUpdateElement` Event
+The event that is triggered before an existing element is moved within a structure. These Craft events apply to other element types too, so check that `$event->element` is a Navigation node.
 
 ```php
 use craft\events\MoveElementEvent;
@@ -133,15 +133,15 @@ use craft\services\Structures;
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Structures::class, Structures::EVENT_BEFORE_MOVE_ELEMENT, function(MoveElementEvent $event) {
+Event::on(Structures::class, Structures::EVENT_BEFORE_UPDATE_ELEMENT, function(MoveElementEvent $event) {
     if ($event->element instanceof Node) {
         \Craft::info("Moving node {$event->element->title}.", __METHOD__);
     }
 });
 ```
 
-### The `afterMoveElement` Event
-The event that is triggered after an element is moved in a structure. These Craft events apply to other element types too, so check that `$event->element` is a Navigation node.
+### The `afterUpdateElement` Event
+The event that is triggered after an existing element is moved within a structure. These Craft events apply to other element types too, so check that `$event->element` is a Navigation node.
 
 ```php
 use craft\events\MoveElementEvent;
@@ -149,7 +149,7 @@ use craft\services\Structures;
 use verbb\navigation\elements\Node;
 use yii\base\Event;
 
-Event::on(Structures::class, Structures::EVENT_AFTER_MOVE_ELEMENT, function(MoveElementEvent $event) {
+Event::on(Structures::class, Structures::EVENT_AFTER_UPDATE_ELEMENT, function(MoveElementEvent $event) {
     if ($event->element instanceof Node) {
         \Craft::info("Moving node {$event->element->title}.", __METHOD__);
     }
