@@ -19,9 +19,6 @@ Run the example below in GraphiQL with your intended schema. You should receive 
   navigationNodes(menuHandle: "mainMenu", level: 1) {
     title
     url
-    current
-    active
-    hasActiveChild
     children {
       title
       url
@@ -43,7 +40,6 @@ Use `menuHandle` to select the menu and `level: 1` to start at its roots. For a 
 | `type` | Node type class name(s) |
 | `withLinkedElements` | Batch-load linked Craft elements (disables tree cache) |
 | `withNodeHierarchy` | Wire parent/child in memory (`null` = auto on front-end) |
-| `withNavigationCache` | Opt in when cache mode is **Manual** |
 | `withMenu` | Batch-load parent Menu elements (disables tree cache) |
 | `withProjectedChildren` | Include Dynamic projections; `false` to skip |
 
@@ -66,12 +62,36 @@ Dynamic children return as `ProjectedNavigationNode` with `isProjected: true`. S
 
 ## Returned Nodes
 
-Node results implement `NodeInterface` with fields including `menuId`, `menuHandle`, `menuName`, `elementId`, `url`, `urlSuffix`, `nodeUri`, `type`, `classes`, `customAttributes`, `newWindow`, `children`, `parent`, and `element` (when hydrated).
+### The `NodeInterface` Interface
 
-For full Twig parity, see [Node](/reference/node) and [Node Queries](/getting-elements/node-queries).
+Stored and projected nodes implement `NodeInterface`. Alongside inherited Craft element and structure fields such as `id`, `title`, `siteId`, and `level`, the interface exposes the following Navigation fields. A `!` marks a non-null value.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `isProjected` | `Boolean!` | Whether the node is generated at read time rather than stored in the menu structure. |
+| `elementId` | `Int` | The linked element’s ID. |
+| `menuId` | `Int` | The owning menu’s ID. |
+| `menuHandle` | `String` | The owning menu’s handle. |
+| `menuName` | `String` | The owning menu’s title. |
+| `type` | `String` | The node type’s PHP class name. |
+| `typeLabel` | `String` | The display name of the node type. |
+| `classes` | `String` | Additional CSS classes. |
+| `urlSuffix` | `String` | The configured URL suffix. |
+| `customAttributes` | `[NodeCustomAttribute]` | Additional attributes, each with `attribute: String` and `value: String`. |
+| `data` | `String` | Additional node data. |
+| `newWindow` | `String` | The open-in-new-window value, serialised as a GraphQL string. |
+| `url` | `String` | The node’s full URL. |
+| `nodeUri` | `String` | The node’s URI. |
+| `children` | `[NodeInterface]` | The node’s children, including Dynamic projections when enabled. |
+| `parent` | `NodeInterface` | The parent node, or null for a root node. |
+| `element` | `ElementInterface` | The linked element, subject to the active schema’s content permissions. |
+
+Projected nodes return null or empty values for settings they do not store, such as `classes`, `urlSuffix`, and `customAttributes`. Use `__typename` to distinguish their `ProjectedNavigationNode` type. Custom node fields belong on the concrete type generated for the menu; inspect the active schema in GraphiQL for its exact fields.
+
+The [Node reference](/reference/node) describes the PHP and Twig object. Its methods and properties are not automatically exposed as GraphQL fields.
 
 ## Current-Page Information
 
-The `current`, `active`, and `hasActiveChild` fields use the URL Craft is handling. A GraphQL request does not automatically inherit the URL open in your frontend. For browser-side matching, follow [Expose a Menu as JSON](/user-guides/frontend-headless/expose-a-menu-as-json-for-a-js-frontend#highlight-the-current-page).
+Current-page helpers are available through `navigationContext`; `NodeInterface` does not expose `current`, `active`, or `hasActiveChild` fields. A GraphQL request does not automatically inherit the URL open in your frontend. For browser-side matching, follow [Expose a Menu as JSON](/user-guides/frontend-headless/expose-a-menu-as-json-for-a-js-frontend#highlight-the-current-page).
 
 To identify the current menu branch or build a breadcrumb trail in your frontend, use the queries in [Context & Breadcrumbs](/graphql/context-and-breadcrumbs).

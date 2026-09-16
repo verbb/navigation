@@ -6,6 +6,7 @@
 - Added migration support for MenuBuilder menus, hierarchical items, site restrictions, element links, link attributes, and compatible dynamic sources.
 
 ### Changed
+- Documented the GraphQL node interface and corrected examples and arguments to match the schema.
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
