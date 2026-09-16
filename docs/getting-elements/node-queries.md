@@ -120,7 +120,7 @@ This can be combined with [ancestorDist](#ancestordist) if you want to limit how
 
 ### `anyStatus`
 
-Clears out the [status()](https://docs.craftcms.com/api/v5/craft-elements-db-elementquery.html#method-status) and [enabledForSite()](https://docs.craftcms.com/api/v5/craft-elements-db-elementquery.html#method-enabledforsite) parameters.
+Clears the [status](#status) filter, including nodes disabled globally or for the queried site.
 
 ::: code
 ```twig Twig
@@ -172,13 +172,13 @@ Possible values include:
 | - | -
 | `'>= 2018-04-01'` | that were created on or after 2018-04-01.
 | `'< 2018-05-01'` | that were created before 2018-05-01
-| `['and', '>= 2018-04-04', '< 2018-05-01']` | that were created between 2018-04-01 and 2018-05-01.
+| `['and', '>= 2018-04-01', '< 2018-05-01']` | that were created between 2018-04-01 and 2018-05-01.
 
 ::: code
 ```twig Twig
 {# Fetch nodes created last month #}
-{% set start = date('first day of last month') | atom %}
-{% set end = date('first day of this month') | atom %}
+{% set start = date('first day of last month midnight') | atom %}
+{% set end = date('first day of this month midnight') | atom %}
 
 {% set nodes = craft.navigation.nodes()
     .dateCreated(['and', ">= #{start}", "< #{end}"])
@@ -187,8 +187,8 @@ Possible values include:
 
 ```php PHP
 // Fetch nodes created last month
-$start = new \DateTime('first day of next month')->format(\DateTime::ATOM);
-$end = new \DateTime('first day of this month')->format(\DateTime::ATOM);
+$start = (new \DateTime('first day of last month midnight'))->format(\DateTime::ATOM);
+$end = (new \DateTime('first day of this month midnight'))->format(\DateTime::ATOM);
 
 $nodes = \verbb\navigation\elements\Node::find()
     ->dateCreated(['and', ">= {$start}", "< {$end}"])
@@ -208,7 +208,7 @@ Possible values include:
 | - | -
 | `'>= 2018-04-01'` | that were updated on or after 2018-04-01.
 | `'< 2018-05-01'` | that were updated before 2018-05-01
-| `['and', '>= 2018-04-04', '< 2018-05-01']` | that were updated between 2018-04-01 and 2018-05-01.
+| `['and', '>= 2018-04-01', '< 2018-05-01']` | that were updated between 2018-04-01 and 2018-05-01.
 
 ::: code
 ```twig Twig
@@ -222,7 +222,7 @@ Possible values include:
 
 ```php PHP
 // Fetch nodes updated in the last week
-$lastWeek = new \DateTime('1 week ago')->format(\DateTime::ATOM);
+$lastWeek = (new \DateTime('1 week ago'))->format(\DateTime::ATOM);
 
 $nodes = \verbb\navigation\elements\Node::find()
     ->dateUpdated(">= {$lastWeek}")
@@ -285,35 +285,6 @@ $nodes = \verbb\navigation\elements\Node::find()
 
 ::: tip
 This can be combined with [descendantDist](#descendantdist) if you want to limit how far away the descendant nodes can be.
-:::
-
-
-
-### `enabledForSite`
-
-Narrows the query results based on whether the nodes are enabled in the site they’re being queried in, per the [site](#site) parameter.
-
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `true` _(default)_ | that are enabled in the site.
-| `false` | whether they are enabled or not in the site.
-
-::: code
-```twig Twig
-{# Fetch all nodes, including ones disabled for this site #}
-{% set nodes = craft.navigation.nodes()
-    .enabledForSite(false)
-    .all() %}
-```
-
-```php PHP
-// Fetch all nodes, including ones disabled for this site
-$nodes = \verbb\navigation\elements\Node::find()
-    ->enabledForSite(false)
-    ->all();
-```
 :::
 
 
