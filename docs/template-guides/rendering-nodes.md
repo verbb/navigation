@@ -97,7 +97,7 @@ When building links yourself, use [Node](/reference/node) helpers and active-sta
     {% nav node in nodes %}
         <li class="{{ node.getActive() ? 'is-active' }}{{ node.getCurrent() ? ' is-current' }}">
             <a {{ node.linkAttributes({
-                class: node.classes,
+                class: (node.isProjected ?? false) ? null : node.classes,
             }) }}>
                 {{- node.title -}}
             </a>
