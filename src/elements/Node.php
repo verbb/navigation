@@ -958,6 +958,36 @@ class Node extends Element
         return '';
     }
 
+    public function getCustomLinkAttributes(): array
+    {
+        $object = $this->_getObject();
+        $attributes = [];
+
+        foreach ($this->customAttributes as $attribute) {
+            $key = $attribute['attribute'] ?? null;
+            $value = $attribute['value'] ?? null;
+
+            if (!is_string($key) || $key === '') {
+                continue;
+            }
+
+            $attributes[$key] = is_string($value)
+                ? NodeOutputSafety::renderAuthorTemplate($value, $object)
+                : $value;
+        }
+
+        $attributes = array_filter(
+            NodeOutputSafety::filterCustomAttributes($attributes),
+            static fn(mixed $value): bool => $value !== null && $value !== '' && $value !== false && $value !== [],
+        );
+
+        if (isset($attributes['class']) && !is_array($attributes['class'])) {
+            $attributes['class'] = [$attributes['class']];
+        }
+
+        return $attributes;
+    }
+
     public function getLinkAttributes($extraAttributes = null): Markup
     {
         $object = $this->_getObject();
@@ -973,23 +1003,7 @@ class Node extends Element
             'class' => $classes,
         ];
 
-        $customAttributes = [];
-
-        foreach ($this->customAttributes as $attribute) {
-            $key = $attribute['attribute'] ?? null;
-            $val = $attribute['value'] ?? null;
-
-            if (!is_string($key) || $key === '') {
-                continue;
-            }
-
-            $customAttributes[$key] = is_string($val)
-                ? NodeOutputSafety::renderAuthorTemplate($val, $object)
-                : $val;
-        }
-
-        // Drop onclick / unknown names after render so allowlists apply to final keys.
-        $attributes = array_merge($attributes, NodeOutputSafety::filterCustomAttributes($customAttributes));
+        $attributes = array_merge($attributes, $this->getCustomLinkAttributes());
 
         // Preserve numeric values such as href="0" and tabindex="0".
         $hasValue = static fn(mixed $value): bool => $value !== null && $value !== '' && $value !== false && $value !== [];

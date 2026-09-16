@@ -24,6 +24,7 @@
 - Fixed Feed Me failing to resolve linked elements by ID or custom-field value.
 - Fixed Feed Me skipping changes to nested children when their parent node was unchanged.
 - Fixed JSON backups losing translated node titles, custom fields, and per-site enabled states.
+- Fixed an XSS vulnerability.
 - Fixed an information disclosure vulnerability.
 - Fixed nodes from disabled menu sites appearing in public queries and GraphQL.
 - Fixed stale linked-content deletion and restoration state when menu sites were disabled and re-enabled, and preserved disabled links when restoring into a single-site menu.

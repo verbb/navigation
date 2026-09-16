@@ -271,11 +271,7 @@ Merges node classes, target, rel, and custom attributes with any extras you pass
 
 ## `customAttributes`
 
-```twig
-<a {% for attribute in node.customAttributes %}
-    {{ attribute.attribute }}="{{ attribute.value }}"
-{% endfor %}>{{ node.title }}</a>
-```
+This property contains the authored `{ attribute, value }` rows. Use [linkAttributes](#linkattributes) when rendering them into HTML so Navigation evaluates the values and applies its supported attribute rules.
 
 ## Linked Element Fields
 

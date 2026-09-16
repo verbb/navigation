@@ -182,3 +182,30 @@ it('walks url breadcrumbs from request segments and matching entries', function(
         expect(end($crumbs)['title'])->not->toBe('');
     });
 });
+
+it('applies authored link attribute rules in the default renderer', function() {
+    $menu = NavigationFixtureFactory::menu();
+    $node = NavigationFixtureFactory::customNode($menu, 'Attributed link', '/attributed');
+    $node->newWindow = true;
+    $node->customAttributes = [
+        ['attribute' => 'href', 'value' => '/unexpected-destination'],
+        ['attribute' => 'onclick', 'value' => 'ignored'],
+        ['attribute' => 'data-site', 'value' => '{site.handle}'],
+        ['attribute' => 'class', 'value' => 'custom-{site.handle}'],
+        ['attribute' => 'tabindex', 'value' => '0'],
+    ];
+    expect(Craft::$app->getElements()->saveElement($node))->toBeTrue();
+
+    withFrontendUrl('/attributed', function() use ($menu, $node) {
+        $options = ['aAttributes' => ['data-template' => 'trusted']];
+        $html = (string)(new NavigationVariable())->render($menu->handle, $options);
+        $link = (string)$node->getLink();
+        $siteHandle = Craft::$app->getSites()->getCurrentSite()->handle;
+        foreach ([$html, $link] as $markup) {
+            expect($markup)->toContain('href="/attributed"', 'data-site="' . $siteHandle . '"', 'custom-' . $siteHandle, 'tabindex="0"', 'target="_blank"', 'rel="noopener"');
+            expect($markup)->not->toContain('onclick=', '/unexpected-destination', '{site.handle}');
+        }
+        expect($html)->toContain('active current', 'aria-current="page"', 'data-template="trusted"');
+        expect($node->getCustomAttributesObject()['data-site'])->toBe('{site.handle}');
+    });
+});

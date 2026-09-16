@@ -35,7 +35,7 @@
             href: tag == 'a' ? (node.url ?? false) : false,
             target: newWindow ? '_blank' : false,
             rel: newWindow ? 'noopener' : false,
-        }) | merge(isProjected ? {} : node.getCustomAttributesObject()) %}
+        }) | merge(isProjected ? {} : node.getCustomLinkAttributes()) %}
 
         {% if node.active %}
             {% set aClasses = aNodeAttributes.class | merge([activeClass]) | filter %}
