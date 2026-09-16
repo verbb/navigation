@@ -36,6 +36,10 @@ class ImportExportController extends Controller
             throw new InvalidArgumentException('Invalid menu data.');
         }
 
+        if (!is_array($payload['menuFieldValues'] ?? [])) {
+            throw new InvalidArgumentException('Invalid menu field values.');
+        }
+
         foreach (['name', 'handle'] as $key) {
             if (isset($payload['menu'][$key]) && !is_string($payload['menu'][$key])) {
                 throw new InvalidArgumentException('Invalid menu metadata.');

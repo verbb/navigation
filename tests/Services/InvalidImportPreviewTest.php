@@ -30,4 +30,5 @@ it('returns a recoverable error for malformed import JSON', function(string $con
     'scalar JSON' => ['42'],
     'invalid children' => ['{"menu":{"handle":"invalid"},"nodes":[{"children":"bad"}]}'],
     'invalid metadata' => ['{"menu":{"handle":[]},"nodes":[]}'],
+    'invalid menu fields' => ['{"menu":{"handle":"invalid"},"nodes":[],"menuFieldValues":"bad"}'],
 ])->with(['import-configure', 'import-complete']);
