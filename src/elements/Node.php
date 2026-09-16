@@ -370,6 +370,7 @@ class Node extends Element
     private ?string $_url = null;
     private ?ElementInterface $_element = null;
     private bool $_elementResolved = false;
+    private ?array $_resolvedElementIdentity = null;
     private array $_nodeTypes = [];
     private ?string $_elementUrl = null;
     private ?NodeActiveState $_activeState = null;
@@ -656,10 +657,12 @@ class Node extends Element
 
     public function getElement(): ?ElementInterface
     {
-        if ($this->_elementResolved) {
-            // The native editor reuses this Node while refreshing type-dependent fields.
-            // A cached Entry must never be offered to a Category/Asset picker.
-            $nodeType = $this->nodeType();
+        $nodeType = $this->nodeType();
+        $identity = [$this->type, $this->elementId, $this->getElementSiteId()];
+
+        if ($this->_elementResolved && $this->_resolvedElementIdentity === $identity) {
+            // Cache misses belong to a selection too; an editor may change the
+            // type or ID after a missing/incompatible element was looked up.
             if ($this->_element === null || (
                 $nodeType instanceof ElementNodeType
                 && $this->elementId === $this->_element->id
@@ -667,25 +670,20 @@ class Node extends Element
             )) {
                 return $this->_element;
             }
-
-            $this->_element = null;
-            $this->_elementResolved = false;
         }
+
+        $this->_element = null;
+        $this->_elementResolved = true;
+        $this->_resolvedElementIdentity = $identity;
 
         // To prevent potentially nasty errors, check if this node is an appropriate element node type
         // Otherwise, in some rare scenarios where there's elementId info for a node, but a non-element node type
         // this can really go bananas.
         if (!$this->elementId || !$this->isElement()) {
-            $this->_elementResolved = true;
-
             return null;
         }
 
-        $nodeType = $this->nodeType();
-
         if (!$nodeType instanceof ElementNodeType) {
-            $this->_elementResolved = true;
-
             return null;
         }
 
@@ -694,7 +692,6 @@ class Node extends Element
             $nodeType::getElementType(),
             $this->getElementSiteId(),
         );
-        $this->_elementResolved = true;
 
         return $this->_element;
     }
@@ -703,6 +700,7 @@ class Node extends Element
     {
         $this->_element = $element;
         $this->_elementResolved = true;
+        $this->_resolvedElementIdentity = [$this->type, $this->elementId, $this->getElementSiteId()];
     }
 
     public function getElementSiteId(): ?int
