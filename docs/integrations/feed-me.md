@@ -30,6 +30,10 @@ Node custom fields on the menu’s Node Fields layout appear as additional mappi
 
 Map the **Children** field to import nested node structures. Feed Me runs sub-imports for each child row under the parent node.
 
+::: warning Missing-Element Cleanup
+When mapping **Children**, leave **Delete missing elements** and the **Disable missing elements** options off. Feed Me's missing-element cleanup tracks the top-level imported nodes; it can treat nested children as missing and delete or disable them even when they are present in the feed. Use add/update imports for nested trees and remove unwanted children separately.
+:::
+
 ## Unique Identifiers
 
 Use Feed Me's unique identifier checkboxes to match existing nodes by `title`, `id`, or custom fields before updating or skipping.
