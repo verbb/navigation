@@ -1438,6 +1438,9 @@ class Node extends Element
             }
 
             $this->setDirtyAttributes($dirtyAttributes);
+        } elseif (!Navigation::$plugin->getNodeSites()->getSettings($this->id, $this->siteId)) {
+            // Initialize new locales without replacing existing link overrides or clears.
+            Navigation::$plugin->getNodeSites()->saveFromNode($this);
         }
 
         parent::afterSave($isNew);
