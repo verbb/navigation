@@ -86,7 +86,7 @@ Stored and projected nodes implement `NodeInterface`. Alongside inherited Craft 
 | `parent` | `NodeInterface` | The parent node, or null for a root node. |
 | `element` | `ElementInterface` | The linked element, subject to the active schema’s content permissions. |
 
-Projected nodes return null or empty values for settings they do not store, such as `classes`, `urlSuffix`, and `customAttributes`. Use `__typename` to distinguish their `ProjectedNavigationNode` type. Custom node fields belong on the concrete type generated for the menu; inspect the active schema in GraphiQL for its exact fields.
+Projected nodes expose their synthetic `id` and `uid`, site information, URI and menu-relative level. Stored-element metadata such as `dateCreated`, `dateUpdated`, `root`, and `structureId` returns `null`. Settings they do not store, such as `classes`, `urlSuffix`, and `customAttributes`, return null or empty values. Use `__typename` to distinguish their `ProjectedNavigationNode` type. Custom node fields belong on the concrete type generated for the menu; inspect the active schema in GraphiQL for its exact fields.
 
 The [Node reference](/reference/node) describes the PHP and Twig object. Its methods and properties are not automatically exposed as GraphQL fields.
 

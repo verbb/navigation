@@ -13,6 +13,7 @@
 - Fixed cached nodes losing their creation and modification dates.
 - Fixed GraphQL queries failing when requesting node data.
 - Fixed GraphQL menu queries omitting inherited element fields.
+- Fixed Dynamic GraphQL nodes omitting interface fields and schema type information.
 - Fixed the default render helper failing on Dynamic children.
 - Fixed Dynamic children ignoring the linked-element output option in JSON trees.
 - Fixed node titles set to `0` being replaced with their default titles when saving.

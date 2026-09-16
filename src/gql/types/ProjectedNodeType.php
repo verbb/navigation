@@ -9,16 +9,27 @@ use verbb\navigation\models\ProjectedNode;
 use verbb\navigation\nodetypes\Dynamic;
 
 use Craft;
+use craft\gql\base\GeneratorInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\Element;
 
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
-class ProjectedNodeType
+class ProjectedNodeType implements GeneratorInterface
 {
     // Static Methods
     // =========================================================================
+
+    public static function getTypeGenerator(): string
+    {
+        return self::class;
+    }
+
+    public static function generateTypes(mixed $context = null): array
+    {
+        return GqlHelper::canQueryNavigation() ? [self::getName() => self::getType()] : [];
+    }
 
     public static function getType(): Type
     {
@@ -32,7 +43,25 @@ class ProjectedNodeType
                 NodeInterface::getType(),
             ],
             'fields' => function() {
-                return Craft::$app->getGql()->prepareFieldDefinitions([
+                $fields = NodeInterface::getFieldDefinitions();
+
+                // Projections have no stored-element metadata. Keep nullable interface
+                // fields present without reading content from the linked element.
+                foreach ($fields as $name => &$field) {
+                    $resolve = $field['resolve'] ?? null;
+                    $field['resolve'] = in_array($name, ['navId', 'navHandle', 'navName'], true) && $resolve
+                        ? fn(ProjectedNode $node) => $node->parent ? $resolve($node->parent) : null
+                        : fn() => null;
+                }
+                unset($field);
+
+                foreach (['uid', 'siteId', 'uri'] as $name) {
+                    $fields[$name]['resolve'] = fn(ProjectedNode $node) => $node->$name;
+                }
+                $fields['siteHandle']['resolve'] = fn(ProjectedNode $node) => Craft::$app->getSites()->getSiteById($node->siteId)?->handle;
+                $fields['language']['resolve'] = fn(ProjectedNode $node) => Craft::$app->getSites()->getSiteById($node->siteId)?->language;
+
+                $projectedFields = [
                     'id' => [
                         'name' => 'id',
                         'type' => Type::nonNull(Type::id()),
@@ -150,7 +179,13 @@ class ProjectedNodeType
                             return null;
                         },
                     ],
-                ], self::getName());
+                ];
+
+                foreach ($projectedFields as $name => $field) {
+                    $fields[$name] = array_merge($fields[$name] ?? [], $field);
+                }
+
+                return Craft::$app->getGql()->prepareFieldDefinitions($fields, self::getName());
             },
         ]));
     }
