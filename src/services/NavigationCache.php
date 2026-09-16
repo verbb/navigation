@@ -11,6 +11,7 @@ use verbb\navigation\nodetypes\Dynamic;
 
 use Craft;
 use craft\base\Component;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 
 use yii\caching\TagDependency;
@@ -138,7 +139,7 @@ class NavigationCache extends Component
         $profile = $this->_getProfile();
 
         return sprintf(
-            'navigation:tree:v4:%s:%s:%s:%s',
+            'navigation:tree:v5:%s:%s:%s:%s',
             $menuUid ?? 'unknown',
             $siteId ?? 'all',
             $profile,
@@ -332,6 +333,8 @@ class NavigationCache extends Component
         $data = [
             'id' => $node->id,
             'title' => $node->title,
+            'dateCreated' => $node->dateCreated?->format('c'),
+            'dateUpdated' => $node->dateUpdated?->format('c'),
             'level' => $node->level,
             'menuId' => $node->menuId,
             'siteId' => $node->siteId,
@@ -378,6 +381,8 @@ class NavigationCache extends Component
             $node = new NodeElement();
             $node->id = $nodeData['id'];
             $node->title = $nodeData['title'];
+            $node->dateCreated = DateTimeHelper::toDateTime($nodeData['dateCreated'] ?? null) ?: null;
+            $node->dateUpdated = DateTimeHelper::toDateTime($nodeData['dateUpdated'] ?? null) ?: null;
             $node->level = $nodeData['level'];
             $node->menuId = $nodeData['menuId'];
             $node->siteId = $nodeData['siteId'];

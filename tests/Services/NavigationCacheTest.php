@@ -31,6 +31,29 @@ it('serves repeated nav reads from cache on the front end', function() {
     });
 });
 
+it('preserves node timestamps on warm front-end reads', function(string $profile) {
+    Navigation::$plugin->getSettings()->cacheProfile = $profile;
+    $nav = NavigationFixtureFactory::menu();
+    NavigationFixtureFactory::customNode($nav, 'Timestamped', '/timestamped');
+    $criteria = ['handle' => $nav->handle, 'siteId' => Craft::$app->getSites()->getPrimarySite()->id];
+    $siteUrl = Craft::$app->getSites()->getPrimarySite()->getBaseUrl();
+
+    WebRequestSimulator::withAbsoluteUrl($siteUrl, function() use ($criteria) {
+        $variable = new NavigationVariable();
+        $cold = $variable->nodes($criteria)->all();
+        $warm = QueryProfiler::profile(fn() => $variable->nodes($criteria)->all());
+
+        expect($warm['queries'])->toBe(0);
+        $cached = $variable->nodes($criteria)->all()[0];
+
+        foreach (['dateCreated', 'dateUpdated'] as $attribute) {
+            expect($cold[0]->$attribute)->toBeInstanceOf(DateTime::class);
+            expect($cached->$attribute)->toBeInstanceOf(DateTime::class);
+            expect($cached->$attribute->format(DateTime::ATOM))->toBe($cold[0]->$attribute->format(DateTime::ATOM));
+        }
+    });
+})->with([NavigationCache::PROFILE_LITE, NavigationCache::PROFILE_STANDARD, NavigationCache::PROFILE_FULL]);
+
 it('invalidates cached nav reads when a node is saved', function() {
     $nav = NavigationFixtureFactory::menu();
     $node = NavigationFixtureFactory::customNode($nav, 'Original', '/original');

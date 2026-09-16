@@ -10,6 +10,7 @@
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
+- Fixed cached nodes losing their creation and modification dates.
 - Fixed the default render helper failing on Dynamic children.
 - Fixed Dynamic children ignoring the linked-element output option in JSON trees.
 - Fixed node titles set to `0` being replaced with their default titles when saving.
