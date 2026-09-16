@@ -1541,6 +1541,11 @@ class Node extends Element
 
     public function getFieldLayout(): ?FieldLayout
     {
+        if ($this->trashed) {
+            // Deleted menus leave their original layout available for trash and cleanup.
+            return $this->fieldLayoutId ? Craft::$app->getFields()->getLayoutById($this->fieldLayoutId, true) : null;
+        }
+
         $nav = $this->menuId === null ? null : $this->getMenuSettings();
 
         return $nav ? $nav->getFieldLayout() : null;
