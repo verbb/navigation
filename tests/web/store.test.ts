@@ -231,3 +231,56 @@ test('rejected publication preserves edits and permits a successful retry', asyn
   assert.equal(store.getState().structureDirty, false);
   assert.equal(store.getState().publishing, false);
 });
+
+test('a rejected live reorder restores the persisted tree and revision', async () => {
+  reset(async (_method, action) => {
+    if (action.endsWith('get-state')) return { data: { ...state(), stagingEnabled: false, structureRevision: 'persisted' } };
+    throw new Error('Rejected live reorder');
+  });
+  const changed = [nodes[1], nodes[0], nodes[2]];
+  store.setState({ nodes: changed, structureDirty: true, state: { ...state(), stagingEnabled: false } });
+  await store.getState().persistLiveStructure(baselineMoves(changed));
+  assert.deepEqual(ids(), [1, 2, 3]);
+  assert.equal(store.getState().structureDirty, false);
+  assert.equal(store.getState().state?.structureRevision, 'persisted');
+});
+
+test('returning to the baseline while a live save is pending persists the return move', async () => {
+  const calls: Array<{ order: number[]; complete: (response: any) => void }> = [];
+  reset((_method, _action, options) => new Promise(complete => calls.push({ order: options.data.moves.map((m: any) => m.elementId), complete })));
+  store.setState({ state: { ...state(), stagingEnabled: false } });
+  store.getState().setNodes([nodes[1], nodes[0], nodes[2]]);
+  store.getState().setNodes(nodes);
+  calls[0].complete({ data: { structureRevision: 'first' } });
+  await tick();
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[1].order, [1, 2, 3]);
+  calls[1].complete({ data: { structureRevision: 'second' } });
+  await tick();
+  assert.deepEqual(ids(), [1, 2, 3]);
+  assert.deepEqual(store.getState().baselineStructureMoves, baselineMoves(nodes));
+  assert.equal(store.getState().structureDirty, false);
+});
+
+test('a newer live move survives recovery from an earlier rejected move', async () => {
+  let finishRefresh!: (response: any) => void;
+  let finishSave!: (response: any) => void;
+  let writes = 0;
+  reset(async (_method, action) => {
+    if (action.endsWith('get-state')) return new Promise(resolve => { finishRefresh = resolve; });
+    if (++writes === 1) throw new Error('Rejected first move');
+    return new Promise(resolve => { finishSave = resolve; });
+  });
+  store.setState({ state: { ...state(), stagingEnabled: false } });
+  store.getState().setNodes([nodes[1], nodes[0], nodes[2]]);
+  await tick();
+  store.getState().setNodes([nodes[2], nodes[1], nodes[0]]);
+  finishRefresh({ data: { ...state(), stagingEnabled: false } });
+  await tick();
+  assert.deepEqual(ids(), [3, 2, 1]);
+  assert.equal(store.getState().structureDirty, true);
+  finishSave({ data: { structureRevision: 'newest' } });
+  await tick();
+  assert.deepEqual(ids(), [3, 2, 1]);
+  assert.equal(store.getState().structureDirty, false);
+});

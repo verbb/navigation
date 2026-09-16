@@ -132,6 +132,7 @@ type BuilderStore = {
 
 /** Monotonic seq so rapid live moves only commit the latest successful payload. */
 let liveStructureSeq = 0;
+let liveStructurePending = false;
 let contextGeneration = 0;
 let structureRevision = 0;
 
@@ -160,6 +161,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   init: async (menuId, siteId) => {
     ++contextGeneration;
     ++liveStructureSeq;
+    liveStructurePending = false;
     set({ loading: true, menuId, siteId, error: null, saving: false, publishing: false, discarding: false });
     const generation = contextGeneration;
     const isCurrent = () => generation === contextGeneration && get().menuId === menuId && get().siteId === siteId;
@@ -270,7 +272,8 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     });
 
     // Live Structure Saves: no Save button — persist moves as soon as the tree changes.
-    if (dirty && state && !state.stagingEnabled) {
+    // Returning to the old baseline still needs a write while an earlier move is in flight.
+    if ((dirty || liveStructurePending) && state && !state.stagingEnabled) {
       void get().persistLiveStructure(moves);
     }
   },
@@ -282,6 +285,8 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
 
     const seq = ++liveStructureSeq;
+    const startingRevision = structureRevision;
+    liveStructurePending = true;
     const { menuId, siteId } = get();
 
     try {
@@ -305,9 +310,11 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       }
 
       displayError(error);
-      // Snap UI back to the last persisted structure.
-      await get().refresh();
+      // Revert the rejected move, while retaining any newer move made during recovery.
+      await get().refresh({ resetStructure: true, structureRevision: startingRevision });
       if (!isCurrent()) return;
+    } finally {
+      if (isCurrent() && seq === liveStructureSeq) liveStructurePending = false;
     }
   },
 

@@ -10,6 +10,7 @@
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
+- Fixed live structure changes showing an unsaved order after a rejected save or a rapid return to the original order.
 - Fixed JSON imports selecting incorrect or missing Site and Dynamic sources when database IDs differ between environments.
 - Fixed the maximum node count being exceeded when duplicating, importing, creating, or restoring nodes.
 - Fixed Duplicate and Delete actions failing from menu settings.
