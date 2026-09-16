@@ -55,6 +55,14 @@ try {
   phase = 'native edit';
   await row('Workflow child').getByText('Workflow child', { exact: true }).dblclick();
   const slideout = page.locator('.slideout:visible');
+  phase = 'type round-trip';
+  const type = slideout.locator('select[name="type"], select[name$="[type]"]').first();
+  await type.selectOption('verbb\\navigation\\nodetypes\\Passive');
+  await slideout.getByRole('textbox', { name: /^URL/ }).waitFor({ state: 'hidden' });
+  await type.selectOption('verbb\\navigation\\nodetypes\\Custom');
+  await slideout.getByRole('textbox', { name: /^URL/ }).waitFor({ state: 'visible' });
+  assert.equal(await slideout.getByText('Your changes could not be stored.').count(), 0);
+  phase = 'native edit';
   await slideout.getByRole('textbox', { name: /^Title/ }).fill('Workflow child edited');
   await slideout.getByRole('textbox', { name: /^URL/ }).fill('/workflow-child-edited');
   await slideout.getByRole('textbox', { name: /^URL/ }).press('Tab');
@@ -104,5 +112,5 @@ try {
     await browser.close();
   }
 }
-await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['UI create', 'UI add', 'nested pointer drag', 'native edit', 'UI publish', 'reload and persisted hierarchy'], errors }, null, 2));
-console.log('PASS: real Craft add, nested drag, edit, publish and reload.');
+await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['UI create', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'UI publish', 'reload and persisted hierarchy'], errors }, null, 2));
+console.log('PASS: real Craft add, nested drag, type round-trip, edit, publish and reload.');

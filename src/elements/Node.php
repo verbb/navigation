@@ -647,7 +647,19 @@ class Node extends Element
     public function getElement(): ?ElementInterface
     {
         if ($this->_elementResolved) {
-            return $this->_element;
+            // The native editor reuses this Node while refreshing type-dependent fields.
+            // A cached Entry must never be offered to a Category/Asset picker.
+            $nodeType = $this->nodeType();
+            if ($this->_element === null || (
+                $nodeType instanceof ElementNodeType
+                && $this->elementId === $this->_element->id
+                && $this->_element instanceof ($nodeType::getElementType())
+            )) {
+                return $this->_element;
+            }
+
+            $this->_element = null;
+            $this->_elementResolved = false;
         }
 
         // To prevent potentially nasty errors, check if this node is an appropriate element node type
