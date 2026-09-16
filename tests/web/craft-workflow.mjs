@@ -8,11 +8,16 @@ const output = new URL('../../.cache/builder-craft/', import.meta.url);
 await fs.mkdir(output, { recursive: true });
 await fs.rm(new URL('result.json', output), { force: true });
 const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({ ignoreHTTPSErrors: true, viewport: { width: 1440, height: 1000 } });
+const page = await browser.newPage({ ignoreHTTPSErrors: true, deviceScaleFactor: 2, viewport: { width: 1440, height: 1000 } });
 const errors = [];
+const failedResponses = [];
+page.on('response', response => {
+  if (response.status() >= 500) failedResponses.push({ url: response.url(), status: response.status() });
+});
 let phase = 'login';
 page.on('pageerror', error => errors.push({ phase, stack: error.stack || error.message }));
 let menuId;
+let copiedMenuId;
 try {
   const login = await page.goto(`${base}/admin/login`);
   assert.equal(login.status(), 200, 'Run ddev test first and wait for it to finish.');
@@ -96,21 +101,55 @@ try {
   ]);
   assert.deepEqual(errors, []);
   await page.screenshot({ path: new URL('passed.png', output).pathname, fullPage: true });
+
+  // The settings menu uses native form submissions, unlike the builder's JSON actions.
+  phase = 'duplicate menu settings';
+  await page.goto(`${base}/admin/navigation/menus/edit/${menuId}`);
+  await page.getByRole('button', { name: 'More actions', exact: true }).click();
+  const [duplicateResponse] = await Promise.all([
+    page.waitForResponse(response => response.request().method() === 'POST' && String(response.request().postData()).includes('duplicate-menu')),
+    page.locator('[data-action="navigation/menus/duplicate-menu"]').click(),
+  ]);
+  assert.equal(duplicateResponse.status(), 302);
+  await page.getByRole('link', { name, exact: true }).first().waitFor();
+  const menuLinks = await page.getByRole('link', { name, exact: true }).evaluateAll(links => links.map(link => Number(link.href.match(/build\/(\d+)/)?.[1])));
+  assert.equal(menuLinks.length, 2);
+  copiedMenuId = menuLinks.find(id => id !== menuId);
+  assert.ok(copiedMenuId);
+  const copiedState = await page.evaluate(async id => (await Craft.sendActionRequest('POST', 'navigation/builder/get-state', { data: { menuId: id, siteId: Craft.siteId } })).data, copiedMenuId);
+  assert.deepEqual(copiedState.nodes.map(node => [node.title, node.url, node.level]), state.nodes.map(node => [node.title, node.url, node.level]));
+  assert.equal(copiedState.nodes[1].parentId, copiedState.nodes[0].id);
+  assert.notEqual(copiedState.nodes[0].id, state.nodes[0].id);
+
+  phase = 'delete menu settings';
+  await page.goto(`${base}/admin/navigation/menus/edit/${copiedMenuId}`);
+  await page.getByRole('button', { name: 'More actions', exact: true }).click();
+  page.once('dialog', dialog => dialog.accept());
+  const [deleteResponse] = await Promise.all([
+    page.waitForResponse(response => response.request().method() === 'POST' && String(response.request().postData()).includes('delete-menu')),
+    page.locator('[data-action="navigation/menus/delete-menu"]').click(),
+  ]);
+  assert.equal(deleteResponse.status(), 302);
+  await page.getByRole('link', { name, exact: true }).waitFor();
+  assert.equal(await page.getByRole('link', { name, exact: true }).count(), 1);
+  copiedMenuId = null;
+  assert.deepEqual(errors, []);
 } catch (error) {
   await page.screenshot({ path: new URL('failure.png', output).pathname, fullPage: true });
-  await fs.writeFile(new URL('failure.txt', output), `${error.stack}\n${JSON.stringify(errors, null, 2)}\n${await page.locator('body').innerText()}`);
+  await fs.writeFile(new URL('failure.txt', output), `${error.stack}\n${JSON.stringify({ errors, failedResponses }, null, 2)}\n${await page.locator('body').innerText()}`);
   throw error;
 } finally {
   try {
-    if (menuId) {
+    await page.goto(`${base}/admin/navigation/menus`);
+    for (const id of [copiedMenuId, menuId].filter(Boolean)) {
       await page.evaluate(async id => {
         const response = await Craft.sendActionRequest('POST', 'navigation/menus/delete-menu', { data: { id } });
         if (response.status !== 200 || response.data.success === false) throw new Error('Could not clean up browser fixture menu.');
-      }, menuId);
+      }, id);
     }
   } finally {
     await browser.close();
   }
 }
-await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['UI create', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'UI publish', 'reload and persisted hierarchy'], errors }, null, 2));
-console.log('PASS: real Craft add, nested drag, type round-trip, edit, publish and reload.');
+await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['UI create', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'UI publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
+console.log('PASS: real Craft add, nested drag, type round-trip, edit, publish, reload, settings duplicate and delete.');

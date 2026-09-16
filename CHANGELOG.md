@@ -10,6 +10,7 @@
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
+- Fixed Duplicate and Delete actions failing from menu settings.
 - Fixed new nodes losing their initial URL and suffix on propagated sites.
 - Fixed filtered and reordered node reads losing results or changing stored structure data when saved.
 - Fixed restoring a deleted menu losing the order of its nodes.

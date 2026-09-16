@@ -300,7 +300,6 @@ class MenusController extends Controller
     public function actionDeleteMenu(): Response
     {
         $this->requirePostRequest();
-        $this->requireAcceptsJson();
 
         $menuId = $this->request->getRequiredBodyParam('id');
         $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
@@ -315,7 +314,6 @@ class MenusController extends Controller
     public function actionDuplicateMenu(): ?Response
     {
         $this->requirePostRequest();
-        $this->requireAcceptsJson();
 
         $menuId = $this->request->getRequiredBodyParam('id');
         $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
