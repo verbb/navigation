@@ -10,6 +10,7 @@
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
+- Fixed JSON imports selecting incorrect or missing Site and Dynamic sources when database IDs differ between environments.
 - Fixed the maximum node count being exceeded when duplicating, importing, creating, or restoring nodes.
 - Fixed Duplicate and Delete actions failing from menu settings.
 - Fixed new nodes losing their initial URL and suffix on propagated sites.

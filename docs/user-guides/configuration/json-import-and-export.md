@@ -74,6 +74,7 @@ Control-panel and console exports include independent branches from every site, 
 | Data | Export strategy |
 | --- | --- |
 | Linked Craft elements | `linkedElementUid` + `linkedElementType` |
+| Site links and built-in Dynamic sources | `sourceHandle` resolves the selected site, section, category group, asset volume, or product type |
 | Per-site URLs, suffixes, titles, enabled states, and node fields | `siteOverrides` keyed by site handle |
 | Menu field values | `menuFieldValues` keyed by site handle |
 | Node custom fields | `fieldValues` keyed by field handle |
@@ -82,6 +83,8 @@ Control-panel and console exports include independent branches from every site, 
 Exports include the node and menu field layouts. The destination must already have the referenced global fields with matching UIDs, normally supplied by the same Craft project config. Import creates independent layouts for the new menu; it does not create global fields or install field-type plugins.
 
 Linked content must exist on the destination site. An unresolved element UID produces a warning, and an element-backed node without its required link fails validation. The import rolls back: a new menu is not created, and an existing menu remains unchanged. Restore or migrate the linked content, then retry the import.
+
+Site links and built-in Dynamic nodes require matching source handles on the destination. A missing source stops the import and preserves existing content. Older exports without `sourceHandle` retain database IDs and can be restored to the same database; export them again from the source environment before moving them to a different database. Data belonging to custom node types or Dynamic providers is preserved as supplied.
 
 ## Developer API
 

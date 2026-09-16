@@ -8,6 +8,8 @@ use verbb\navigation\models\MenuImportResult;
 use verbb\navigation\models\MenuSettings;
 use verbb\navigation\models\MenuSiteSettings;
 use verbb\navigation\models\NodeSiteSettings;
+use verbb\navigation\nodetypes\Dynamic;
+use verbb\navigation\nodetypes\Site;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -184,6 +186,26 @@ class ImportExportHelper
         return is_file($path) ? $path : null;
     }
 
+    /** Only built-in selectors have a known portable identity; custom node data stays opaque. */
+    private static function _nodeSourceOptions(Node $node): ?array
+    {
+        if (is_a($node->type, Site::class, true)) {
+            return ['siteId', Craft::$app->getSites()->getAllSites()];
+        }
+
+        if (!is_a($node->type, Dynamic::class, true)) {
+            return null;
+        }
+
+        return match ($node->data['dynamicSource'] ?? null) {
+            'entrySection' => ['sectionId', Craft::$app->getEntries()->getAllSections()],
+            'categoryGroup' => ['groupId', Craft::$app->getCategories()->getAllGroups()],
+            'assetVolume' => ['volumeId', Craft::$app->getVolumes()->getAllVolumes()],
+            'productType' => ['productTypeId', Craft::$app->getPlugins()->getPlugin('commerce')?->getProductTypes()->getAllProductTypes() ?? []],
+            default => null,
+        };
+    }
+
 
     // Constants
     // =========================================================================
@@ -320,6 +342,14 @@ class ImportExportHelper
             'enabledForSite' => (bool)$node->getEnabledForSite(),
             'children' => self::_exportNodeBranch($childrenMap, (int)$node->id, $siteId),
         ];
+
+        if ($sourceOptions = self::_nodeSourceOptions($node)) {
+            [$field, $sources] = $sourceOptions;
+            if (isset($node->data[$field]) && $node->data[$field] !== '') {
+                $source = ArrayHelper::firstWhere($sources, 'id', (int)$node->data[$field]);
+                $data['sourceHandle'] = $source?->handle;
+            }
+        }
 
         $fieldValues = $node->getSerializedFieldValues();
 
@@ -596,6 +626,23 @@ class ImportExportHelper
             'data' => $data['data'] ?? [],
             'enabled' => (bool)($data['enabled'] ?? true),
         ]);
+
+        // New exports resolve by handle before validation; older same-database backups retain their IDs.
+        if (array_key_exists('sourceHandle', $data)) {
+            $handle = $data['sourceHandle'];
+            $sourceOptions = self::_nodeSourceOptions($node);
+            if (!is_string($handle) || !$sourceOptions) {
+                throw new RuntimeException("Invalid source reference for node “{$node->title}”.");
+            }
+
+            [$field, $sources] = $sourceOptions;
+            $source = ArrayHelper::firstWhere($sources, 'handle', $handle);
+            if (!$source) {
+                throw new RuntimeException("Source “{$handle}” for node “{$node->title}” was not found.");
+            }
+
+            $node->data[$field] = (int)$source->id;
+        }
 
         $node->setEnabledForSite((bool)($data['enabledForSite'] ?? true));
 
