@@ -154,6 +154,13 @@ class ImportExportController extends Controller
         }
 
         $payload = Json::decode(file_get_contents($fileLocation));
+
+        // Apply the same accepted wrapper as the preview and importer before
+        // checking whether the administrator must choose a duplicate action.
+        if (isset($payload[0]) && is_array($payload[0])) {
+            $payload = $payload[0];
+        }
+
         $handle = $payload['menu']['handle'] ?? null;
         $existingMenu = $handle ? Navigation::$plugin->getMenus()->getMenuByHandle($handle) : null;
 
