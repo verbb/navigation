@@ -135,3 +135,18 @@ it('returns sibling nodes from navigationContext', function() {
         expect($siblingTitles)->not->toContain('Two');
     });
 });
+
+it('returns inherited element fields in menu GraphQL fragments', function() {
+    $menu = NavigationFixtureFactory::menu();
+    $element = Menu::find()->id($menu->id)->one();
+    $query = '{ ' . $menu->handle . '_Menu { handle ... on ElementInterface { id uid siteId } } }';
+    $result = Craft::$app->getGql()->executeQuery(CraftGql::createFullAccessSchema(), $query);
+
+    expect($result['errors'] ?? [])->toBe([]);
+    expect($result['data'][$menu->handle . '_Menu'])->toBe([
+        'handle' => $menu->handle,
+        'id' => (string)$element->id,
+        'uid' => $element->uid,
+        'siteId' => $element->siteId,
+    ]);
+});

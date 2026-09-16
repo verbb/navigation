@@ -11,6 +11,7 @@ use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
+use craft\gql\interfaces\Element;
 
 use GraphQL\Type\Definition\Type;
 
@@ -52,7 +53,7 @@ class MenuGenerator extends Generator implements GeneratorInterface, SingleGener
         }
 
         $contentFieldGqlTypes = self::getContentFields($context);
-        $menuFields = Craft::$app->getGql()->prepareFieldDefinitions($contentFieldGqlTypes, $typeName);
+        $menuFields = Craft::$app->getGql()->prepareFieldDefinitions(array_merge(Element::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
 
         return GqlEntityRegistry::createEntity($typeName, new MenuType([
             'name' => $typeName,
