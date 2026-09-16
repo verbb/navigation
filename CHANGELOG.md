@@ -11,6 +11,7 @@
 
 ### Fixed
 - Fixed cached nodes losing their creation and modification dates.
+- Fixed hierarchy queries dropping disabled children when all statuses were requested.
 - Fixed GraphQL queries failing when requesting node data.
 - Fixed GraphQL menu queries omitting inherited element fields.
 - Fixed Dynamic GraphQL nodes omitting interface fields and schema type information.

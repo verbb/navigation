@@ -537,9 +537,7 @@ class NodeRead extends Component
         $navQuery->skipPostCacheProcessing = true;
         $navQuery->withNodeHierarchy(false);
 
-        if (isset($query->status)) {
-            $navQuery->status($query->status);
-        }
+        $navQuery->status($query->status);
 
         if ($query->siteId !== null) {
             $navQuery->siteId($query->siteId);
