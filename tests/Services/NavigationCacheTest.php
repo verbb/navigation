@@ -32,26 +32,33 @@ it('serves repeated nav reads from cache on the front end', function() {
 });
 
 it('preserves node timestamps on warm front-end reads', function(string $profile) {
-    Navigation::$plugin->getSettings()->cacheProfile = $profile;
-    $nav = NavigationFixtureFactory::menu();
-    NavigationFixtureFactory::customNode($nav, 'Timestamped', '/timestamped');
-    $criteria = ['handle' => $nav->handle, 'siteId' => Craft::$app->getSites()->getPrimarySite()->id];
-    $siteUrl = Craft::$app->getSites()->getPrimarySite()->getBaseUrl();
+    $settings = Navigation::$plugin->getSettings();
+    $previousProfile = $settings->cacheProfile;
+    $settings->cacheProfile = $profile;
 
-    WebRequestSimulator::withAbsoluteUrl($siteUrl, function() use ($criteria) {
-        $variable = new NavigationVariable();
-        $cold = $variable->nodes($criteria)->all();
-        $warm = QueryProfiler::profile(fn() => $variable->nodes($criteria)->all());
+    try {
+        $nav = NavigationFixtureFactory::menu();
+        NavigationFixtureFactory::customNode($nav, 'Timestamped', '/timestamped');
+        $criteria = ['handle' => $nav->handle, 'siteId' => Craft::$app->getSites()->getPrimarySite()->id];
+        $siteUrl = Craft::$app->getSites()->getPrimarySite()->getBaseUrl();
 
-        expect($warm['queries'])->toBe(0);
-        $cached = $variable->nodes($criteria)->all()[0];
+        WebRequestSimulator::withAbsoluteUrl($siteUrl, function() use ($criteria) {
+            $variable = new NavigationVariable();
+            $cold = $variable->nodes($criteria)->all();
+            $warm = QueryProfiler::profile(fn() => $variable->nodes($criteria)->all());
 
-        foreach (['dateCreated', 'dateUpdated'] as $attribute) {
-            expect($cold[0]->$attribute)->toBeInstanceOf(DateTime::class);
-            expect($cached->$attribute)->toBeInstanceOf(DateTime::class);
-            expect($cached->$attribute->format(DateTime::ATOM))->toBe($cold[0]->$attribute->format(DateTime::ATOM));
-        }
-    });
+            expect($warm['queries'])->toBe(0);
+            $cached = $variable->nodes($criteria)->all()[0];
+
+            foreach (['dateCreated', 'dateUpdated'] as $attribute) {
+                expect($cold[0]->$attribute)->toBeInstanceOf(DateTime::class);
+                expect($cached->$attribute)->toBeInstanceOf(DateTime::class);
+                expect($cached->$attribute->format(DateTime::ATOM))->toBe($cold[0]->$attribute->format(DateTime::ATOM));
+            }
+        });
+    } finally {
+        $settings->cacheProfile = $previousProfile;
+    }
 })->with([NavigationCache::PROFILE_LITE, NavigationCache::PROFILE_STANDARD, NavigationCache::PROFILE_FULL]);
 
 it('invalidates cached nav reads when a node is saved', function() {
