@@ -10,6 +10,7 @@
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
+- Fixed filtered and reordered node reads losing results or changing stored structure data when saved.
 - Fixed restoring a deleted menu losing the order of its nodes.
 - Fixed failed menu restores leaving partially restored content that could not be retried.
 - Fixed custom element-backed node types missing linked content updates, deletion, and restoration.

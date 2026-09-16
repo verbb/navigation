@@ -228,7 +228,8 @@ class NodeRead extends Component
         $childrenPlan = new EagerLoadPlan(['handle' => 'children', 'alias' => 'children']);
 
         foreach ($nodes as $node) {
-            if ($node instanceof NodeElement) {
+            // An omitted ancestor remains a stored parent, not a requested move to root.
+            if ($node instanceof NodeElement && (int)$node->level === 1) {
                 $node->setParent(null);
             }
         }
@@ -324,57 +325,24 @@ class NodeRead extends Component
 
     public function buildNodeTree(array $nodes, bool $includeLinkedElements = false, bool $fromHierarchy = false): array
     {
-        if ($includeLinkedElements) {
+        if (!$fromHierarchy) {
+            $nodes = $this->assembleNodeHierarchy($nodes, $includeLinkedElements, false);
+        } elseif ($includeLinkedElements) {
             $this->eagerLoadLinkedElements($nodes);
         }
 
-        if ($fromHierarchy) {
-            $nodeTree = [];
-
-            foreach ($nodes as $node) {
-                if ($node instanceof NodeElement && max(1, (int)$node->level) === 1) {
-                    $nodeTree[] = $this->_nodeToTreeArray($node, $includeLinkedElements);
-                }
+        $nestedKeys = [];
+        foreach (NodeHierarchy::childrenByParent($nodes) as $children) {
+            foreach ($children as $child) {
+                $nestedKeys[$this->_nodeSiteKey($child)] = true;
             }
-
-            return $nodeTree;
         }
 
         $nodeTree = [];
-        $nodeStack = [];
-        $treeStack = [];
-
         foreach ($nodes as $node) {
-            if (!$node instanceof NodeElement) {
-                continue;
-            }
-
-            $level = max(1, (int)$node->level);
-
-            if ($level === 1) {
-                $node->setParent(null);
+            // Filtered results form a forest without changing stored levels or parents.
+            if ($node instanceof NodeElement && !isset($nestedKeys[$this->_nodeSiteKey($node)])) {
                 $nodeTree[] = $this->_nodeToTreeArray($node, $includeLinkedElements);
-                $index = array_key_last($nodeTree);
-                $treeStack = [1 => &$nodeTree[$index]];
-            } else if (isset($nodeStack[$level - 1], $treeStack[$level - 1])) {
-                $node->setParent($nodeStack[$level - 1]);
-                $treeStack[$level - 1]['children'][] = $this->_nodeToTreeArray($node, $includeLinkedElements);
-                $index = array_key_last($treeStack[$level - 1]['children']);
-                $treeStack[$level] = &$treeStack[$level - 1]['children'][$index];
-            } else {
-                $node->setParent(null);
-                $nodeTree[] = $this->_nodeToTreeArray($node, $includeLinkedElements);
-                $index = array_key_last($nodeTree);
-                $treeStack = [1 => &$nodeTree[$index]];
-                $level = 1;
-            }
-
-            $nodeStack[$level] = $node;
-
-            foreach (array_keys($nodeStack) as $stackLevel) {
-                if ($stackLevel > $level) {
-                    unset($nodeStack[$stackLevel], $treeStack[$stackLevel]);
-                }
             }
         }
 
@@ -403,14 +371,14 @@ class NodeRead extends Component
         while (
             $childIndex < $count
             && $nodes[$childIndex] instanceof NodeElement
-            && (int)$nodes[$childIndex]->level > $level
+            && $nodes[$childIndex]->structureId === $node->structureId
+            && $nodes[$childIndex]->root === $node->root
+            && $nodes[$childIndex]->siteId === $node->siteId
+            && $nodes[$childIndex]->lft > $node->lft
+            && $nodes[$childIndex]->rgt < $node->rgt
         ) {
-            if ((int)$nodes[$childIndex]->level === $level + 1) {
-                $childIndex = $this->_appendStoredNodeWithProjections($nodes, $childIndex, $count, $output);
-            } else {
-                // Malformed flat order — keep moving to avoid an infinite loop.
-                $childIndex++;
-            }
+            // Caller order can interleave branches or omit intermediate ancestors.
+            $childIndex = $this->_appendStoredNodeWithProjections($nodes, $childIndex, $count, $output);
         }
 
         $projectedChildren = $this->_projectedChildrenForNode($node);
