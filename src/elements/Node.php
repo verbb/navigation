@@ -1554,7 +1554,7 @@ class Node extends Element
 
         // This is a required proxy variable when editing a node, due to a conflicting `elementId`.
         if (is_array($value)) {
-            $this->elementId = $value[0];
+            $this->elementId = $value[0] ?? null;
         } else {
             $this->elementId = (int)$value;
         }

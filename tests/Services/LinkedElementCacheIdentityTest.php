@@ -29,6 +29,16 @@ it('resolves a new linked identity after an earlier missing-element lookup', fun
     expect($node->getElement()?->id)->toBe($entry->id);
 });
 
+it('accepts an empty element-selector array when clearing a link', function() {
+    $menu = F::menu();
+    $entry = F::entries(1)[0];
+    $node = F::entryNode($menu, $entry);
+    $node->getElement();
+    $node->setLinkedElementId([]);
+    expect($node->elementId)->toBeNull();
+    expect($node->getElement())->toBeNull();
+});
+
 it('retains batch-loaded cache misses until the linked identity changes', function() {
     $menu = F::menu();
     $entry = F::entries(1)[0];

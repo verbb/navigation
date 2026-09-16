@@ -71,14 +71,14 @@ it('allows an empty intermediate element picker in a draft but requires a link o
     expect($node->nodeType()->beforeSaveNode(false))->toBeTrue();
 });
 
-it('persists an empty type picker in a real draft without changing the published node', function() {
+it('persists an empty type picker in a real draft without changing the published node', function($emptySelection) {
     $menu = NavigationFixtureFactory::menu();
     $entry = NavigationFixtureFactory::entries(1)[0];
     $category = NavigationFixtureFactory::categories(1)[0];
     $node = NavigationFixtureFactory::elementNode($menu, $entry);
     $draft = Craft::$app->getDrafts()->createDraft($node);
     $draft->type = Category::class;
-    $draft->setLinkedElementId(null);
+    $draft->setLinkedElementId($emptySelection);
     expect(Craft::$app->getElements()->saveElement($draft))->toBeTrue(json_encode($draft->getErrors()));
 
     $reloaded = Node::find()->id($draft->id)->drafts()->status(null)->one();
@@ -93,7 +93,7 @@ it('persists an empty type picker in a real draft without changing the published
     expect($published->id)->toBe($node->id);
     expect($canonical?->type)->toBe(Category::class);
     expect($canonical?->getElement()?->id)->toBe($category->id);
-});
+})->with(['null selection' => [null], 'empty selector array' => [[]]]);
 
 it('keeps empty linked pickers empty across changes from every built-in non-element source', function() {
     $menu = NavigationFixtureFactory::menu();
