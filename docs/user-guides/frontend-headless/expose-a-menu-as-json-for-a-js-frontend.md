@@ -2,11 +2,11 @@
 
 You can serve a menu as JSON and let JavaScript build its links. This guide creates a public endpoint for `mainMenu`, displays the tree in a browser, and highlights links using the page the visitor is actually viewing.
 
-Start with a saved `mainMenu` containing public links and a Craft site that renders Twig templates. You need access to `config/routes.php`, `template-guides/`, and your frontend’s HTML and JavaScript. If Craft runs with `headlessMode` enabled, use [GraphQL](/graphql/query-nodes) instead of this template route.
+Start with a saved `mainMenu` containing public links and a Craft site that renders Twig templates. You need access to `config/routes.php`, `templates/`, and your frontend’s HTML and JavaScript. If Craft runs with `headlessMode` enabled, use [GraphQL](/graphql/query-nodes) instead of this template route.
 
 ## Create the JSON Endpoint
 
-Create `template-guides/_api/navigation-main-menu.twig`:
+Create `templates/_api/navigation-main-menu.twig`:
 
 ```twig
 {% header 'Content-Type: application/json; charset=utf-8' %}

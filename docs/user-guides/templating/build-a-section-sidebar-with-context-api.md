@@ -37,7 +37,7 @@ Most section sidebars use **`siblings()`** or **`branch()`**.
 
 ## Step 3 — Render the Sidebar
 
-Create `template-guides/_partials/section-sidebar.twig` with this code and include it from the section’s page template using `{% include '_partials/section-sidebar' %}`.
+Create `templates/_partials/section-sidebar.twig` with this code and include it from the section’s page template using `{% include '_partials/section-sidebar' %}`.
 
 ```twig
 {# _partials/section-sidebar.twig #}

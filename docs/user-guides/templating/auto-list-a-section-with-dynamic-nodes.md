@@ -34,7 +34,7 @@ Built-in sources are listed in [Node Types](/feature-tour/node-types). Plugins c
 
 ## Step 3 — Render in Twig
 
-Create `template-guides/_partials/blog-menu.twig` with this code and include it in your page template using `{% include '_partials/blog-menu' %}`. Projected children appear in `node.children` like stored nodes:
+Create `templates/_partials/blog-menu.twig` with this code and include it in your page template using `{% include '_partials/blog-menu' %}`. Projected children appear in `node.children` like stored nodes:
 
 ```twig
 {% set nodes = craft.navigation.nodes('mainMenu').all() %}

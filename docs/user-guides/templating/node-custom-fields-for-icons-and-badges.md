@@ -31,7 +31,7 @@ Linked entry nodes can override titles while keeping synced URLs — custom fiel
 
 ## Step 3 — Read Fields in Twig
 
-Create `template-guides/_partials/menu-badges.twig` with the following code, then include it in your page template with `{% include '_partials/menu-badges' %}`. This example displays a flat list of stored links:
+Create `templates/_partials/menu-badges.twig` with the following code, then include it in your page template with `{% include '_partials/menu-badges' %}`. This example displays a flat list of stored links:
 
 ```twig
 {% set nodes = craft.navigation.nodes('mainMenu').all() %}

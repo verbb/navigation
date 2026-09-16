@@ -6,9 +6,9 @@ This example uses HTML’s `details` and `summary` elements for the dropdown. Th
 
 ## Before You Start
 
-You need Navigation [installed](/get-started/installation-setup), permission to create menus, and access to your Craft project’s `template-guides/` and public `web/` folders. The example assumes your site has working pages at `/shop`, `/shop/new`, `/shop/sale`, `/about`, and `/contact`. Substitute your own page paths if they differ.
+You need Navigation [installed](/get-started/installation-setup), permission to create menus, and access to your Craft project’s `templates/` and public `web/` folders. The example assumes your site has working pages at `/shop`, `/shop/new`, `/shop/sale`, `/about`, and `/contact`. Substitute your own page paths if they differ.
 
-A template partial is a file included by another template. We’ll create `template-guides/_partials/header-nav.twig`, then include it from the layout that surrounds your site’s page content. The leading underscore keeps the partial from being requested as a page itself.
+A template partial is a file included by another template. We’ll create `templates/_partials/header-nav.twig`, then include it from the layout that surrounds your site’s page content. The leading underscore keeps the partial from being requested as a page itself.
 
 ## Create the Menu
 
@@ -37,7 +37,7 @@ For real Craft entries, you can use Entry nodes instead of Custom nodes so their
 
 ## Create the Header Partial
 
-Create `template-guides/_partials/header-nav.twig` with this complete template:
+Create `templates/_partials/header-nav.twig` with this complete template:
 
 ```twig
 {% set nodes = craft.navigation.nodes('mainMenu').level(1).all() %}
@@ -71,7 +71,7 @@ The query selects the top level. Navigation loads the child relationships for th
 
 Shop opens initially when one of its descendants is current. Visitors can also open and close it themselves. A parent that has its own URL receives a link inside its dropdown, keeping the disclosure control and the destination separate.
 
-Include the partial where the header belongs in your existing shared layout, for example `template-guides/_layouts/site.twig`:
+Include the partial where the header belongs in your existing shared layout, for example `templates/_layouts/site.twig`:
 
 ```twig
 {% include '_partials/header-nav' %}

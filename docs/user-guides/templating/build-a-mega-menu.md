@@ -32,7 +32,7 @@ GroupColumn nodes organise the panel and do not link anywhere. Their titles beco
 
 ## Replace the Header Partial
 
-Replace `template-guides/_partials/header-nav.twig` with this template. Keep its existing include in your shared layout:
+Replace `templates/_partials/header-nav.twig` with this template. Keep its existing include in your shared layout:
 
 ```twig
 {% set nodes = craft.navigation.nodes('mainMenu').level(1).all() %}
