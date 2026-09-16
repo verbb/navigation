@@ -40,6 +40,12 @@ class ImportExportController extends Controller
             throw new InvalidArgumentException('Invalid menu field values.');
         }
 
+        foreach (['exportVersion', 'navigation'] as $key) {
+            if (isset($payload[$key]) && !is_scalar($payload[$key])) {
+                throw new InvalidArgumentException('Invalid export version.');
+            }
+        }
+
         foreach (['name', 'handle'] as $key) {
             if (isset($payload['menu'][$key]) && !is_string($payload['menu'][$key])) {
                 throw new InvalidArgumentException('Invalid menu metadata.');

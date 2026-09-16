@@ -31,4 +31,6 @@ it('returns a recoverable error for malformed import JSON', function(string $con
     'invalid children' => ['{"menu":{"handle":"invalid"},"nodes":[{"children":"bad"}]}'],
     'invalid metadata' => ['{"menu":{"handle":[]},"nodes":[]}'],
     'invalid menu fields' => ['{"menu":{"handle":"invalid"},"nodes":[],"menuFieldValues":"bad"}'],
+    'invalid export version' => ['{"menu":{"handle":"invalid"},"nodes":[],"exportVersion":{"bad":true}}'],
+    'invalid legacy version' => ['{"menu":{"handle":"invalid"},"nodes":[],"navigation":{"bad":true}}'],
 ])->with(['import-configure', 'import-complete']);
