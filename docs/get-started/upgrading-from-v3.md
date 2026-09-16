@@ -6,6 +6,10 @@ Use this page when upgrading Navigation 3 to Navigation 4. The database migratio
 
 Review custom SQL, node-type filters, and templates that depend on active-node or nullable child-state results. These require changes even when the original method call still executes.
 
+### Custom URL References
+
+Custom URLs no longer expand environment variables or aliases. Replace existing references with relative paths such as `/contact`, literal destinations, or a sandboxed site token such as `{site.baseUrl}contact`. Use a **Site** node when the link should point to a site's base URL. Review these destinations before publishing your upgraded menus.
+
 ### Database Tables
 
 If you have custom SQL or reports that reference Navigation tables directly, update them to the new names:

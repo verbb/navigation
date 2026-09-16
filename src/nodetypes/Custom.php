@@ -5,7 +5,6 @@ use verbb\navigation\base\NodeType;
 use verbb\navigation\helpers\NodeOutputSafety;
 
 use Craft;
-use craft\helpers\App;
 use craft\helpers\Cp;
 
 class Custom extends NodeType
@@ -57,9 +56,7 @@ class Custom extends NodeType
     {
         $url = $this->node->getRawUrl();
 
-        // Parse aliases and env variables
-        $url = App::parseEnv($url);
-
+        // Author-entered URLs must not resolve server environment values or aliases.
         // Optional sandboxed Twig — authors are not full template authors.
         if ($url && str_contains($url, '{')) {
             $url = NodeOutputSafety::renderAuthorTemplate($url, NodeOutputSafety::authorTemplateObject());

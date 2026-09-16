@@ -14,6 +14,8 @@ Use **Entries**, **Categories**, or **Assets** when a menu item should point to 
 
 Use **Custom** for a destination such as `/contact` or an external website. Enter a title and URL in the builder. Because the URL is entered manually, update it yourself if the destination changes.
 
+For a destination based on the current site's configured base URL, enter `{site.baseUrl}contact`. The token supplies the base URL, including its trailing slash. Custom URLs accept these sandboxed site tokens; environment variables and aliases are not expanded.
+
 On multisite projects, **Site** links to a Craft site’s base URL. It can identify that site’s pages as active, which is useful for a header linking between brands or locales.
 
 ## Group Links

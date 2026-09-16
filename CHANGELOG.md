@@ -5,7 +5,11 @@
 ### Added
 - Added migration support for MenuBuilder menus, hierarchical items, site restrictions, element links, link attributes, and compatible dynamic sources.
 
+### Changed
+- Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
+
 ### Fixed
+- Fixed an information disclosure vulnerability.
 - Fixed nodes from disabled menu sites appearing in public queries and GraphQL.
 - Fixed stale linked-content restoration state when menu sites were disabled and re-enabled, and preserved disabled links when restoring into a single-site menu.
 - Fixed re-enabling a menu site failing to recreate removed node variants.
