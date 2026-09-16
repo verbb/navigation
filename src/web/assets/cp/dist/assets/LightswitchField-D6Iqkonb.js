@@ -1,0 +1,2 @@
+import{V as e,t}from"./Field-mSrojs0-.js";import{t as n}from"./Lightswitch-Cn3vfaeP.js";import{t as r}from"./useEngineField-hG0lwHDp.js";var i=e(),a=({form:e,field:a})=>{let{value:o,setValue:s,errors:c}=r(e,a.name);return(0,i.jsx)(t,{name:a.name,label:a.label,instructions:a.instructions,warning:a.warning,required:a.required,errors:c,children:(0,i.jsx)(n,{checked:!!o,onCheckedChange:e=>s(e),"aria-label":a.label})})};export{a as LightswitchField};
+//# sourceMappingURL=LightswitchField-D6Iqkonb.js.map
