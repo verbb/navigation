@@ -53,11 +53,11 @@ try {
   const source = page.getByRole('row').filter({ hasText: 'Node 2' });
   const target = page.getByRole('row').filter({ hasText: 'Node 1' });
   const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
-  await source.locator('[aria-label="Drag to reorder"]').dispatchEvent('dragstart', { dataTransfer });
+  await source.locator('[draggable="true"][aria-label="Drag to reorder"]').dispatchEvent('dragstart', { dataTransfer });
   const box = await target.boundingBox();
   await target.dispatchEvent('dragover', { dataTransfer, clientX: box.x + 100, clientY: box.y + 1 });
   await target.dispatchEvent('drop', { dataTransfer, clientX: box.x + 100, clientY: box.y + 1 });
-  await source.locator('[aria-label="Drag to reorder"]').dispatchEvent('dragend', { dataTransfer });
+  await source.locator('[draggable="true"][aria-label="Drag to reorder"]').dispatchEvent('dragend', { dataTransfer });
   await page.waitForFunction(() => window.boundary.store.getState().nodes[0]?.id === 2);
   finishDelete();
   await page.waitForFunction(() => window.boundary.store.getState().state.session.changeCount === 1);

@@ -48,7 +48,7 @@ try {
   phase = 'drag';
   const target = row('Workflow parent');
   const targetBox = await target.boundingBox();
-  await row('Workflow child').locator('[aria-label="Drag to reorder"]').dragTo(target, {
+  await row('Workflow child').locator('[draggable="true"][aria-label="Drag to reorder"]').dragTo(target, {
     targetPosition: { x: 180, y: targetBox.height / 2 },
   });
   await page.locator('[data-tree-row][data-level="2"]').filter({ hasText: 'Workflow child' }).waitFor();
