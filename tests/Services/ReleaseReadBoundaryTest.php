@@ -14,12 +14,15 @@ it('does not attach descendants of a filtered parent to a different branch', fun
     $hidden->enabled = false;
     expect(Craft::$app->elements->saveElement($hidden))->toBeTrue();
 
-    W::withAbsoluteUrl('https://read-boundary.test/child', function() use ($menu, $first, $child) {
+    W::withAbsoluteUrl('https://read-boundary.test/child', function() use ($menu, $first, $hidden, $child) {
         foreach ([1, 2] as $read) {
             $nodes = Node::find()->menuId($menu->id)->all();
             expect(array_column($nodes, 'id'))->toBe([$first->id, $child->id]);
             expect(array_column($nodes[0]->getChildren()->all(), 'id'))->toBe([]);
-            expect($nodes[1]->getParent()?->id)->toBeNull();
+            expect($nodes[1]->getParent()?->id)->toBe($hidden->id);
+            expect($nodes[1]->level)->toBe(2);
+            $tree = Navigation::$plugin->getNodeRead()->buildNodeTree($nodes);
+            expect(array_column($tree, 'id'))->toBe([$first->id, $child->id]);
             expect($nodes[0]->hasActiveChild())->toBeFalse();
             expect($nodes[1]->getCurrent())->toBeTrue();
         }
