@@ -15,6 +15,7 @@ use craft\db\Query;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+use craft\models\FieldLayout;
 
 use DateTime;
 use RuntimeException;
@@ -98,13 +99,17 @@ class ImportExportHelper
                 return $result;
             }
 
-            $menu = self::_createMenuFromImport($menuData, clone $existingMenu);
-        } else {
-            if ($existingMenu) {
-                $menuData['handle'] = self::_uniqueMenuHandle($handle);
-            }
+        } elseif ($existingMenu) {
+            $menuData['handle'] = self::_uniqueMenuHandle($handle);
+        }
 
-            $menu = self::_createMenuFromImport($menuData);
+        try {
+            $menu = self::_createMenuFromImport($menuData, $menuAction === 'update' ? clone $existingMenu : null);
+        } catch (Throwable $e) {
+            $result->addImportError('Invalid menu settings: ' . $e->getMessage());
+            $result->menu = $existingMenu;
+
+            return $result;
         }
 
         // No configuration or content writes before the complete type preflight.
@@ -242,6 +247,8 @@ class ImportExportHelper
             'defaultPlacement' => $menu->defaultPlacement,
             'showSiteMenu' => $menu->showSiteMenu,
             'permissions' => NodeTypeHelper::resolvePermissionsTypeKeys($menu->permissions),
+            'nodeFieldLayout' => $menu->getFieldLayout()->getConfig(),
+            'menuFieldLayout' => $menu->getMenuFieldLayout()->getConfig(),
             'siteSettings' => [],
         ];
 
@@ -437,8 +444,22 @@ class ImportExportHelper
     {
         $menu = $existingMenu ?? new MenuSettings();
         $siteSettingsData = ArrayHelper::remove($data, 'siteSettings');
+        $hasNodeLayout = array_key_exists('nodeFieldLayout', $data);
+        $hasMenuLayout = array_key_exists('menuFieldLayout', $data);
+        $nodeLayoutConfig = ArrayHelper::remove($data, 'nodeFieldLayout');
+        $menuLayoutConfig = ArrayHelper::remove($data, 'menuFieldLayout');
 
         $menu->setAttributes($data, false);
+
+        // Reuse the destination's global fields, but never share layout/tab
+        // identities with the source menu. Older exports keep existing layouts.
+        if ($hasNodeLayout) {
+            $menu->setFieldLayout(self::_createImportedFieldLayout($nodeLayoutConfig ?? [], Node::class));
+        }
+
+        if ($hasMenuLayout) {
+            $menu->setMenuFieldLayout(self::_createImportedFieldLayout($menuLayoutConfig ?? [], MenuElement::class));
+        }
 
         if (is_array($siteSettingsData)) {
             $siteSettings = [];
@@ -466,6 +487,25 @@ class ImportExportHelper
         }
 
         return $menu;
+    }
+
+    private static function _createImportedFieldLayout(array $config, string $type): FieldLayout
+    {
+        // Craft can omit unresolved custom fields while loading a layout.
+        // Reject that before an update replaces content and silently loses values.
+        foreach ($config['tabs'] ?? [] as $tab) {
+            foreach ($tab['elements'] ?? [] as $element) {
+                if (isset($element['fieldUid']) && !Craft::$app->getFields()->getFieldByUid($element['fieldUid'])) {
+                    throw new RuntimeException('Missing global field with UID “' . $element['fieldUid'] . '”.');
+                }
+            }
+        }
+
+        $layout = FieldLayout::createFromConfig($config);
+        $layout->type = $type;
+        $layout->resetUids();
+
+        return $layout;
     }
 
     private static function _importNodeTree(

@@ -79,6 +79,8 @@ Control-panel and console exports include independent branches from every site, 
 | Node custom fields | `fieldValues` keyed by field handle |
 | Node types | Registered node type class name |
 
+Exports include the node and menu field layouts. The destination must already have the referenced global fields with matching UIDs, normally supplied by the same Craft project config. Import creates independent layouts for the new menu; it does not create global fields or install field-type plugins.
+
 Unresolved element UIDs produce warnings; the node is still created without a link.
 
 ## Developer API
