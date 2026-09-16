@@ -26,7 +26,7 @@ class StructureLimits
         try {
             Craft::$app->getDb()->transaction(function() use ($menu, $siteId, $callback, $skipIds, $previous) {
                 $callback();
-                if (!$previous && ($menu->maxLevels || $menu->maxNodesSettings)) {
+                if (!$previous && ($menu->maxNodes || $menu->maxLevels || $menu->maxNodesSettings)) {
                     self::_validate($menu, array_diff_key(self::_tree($menu, $siteId), $skipIds));
                 }
             });
@@ -41,7 +41,7 @@ class StructureLimits
 
     public static function requireCurrent(MenuSettings $menu, int $siteId): void
     {
-        if (!isset(self::$_batches[$menu->id . ':' . $siteId]) && ($menu->maxLevels || $menu->maxNodesSettings)) {
+        if (!isset(self::$_batches[$menu->id . ':' . $siteId]) && ($menu->maxNodes || $menu->maxLevels || $menu->maxNodesSettings)) {
             self::_validate($menu, self::_tree($menu, $siteId));
         }
     }
@@ -54,7 +54,7 @@ class StructureLimits
             return;
         }
         $menu = Navigation::$plugin->getMenus()->getMenuById($node->menuId);
-        if (!$menu || (!$menu->maxLevels && !$menu->maxNodesSettings)
+        if (!$menu || (!$menu->maxNodes && !$menu->maxLevels && !$menu->maxNodesSettings)
             || isset(self::$_batches[$menu->id . ':' . $node->siteId])) {
             return;
         }
@@ -106,6 +106,11 @@ class StructureLimits
 
     private static function _validate(MenuSettings $menu, array $tree): void
     {
+        // Native duplication, restoration and imports do not share the builder's temporary-node list.
+        if ($menu->maxNodes && count($tree) > $menu->maxNodes) {
+            throw new BadRequestHttpException(Craft::t('navigation', 'Exceeded maximum allowed nodes ({number}) for this menu.', ['number' => $menu->maxNodes]));
+        }
+
         $counts = [];
         foreach ($tree as $row) {
             if ($menu->maxLevels && $row['level'] > $menu->maxLevels) {
