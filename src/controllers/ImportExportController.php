@@ -14,6 +14,7 @@ use craft\web\UploadedFile;
 
 use stdClass;
 
+use yii\base\InvalidArgumentException;
 use yii\web\BadRequestHttpException;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
@@ -23,6 +24,42 @@ class ImportExportController extends Controller
 {
     // Static Methods
     // =========================================================================
+
+    private static function _readImportPayload(string $path): array
+    {
+        $payload = Json::decode(file_get_contents($path));
+        if (isset($payload[0]) && is_array($payload[0])) {
+            $payload = $payload[0];
+        }
+
+        if (!is_array($payload) || !is_array($payload['menu'] ?? null) || !is_array($payload['nodes'] ?? null)) {
+            throw new InvalidArgumentException('Invalid menu data.');
+        }
+
+        foreach (['name', 'handle'] as $key) {
+            if (isset($payload['menu'][$key]) && !is_string($payload['menu'][$key])) {
+                throw new InvalidArgumentException('Invalid menu metadata.');
+            }
+        }
+
+        // Review and completion must reject malformed trees before rendering
+        // metadata or applying any imported settings and content.
+        $nodes = $payload['nodes'];
+        while ($nodes) {
+            $node = array_pop($nodes);
+            if (!is_array($node) || !is_array($node['children'] ?? [])) {
+                throw new InvalidArgumentException('Invalid node data.');
+            }
+            foreach (['title', 'type'] as $key) {
+                if (isset($node[$key]) && !is_string($node[$key])) {
+                    throw new InvalidArgumentException('Invalid node metadata.');
+                }
+            }
+            array_push($nodes, ...array_values($node['children'] ?? []));
+        }
+
+        return $payload;
+    }
 
     private static function _countNodes(array $nodes): int
     {
@@ -101,10 +138,10 @@ class ImportExportController extends Controller
             throw new HttpException(404);
         }
 
-        $json = Json::decode(file_get_contents($fileLocation));
-
-        if (isset($json[0]) && is_array($json[0])) {
-            $json = $json[0];
+        try {
+            $json = self::_readImportPayload($fileLocation);
+        } catch (InvalidArgumentException) {
+            return $this->actionIndex(Craft::t('navigation', 'Invalid JSON file. Upload a Navigation-exported menu file to try again.'));
         }
 
         $handle = $json['menu']['handle'] ?? null;
@@ -153,12 +190,10 @@ class ImportExportController extends Controller
             throw new HttpException(404);
         }
 
-        $payload = Json::decode(file_get_contents($fileLocation));
-
-        // Apply the same accepted wrapper as the preview and importer before
-        // checking whether the administrator must choose a duplicate action.
-        if (isset($payload[0]) && is_array($payload[0])) {
-            $payload = $payload[0];
+        try {
+            $payload = self::_readImportPayload($fileLocation);
+        } catch (InvalidArgumentException) {
+            return $this->actionIndex(Craft::t('navigation', 'Invalid JSON file. Upload a Navigation-exported menu file to try again.'));
         }
 
         $handle = $payload['menu']['handle'] ?? null;
@@ -178,7 +213,7 @@ class ImportExportController extends Controller
             $this->requirePermission('navigation-createMenus');
         }
 
-        $result = ImportExportHelper::importMenuFromJson(file_get_contents($fileLocation), $menuAction);
+        $result = ImportExportHelper::importMenuFromJson($payload, $menuAction);
 
         if ($result->hasImportErrors()) {
             $this->setFailFlash(Craft::t('navigation', 'Unable to import menu.'));
