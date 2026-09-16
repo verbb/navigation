@@ -23,7 +23,6 @@ use craft\events\SectionEvent;
 use craft\events\VolumeEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
-use craft\helpers\ElementHelper;
 
 use yii\base\UserException;
 
@@ -348,6 +347,23 @@ class Nodes extends Component
         $this->_handleSourceDelete(DynamicSourceTypes::SECTION, (int)$event->section->id);
     }
 
+    public function restoreLinkedNodesForMenuSites(int $menuId, array $siteIds): void
+    {
+        $nodes = NodeElement::find()->menuId($menuId)->siteId($siteIds)->status(null)->all();
+        $dataById = [];
+
+        foreach ($nodes as $node) {
+            $node->data = $dataById[$node->id] ?? $node->data;
+
+            // The source may have been restored while every menu locale was off.
+            if ($node->getIsDisabledByLinkedElement() && $node->getElement()) {
+                $this->restoreNodeFromLinkedElement($node);
+            }
+
+            $dataById[$node->id] = $node->data;
+        }
+    }
+
     public function onDeleteCategoryGroup(CategoryGroupEvent $event): void
     {
         $this->_handleSourceDelete(DynamicSourceTypes::CATEGORY_GROUP, (int)$event->categoryGroup->id);
@@ -415,7 +431,9 @@ class Nodes extends Component
             $node->enabled = $state['enabled'];
             $node->setEnabledForSite($state['enabledForSite']);
         } else {
-            $node->enabled = $state['enabled'];
+            // A formerly localized disabled state must remain disabled if the
+            // menu now supports only one site and Craft uses the global flag.
+            $node->enabled = $state['enabled'] && $state['enabledForSite'];
             $node->setEnabledForSite(true);
         }
 

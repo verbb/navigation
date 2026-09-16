@@ -4,9 +4,11 @@ namespace verbb\navigation\elements\db;
 use verbb\navigation\Navigation;
 use verbb\navigation\deprecations\NodeQueryDeprecations;
 use verbb\navigation\elements\Menu;
+use verbb\navigation\elements\Node;
 use verbb\navigation\models\MenuSettings;
 
 use Craft;
+use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
@@ -323,6 +325,27 @@ class NodeQuery extends ElementQuery
 
     // Protected Methods
     // =========================================================================
+
+    protected function statusCondition(string $status): mixed
+    {
+        $condition = parent::statusCondition($status);
+
+        if ($status !== Node::STATUS_ENABLED) {
+            return $condition;
+        }
+
+        // Disabling a menu site does not immediately remove its stored node
+        // variants. Public reads must respect the menu setting before resaves run;
+        // status(null) still exposes those rows to internal lifecycle operations.
+        $enabledMenuSite = (new Query())
+            ->select('id')
+            ->from('{{%navigation_menus_sites}} menu_sites')
+            ->where('[[menu_sites.menuId]] = [[navigation_nodes.menuId]]')
+            ->andWhere('[[menu_sites.siteId]] = [[elements_sites.siteId]]')
+            ->andWhere(['menu_sites.enabled' => true]);
+
+        return ['and', $condition, ['exists', $enabledMenuSite]];
+    }
 
     protected function beforePrepare(): bool
     {

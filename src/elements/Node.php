@@ -531,6 +531,16 @@ class Node extends Element
         if (isset($state['sites'])) {
             unset($state['sites'][$this->siteId]);
 
+            // Restoring content also ends its deletion state for menu locales
+            // that Craft has since removed. Do not copy stale flags into a locale
+            // if it is later re-enabled and propagated from this node.
+            $supportedSiteIds = $this->getMenuSettings()->getSiteIds();
+            foreach (array_keys($state['sites']) as $siteId) {
+                if (!in_array((int)$siteId, $supportedSiteIds, true)) {
+                    unset($state['sites'][$siteId]);
+                }
+            }
+
             if ($state['sites']) {
                 $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] = $state;
                 return;

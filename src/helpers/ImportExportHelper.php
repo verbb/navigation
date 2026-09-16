@@ -307,7 +307,9 @@ class ImportExportHelper
         }
 
         if ($node->elementId) {
-            $element = Craft::$app->getElements()->getElementById($node->elementId);
+            // Export the shared identity even when the link's locale differs
+            // from the site currently selected in the control panel.
+            $element = Craft::$app->getElements()->getElementById($node->elementId, null, '*');
 
             if ($element instanceof ElementInterface) {
                 $data['linkedElementUid'] = $element->uid;
@@ -532,7 +534,9 @@ class ImportExportHelper
         $linkedElementType = $data['linkedElementType'] ?? null;
 
         if ($linkedElementUid && $linkedElementType) {
-            $element = Craft::$app->getElements()->getElementByUid($linkedElementUid, $linkedElementType);
+            // Resolve identity across sites. The node's source site and explicit
+            // linked-site handle below still determine which localized URL it uses.
+            $element = Craft::$app->getElements()->getElementByUid($linkedElementUid, $linkedElementType, '*');
 
             if ($element instanceof ElementInterface) {
                 $node->elementId = (int)$element->id;

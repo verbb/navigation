@@ -56,7 +56,9 @@ class PluginMigrationHelper
         }
 
         $elementClass = self::resolveElementClass($elementType);
-        $element = Craft::$app->getElements()->getElementById($elementId, $elementClass);
+        // Identity is shared across sites; a source need not exist in the site
+        // currently selected by the migration request.
+        $element = Craft::$app->getElements()->getElementById($elementId, $elementClass, '*');
 
         if (!$element instanceof ElementInterface) {
             return [null, null];

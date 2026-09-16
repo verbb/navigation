@@ -474,6 +474,8 @@ class Menus extends Component
 
             $siteIdMap = Db::idsByUids(Table::SITES, array_keys($siteSettingData));
             $hasNewSite = false;
+            $reEnabledSiteIds = [];
+            $enabledSiteIds = [];
 
             foreach ($siteSettingData as $siteUid => $siteSettings) {
                 $siteId = $siteIdMap[$siteUid] ?? null;
@@ -492,6 +494,16 @@ class Menus extends Component
                     $siteSettingsRecord->siteId = $siteId;
                     $resaveNodes = true;
                     $hasNewSite = true;
+                }
+
+                if (!$isNewNav && $siteSettings['enabled'] && !$siteSettingsRecord->enabled) {
+                    $reEnabledSiteIds[] = (int)$siteId;
+                    $resaveNodes = true;
+                    $hasNewSite = true;
+                }
+
+                if ($siteSettings['enabled']) {
+                    $enabledSiteIds[] = (int)$siteId;
                 }
 
                 $siteSettingsRecord->enabled = $siteSettings['enabled'];
@@ -513,7 +525,14 @@ class Menus extends Component
                 }
             }
 
-            if (!$isNewNav && $resaveNodes) {
+            if ($reEnabledSiteIds) {
+                // Source restoration skips disabled menu sites. Reconcile their
+                // retained nodes now that saving those locales is supported again.
+                $this->_menus = null;
+                Navigation::$plugin->getNodes()->restoreLinkedNodesForMenuSites((int)$navRecord->id, $reEnabledSiteIds);
+            }
+
+            if (!$isNewNav && $resaveNodes && $enabledSiteIds) {
                 // If the propagation method just changed, we definitely need to update nodes for that
                 if ($propagationMethodChanged) {
                     Queue::push(new ApplyNewPropagationMethod([
@@ -534,7 +553,7 @@ class Menus extends Component
                         'elementType' => Node::class,
                         'criteria' => [
                             'menuId' => $navRecord->id,
-                            'siteId' => array_values($siteIdMap),
+                            'siteId' => $enabledSiteIds,
                             'preferSites' => [Craft::$app->getSites()->getPrimarySite()->id],
                             'unique' => true,
                             'status' => null,
@@ -550,6 +569,7 @@ class Menus extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+            $this->_menus = null;
             throw $e;
         }
 

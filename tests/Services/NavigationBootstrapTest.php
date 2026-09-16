@@ -7,7 +7,7 @@ use verbb\navigation\Navigation;
 use verbb\navigation\variables\NavigationVariable;
 
 it('boots Navigation and can create a basic custom-node tree', function() {
-    expect(Navigation::$plugin)->not->toBeNull();
+    expect(Navigation::$plugin)->toBeInstanceOf(Navigation::class);
 
     $nav = NavigationFixtureFactory::menu();
     $parent = NavigationFixtureFactory::customNode($nav, 'Parent', '/parent');

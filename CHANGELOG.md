@@ -6,8 +6,13 @@
 - Added migration support for MenuBuilder menus, hierarchical items, site restrictions, element links, link attributes, and compatible dynamic sources.
 
 ### Fixed
+- Fixed nodes from disabled menu sites appearing in public queries and GraphQL.
+- Fixed stale linked-content restoration state when menu sites were disabled and re-enabled, and preserved disabled links when restoring into a single-site menu.
+- Fixed re-enabling a menu site failing to recreate removed node variants.
+- Fixed an authorization vulnerability.
 - Fixed linked content deletion and restoration failing after a menu site was disabled.
 - Fixed deleting and restoring a section or category group losing linked nodes’ enabled states on individual sites.
+- Fixed JSON imports, exports, and plugin migrations failing to resolve linked elements that only exist on another site.
 - Fixed node type changes retaining an incompatible linked element in the editor and failing draft autosaves while the new element picker is empty.
 
 ## 4.0.0-beta.8 - 2026-09-15

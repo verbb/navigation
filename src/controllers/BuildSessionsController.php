@@ -11,6 +11,7 @@ use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
 use yii\web\ConflictHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 use Throwable;
@@ -170,6 +171,19 @@ class BuildSessionsController extends Controller
         $session = $buildSessions->getOrCreate($menuId, $siteId);
         $nodeChangeCount = count($session->addedNodeIds) + count($session->stagedDeletes);
         $hasStructurePayload = $applyStructure && $moves !== [];
+
+        // Permissions and linked sources can change while additions are staged.
+        // Authorize the whole batch before saving structure or publishing any node.
+        if ($session->addedNodeIds) {
+            $user = Craft::$app->getUser()->getIdentity();
+            $additions = Node::find()->id($session->addedNodeIds)->menuId($menuId)->siteId($siteId)->status(null)->all();
+
+            foreach ($additions as $node) {
+                if ($node->getIsPendingPublish() && (!$user || !$node->canSave($user))) {
+                    throw new ForbiddenHttpException('User is not authorized to publish this node.');
+                }
+            }
+        }
 
         if ($hasStructurePayload) {
             MenuAuth::requireStructureMoves(
