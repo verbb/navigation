@@ -48,6 +48,21 @@ class NodeFeedMeElement extends Element
     {
         parent::init();
 
+        Event::on(Process::class, Process::EVENT_STEP_BEFORE_ELEMENT_SAVE, function(FeedProcessEvent $event): void {
+            if ($event->feed['elementType'] !== Node::class) {
+                return;
+            }
+
+            $path = Hash::get($event->feed, 'fieldMapping.children.node');
+            $children = $path ? Hash::get(Hash::expand($event->feedData, '/'), $path, []) : [];
+
+            // Feed Me compares parent content before invoking after-save hooks.
+            // Include mapped children so an unchanged parent cannot skip their import.
+            if ($children) {
+                $event->contentData['children'] = $children;
+            }
+        });
+
         Event::on(Process::class, Process::EVENT_STEP_AFTER_ELEMENT_SAVE, function(FeedProcessEvent $event): void {
             if ($event->feed['elementType'] === Node::class) {
                 $this->_processNestedNode($event);
