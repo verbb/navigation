@@ -11,7 +11,7 @@
 ### Fixed
 - Fixed an information disclosure vulnerability.
 - Fixed nodes from disabled menu sites appearing in public queries and GraphQL.
-- Fixed stale linked-content restoration state when menu sites were disabled and re-enabled, and preserved disabled links when restoring into a single-site menu.
+- Fixed stale linked-content deletion and restoration state when menu sites were disabled and re-enabled, and preserved disabled links when restoring into a single-site menu.
 - Fixed re-enabling a menu site failing to recreate removed node variants.
 - Fixed an authorization vulnerability.
 - Fixed linked content deletion and restoration failing after a menu site was disabled.

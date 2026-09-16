@@ -526,10 +526,10 @@ class Menus extends Component
             }
 
             if ($reEnabledSiteIds) {
-                // Source restoration skips disabled menu sites. Reconcile their
+                // Source lifecycle events skip disabled menu sites. Reconcile their
                 // retained nodes now that saving those locales is supported again.
                 $this->_menus = null;
-                Navigation::$plugin->getNodes()->restoreLinkedNodesForMenuSites((int)$navRecord->id, $reEnabledSiteIds);
+                Navigation::$plugin->getNodes()->reconcileLinkedNodesForMenuSites((int)$navRecord->id, $reEnabledSiteIds);
             }
 
             if (!$isNewNav && $resaveNodes && $enabledSiteIds) {

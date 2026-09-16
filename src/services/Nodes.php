@@ -14,6 +14,8 @@ use verbb\navigation\nodetypes\Dynamic;
 use Craft;
 use craft\base\Component;
 use craft\base\ElementInterface;
+use craft\db\Query;
+use craft\db\Table;
 use craft\elements\db\ElementQueryInterface;
 use craft\events\CategoryGroupEvent;
 use craft\events\DeleteElementEvent;
@@ -347,16 +349,27 @@ class Nodes extends Component
         $this->_handleSourceDelete(DynamicSourceTypes::SECTION, (int)$event->section->id);
     }
 
-    public function restoreLinkedNodesForMenuSites(int $menuId, array $siteIds): void
+    public function reconcileLinkedNodesForMenuSites(int $menuId, array $siteIds): void
     {
         $nodes = NodeElement::find()->menuId($menuId)->siteId($siteIds)->status(null)->all();
         $dataById = [];
+        $elementIds = array_values(array_unique(array_filter(ArrayHelper::getColumn($nodes, 'elementId'))));
+
+        // Deletion events skip inactive menu sites. Check the shared element rows
+        // once so reactivation cannot expose links whose sources are still trashed.
+        $deletedIds = $elementIds ? array_fill_keys((new Query())
+            ->select('id')
+            ->from(Table::ELEMENTS)
+            ->where(['id' => $elementIds])
+            ->andWhere(['not', ['dateDeleted' => null]])
+            ->column(), true) : [];
 
         foreach ($nodes as $node) {
             $node->data = $dataById[$node->id] ?? $node->data;
 
-            // The source may have been restored while every menu locale was off.
-            if ($node->getIsDisabledByLinkedElement() && $node->getElement()) {
+            if ($node->isElement() && isset($deletedIds[$node->elementId])) {
+                $this->disableNodeForLinkedElement($node);
+            } elseif ($node->getIsDisabledByLinkedElement() && $node->getElement()) {
                 $this->restoreNodeFromLinkedElement($node);
             }
 
