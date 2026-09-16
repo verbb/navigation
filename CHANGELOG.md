@@ -10,6 +10,7 @@
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
+- Fixed custom element-backed node types missing linked content updates, deletion, and restoration.
 - Fixed cached nodes losing their creation and modification dates.
 - Fixed hierarchy queries dropping disabled children when all statuses were requested.
 - Fixed GraphQL queries failing when requesting node data.

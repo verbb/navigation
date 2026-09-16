@@ -6,7 +6,6 @@ use verbb\navigation\base\ElementNodeType;
 use verbb\navigation\elements\Node as NodeElement;
 use verbb\navigation\events\CopyNodeToSiteEvent;
 use verbb\navigation\helpers\DynamicSourceTypes;
-use verbb\navigation\helpers\NodeTypeHelper;
 use verbb\navigation\helpers\StructureLimits;
 use verbb\navigation\models\NodeSiteSettings;
 use verbb\navigation\nodetypes\Dynamic;
@@ -152,16 +151,16 @@ class Nodes extends Component
             return;
         }
 
-        $typeClass = NodeTypeHelper::resolveTypeClass(get_class($element));
+        $typeValues = $this->_linkedNodeTypeValues($element);
 
-        if (!$typeClass) {
+        if (!$typeValues) {
             return;
         }
 
         $nodes = NodeElement::find()
             ->elementId($element->id)
             ->status(null)
-            ->type($typeClass)
+            ->type($typeValues)
             ->site('*')
             ->all();
 
@@ -263,9 +262,9 @@ class Nodes extends Component
             return;
         }
 
-        $typeClass = NodeTypeHelper::resolveTypeClass(get_class($element));
+        $typeValues = $this->_linkedNodeTypeValues($element);
 
-        if (!$typeClass) {
+        if (!$typeValues) {
             return;
         }
 
@@ -274,7 +273,7 @@ class Nodes extends Component
         $this->_nodesPendingHardDelete[$element->id] = NodeElement::find()
             ->elementId($element->id)
             ->status(null)
-            ->type($typeClass)
+            ->type($typeValues)
             ->site('*')
             ->unique()
             ->ids();
@@ -283,9 +282,9 @@ class Nodes extends Component
     public function onDeleteElement(ElementEvent $event): void
     {
         $element = $event->element;
-        $typeClass = NodeTypeHelper::resolveTypeClass(get_class($element));
+        $typeValues = $this->_linkedNodeTypeValues($element);
 
-        if (!$typeClass) {
+        if (!$typeValues) {
             return;
         }
 
@@ -309,7 +308,7 @@ class Nodes extends Component
         $nodes = NodeElement::find()
             ->elementId($element->id)
             ->status(null)
-            ->type($typeClass)
+            ->type($typeValues)
             ->site('*')
             ->all();
 
@@ -319,16 +318,16 @@ class Nodes extends Component
     public function onRestoreElement(ElementEvent $event): void
     {
         $element = $event->element;
-        $typeClass = NodeTypeHelper::resolveTypeClass(get_class($element));
+        $typeValues = $this->_linkedNodeTypeValues($element);
 
-        if (!$typeClass) {
+        if (!$typeValues) {
             return;
         }
 
         $nodes = NodeElement::find()
             ->elementId($element->id)
             ->status(null)
-            ->type($typeClass)
+            ->type($typeValues)
             ->site('*')
             ->all();
 
@@ -660,6 +659,19 @@ class Nodes extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _linkedNodeTypeValues(ElementInterface $element): array
+    {
+        $values = [];
+
+        foreach (Navigation::$plugin->getNodeTypes()->getRegisteredElementNodeTypeClasses() as $typeClass) {
+            if (is_a($element, $typeClass::getElementType())) {
+                $values = array_merge($values, $typeClass::getStoredTypeValues());
+            }
+        }
+
+        return array_values(array_unique($values));
+    }
 
     private function _canSyncLinkedNode(NodeElement $node): bool
     {
