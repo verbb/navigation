@@ -139,7 +139,7 @@ class NavigationCache extends Component
         $profile = $this->_getProfile();
 
         return sprintf(
-            'navigation:tree:v5:%s:%s:%s:%s',
+            'navigation:tree:v6:%s:%s:%s:%s',
             $menuUid ?? 'unknown',
             $siteId ?? 'all',
             $profile,

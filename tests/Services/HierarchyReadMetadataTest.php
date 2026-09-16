@@ -92,3 +92,50 @@ it('keeps stored results and Dynamic children when sorting interleaves branches'
         expect(array_column($tree[0]['children'][0]['children'], 'id'))->toBe([$leaf->id, $projected[0]->id]);
     });
 });
+
+it('rebuilds cached filtered hierarchies written with incorrect structure levels', function() {
+    $menu = F::menu();
+    $root = F::customNode($menu, 'Root', '/root');
+    $middle = F::customNode($menu, 'Middle', '/middle', $root);
+    $middle->type = verbb\navigation\nodetypes\Passive::class;
+    expect(Craft::$app->elements->saveElement($middle))->toBeTrue();
+    $leaf = F::customNode($menu, 'Leaf', '/leaf', $middle);
+    $settings = Navigation::$plugin->getSettings();
+    $before = [$settings->cacheMode, $settings->cacheProfile];
+    $settings->cacheMode = 'auto';
+    $settings->cacheProfile = 'standard';
+
+    try {
+        W::withAbsoluteUrl('https://hierarchy.test/', function() use ($menu, $root, $middle, $leaf) {
+            $cache = Navigation::$plugin->getNavigationCache();
+            $query = Node::find()->menuId($menu->id)->type(verbb\navigation\nodetypes\Custom::class);
+            expect($cache->shouldCacheQuery($query))->toBeTrue();
+            $rawQuery = (clone $query)->withNodeHierarchy(false);
+            $rawQuery->bypassReadCache = true;
+            $raw = $rawQuery->all();
+            $payload = $cache->exportNodes($raw, 'standard');
+            // The previous cache format persisted orphaned matches as level-one roots.
+            $payload['nodes'][1]['level'] = 1;
+            $legacyKey = sprintf('navigation:tree:v5:%s:%s:standard:%s', $menu->uid, $root->siteId, $cache->buildCriteriaHash($query));
+            Craft::$app->cache->set($legacyKey, $payload);
+            try {
+                foreach (['cold', 'warm'] as $temperature) {
+                    $freshQuery = Node::find()->menuId($menu->id)->type(verbb\navigation\nodetypes\Custom::class);
+                    if ($temperature === 'warm') {
+                        expect($cache->getCachedNodes($freshQuery))->not->toBeNull();
+                    }
+                    $nodes = $freshQuery->all();
+                    expect(array_map(static fn(Node $node) => [$node->id, $node->level], $nodes))->toBe([[$root->id, 1], [$leaf->id, 3]]);
+                }
+                $nodes[1]->title = 'Renamed cached leaf';
+                expect(Craft::$app->elements->saveElement($nodes[1]))->toBeTrue();
+                $saved = Node::find()->id($leaf->id)->withNodeHierarchy(false)->one();
+                expect([$saved->level, $saved->getParentId()])->toBe([3, $middle->id]);
+            } finally {
+                Craft::$app->cache->delete($legacyKey);
+            }
+        });
+    } finally {
+        [$settings->cacheMode, $settings->cacheProfile] = $before;
+    }
+});
