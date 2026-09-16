@@ -1,12 +1,17 @@
 <?php
 namespace verbb\navigation\migrations;
 
+use verbb\navigation\elements\Menu;
+use verbb\navigation\elements\Node;
 use verbb\navigation\models\MenuSettings;
 
 use Craft;
 use craft\base\Field;
 use craft\db\Migration;
+use craft\db\Query;
 use craft\helpers\MigrationHelper;
+
+use RuntimeException;
 
 class Install extends Migration
 {
@@ -24,6 +29,7 @@ class Install extends Migration
 
     public function safeDown(): bool
     {
+        $this->_deleteContent();
         $this->dropProjectConfig();
         $this->dropForeignKeys();
         $this->dropTables();
@@ -193,5 +199,49 @@ class Install extends Migration
     public function dropProjectConfig(): void
     {
         Craft::$app->getProjectConfig()->remove('navigation');
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _deleteContent(): void
+    {
+        $structureIds = (new Query())->select('structureId')->from('{{%navigation_menus}}')->column();
+
+        // Delete through Craft while backing tables and layouts still exist, so
+        // custom fields can clean up owned content. Include trash and drafts.
+        foreach ([Node::class, Menu::class] as $type) {
+            $ids = (new Query())->select('id')->from('{{%elements}}')->where(['type' => $type])->column();
+
+            foreach ($ids as $id) {
+                $element = $type::find()->id($id)->site('*')->status(null)
+                    ->trashed(null)->drafts(null)->provisionalDrafts(null)->revisions(null)->one();
+
+                if (!$element) {
+                    // A previous uninstall may have left a core row without
+                    // backing plugin data. It can no longer be loaded by Craft.
+                    $this->delete('{{%elements}}', ['id' => $id]);
+                    continue;
+                }
+
+                if ($element instanceof Node) {
+                    $element->deletedWithMenu = true;
+                }
+
+                if (!Craft::$app->getElements()->deleteElement($element, true)) {
+                    throw new RuntimeException('Could not remove Navigation content.');
+                }
+            }
+
+            $layoutIds = (new Query())->select('id')->from('{{%fieldlayouts}}')->where(['type' => $type])->column();
+            if ($layoutIds) {
+                Craft::$app->getFields()->deleteLayoutById($layoutIds, true);
+            }
+        }
+
+        if ($structureIds) {
+            $this->delete('{{%structures}}', ['id' => $structureIds]);
+        }
     }
 }

@@ -23,6 +23,7 @@
 - Fixed the relative Custom URL `0` being lost during JSON export.
 - Fixed JSON imports reversing node order when new nodes are placed at the beginning of a menu.
 - Fixed JSON imports losing custom field values when creating a menu without its original field layouts.
+- Fixed uninstalling Navigation leaving orphaned Craft elements, field layouts, and structures.
 - Fixed node type changes retaining an incompatible or missing linked element in the editor, and failing draft autosaves when clearing the element picker.
 
 ## 4.0.0-beta.8 - 2026-09-15
