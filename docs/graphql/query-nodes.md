@@ -78,7 +78,7 @@ Stored and projected nodes implement `NodeInterface`. Alongside inherited Craft 
 | `classes` | `String` | Additional CSS classes. |
 | `urlSuffix` | `String` | The configured URL suffix. |
 | `customAttributes` | `[NodeCustomAttribute]` | Additional attributes, each with `attribute: String` and `value: String`. |
-| `data` | `String` | Additional node data. |
+| `data` | `String` | Additional stored node data encoded as JSON; `null` for projected nodes. |
 | `newWindow` | `String` | The open-in-new-window value, serialised as a GraphQL string. |
 | `url` | `String` | The node’s full URL. |
 | `nodeUri` | `String` | The node’s URI. |

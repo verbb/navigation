@@ -16,6 +16,7 @@ use Craft;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\Element;
 use craft\gql\interfaces\Structure;
+use craft\helpers\Json;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
@@ -136,7 +137,8 @@ class NodeInterface extends Structure
                 'data' => [
                     'name' => 'data',
                     'type' => Type::string(),
-                    'description' => 'Any additional data for the node.',
+                    'description' => 'Additional node data encoded as JSON.',
+                    'resolve' => fn(mixed $node) => $node instanceof Node ? Json::encode($node->data) : null,
                 ],
                 'newWindow' => [
                     'name' => 'newWindow',

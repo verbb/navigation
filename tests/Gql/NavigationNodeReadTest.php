@@ -57,6 +57,7 @@ it('returns projected dynamic section children through GraphQL', function() {
         children {
           title
           isProjected
+          data
           url
         }
       }
@@ -78,6 +79,7 @@ it('returns projected dynamic section children through GraphQL', function() {
     expect($nodes[0]['children'] ?? [])->toHaveCount(2);
     expect($nodes[0]['children'][0]['isProjected'] ?? null)->toBeTrue();
     expect($nodes[0]['children'][1]['isProjected'] ?? null)->toBeTrue();
+    expect(array_column($nodes[0]['children'], 'data'))->toBe([null, null]);
 });
 
 it('batch-hydrates linked elements through GraphQL withLinkedElements', function() {
@@ -117,3 +119,24 @@ it('batch-hydrates linked elements through GraphQL withLinkedElements', function
 
     expect($linkedElements)->toBe(5);
 });
+
+it('returns stored node data as JSON strings through GraphQL', function(array $data) {
+    $nav = NavigationFixtureFactory::menu();
+    $node = NavigationFixtureFactory::customNode($nav, 'Data node', '/data-node');
+    $node->data = $data;
+    expect(Craft::$app->getElements()->saveElement($node))->toBeTrue();
+
+    $result = Craft::$app->getGql()->executeQuery(
+        CraftGql::createFullAccessSchema(),
+        'query($handle: String!) { navigationNodes(menuHandle: $handle) { data } }',
+        ['handle' => $nav->handle],
+    );
+
+    expect($result['errors'] ?? [])->toBe([]);
+    $value = $result['data']['navigationNodes'][0]['data'];
+    expect($value)->toBeString();
+    expect(json_decode($value, true, 512, JSON_THROW_ON_ERROR))->toBe($data);
+})->with([
+    'empty data' => [[]],
+    'populated data' => [['label' => 'A "quoted" label', 'count' => 0, 'enabled' => false, 'nested' => ['tags' => ['one', 'two']]]],
+]);
