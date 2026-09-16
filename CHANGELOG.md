@@ -19,6 +19,7 @@
 - Fixed deleting and restoring a section or category group losing linked nodes’ enabled states on individual sites.
 - Fixed JSON imports, exports, and plugin migrations failing to resolve linked elements that only exist on another site.
 - Fixed wrapped JSON imports creating a duplicate menu without an explicit import action.
+- Fixed default JSON exports omitting independent site branches and links from menus enabled only on a secondary site.
 - Fixed node type changes retaining an incompatible or missing linked element in the editor, and failing draft autosaves when clearing the element picker.
 
 ## 4.0.0-beta.8 - 2026-09-15

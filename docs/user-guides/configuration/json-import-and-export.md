@@ -39,6 +39,8 @@ php craft navigation/import-export/import-json ./mainMenu.json --update
 
 Default export folder: `@storage/navigation-exports`.
 
+Control-panel and console exports include independent branches from every site, with shared nodes included once. Each node records its source site handle so an import can recreate site-specific branches. Keep the same site handles in the destination environment.
+
 ## Export Format
 
 ```json
@@ -88,7 +90,13 @@ use verbb\navigation\Navigation;
 $menu = Navigation::$plugin->getMenus()->getMenuByHandle('mainMenu');
 $export = ImportExportHelper::generateMenuExport($menu);
 
+// For an existing site with the handle `french`, export only its tree.
+$site = Craft::$app->getSites()->getSiteByHandle('french');
+$siteExport = ImportExportHelper::generateMenuExport($menu, $site->id);
+
 $result = ImportExportHelper::importMenuFromJson($json, 'create'); // or 'update'
 ```
 
 See `ImportExportHelper` for the format details and import report (`MenuImportResult`).
+
+The optional `$siteId` is the ID of an existing Craft site. A site-scoped export contains only that site's nodes; importing it with `update` still replaces the entire menu tree. Use the default whole-menu export for backups.

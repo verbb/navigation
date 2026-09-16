@@ -27,7 +27,16 @@ class ImportExportHelper
 
     public static function generateMenuExport(MenuSettings $menu, ?int $siteId = null): array
     {
-        $siteId ??= (int)Craft::$app->getSites()->getPrimarySite()->id;
+        $allSites = $siteId === null;
+        if ($siteId === null) {
+            $primarySiteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
+            $menuSiteIds = $menu->getSiteIds();
+            // A menu can exist only on a secondary site. Its default export
+            // must read a supported locale rather than silently exporting no links.
+            $siteId = in_array($primarySiteId, $menuSiteIds, true)
+                ? $primarySiteId
+                : ($menuSiteIds[0] ?? $primarySiteId);
+        }
         $sourceSite = Craft::$app->getSites()->getSiteById($siteId);
 
         $payload = [
@@ -35,7 +44,7 @@ class ImportExportHelper
             'exportedAt' => (new DateTime())->format(DateTime::ATOM),
             'sourceSiteHandle' => $sourceSite?->handle,
             'menu' => self::_exportMenuSettings($menu),
-            'nodes' => self::_exportNodeTree($menu, $siteId),
+            'nodes' => self::_exportNodeTree($menu, $siteId, $allSites),
         ];
 
         $menuFieldValues = self::_exportMenuFieldValues($menu, $siteId);
@@ -251,11 +260,15 @@ class ImportExportHelper
         return $data;
     }
 
-    private static function _exportNodeTree(MenuSettings $menu, int $siteId): array
+    private static function _exportNodeTree(MenuSettings $menu, int $siteId, bool $allSites): array
     {
+        // Default backups include independent branches from every site, while
+        // shared nodes appear once. An explicit site still requests a scoped export.
         $nodes = Node::find()
             ->menuId($menu->id)
-            ->siteId($siteId)
+            ->siteId($allSites ? '*' : $siteId)
+            ->unique()
+            ->preferSites([$siteId])
             ->status(null)
             ->all();
 
@@ -289,6 +302,7 @@ class ImportExportHelper
     {
         $data = [
             'title' => $node->title,
+            'sourceSiteHandle' => Craft::$app->getSites()->getSiteById($node->siteId)?->handle,
             'type' => $node->type,
             'classes' => $node->classes,
             'urlSuffix' => $node->urlSuffix,
@@ -464,8 +478,11 @@ class ImportExportHelper
         foreach ($nodes as $nodeData) {
             $children = ArrayHelper::remove($nodeData, 'children', []);
             $siteOverrides = ArrayHelper::remove($nodeData, 'siteOverrides', []);
+            // Older exports inherit the menu's source site. New whole-menu
+            // exports retain the originating site of independent branches.
+            $nodeSiteId = self::_resolveSiteIdByHandle($nodeData['sourceSiteHandle'] ?? null) ?? $siteId;
 
-            $node = self::_createNodeFromImport($nodeData, $menu, $siteId, $result);
+            $node = self::_createNodeFromImport($nodeData, $menu, $nodeSiteId, $result);
 
             if (!$node) {
                 $result->nodesSkipped++;
@@ -488,7 +505,7 @@ class ImportExportHelper
             self::_importNodeSiteOverrides($node, $siteOverrides, $result);
 
             if ($children !== []) {
-                self::_importNodeTree($children, $menu, $node, $siteId, $result);
+                self::_importNodeTree($children, $menu, $node, $nodeSiteId, $result);
             }
         }
     }
