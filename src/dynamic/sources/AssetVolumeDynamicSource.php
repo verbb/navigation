@@ -90,7 +90,8 @@ class AssetVolumeDynamicSource extends DynamicSource
 
         // Enabled assets only for public projections.
         $query = AssetElement::find()
-            ->volumeId($volumeId);
+            ->volumeId($volumeId)
+            ->siteId($siteId);
         Navigation::$plugin->getDynamicSources()->applyProjectionStatus($query);
 
         AssetVolumeSettings::applyToQuery($query, $parent);

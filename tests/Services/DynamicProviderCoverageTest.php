@@ -27,6 +27,7 @@ it('projects only structure roots from an entry section', function(string $order
 })->with(['default', 'structure']);
 
 it('projects assets from the selected volume without including another volume', function() {
+    $secondary = F::existingSecondarySite();
     $menu = F::menu();
     $handle = 'navigationTestAssets' . uniqid();
     $path = Craft::getAlias('@webroot') . '/' . $handle;
@@ -35,7 +36,7 @@ it('projects assets from the selected volume without including another volume', 
     $volumes = [];
     try {
         foreach (['Selected', 'Other'] as $label) {
-            $volume = new \craft\models\Volume(['name' => $label, 'handle' => $handle . $label, 'fsHandle' => $fs->handle, 'subpath' => $label]);
+            $volume = new \craft\models\Volume(['name' => $label, 'handle' => $handle . $label, 'fsHandle' => $fs->handle, 'subpath' => $label, 'titleTranslationMethod' => 'site']);
             expect(Craft::$app->getVolumes()->saveVolume($volume))->toBeTrue();
             $volumes[] = $volume;
             $temporary = tempnam(sys_get_temp_dir(), 'navigation-projection-');
@@ -64,6 +65,28 @@ it('projects assets from the selected volume without including another volume', 
         expect(array_map(static fn($item) => $item->elementId, $children))->toBe([(int)$selected->id]);
         expect($children[0]->title)->toBe('Selected download');
         expect($children[0]->getUrl())->toBe('https://files.test/Selected/selected.txt');
+
+        $localized = \craft\elements\Asset::find()->id($selected->id)->siteId($secondary->id)->one();
+        $localized->title = 'Translated download';
+        expect(Craft::$app->getElements()->saveElement($localized, true, false))->toBeTrue();
+        $settings = Navigation::$plugin->getSettings();
+        $previousMode = $settings->cacheMode;
+        $settings->cacheMode = 'auto';
+        try {
+            \Tests\Support\WebRequestSimulator::withAbsoluteUrl(Craft::$app->getSites()->getPrimarySite()->getBaseUrl(), function() use ($menu, $secondary) {
+                foreach (['cold', 'warm'] as $read) {
+                    $parents = \verbb\navigation\elements\Node::find()->menuId($menu->id)->siteId($secondary->id)->withNodeHierarchy(true)->level(1)->all();
+                    expect($parents[0]->siteId)->toBe($secondary->id);
+                    $children = $parents[0]->getChildren()->all();
+                    expect($children)->toHaveCount(1);
+                    expect($children[0]->siteId)->toBe($secondary->id);
+                    expect($children[0]->title)->toBe('Translated download');
+                }
+            });
+        } finally {
+            $settings->cacheMode = $previousMode;
+        }
+
     } finally {
         foreach ($volumes as $volume) {
             Craft::$app->getVolumes()->deleteVolume($volume);
