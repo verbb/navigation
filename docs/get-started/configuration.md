@@ -31,7 +31,7 @@ Sets a custom name for the plugin in the control panel.
 
 **Type:** `bool` · **Default:** `false`
 
-Stores menus in the database instead of project config. Use with care — this bypasses Craft’s normal project-config workflow for menu definitions.
+Allows menu definitions to change directly in the database when Craft’s `allowAdminChanges` setting is `false`. When `allowAdminChanges` is `true`, menu changes still write to project config. Use with care: changes made while bypassing project config are local to that database.
 :::
 
 
@@ -88,7 +88,7 @@ Sets the TTL in seconds when cache mode is `static`.
 
 ### Menus (Project Config)
 
-Menu definitions are stored in Craft’s project config when `bypassProjectConfig` is `false`. This lets your development workflow carry menu settings, permissions, and field layouts between environments. Node trees and the values entered in menu fields are content, stored separately as Craft elements.
+Menu definitions are stored in Craft’s project config unless `bypassProjectConfig` is `true` and `allowAdminChanges` is `false`. This lets your development workflow carry menu settings, permissions, and field layouts between environments. Node trees and the values entered in menu fields are content, stored separately as Craft elements.
 
 Manage these settings in **Navigation → Menus**. You do not need to edit the generated YAML to create a menu. See [Overview](/feature-tour/overview) for the builder workflow.
 
