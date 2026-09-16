@@ -15,6 +15,7 @@ use craft\feedme\Plugin;
 use craft\feedme\services\Process;
 
 use yii\base\Event;
+use yii\db\Expression;
 
 class NodeFeedMeElement extends Element
 {
@@ -134,13 +135,28 @@ class NodeFeedMeElement extends Element
             ->innerJoin('{{%elements_sites}} elements_sites', '[[elements_sites.elementId]] = [[elements.id]]')
             ->andWhere(['dateDeleted' => null]);
 
-        // Check if we're query a column or a custom field
-        if (in_array($match, ['title', 'slug', 'uri'])) {
-            $query->andWhere(['=', $match, $value]);
+        // IDs are element attributes, not keys in Craft's custom-field content.
+        if (in_array($match, ['id', 'title', 'slug', 'uri'], true)) {
+            $column = $match === 'id' ? 'elements.id' : 'elements_sites.' . $match;
+            $query->andWhere(['=', $column, $value]);
         } else {
-            $contentQuery = Craft::$app->getDb()->getQueryBuilder()->jsonContains('content', [$match => $value]);
+            // Craft 5 stores content by field-layout element UID. Use each
+            // matching field instance's SQL so repeated layouts and scalar
+            // field types resolve the same values that Craft reads.
+            $conditions = ['or'];
+            foreach (Craft::$app->getFields()->getAllLayouts() as $layout) {
+                $field = $layout->getFieldByHandle((string)$match);
+                $valueSql = $field?->getValueSql();
+                if ($valueSql !== null) {
+                    $conditions[] = ['=', new Expression($valueSql), $value];
+                }
+            }
 
-            $query->andWhere($contentQuery);
+            if (count($conditions) === 1) {
+                return null;
+            }
+
+            $query->andWhere($conditions);
         }
 
         $result = $query->one();

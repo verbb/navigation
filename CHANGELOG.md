@@ -10,6 +10,7 @@
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
+- Fixed Feed Me failing to resolve linked elements by ID or custom-field value.
 - Fixed Feed Me skipping changes to nested children when their parent node was unchanged.
 - Fixed JSON backups losing translated node titles, custom fields, and per-site enabled states.
 - Fixed an information disclosure vulnerability.
