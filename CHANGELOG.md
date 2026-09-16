@@ -10,6 +10,7 @@
 - Custom URLs no longer expand environment variables or aliases. Replace these references with a relative URL, a literal destination, or the sandboxed `{site.baseUrl}` token.
 
 ### Fixed
+- Fixed prepared node queries failing in template helpers when they returned results.
 - Fixed custom field values reading or exporting as empty after a failed menu update import.
 - Fixed menu content being unavailable when live structure saves are enabled.
 - Fixed live structure changes showing an unsaved order after a rejected save or a rapid return to the original order.

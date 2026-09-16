@@ -46,10 +46,11 @@ class NavigationVariable
     public function nodes($criteria = null): NodeQuery
     {
         if ($criteria instanceof NodeQuery) {
-            $query = $criteria;
-        } else {
-            $query = NodeElement::find();
+            // Queries are already configured; iterating one as config would execute it.
+            return $criteria;
         }
+
+        $query = NodeElement::find();
 
         if ($criteria) {
             if (is_string($criteria)) {
