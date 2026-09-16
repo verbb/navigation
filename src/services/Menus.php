@@ -30,6 +30,7 @@ use craft\events\FieldEvent;
 use craft\events\SiteEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
+use craft\helpers\Json;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\Queue;
 use craft\helpers\StringHelper;
@@ -58,6 +59,8 @@ class Menus extends Component
     public const EVENT_AFTER_DELETE_MENU = 'afterDeleteMenu';
 
     public const CONFIG_MENU_KEY = 'navigation.menus';
+
+    private const RESTORE_POSITION_DATA_KEY = '_menuRestorePosition';
 
 
     // Traits
@@ -634,10 +637,10 @@ class Menus extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
-            // Snapshot parent links from Craft structure *before* any deleteElement calls.
+            // Snapshot parent links and order before any deleteElement calls.
             // Unordered deletes otherwise empty getAncestors() for children and wipe parentId (A13).
             if ($navRecord->structureId) {
-                $this->_snapshotNodeParentsFromStructure((int)$navRecord->structureId);
+                $this->_snapshotNodeStructure((int)$navRecord->structureId);
             }
 
             // Delete deepest-first so beforeDelete ancestor lookup remains a safe backup.
@@ -1008,7 +1011,7 @@ class Menus extends Component
     private function _restoreNodesDeletedWithMenu(int $menuId): void
     {
         $rows = (new Query())
-            ->select(['id', 'parentId'])
+            ->select(['id', 'parentId', 'data'])
             ->from(['{{%navigation_nodes}}'])
             ->where(['menuId' => $menuId])
             ->all();
@@ -1021,9 +1024,11 @@ class Menus extends Component
 
         foreach ($rows as $row) {
             $id = (int)$row['id'];
+            $data = Json::decode($row['data'] ?: '[]');
             $rowsById[$id] = [
                 'id' => $id,
                 'parentId' => !empty($row['parentId']) ? (int)$row['parentId'] : null,
+                'position' => $data[self::RESTORE_POSITION_DATA_KEY] ?? $id,
             ];
         }
 
@@ -1048,7 +1053,7 @@ class Menus extends Component
 
         uasort(
             $rowsById,
-            static fn(array $a, array $b): int => ($depths[$a['id']] ?? 0) <=> ($depths[$b['id']] ?? 0),
+            static fn(array $a, array $b): int => [$depths[$a['id']], $a['position'], $a['id']] <=> [$depths[$b['id']], $b['position'], $b['id']],
         );
 
         $elementsService = Craft::$app->getElements();
@@ -1074,8 +1079,10 @@ class Menus extends Component
                 throw new UserException(Craft::t('navigation', 'Couldn’t restore a menu node.'));
             }
 
-            // Clear the soft-delete-with-menu marker so later deletes/restores behave correctly.
+            // Clear the deletion snapshot after a successful restore.
+            unset($node->data[self::RESTORE_POSITION_DATA_KEY]);
             Db::update('{{%navigation_nodes}}', [
+                'data' => Json::encode($node->data),
                 'deletedWithMenu' => false,
             ], [
                 'id' => $node->id,
@@ -1128,16 +1135,16 @@ class Menus extends Component
     }
 
     /**
-     * Write parentId on every node from the live structure tree before menu delete.
-     * structureelements has no parentId column — derive parents from level + lft order.
+     * Preserve parent links and sibling order before deletion removes the live structure.
      */
-    private function _snapshotNodeParentsFromStructure(int $structureId): void
+    private function _snapshotNodeStructure(int $structureId): void
     {
         $rows = (new Query())
-            ->select(['elementId', 'level', 'lft'])
-            ->from(['{{%structureelements}}'])
-            ->where(['structureId' => $structureId])
-            ->orderBy(['lft' => SORT_ASC])
+            ->select(['structureelements.elementId', 'structureelements.level', 'structureelements.lft', 'nodes.data'])
+            ->from(['structureelements' => '{{%structureelements}}'])
+            ->innerJoin(['nodes' => '{{%navigation_nodes}}'], '[[nodes.id]] = [[structureelements.elementId]]')
+            ->where(['structureelements.structureId' => $structureId])
+            ->orderBy(['structureelements.lft' => SORT_ASC])
             ->all();
 
         $stack = [];
@@ -1151,9 +1158,12 @@ class Menus extends Component
             }
 
             $parentId = $stack === [] ? null : end($stack)['elementId'];
+            $data = Json::decode($row['data'] ?: '[]');
+            $data[self::RESTORE_POSITION_DATA_KEY] = (int)$row['lft'];
 
             Db::update('{{%navigation_nodes}}', [
                 'parentId' => $parentId,
+                'data' => Json::encode($data),
             ], [
                 'id' => $elementId,
             ], [], false);
