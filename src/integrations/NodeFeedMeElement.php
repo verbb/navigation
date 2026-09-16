@@ -143,12 +143,18 @@ class NodeFeedMeElement extends Element
             // Craft 5 stores content by field-layout element UID. Use each
             // matching field instance's SQL so repeated layouts and scalar
             // field types resolve the same values that Craft reads.
+            $globalField = Craft::$app->getFields()->getFieldByHandle((string)$match);
+            if (!$globalField) {
+                return null;
+            }
+
             $conditions = ['or'];
             foreach (Craft::$app->getFields()->getAllLayouts() as $layout) {
-                $field = $layout->getFieldByHandle((string)$match);
-                $valueSql = $field?->getValueSql();
-                if ($valueSql !== null) {
-                    $conditions[] = ['=', new Expression($valueSql), $value];
+                foreach ($layout->getCustomFields() as $field) {
+                    // Feed Me lists global handles; layouts can override them.
+                    if ($field->uid === $globalField->uid && ($valueSql = $field->getValueSql()) !== null) {
+                        $conditions[] = ['=', new Expression($valueSql), $value];
+                    }
                 }
             }
 
