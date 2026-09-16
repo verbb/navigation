@@ -379,7 +379,11 @@ class ActiveMatcher extends Component
         }
 
         if (!UrlHelper::isAbsoluteUrl($nodeUrl)) {
-            $nodeUrl = UrlHelper::siteUrl($nodeUrl, null, null, $node->siteId);
+            // Craft treats the path "0" as empty, so append that valid relative
+            // destination to its resolved site base instead of losing it.
+            $nodeUrl = $nodeUrl === '0'
+                ? rtrim(UrlHelper::siteUrl('', null, null, $node->siteId), '/') . '/0'
+                : UrlHelper::siteUrl($nodeUrl, null, null, $node->siteId);
         }
 
         return trim($nodeUrl, '/');

@@ -950,7 +950,8 @@ class Node extends Element
 
     public function getNodeUri(): string
     {
-        if ($url = $this->getUrl()) {
+        $url = $this->getUrl();
+        if ($url !== null && $url !== '') {
             return str_replace(UrlHelper::siteUrl('', null, null, $this->siteId), '', $url);
         }
 
@@ -990,11 +991,12 @@ class Node extends Element
         // Drop onclick / unknown names after render so allowlists apply to final keys.
         $attributes = array_merge($attributes, NodeOutputSafety::filterCustomAttributes($customAttributes));
 
-        // Filter out any values
-        $attributes = array_filter($attributes);
+        // Preserve numeric values such as href="0" and tabindex="0".
+        $hasValue = static fn(mixed $value): bool => $value !== null && $value !== '' && $value !== false && $value !== [];
+        $attributes = array_filter($attributes, $hasValue);
 
         if (is_array($extraAttributes)) {
-            $attributes = array_merge_recursive($attributes, array_filter($extraAttributes));
+            $attributes = array_merge_recursive($attributes, array_filter($extraAttributes, $hasValue));
         }
 
         return Template::raw(BaseHtml::renderTagAttributes($attributes));
@@ -1540,7 +1542,7 @@ class Node extends Element
             $object[$attribute['attribute']] = $attribute['value'];
         }
 
-        return array_filter($object);
+        return array_filter($object, static fn(mixed $value): bool => $value !== null && $value !== '' && $value !== false && $value !== []);
     }
 
     public function getLinkedElementId(): ?int

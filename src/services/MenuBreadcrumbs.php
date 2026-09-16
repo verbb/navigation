@@ -38,7 +38,7 @@ class MenuBreadcrumbs extends Component
                 'node' => $node,
                 'current' => $isCurrent,
                 'isProjected' => $node instanceof ProjectedNode,
-                'link' => $url ? Html::tag('a', Html::encode($title), ['href' => $url]) : Html::tag('span', Html::encode($title)),
+                'link' => $url !== null && $url !== '' ? Html::tag('a', Html::encode($title), ['href' => $url]) : Html::tag('span', Html::encode($title)),
             ];
         }
 
