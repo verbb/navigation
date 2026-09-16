@@ -39,6 +39,7 @@ use craft\models\Structure;
 use craft\queue\jobs\ApplyNewPropagationMethod;
 use craft\queue\jobs\ResaveElements;
 
+use yii\base\UserException;
 use yii\db\ActiveRecord;
 
 use DateTime;
@@ -566,6 +567,11 @@ class Menus extends Component
                 }
             }
 
+            if ($wasTrashed) {
+                $this->_menus = null;
+                $this->_restoreNodesDeletedWithMenu((int)$navRecord->id);
+            }
+
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
@@ -575,10 +581,6 @@ class Menus extends Component
 
         // Clear caches
         $this->_menus = null;
-
-        if ($wasTrashed) {
-            $this->_restoreNodesDeletedWithMenu((int)$navRecord->id);
-        }
 
         $nav = $this->getMenuById($navRecord->id);
 
@@ -1069,7 +1071,7 @@ class Menus extends Component
             }
 
             if (!$elementsService->restoreElement($node)) {
-                continue;
+                throw new UserException(Craft::t('navigation', 'Couldn’t restore a menu node.'));
             }
 
             // Clear the soft-delete-with-menu marker so later deletes/restores behave correctly.
@@ -1110,13 +1112,17 @@ class Menus extends Component
                     if ($parent) {
                         $parent->structureId = $structureId;
                         $node->structureId = $structureId;
-                        $structuresService->append($structureId, $node, $parent);
+                        if (!$structuresService->append($structureId, $node, $parent)) {
+                            throw new UserException(Craft::t('navigation', 'Couldn’t restore the menu structure.'));
+                        }
                         continue;
                     }
                 }
 
                 $node->structureId = $structureId;
-                $structuresService->appendToRoot($structureId, $node);
+                if (!$structuresService->appendToRoot($structureId, $node)) {
+                    throw new UserException(Craft::t('navigation', 'Couldn’t restore the menu structure.'));
+                }
             }
         }
     }
@@ -1203,7 +1209,9 @@ class Menus extends Component
             return;
         }
 
-        Craft::$app->getElements()->restoreElement($menuElement);
+        if (!Craft::$app->getElements()->restoreElement($menuElement)) {
+            throw new UserException(Craft::t('navigation', 'Couldn’t restore the menu.'));
+        }
     }
 
     /**
