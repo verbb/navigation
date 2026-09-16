@@ -81,7 +81,7 @@ Control-panel and console exports include independent branches from every site, 
 
 Exports include the node and menu field layouts. The destination must already have the referenced global fields with matching UIDs, normally supplied by the same Craft project config. Import creates independent layouts for the new menu; it does not create global fields or install field-type plugins.
 
-Unresolved element UIDs produce warnings; the node is still created without a link.
+Linked content must exist on the destination site. An unresolved element UID produces a warning, and an element-backed node without its required link fails validation. The import rolls back: a new menu is not created, and an existing menu remains unchanged. Restore or migrate the linked content, then retry the import.
 
 ## Developer API
 
