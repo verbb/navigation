@@ -1,7 +1,7 @@
 <p align="center"><img src="https://assets.verbb.io/plugins/navigation/navigation-icon.svg" width="100" height="100" alt="Navigation icon"></p>
 <h1 align="center">Navigation for Craft CMS</h1>
 
-Navigation is a Craft CMS plugin to help manage navigation menus for you site. Supports linking to existing elements like entries, categories and products, as well as custom URLs.
+Navigation is a Craft CMS plugin to help manage navigation menus for your site. Supports linking to existing elements like entries, categories and products, as well as custom URLs.
 
 ## Features
 - Create multiple navigations
@@ -14,13 +14,13 @@ Navigation is a Craft CMS plugin to help manage navigation menus for you site. S
 - Support for multi-site navigations
 - Simple `render()` Twig function, or roll your own
 - Generate breadcrumbs easily based on your URL segments
-- Tool to migrate your menus if you've used [A&M Nav for Craft 2](https://github.com/am-impact/amnav) or [Navee for Craft 2](https://github.com/fromtheoutfit/navee)
+- Tool to migrate your menus if you've used A&M Nav for Craft 2 or [Navee for Craft 2](https://github.com/fromtheoutfit/navee)
 
 ## Documentation
 Visit the [Navigation Plugin page](https://verbb.io/craft-plugins/navigation) for all documentation, guides, pricing and developer resources.
 
 ## Credit & Thanks
-A big shoutout to [A&M Nav](https://github.com/am-impact/amnav) for their awesome plugin for Craft 2.
+A big shoutout to A&M Nav for their awesome plugin for Craft 2.
 
 ## Support
 Get in touch with us via the [Navigation Support page](https://verbb.io/craft-plugins/navigation/support) or by [creating a Github issue](/verbb/navigation/issues)
