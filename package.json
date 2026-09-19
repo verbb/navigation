@@ -16,11 +16,11 @@
     "dev:builder": "vite",
     "build:builder": "npm run build",
     "dev:plugin-docs": "npm run docs:dev --prefix docs",
-    "docs:screenshots": "npm --prefix docs run docs:screenshots --",
     "test:builder": "TSX_TSCONFIG_PATH=src/web/tsconfig.json node --import tsx --test tests/web/store.test.ts",
     "test:builder:browser": "node tests/web/browser-regression.mjs",
     "test:builder:craft": "node tests/web/craft-workflow.mjs",
-    "test:builder:assets": "node tests/web/check-built-assets.mjs"
+    "test:builder:assets": "node tests/web/check-built-assets.mjs",
+    "screenshots": "npm --prefix screenshots run screenshots --"
   },
   "dependencies": {
     "@headless-tree/core": "^1.7.0",
@@ -40,12 +40,12 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "concurrently": "^9.2.3",
+    "esbuild": "^0.28.1",
+    "playwright": "^1.59.1",
     "tailwindcss": "^4.2.4",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.3",
     "vite": "^8.0.10",
-    "vite-plugin-tailwind-shadowdom": "^1.1.1",
-    "tsx": "^4.21.0",
-    "playwright": "^1.59.1",
-    "esbuild": "^0.28.1"
+    "vite-plugin-tailwind-shadowdom": "^1.1.1"
   }
 }

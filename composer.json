@@ -2,7 +2,7 @@
     "name": "verbb/navigation",
     "description": "Create navigation menus for your site.",
     "type": "craft-plugin",
-    "version": "4.0.0-beta.9",
+    "version": "4.0.0",
     "keywords": [
         "craft",
         "cms",
@@ -38,30 +38,6 @@
         "pestphp/pest-plugin": "^3.0",
         "vlucas/phpdotenv": "^5.6",
         "yiisoft/yii2-shell": "^2.0.3"
-    },
-    "archive": {
-        "exclude": [
-            "/.env*",
-            "/.cache",
-            "/.DS_Store",
-            "/.github",
-            "/.plugin-store",
-            "/.gitignore",
-            "/node_modules",
-            "/**/node_modules",
-            "/vendor",
-            "/tests",
-            "/docs",
-            "/package.json",
-            "/package-lock.json",
-            "/phpunit*.xml",
-            "/vite.config.*",
-            "/src/web/src",
-            "/src/web/tsconfig.json",
-            "/.ddev",
-            "/.phpunit*",
-            "/.pest*"
-        ]
     },
     "autoload": {
         "psr-4": {

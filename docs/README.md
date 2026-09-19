@@ -13,36 +13,17 @@ The dev server runs at `http://localhost:5380`.
 
 ## Screenshot Automation
 
-Screenshots are generated with **`@verbb/docs-screenshots`**, the published npm package for Craft CP screenshot automation. This docs package depends on it in **devDependencies** and the plugin root **`package.json`** exposes it as **`npm run docs:screenshots`**.
+All product captures use the shared **`@verbb/craft-screenshots`** package from the plugin’s top-level **`screenshots/`** directory. Documentation scenarios live under **`screenshots/scenarios/docs/`**, Navigation-specific fixtures and framing live under **`screenshots/support/docs/`**, and generated documentation images live under **`screenshots/output/docs/`**.
 
-The harness creates its own disposable Craft install and database. Point it at a dedicated database server with **`CRAFT_SCREENSHOT_DB_*`** environment variables, then install the browser binary once with **`npx playwright install chromium`**.
-
-**Layout**
-
-- **`@verbb/docs-screenshots`** — CLI and shared capture tooling (see the package’s own README on npm for flags and behaviour).
-- **Navigation** — one **`.screenshot.ts` scenario** beside each page it illustrates (for example `feature-tour/overview.screenshot.ts`), plus plugin-local bootstrap and fixtures under **`.screenshots/`** (Navigation-specific helpers under **`.screenshots/navigation/`**). Generated assets land under **`_screenshots/`** in this docs tree.
-
-**Typical workflow**
-
-1. `npm run docs:screenshots -- prepare`
-2. `npm run docs:screenshots -- preview --reuse-install last --filter overview`
-3. Adjust the scenario while the preview overlay shows the capture region.
-4. `npm run docs:screenshots -- capture --reuse-install last --filter overview`
-
-**Useful flags** (see upstream docs for the full set)
-
-- `--preview <id>` — headed preview with capture overlay.
-- `--inspect <id>` — preview and pause in Playwright Inspector.
-- `--headed` — visible browser without extra debug behaviour.
-- `--save-from-preview` — persist framing from preview to the scenario output path.
-- `--reuse-install last` — skip Craft bootstrap; reuse the latest prepared install.
-- `--keep-install` — keep the temporary install for manual reuse.
-
-**List scenario ids** (from the root of **this** VitePress site — the folder that contains this `README.md`):
+Run the workflow from the Navigation plugin root:
 
 ```bash
-rg -n "id:" . -g "*.screenshot.ts"
+npm run screenshots -- prepare
+npm run screenshots -- preview --reuse-install last --filter docs/feature-tour/overview
+npm run screenshots -- capture --reuse-install last --filter docs/feature-tour/overview
 ```
+
+The filter matches the scenario file path. The shared package owns the disposable Craft installation, Verbb capture identity, retina enforcement, and timeless control-panel cleanup; Navigation owns its scenarios, deterministic fixtures, framing, and outputs.
 
 ## Sections
 

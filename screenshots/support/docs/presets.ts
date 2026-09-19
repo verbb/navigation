@@ -2,13 +2,13 @@ import type {
     ScreenshotStep,
     ScreenshotTarget,
     ScreenshotViewport,
-} from '@verbb/docs-screenshots/types';
+} from '@verbb/craft-screenshots/types';
 import {
     createCpDetailViewPreset as createBaseCpDetailViewPreset,
     createCpFocusedRegionPreset as createBaseCpFocusedRegionPreset,
     createCpFullScreenPreset as createBaseCpFullScreenPreset,
     createCpModalPreset as createBaseCpModalPreset,
-} from '@verbb/docs-screenshots/presets';
+} from '@verbb/craft-screenshots/presets';
 
 type CpFocusedRegionOptions = {
     selector?: string;

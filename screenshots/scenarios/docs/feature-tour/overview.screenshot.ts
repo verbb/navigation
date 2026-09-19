@@ -1,10 +1,10 @@
-import { defineScreenshotScenario } from '@verbb/docs-screenshots/api';
-import { seedMainMenuFixture } from '../.screenshots/navigation/fixtures';
+import { defineScreenshotScenario } from '@verbb/craft-screenshots/api';
+import { seedMainMenuFixture } from '../../../support/docs/fixtures';
 import {
     createExpandBuilderSidebarTabStep,
     createNavigationBuilderPromoCleanupStep,
     createNavigationBuilderPromoCropStep,
-} from '../.screenshots/navigation/presets';
+} from '../../../support/docs/presets';
 
 let menuBuildRoute = '/admin/navigation/menus';
 
@@ -18,7 +18,7 @@ const viewport = {
 
 export default defineScreenshotScenario({
     id: 'menus-overview',
-    output: '_screenshots/menus/overview-builder.png',
+    output: 'docs/menus/overview-builder.png',
     route: () => menuBuildRoute,
     viewport,
     async setup(context) {

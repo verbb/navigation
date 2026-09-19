@@ -11,7 +11,7 @@ A **menu** is a named collection of **nodes** — the links and structural items
 
 ## Menu Builder
 
-![Navigation menu builder with nested entry, category, custom URL, and asset nodes.](/_screenshots/menus/overview-builder.png)
+![Navigation menu builder with nested entry, category, custom URL, and asset nodes.](../../screenshots/output/docs/menus/overview-builder.png)
 
 In the menu builder you can:
 
