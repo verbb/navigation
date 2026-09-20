@@ -8,11 +8,16 @@ Create as many navigations as the site needs and arrange their nodes independent
 - **Nested nodes:** Arrange deep menu hierarchies through a visual control-panel interface.
 - **Craft elements:** Link entries, assets, categories, Commerce products and other supported elements.
 - **Custom URLs:** Include external sites, anchors and destinations that do not belong to a Craft element.
+- **Dynamic branches:** Project entries, categories, assets or products into a menu at read time with conditions and ordering.
 - **Linked content awareness:** Follow changes to a destination’s title and status, with per-node overrides when needed.
 - **Multi-site content:** Manage navigation values and propagation across the project’s sites.
-- **Custom fields:** Add project-specific content to nodes through Craft field layouts.
+- **Menu and node fields:** Add project-specific content to menus and individual nodes through separate Craft field layouts.
+- **Drafted changes:** Arrange and edit menu content without changing the live tree until the work is published.
 - **Queryable nodes:** Work with navigation nodes through familiar Craft element queries.
 - **Built-in or custom rendering:** Generate a complete menu or render every element with project-owned templates.
 - **Breadcrumbs:** Build breadcrumb data from the current URL and navigation structure.
+- **Context and active state:** Retrieve siblings, branches and ancestors, and identify the current or active path without rebuilding the tree in templates.
+- **Performance controls:** Cache trees with tagged invalidation and opt into linked-element or hierarchy hydration when a template needs it.
 - **Third-party hooks:** Add support for custom element types through the plugin’s extension points.
 - **GraphQL:** Query navigations and nodes for decoupled front ends.
+- **Import and migration:** Move menus through JSON, import nodes with Feed Me or migrate from supported navigation plugins.

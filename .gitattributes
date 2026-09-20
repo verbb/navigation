@@ -2,7 +2,6 @@
 /.cache export-ignore
 /.DS_Store export-ignore
 /.github export-ignore
-/.plugin-store export-ignore
 /.gitignore export-ignore
 /.gitattributes export-ignore
 /node_modules export-ignore

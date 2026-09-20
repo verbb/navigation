@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0 - 2026-09-XX
+## 4.0.0 - 2026-09-
 
 ### Added
 - Added a React control panel menu builder with staged build sessions for structure moves, node additions and deletions, and menu content drafts, including publish and discard workflows.
