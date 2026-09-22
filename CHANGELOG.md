@@ -2,6 +2,13 @@
 
 ## 4.0.0 - 2026-09-
 
+> {warning} Before upgrading to Navigation 4, review the [Upgrading from v3](docs/get-started/upgrading-from-v3) guide for breaking changes and required migration steps.
+
+### Breaking Changes
+- Menu builder changes are now staged until the menu is saved. Editors must save the menu to publish node additions, deletions, and structure changes.
+- `craft.navigation.getActiveNode()` now returns the deepest exact current-page match instead of the first active ancestor.
+- Custom URLs no longer expand environment variables or Craft aliases. Use relative URLs, literal destinations, or the `{site.baseUrl}` token.
+
 ### Added
 - Added a React control panel menu builder with staged build sessions for structure moves, node additions and deletions, and menu content drafts, including publish and discard workflows.
 - Added a `Menu` Craft element with menu-level custom fields, public menu queries, and dedicated **Menu Fields** and **Menu Content** editing interfaces.

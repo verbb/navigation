@@ -14,7 +14,7 @@ Custom URLs no longer expand environment variables or aliases. Replace existing 
 
 If you have custom SQL or reports that reference Navigation tables directly, update them to the new names:
 
-| v3 | v4 |
+| Navigation 3 | Navigation 4 |
 | --- | --- |
 | `navigation_navs` | `navigation_menus` |
 | `navigation_navs_sites` | `navigation_menus_sites` |
@@ -27,7 +27,7 @@ Per-site URLs and link settings now live in **`navigation_nodes_sites`**.
 
 If you compare `node.type` (or filter node queries by type), update any references to the new class names. The migration updates stored rows automatically.
 
-| v3 | v4 |
+| Navigation 3 | Navigation 4 |
 | --- | --- |
 | `craft\elements\Entry` | `verbb\navigation\nodetypes\Entry` |
 | `craft\elements\Category` | `verbb\navigation\nodetypes\Category` |
@@ -51,10 +51,10 @@ Products   → /products
 
 **On `/products/widget`:**
 
-| | v3 | v4 |
+| | Navigation 3 | Navigation 4 |
 | --- | --- | --- |
 | `getActiveNode()` | **Products** — first branch-active node in structure order (parent matches as active before the child is considered) | **Widget** — deepest exact URL match |
-| `node.active` on Products | `true` | `true` (unchanged — branch highlighting still works) |
+| `node.active` on Products | `true` | `true` |
 | `node.getCurrent()` on Widget | `true` | `true` |
 
 Update templates that used the first active ancestor to choose a section. Passing `true` as the second argument permits a path fallback when there is no exact match; it does **not** force a parent to be returned when an exact match exists.
@@ -88,7 +88,7 @@ Ordinary truthy checks can remain unchanged.
 
 These continue to work with deprecation notices. Work through **Utilities → Deprecation Warnings** at your own pace.
 
-| v3 | v4 |
+| Navigation 3 | Navigation 4 |
 | --- | --- |
 | `verbb\navigation\models\Nav` | `verbb\navigation\models\MenuSettings` |
 | `verbb\navigation\services\Navs` | `verbb\navigation\services\Menus` |
@@ -100,7 +100,7 @@ Deprecated method names (`getNavByHandle()`, `.navHandle()`, etc.) still work; u
 
 ### Twig and PHP Naming (Nav → Menu)
 
-| v3 | v4 |
+| Navigation 3 | Navigation 4 |
 | --- | --- |
 | `craft.navigation.nav()` | `craft.navigation.menu()` |
 | `craft.navigation.getNavByHandle()` | `craft.navigation.getMenuByHandle()` |
@@ -113,7 +113,7 @@ Deprecated method names (`getNavByHandle()`, `.navHandle()`, etc.) still work; u
 
 ### Node Queries and Properties
 
-| v3 | v4 |
+| Navigation 3 | Navigation 4 |
 | --- | --- |
 | `.navHandle()` / `.nav()` / `.navId()` on node queries | `.handle()` / `.menu()` / `.menuId()` |
 | Criteria keys `navHandle`, `nav`, `navId` | `handle`, `menuId` |
@@ -123,7 +123,7 @@ Deprecated method names (`getNavByHandle()`, `.navHandle()`, etc.) still work; u
 
 ### PHP Classes
 
-| v3 | v4 |
+| Navigation 3 | Navigation 4 |
 | --- | --- |
 | `verbb\navigation\models\Nav` | `verbb\navigation\models\MenuSettings` |
 | `verbb\navigation\services\Navs` | `verbb\navigation\services\Menus` |
@@ -133,7 +133,7 @@ Deprecated method names (`getNavByHandle()`, `.navHandle()`, etc.) still work; u
 
 ### GraphQL
 
-| v3 | v4 |
+| Navigation 3 | Navigation 4 |
 | --- | --- |
 | Args `navHandle`, `nav`, `navId` | `menuHandle`, `menuId` |
 | Fields `navId`, `navHandle`, `navName` | `menuId`, `menuHandle`, `menuName` |
@@ -141,7 +141,7 @@ Deprecated method names (`getNavByHandle()`, `.navHandle()`, etc.) still work; u
 
 ### Control Panel and Console
 
-| v3 | v4 |
+| Navigation 3 | Navigation 4 |
 | --- | --- |
 | CP URLs `navigation/navs/*` | `navigation/menus/*` |
 | `./craft resave/navigation-nodes --navId=` | `--menuId=` |
