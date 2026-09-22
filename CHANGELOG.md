@@ -7,7 +7,7 @@
 
 ## 4.0.0 - 2026-09-22
 
-> {warning} Before upgrading to Navigation 4, review the [Upgrading from v3](docs/get-started/upgrading-from-v3) guide for breaking changes and required migration steps.
+> {warning} Before upgrading to Navigation 4, review the [Upgrading from v3](https://verbb.io/craft-plugins/navigation/docs/v4/get-started/upgrading-from-v3) guide for breaking changes and required migration steps.
 
 ### Breaking Changes
 - Menu builder changes are now staged until the menu is saved. Editors must save the menu to publish node additions, deletions, and structure changes.
