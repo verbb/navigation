@@ -131,6 +131,7 @@ class Navigation extends Plugin
     {
         $nav = parent::getCpNavItem();
         $nav['label'] = $this->getPluginName();
+        $nav['url'] = 'navigation/menus';
 
         $nav['subnav']['menus'] = [
             'label' => Craft::t('navigation', 'Menus'),

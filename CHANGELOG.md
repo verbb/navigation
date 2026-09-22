@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed control panel redirect loops when Craft routes requests through its configured path query parameter ([#457](https://github.com/verbb/navigation/pull/457)).
 - Fixed Navigation 3 node-type visibility conditions losing their selected value after upgrading to Navigation 4 ([#456](https://github.com/verbb/navigation/issues/456)).
 
 ## 4.0.0 - 2026-09-22

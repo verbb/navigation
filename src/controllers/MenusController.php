@@ -24,7 +24,6 @@ use craft\base\Field;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
 use craft\helpers\Json;
-use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\models\FieldLayoutTab;
 use craft\web\Controller;
@@ -50,10 +49,6 @@ class MenusController extends Controller
     {
         if ($response = $this->_redirectLegacyNavsUrl('navigation/menus')) {
             return $response;
-        }
-
-        if (trim($this->request->getPathInfo(), '/') === 'navigation') {
-            return $this->redirect(UrlHelper::cpUrl('navigation/menus', $this->request->getQueryParams()));
         }
 
         /* @var Settings $settings */
