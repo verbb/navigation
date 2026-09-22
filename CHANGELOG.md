@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed Navigation 3 node-type visibility conditions losing their selected value after upgrading to Navigation 4 ([#456](https://github.com/verbb/navigation/issues/456)).
+
 ## 4.0.0 - 2026-09-22
 
 > {warning} Before upgrading to Navigation 4, review the [Upgrading from v3](docs/get-started/upgrading-from-v3) guide for breaking changes and required migration steps.

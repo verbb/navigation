@@ -2,13 +2,13 @@
 namespace verbb\navigation\elements\conditions;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\helpers\NodeTypeHelper;
 
 use Craft;
 use craft\base\conditions\BaseMultiSelectConditionRule;
 use craft\base\ElementInterface;
 use craft\elements\conditions\ElementConditionRuleInterface;
 use craft\elements\db\ElementQueryInterface;
-use craft\helpers\StringHelper;
 
 class TypeConditionRule extends BaseMultiSelectConditionRule implements ElementConditionRuleInterface
 {
@@ -23,6 +23,24 @@ class TypeConditionRule extends BaseMultiSelectConditionRule implements ElementC
     public function getExclusiveQueryParams(): array
     {
         return ['type'];
+    }
+
+    public function setValues(array|string $values): void
+    {
+        if ($values === '') {
+            parent::setValues($values);
+
+            return;
+        }
+
+        // Field layout conditions persist their option values independently of node records,
+        // so normalize legacy v3 classes when Craft hydrates the condition rule.
+        $values = array_map(
+            fn(string $value): string => NodeTypeHelper::resolveTypeClass($value) ?? $value,
+            (array)$values,
+        );
+
+        parent::setValues($values);
     }
 
     public function modifyQuery(ElementQueryInterface $query): void
