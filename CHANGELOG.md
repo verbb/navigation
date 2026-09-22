@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0 - 2026-09-
+## 4.0.0 - 2026-09-22
 
 > {warning} Before upgrading to Navigation 4, review the [Upgrading from v3](docs/get-started/upgrading-from-v3) guide for breaking changes and required migration steps.
 
