@@ -68,6 +68,11 @@
 - Removed the `disabledElements` and `propagateSiteElements` plugin settings.
 - Removed the legacy `_types/*/modal.html` Twig templates for Site, Custom URL, and Dynamic nodes; slide-out fields now render through PHP helpers ([#413](https://github.com/verbb/navigation/issues/413)).
 
+## 3.0.23 - 2026-09-13
+
+### Changed
+- Normalize plugin settings.
+
 ## 3.0.22 - 2026-05-14
 
 ### Fixed
