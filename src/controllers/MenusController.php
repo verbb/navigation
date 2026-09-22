@@ -53,7 +53,7 @@ class MenusController extends Controller
         }
 
         if (trim($this->request->getPathInfo(), '/') === 'navigation') {
-            return $this->redirect(UrlHelper::cpUrl('navigation/menus', $this->request->getQueryParams()));
+            return $this->redirect(UrlHelper::cpUrl('navigation/menus', $this->request->getQueryParamsWithoutPath()));
         }
 
         /* @var Settings $settings */

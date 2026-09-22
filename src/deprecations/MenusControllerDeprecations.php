@@ -25,7 +25,7 @@ trait MenusControllerDeprecations
             'CP routes under `navigation/navs/*` have been deprecated. Use `navigation/menus/*` instead.',
         );
 
-        $query = Craft::$app->getRequest()->getQueryParams();
+        $query = Craft::$app->getRequest()->getQueryParamsWithoutPath();
 
         if (!empty($query['source']) && str_starts_with((string)$query['source'], 'nav:')) {
             $query['source'] = 'menu:' . substr((string)$query['source'], 4);
