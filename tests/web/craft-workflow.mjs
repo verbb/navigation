@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
 // Fixed to the owned test application; never accept an arbitrary customer/site URL.
-const base = 'https://navigation-react-tests.ddev.site';
+const base = 'https://navigation-craft5-tests.ddev.site';
 const output = new URL('../../.cache/builder-craft/', import.meta.url);
 await fs.mkdir(output, { recursive: true });
 await fs.rm(new URL('result.json', output), { force: true });

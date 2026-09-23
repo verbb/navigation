@@ -1,4 +1,4 @@
-name: navigation-react-tests
+name: navigation-craft5-tests
 type: php
 docroot: tests/runtime/web
 php_version: "8.3"

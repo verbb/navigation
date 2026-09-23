@@ -1,5 +1,5 @@
 {
-    "project": "navigation-react-tests",
+    "project": "navigation-craft5-tests",
     "suites": {
         "default": [
             "--exclude-group=slow",
