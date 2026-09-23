@@ -116,17 +116,29 @@ it('allows the pending owner to publish a subtree move', function() {
     expect(Node::find()->id($parent->id)->one()->getParentId())->toBe($target->id);
 });
 
-it('enforces type permissions in the live move preflight without changing the tree', function() {
+it('allows menu managers to reorder nodes independently of node authoring permissions', function() {
     $menu = F::menu();
     $a = F::customNode($menu, 'A', '/a');
     $b = F::customNode($menu, 'B', '/b');
     $menu->permissions = [verbb\navigation\nodetypes\Custom::class => ['enabled' => false]];
     N::$plugin->getMenus()->saveMenu($menu);
+    $user = new craft\elements\User(['username' => uniqid('editor'), 'email' => uniqid('editor') . '@example.test']);
+    Craft::$app->elements->saveElement($user);
+    Craft::$app->set('userPermissions', new craft\services\UserPermissions());
+    Craft::$app->userPermissions->saveUserPermissions($user->id, [
+        'accessCp',
+        'navigation-manageMenu:' . $menu->uid,
+        'editSite:' . Craft::$app->sites->getPrimarySite()->uid,
+    ]);
     $before = Revision::get($menu);
-    boundaryRequest(function() use ($menu, $a, $b) {
-        expect(fn() => verbb\navigation\helpers\MenuAuth::requireStructureMoves($menu, $a->siteId,
-            [['elementId' => $b->id, 'parentId' => null, 'prevId' => null]]))
-            ->toThrow(ForbiddenHttpException::class);
+    boundaryRequest(function() use ($menu, $a, $b, $user) {
+        Craft::$app->user->setIdentity($user);
+        expect($a->canSave($user))->toBeFalse()
+            ->and($b->canSave($user))->toBeFalse();
+        verbb\navigation\helpers\MenuAuth::requireStructureMoves($menu, $a->siteId, [
+            ['elementId' => $b->id, 'parentId' => null, 'prevId' => null],
+            ['elementId' => $a->id, 'parentId' => null, 'prevId' => $b->id],
+        ]);
     });
     expect(Revision::get($menu))->toBe($before);
 });

@@ -6,6 +6,7 @@
 - Render author-entered node templates in proper Twig sandbox.
 
 ### Fixed
+- Fixed non-admin users being unable to reorder menu nodes adjacent to nodes they cannot otherwise author ([#458](https://github.com/verbb/navigation/issues/458)).
 - Fixed applying new sites and their menu settings from project config in read-only environments.
 - Fixed saving one settings page resetting settings on the other pages.
 - Fixed control panel redirect loops when Craft routes requests through its configured path query parameter ([#457](https://github.com/verbb/navigation/pull/457)).

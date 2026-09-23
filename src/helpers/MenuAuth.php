@@ -215,6 +215,19 @@ class MenuAuth
         return false;
     }
 
+    /** Structure edits require menu/site access and pending-work ownership, not node authoring access. */
+    public static function canMoveNode(?User $user, Node $node): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        $menu = Navigation::$plugin->getMenus()->getMenuById($node->menuId);
+
+        return self::canManageMenuSite($user, $menu, (int)$node->siteId)
+            && Navigation::$plugin->getBuildSessions()->canAuthorPendingNode($node, (int)$user->id);
+    }
+
     public static function canAuthorDynamicSource(Node $node, User $user): bool
     {
         $provider = Navigation::$plugin->getDynamicSources()->getProviderClassForNode($node);
@@ -294,7 +307,7 @@ class MenuAuth
             }
         }
         foreach ($nodes as $candidate) {
-            if (!$candidate->canSave($user)) {
+            if (!self::canMoveNode($user, $candidate)) {
                 throw new ForbiddenHttpException('User is not authorized to move this node.');
             }
         }
@@ -382,7 +395,7 @@ class MenuAuth
                 throw new BadRequestHttpException('Cannot move a node beneath its descendant.');
             }
             foreach (array_unique(array_merge($affected, array_filter([$parent, $prev]))) as $candidateId) {
-                if (!isset($nodes[$candidateId]) || !$nodes[$candidateId]->canSave($user)) {
+                if (!isset($nodes[$candidateId]) || !self::canMoveNode($user, $nodes[$candidateId])) {
                     throw new ForbiddenHttpException('User is not authorized to move this node.');
                 }
             }
