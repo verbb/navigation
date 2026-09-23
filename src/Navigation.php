@@ -183,8 +183,8 @@ class Navigation extends Plugin
                 'navigation/settings/import-export/import-configure/<filename:[\w\-\.]+>' => 'navigation/import-export/import-configure',
                 'navigation/settings/import-export/import-completed/<menuId:\d+>' => 'navigation/import-export/import-completed',
                 'navigation/settings/migrate/<sourceId:[\w\-]+>' => 'navigation/migrate/index',
-                'navigation/settings/performance' => 'navigation/base/settings',
-                'navigation/settings' => 'navigation/base/settings',
+                'navigation/settings/performance' => 'navigation/settings/index',
+                'navigation/settings' => 'navigation/settings/index',
                 'navigation/migrate/<sourceId:[\w\-]+>' => 'navigation/migrate/run',
             ]);
         });
