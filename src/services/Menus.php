@@ -718,8 +718,11 @@ class Menus extends Component
     {
         /* @var Settings $settings */
         $settings = Navigation::$plugin->getSettings();
+        $projectConfig = Craft::$app->getProjectConfig();
 
-        if (!$settings->autoEnableNewSites || !$event->isNew) {
+        // Incoming project config already defines the menu's site settings. Deriving
+        // them from the partially applied database state can also violate read-only mode.
+        if (!$settings->autoEnableNewSites || !$event->isNew || $projectConfig->getIsApplyingExternalChanges()) {
             return;
         }
 
@@ -732,7 +735,7 @@ class Menus extends Component
 
             $config = $nav->getConfig();
             $config['siteSettings'][$event->site->uid] = ['enabled' => true];
-            Craft::$app->getProjectConfig()->set(self::CONFIG_MENU_KEY . '.' . $nav->uid, $config);
+            $projectConfig->set(self::CONFIG_MENU_KEY . '.' . $nav->uid, $config);
         }
     }
 

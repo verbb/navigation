@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Tests\Support\Fixtures\NavigationFixtureFactory;
 use Tests\Support\WebRequestSimulator;
 use craft\base\Field;
+use craft\helpers\StringHelper;
 use verbb\navigation\elements\Node;
 use verbb\navigation\models\MenuSettings;
 use verbb\navigation\Navigation;
@@ -53,6 +54,49 @@ it('auto-enables existing menus when a new site is created', function() {
 
     expect($siteSettings)->toHaveKey($newSite->id);
     expect($siteSettings[$newSite->id]->enabled)->toBeTrue();
+});
+
+it('does not rewrite menu config while applying a new site in read-only mode', function() {
+    if (!Craft::$app->getSites()->getRemainingSites()) {
+        $this->markTestSkipped('No remaining site capacity; run against a fresh isolated test database.');
+    }
+
+    Navigation::$plugin->getSettings()->autoEnableNewSites = true;
+
+    $menu = NavigationFixtureFactory::menu();
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $siteUid = StringHelper::UUID();
+    $siteHandle = 'navigationAutoEnableSite' . uniqid();
+    $projectConfig = Craft::$app->getProjectConfig();
+    $config = $projectConfig->get();
+    $config['sites'][$siteUid] = [
+        'baseUrl' => "https://{$siteHandle}.test/",
+        'enabled' => true,
+        'handle' => $siteHandle,
+        'hasUrls' => true,
+        'language' => 'en-US',
+        'name' => 'Read-only deployment site',
+        'primary' => false,
+        'siteGroup' => $primarySite->getGroup()->uid,
+        'sortOrder' => count(Craft::$app->getSites()->getAllSites()) + 1,
+    ];
+    $config['navigation']['menus'][$menu->uid]['instructions'] = 'Applied with the new site';
+    $config['navigation']['menus'][$menu->uid]['siteSettings'][$siteUid] = ['enabled' => true];
+
+    $oldReadOnly = $projectConfig->readOnly;
+    $projectConfig->readOnly = true;
+
+    try {
+        $projectConfig->applyConfigChanges($config);
+    } finally {
+        $projectConfig->readOnly = $oldReadOnly;
+    }
+
+    $newSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+    $reloaded = Navigation::$plugin->getMenus()->getMenuById($menu->id);
+
+    expect($newSite)->not->toBeNull();
+    expect($reloaded->instructions)->toBe('Applied with the new site');
 });
 
 it('copies a node to another site when propagation is none', function() {
