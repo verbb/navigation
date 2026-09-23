@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.1.5 - 2026-09-23
 
 ### Changed
 - Require `verbb/base` 2.0.15 or later within 2.x.
