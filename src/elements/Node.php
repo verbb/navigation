@@ -494,7 +494,7 @@ class Node extends Element
     {
         $object = $this->_getObject();
 
-        $classes = $this->classes ? Craft::$app->getView()->renderObjectTemplate($this->classes, $object) : null;
+        $classes = $this->classes ? Navigation::$plugin->getTemplates()->renderSandboxedObjectTemplate($this->classes, $object) : null;
 
         $attributes = [
             'href' => $this->getUrl(),
@@ -507,7 +507,7 @@ class Node extends Element
             $key = $attribute['attribute'];
             $val = $attribute['value'];
 
-            $attributes[$key] = Craft::$app->getView()->renderObjectTemplate($val, $object);
+            $attributes[$key] = Navigation::$plugin->getTemplates()->renderSandboxedObjectTemplate($val, $object);
         }
 
         // Filter out any values

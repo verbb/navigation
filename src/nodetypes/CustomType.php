@@ -1,6 +1,7 @@
 <?php
 namespace verbb\navigation\nodetypes;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\base\NodeType;
 
 use Craft;
@@ -57,7 +58,7 @@ class CustomType extends NodeType
         // Allow twig support
         if ($url && strstr($url, '{')) {
             $object = $this->_getObject();
-            $url = Craft::$app->getView()->renderObjectTemplate($url, $object);
+            $url = Navigation::$plugin->getTemplates()->renderSandboxedObjectTemplate($url, $object);
         }
 
         return $url;

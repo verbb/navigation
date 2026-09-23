@@ -7,6 +7,7 @@ use verbb\navigation\services\Elements;
 use verbb\navigation\services\Navs;
 use verbb\navigation\services\Nodes;
 use verbb\navigation\services\NodeTypes;
+use verbb\navigation\services\Templates;
 use verbb\base\BaseHelper;
 
 use Craft;
@@ -67,6 +68,11 @@ trait PluginTrait
         return $this->get('nodeTypes');
     }
 
+    public function getTemplates(): Templates
+    {
+        return $this->get('templates');
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -74,6 +80,7 @@ trait PluginTrait
     private function _registerComponents(): void
     {
         $this->setComponents([
+            'templates' => Templates::class,
             'breadcrumbs' => Breadcrumbs::class,
             'elements' => Elements::class,
             'navs' => Navs::class,
