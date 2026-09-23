@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Render author-entered node templates in proper Twig sandbox.
+
 ### Fixed
 - Fixed applying new sites and their menu settings from project config in read-only environments.
 - Fixed saving one settings page resetting settings on the other pages.

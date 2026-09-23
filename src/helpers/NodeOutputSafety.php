@@ -1,6 +1,8 @@
 <?php
 namespace verbb\navigation\helpers;
 
+use verbb\navigation\Navigation;
+
 use Craft;
 use craft\helpers\UrlHelper;
 
@@ -18,7 +20,7 @@ class NodeOutputSafety
     // =========================================================================
 
     /**
-     * Renders an author object-template string in Craft's Twig sandbox.
+     * Renders an author object-template string in Base's always-on Twig sandbox.
      * Context should stay limited to safe scalars/arrays — never full User models
      * with privileged methods beyond what the sandbox already restricts.
      */
@@ -28,7 +30,7 @@ class NodeOutputSafety
             return $template;
         }
 
-        return Craft::$app->getView()->renderSandboxedObjectTemplate($template, $object);
+        return Navigation::$plugin->getTemplates()->renderSandboxedObjectTemplate($template, $object);
     }
 
     /**

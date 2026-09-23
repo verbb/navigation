@@ -27,6 +27,7 @@ use craft\helpers\App;
 use nystudio107\pluginvite\services\VitePluginService;
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
+use verbb\base\services\Templates;
 
 trait PluginTrait
 {
@@ -54,6 +55,11 @@ trait PluginTrait
                 'nodeSites' => NodeSites::class,
                 'nodes' => Nodes::class,
                 'nodeTypes' => NodeTypes::class,
+                'templates' => [
+                    'class' => Templates::class,
+                    'pluginClass' => Navigation::class,
+                    'sandboxedAutoescape' => false,
+                ],
                 'vite' => [
                     'class' => VitePluginService::class,
                     'assetClass' => \verbb\navigation\web\assets\cp\BuilderAsset::class,
@@ -98,6 +104,11 @@ trait PluginTrait
     public function getBreadcrumbs(): Breadcrumbs
     {
         return $this->get('breadcrumbs');
+    }
+
+    public function getTemplates(): Templates
+    {
+        return $this->get('templates');
     }
 
     public function registerCpAssets(): void
