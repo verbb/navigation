@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed braced environment variable syntax in Custom URL nodes being misinterpreted as a node template.
+
 ## 4.0.1 - 2026-09-23
 
 ### Changed

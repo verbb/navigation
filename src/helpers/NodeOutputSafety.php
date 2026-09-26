@@ -30,7 +30,19 @@ class NodeOutputSafety
             return $template;
         }
 
-        return Navigation::$plugin->getTemplates()->renderSandboxedObjectTemplate($template, $object);
+        // Craft supports ${VAR} environment syntax, but these author fields must
+        // preserve it literally rather than resolve it or parse it as shorthand.
+        $protected = [];
+        $template = preg_replace_callback('/\$\{[A-Z_][A-Z0-9_]*\}/', function(array $matches) use (&$protected, $template): string {
+            $placeholder = '__navigation_literal_env_' . hash('sha256', $template . "\0" . count($protected)) . '__';
+            $protected[$placeholder] = $matches[0];
+
+            return $placeholder;
+        }, $template);
+
+        $rendered = Navigation::$plugin->getTemplates()->renderSandboxedObjectTemplate($template, $object);
+
+        return $protected ? strtr($rendered, $protected) : $rendered;
     }
 
     /**
