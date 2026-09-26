@@ -10,6 +10,7 @@ use verbb\navigation\nodetypes\Dynamic;
 use Craft;
 use craft\controllers\StructuresController;
 use craft\db\Query;
+use craft\elements\db\AssetQuery;
 use craft\elements\User;
 use craft\helpers\ElementHelper;
 use craft\web\Controller;
@@ -200,6 +201,13 @@ class MenuAuth
             foreach ([$source, $picker] as $restriction) {
                 $query = $elementType::find()->siteId($element->siteId)->status(null);
                 Craft::configure($query, $restriction['criteria'] ?? []);
+
+                // Asset volume sources identify their root folder, but Craft's picker
+                // exposes that source as the complete navigable folder tree.
+                if ($query instanceof AssetQuery && isset($restriction['criteria']['folderId'])) {
+                    $query->includeSubfolders();
+                }
+
                 if ($condition = $restriction['condition'] ?? null) {
                     Craft::$app->getConditions()->createCondition($condition)->modifyQuery($query);
                 }

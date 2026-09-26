@@ -34,6 +34,7 @@ it('does not expand server configuration in an editor-authored custom URL', func
             Craft::$app->getRequest()->setBodyParams(['nodes' => [$payload]]);
             $response = (new NodesController('nodes', N::$plugin))->actionAddNodes();
             expect($response->statusCode)->toBe(200);
+            expect(Node::find()->menuId($menu->id)->status(null)->one()->getUrl())->toBe($url);
             $state = N::$plugin->getBuilderState()->getState($menu->id, $site->id);
             expect($state['nodes'])->toHaveCount(1);
             expect(json_encode($state['nodes'], JSON_UNESCAPED_SLASHES))->not->toContain($sentinel);
