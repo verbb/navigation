@@ -29,7 +29,7 @@
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js": {
-    "file": "assets/CodeEditorField-B2iwq6RR.js",
+    "file": "assets/CodeEditorField-HbyHZqxb.js",
     "name": "CodeEditorField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js",
     "isDynamicEntry": true,
@@ -314,7 +314,7 @@
     ]
   },
   "src/main.tsx": {
-    "file": "assets/builder-CxVEXwjL.js",
+    "file": "assets/builder-CPRqf58f.js",
     "name": "builder",
     "src": "src/main.tsx",
     "isEntry": true,

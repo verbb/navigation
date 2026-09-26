@@ -10275,16 +10275,16 @@
         },
         {
             "name": "verbb/base",
-            "version": "3.0.14",
+            "version": "3.0.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/verbb-base.git",
-                "reference": "c847f893fa7278413b6554324447137b815e7d3e"
+                "reference": "5f75dc606cdce82c8a2aa1c9abc7f9e7ac11d294"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/c847f893fa7278413b6554324447137b815e7d3e",
-                "reference": "c847f893fa7278413b6554324447137b815e7d3e",
+                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/5f75dc606cdce82c8a2aa1c9abc7f9e7ac11d294",
+                "reference": "5f75dc606cdce82c8a2aa1c9abc7f9e7ac11d294",
                 "shasum": ""
             },
             "require": {
@@ -10321,21 +10321,21 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-14T11:53:23+00:00"
+            "time": "2026-09-23T12:08:56+00:00"
         },
         {
             "name": "verbb/navigation",
-            "version": "4.0.0-beta.7",
+            "version": "4.0.1",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "af16ad217433e9fc20c51c0068b244f7d0635b53"
+                "reference": "aaa2983593bd3392ccd7df94e11b29c68ff2aa66"
             },
             "require": {
                 "craftcms/cms": "^5.9.11",
                 "nystudio107/craft-plugin-vite": "^5.0.0",
                 "php": "^8.2",
-                "verbb/base": "^3.0.0"
+                "verbb/base": "^3.0.17"
             },
             "require-dev": {
                 "craftcms/cms": "^5.9.11",
@@ -10361,30 +10361,6 @@
                 "psr-4": {
                     "Tests\\": "tests/"
                 }
-            },
-            "archive": {
-                "exclude": [
-                    "/.env*",
-                    "/.cache",
-                    "/.DS_Store",
-                    "/.github",
-                    "/.plugin-store",
-                    "/.gitignore",
-                    "/node_modules",
-                    "/**/node_modules",
-                    "/vendor",
-                    "/tests",
-                    "/docs",
-                    "/package.json",
-                    "/package-lock.json",
-                    "/phpunit*.xml",
-                    "/vite.config.*",
-                    "/src/web/src",
-                    "/src/web/tsconfig.json",
-                    "/.ddev",
-                    "/.phpunit*",
-                    "/.pest*"
-                ]
             },
             "scripts": {
                 "test": [
