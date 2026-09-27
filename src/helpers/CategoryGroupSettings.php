@@ -148,14 +148,10 @@ class CategoryGroupSettings
     public static function applyPostData(Node $node): void
     {
         $request = Craft::$app->getRequest();
-
-        if (!$request instanceof \yii\web\Request || !$request->getIsPost()) {
-            return;
-        }
-
         $data = is_array($node->data) ? $node->data : [];
+        $data['orderBy'] = self::normalizeOrderBy($data['orderBy'] ?? self::ORDER_DEFAULT, self::getGroupFromNode($node));
 
-        if ($request->getBodyParam('categoryCondition') !== null) {
+        if ($request instanceof \yii\web\Request && $request->getIsPost() && $request->getBodyParam('categoryCondition') !== null) {
             $conditionConfig = Component::cleanseConfig($request->getBodyParam('categoryCondition'));
 
             if (empty($conditionConfig['conditionRules'])) {
@@ -191,13 +187,13 @@ class CategoryGroupSettings
 
     public static function applyOrderBy(CategoryQuery $query, array $settings, ?CategoryGroup $group): void
     {
-        $orderBy = $settings['orderBy'] ?? self::ORDER_DEFAULT;
+        $orderBy = self::normalizeOrderBy($settings['orderBy'] ?? self::ORDER_DEFAULT, $group);
 
         if ($orderBy === self::ORDER_DEFAULT) {
             if ($group && (int)$group->maxLevels !== 1) {
                 $query->orderBy(['lft' => SORT_ASC]);
             } else {
-                $query->orderBy('title asc');
+                $query->orderBy(['title' => SORT_ASC]);
             }
 
             return;
@@ -209,7 +205,29 @@ class CategoryGroupSettings
             return;
         }
 
-        $query->orderBy($orderBy);
+        $query->orderBy(match ($orderBy) {
+            self::ORDER_TITLE_DESC => ['title' => SORT_DESC],
+            self::ORDER_DATE_CREATED_ASC => ['dateCreated' => SORT_ASC],
+            self::ORDER_DATE_CREATED_DESC => ['dateCreated' => SORT_DESC],
+            default => ['title' => SORT_ASC],
+        });
+    }
+
+    public static function normalizeOrderBy(mixed $orderBy, ?CategoryGroup $group): string
+    {
+        $allowed = [
+            self::ORDER_DEFAULT,
+            self::ORDER_TITLE_ASC,
+            self::ORDER_TITLE_DESC,
+            self::ORDER_DATE_CREATED_ASC,
+            self::ORDER_DATE_CREATED_DESC,
+        ];
+
+        if ($group && (int)$group->maxLevels !== 1) {
+            $allowed[] = self::ORDER_STRUCTURE;
+        }
+
+        return is_string($orderBy) && in_array($orderBy, $allowed, true) ? $orderBy : self::ORDER_DEFAULT;
     }
 
 

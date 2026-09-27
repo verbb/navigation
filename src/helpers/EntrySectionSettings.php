@@ -164,14 +164,10 @@ class EntrySectionSettings
     public static function applyPostData(Node $node): void
     {
         $request = Craft::$app->getRequest();
-
-        if (!$request instanceof \yii\web\Request || !$request->getIsPost()) {
-            return;
-        }
-
         $data = is_array($node->data) ? $node->data : [];
+        $data['orderBy'] = self::normalizeOrderBy($data['orderBy'] ?? self::ORDER_DEFAULT, self::getSectionFromNode($node));
 
-        if ($request->getBodyParam('entryCondition') !== null) {
+        if ($request instanceof \yii\web\Request && $request->getIsPost() && $request->getBodyParam('entryCondition') !== null) {
             $conditionConfig = Component::cleanseConfig($request->getBodyParam('entryCondition'));
 
             if (empty($conditionConfig['conditionRules'])) {
@@ -207,13 +203,13 @@ class EntrySectionSettings
 
     public static function applyOrderBy(EntryQuery $query, array $settings, ?Section $section): void
     {
-        $orderBy = $settings['orderBy'] ?? self::ORDER_DEFAULT;
+        $orderBy = self::normalizeOrderBy($settings['orderBy'] ?? self::ORDER_DEFAULT, $section);
 
         if ($orderBy === self::ORDER_DEFAULT) {
             if ($section?->type === Section::TYPE_STRUCTURE) {
                 $query->orderBy(['lft' => SORT_ASC]);
             } else {
-                $query->orderBy('postDate desc');
+                $query->orderBy(['postDate' => SORT_DESC]);
             }
 
             return;
@@ -225,7 +221,29 @@ class EntrySectionSettings
             return;
         }
 
-        $query->orderBy($orderBy);
+        $query->orderBy(match ($orderBy) {
+            self::ORDER_TITLE_DESC => ['title' => SORT_DESC],
+            self::ORDER_POST_DATE_ASC => ['postDate' => SORT_ASC],
+            self::ORDER_POST_DATE_DESC => ['postDate' => SORT_DESC],
+            default => ['title' => SORT_ASC],
+        });
+    }
+
+    public static function normalizeOrderBy(mixed $orderBy, ?Section $section): string
+    {
+        $allowed = [
+            self::ORDER_DEFAULT,
+            self::ORDER_TITLE_ASC,
+            self::ORDER_TITLE_DESC,
+            self::ORDER_POST_DATE_ASC,
+            self::ORDER_POST_DATE_DESC,
+        ];
+
+        if ($section?->type === Section::TYPE_STRUCTURE) {
+            $allowed[] = self::ORDER_STRUCTURE;
+        }
+
+        return is_string($orderBy) && in_array($orderBy, $allowed, true) ? $orderBy : self::ORDER_DEFAULT;
     }
 
 
