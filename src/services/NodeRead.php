@@ -418,7 +418,10 @@ class NodeRead extends Component
             return false;
         }
 
-        return method_exists($request, 'getIsPreview') && $request->getIsPreview();
+        return method_exists($request, 'getIsPreview')
+            && $request->getIsPreview()
+            && $request->getHadToken()
+            && $request->getToken() !== null;
     }
 
     private function _nodeToTreeArray(NodeElement $node, bool $includeLinkedElements = false): array

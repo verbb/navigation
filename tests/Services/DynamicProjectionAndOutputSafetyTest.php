@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Tests\Support\Fixtures\NavigationFixtureFactory;
+use Tests\Support\WebRequestSimulator;
 use verbb\navigation\dynamic\sources\EntrySectionDynamicSource;
 use verbb\navigation\helpers\NodeOutputSafety;
 use verbb\navigation\nodetypes\Custom;
@@ -79,6 +80,79 @@ it('includes disabled entries when pending projections are opted in', function()
 
     expect($roots)->toHaveCount(1);
     expect($roots[0]->getChildren())->toHaveCount(1);
+});
+
+it('does not expose pending projections to tokenless or invalid preview requests', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $section = NavigationFixtureFactory::entrySection();
+    $entry = NavigationFixtureFactory::entries(1, $section)[0];
+    $entry->enabled = false;
+
+    expect(Craft::$app->getElements()->saveElement($entry))->toBeTrue();
+    NavigationFixtureFactory::dynamicSectionNode($nav, $section);
+
+    $previewParam = Craft::$app->getSecurity()->hashData('navigation-preview');
+    $expiredToken = Craft::$app->getTokens()->createToken(
+        ['preview/preview', []],
+        null,
+        new DateTime('-1 hour'),
+    );
+    expect($expiredToken)->toBeString();
+
+    foreach ([
+        ['x-craft-preview' => $previewParam],
+        ['x-craft-preview' => $previewParam, 'token' => str_repeat('x', 32)],
+        ['x-craft-preview' => $previewParam, 'token' => $expiredToken],
+    ] as $queryParams) {
+        $childCount = WebRequestSimulator::withAbsoluteUrl('https://preview.invalid/', function() use ($nav, $queryParams) {
+            Craft::$app->getRequest()->setQueryParams($queryParams);
+            $roots = (new NavigationVariable())
+                ->nodes(['handle' => $nav->handle])
+                ->level(1)
+                ->withNodeHierarchy()
+                ->all();
+
+            return count($roots[0]->getChildren());
+        });
+
+        expect($childCount)->toBe(0);
+    }
+});
+
+it('includes pending projections for a valid Craft preview token', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $section = NavigationFixtureFactory::entrySection();
+    $entry = NavigationFixtureFactory::entries(1, $section)[0];
+    $entry->enabled = false;
+
+    expect(Craft::$app->getElements()->saveElement($entry))->toBeTrue();
+    NavigationFixtureFactory::dynamicSectionNode($nav, $section);
+
+    $previewParam = Craft::$app->getSecurity()->hashData('navigation-preview');
+    $token = Craft::$app->getTokens()->createPreviewToken(['preview/preview', []]);
+    expect($token)->toBeString();
+
+    $childCount = WebRequestSimulator::withAbsoluteUrl('https://preview.invalid/', function() use ($nav, $previewParam, $token) {
+        Craft::$app->getRequest()->setQueryParams([
+            'x-craft-preview' => $previewParam,
+            'token' => $token,
+        ]);
+        $request = Craft::$app->getRequest();
+
+        expect($request->getIsPreview())->toBeTrue()
+            ->and($request->getHadToken())->toBeTrue()
+            ->and($request->getToken())->toBe($token);
+
+        $roots = (new NavigationVariable())
+            ->nodes(['handle' => $nav->handle])
+            ->level(1)
+            ->withNodeHierarchy()
+            ->all();
+
+        return count($roots[0]->getChildren());
+    });
+
+    expect($childCount)->toBe(1);
 });
 
 it('injects projections for nested dynamic nodes in flat hierarchy output', function() {
