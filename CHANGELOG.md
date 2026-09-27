@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Route plugin settings through the plugin’s authorized settings controller.
+
 ### Fixed
 - Fixed Asset nodes pointing to files in subfolders being read-only and unable to be duplicated ([#459](https://github.com/verbb/navigation/issues/459)).
 - Fixed braced environment variable syntax in Custom URL nodes being misinterpreted as a node template.
