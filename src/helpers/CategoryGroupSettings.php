@@ -73,8 +73,8 @@ class CategoryGroupSettings
 
         if (!empty($node->data['categoryCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                ['class' => CategoryCondition::class, 'elementType' => CategoryElement::class],
                 $node->data['categoryCondition'],
+                ['class' => CategoryCondition::class, 'elementType' => CategoryElement::class],
             ));
         } else {
             $condition = CategoryElement::createCondition();
@@ -158,8 +158,8 @@ class CategoryGroupSettings
                 unset($data['categoryCondition']);
             } else {
                 $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                    ['class' => CategoryCondition::class, 'elementType' => CategoryElement::class],
                     $conditionConfig,
+                    ['class' => CategoryCondition::class, 'elementType' => CategoryElement::class],
                 ));
                 $data['categoryCondition'] = $condition->getConfig();
             }
@@ -175,8 +175,8 @@ class CategoryGroupSettings
 
         if (!empty($settings['categoryCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                ['class' => CategoryCondition::class, 'elementType' => CategoryElement::class],
                 $settings['categoryCondition'],
+                ['class' => CategoryCondition::class, 'elementType' => CategoryElement::class],
             ));
             $condition->modifyQuery($query);
         }

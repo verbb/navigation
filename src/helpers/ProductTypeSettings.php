@@ -63,8 +63,8 @@ class ProductTypeSettings
 
         if (!empty($node->data['productCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                ['class' => ProductCondition::class, 'elementType' => ProductElement::class],
                 $node->data['productCondition'],
+                ['class' => ProductCondition::class, 'elementType' => ProductElement::class],
             ));
         } else {
             $condition = ProductElement::createCondition();
@@ -146,8 +146,8 @@ class ProductTypeSettings
                 unset($data['productCondition']);
             } else {
                 $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                    ['class' => ProductCondition::class, 'elementType' => ProductElement::class],
                     $conditionConfig,
+                    ['class' => ProductCondition::class, 'elementType' => ProductElement::class],
                 ));
                 $data['productCondition'] = $condition->getConfig();
             }
@@ -162,8 +162,8 @@ class ProductTypeSettings
 
         if (!empty($settings['productCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                ['class' => ProductCondition::class, 'elementType' => ProductElement::class],
                 $settings['productCondition'],
+                ['class' => ProductCondition::class, 'elementType' => ProductElement::class],
             ));
             $condition->modifyQuery($query);
         }

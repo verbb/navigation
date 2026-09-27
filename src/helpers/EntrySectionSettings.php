@@ -81,8 +81,8 @@ class EntrySectionSettings
 
         if (!empty($node->data['entryCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
                 $node->data['entryCondition'],
+                ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
             ));
         } else {
             $condition = EntryElement::createCondition();
@@ -174,8 +174,8 @@ class EntrySectionSettings
                 unset($data['entryCondition']);
             } else {
                 $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                    ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
                     $conditionConfig,
+                    ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
                 ));
                 $data['entryCondition'] = $condition->getConfig();
             }
@@ -191,8 +191,8 @@ class EntrySectionSettings
 
         if (!empty($settings['entryCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
                 $settings['entryCondition'],
+                ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
             ));
             $condition->modifyQuery($query);
         }

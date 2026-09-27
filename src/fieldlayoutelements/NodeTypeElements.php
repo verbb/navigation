@@ -70,8 +70,8 @@ class NodeTypeElements extends BaseField
 
             if (isset($pickerConfig['condition'])) {
                 $pickerCondition = Craft::$app->getConditions()->createCondition(array_merge(
-                    ['class' => $elementType::createCondition()::class, 'elementType' => $elementType],
                     $pickerConfig['condition'],
+                    ['class' => $elementType::createCondition()::class, 'elementType' => $elementType],
                 ));
             }
 

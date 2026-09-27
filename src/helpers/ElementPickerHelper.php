@@ -129,8 +129,8 @@ class ElementPickerHelper
         }
 
         $condition = Craft::$app->getConditions()->createCondition(array_merge(
-            ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
             $config,
+            ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
         ));
 
         return $condition instanceof ElementConditionInterface ? $condition : null;

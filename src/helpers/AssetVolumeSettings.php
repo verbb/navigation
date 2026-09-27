@@ -62,8 +62,8 @@ class AssetVolumeSettings
 
         if (!empty($node->data['assetCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                ['class' => AssetCondition::class, 'elementType' => AssetElement::class],
                 $node->data['assetCondition'],
+                ['class' => AssetCondition::class, 'elementType' => AssetElement::class],
             ));
         } else {
             $condition = AssetElement::createCondition();
@@ -145,8 +145,8 @@ class AssetVolumeSettings
                 unset($data['assetCondition']);
             } else {
                 $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                    ['class' => AssetCondition::class, 'elementType' => AssetElement::class],
                     $conditionConfig,
+                    ['class' => AssetCondition::class, 'elementType' => AssetElement::class],
                 ));
                 $data['assetCondition'] = $condition->getConfig();
             }
@@ -161,8 +161,8 @@ class AssetVolumeSettings
 
         if (!empty($settings['assetCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                ['class' => AssetCondition::class, 'elementType' => AssetElement::class],
                 $settings['assetCondition'],
+                ['class' => AssetCondition::class, 'elementType' => AssetElement::class],
             ));
             $condition->modifyQuery($query);
         }

@@ -53,8 +53,8 @@ class EntryPickerSettings
     {
         if (!empty($config['conditionRules'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
-                ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
                 $config,
+                ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
             ));
 
             if ($condition instanceof EntryCondition) {
