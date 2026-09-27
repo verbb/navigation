@@ -283,10 +283,24 @@ class MenusController extends Controller
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
-        // Index UI only offers reorder to users who can create menus.
-        MenuAuth::requireCreateMenus($this);
-
         $navIds = Json::decode($this->request->getRequiredBodyParam('ids'));
+
+        if (!is_array($navIds) || $navIds === []) {
+            throw new BadRequestHttpException('Invalid menu IDs.');
+        }
+
+        $seen = [];
+
+        foreach ($navIds as $menuId) {
+            if (!is_int($menuId) || $menuId < 1 || isset($seen[$menuId])) {
+                throw new BadRequestHttpException('Invalid menu IDs.');
+            }
+
+            $seen[$menuId] = true;
+            $menu = Navigation::$plugin->getMenus()->getMenuById($menuId);
+            MenuAuth::requireEditMenu($this, $menu);
+        }
+
         Navigation::$plugin->getMenus()->reorderMenus($navIds);
 
         return $this->asSuccess();

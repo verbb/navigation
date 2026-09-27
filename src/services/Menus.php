@@ -786,37 +786,38 @@ class Menus extends Component
 
     public function reorderMenus(array $navIds): bool
     {
-        $projectConfig = Craft::$app->getProjectConfig();
+        return MenuConfigTransaction::run(function() use ($navIds) {
+            $projectConfig = Craft::$app->getProjectConfig();
+            $uidsByIds = Db::uidsByIds('{{%navigation_menus}}', $navIds);
 
-        $uidsByIds = Db::uidsByIds('{{%navigation_menus}}', $navIds);
+            /* @var Settings $settings */
+            $settings = Navigation::$plugin->getSettings();
 
-        /* @var Settings $settings */
-        $settings = Navigation::$plugin->getSettings();
+            foreach ($navIds as $navOrder => $menuId) {
+                if (!empty($uidsByIds[$menuId])) {
+                    $menuUid = $uidsByIds[$menuId];
+                    $configData = $this->getMenuById($menuId)->getConfig();
+                    $configData['sortOrder'] = $navOrder + 1;
 
-        foreach ($navIds as $navOrder => $menuId) {
-            if (!empty($uidsByIds[$menuId])) {
-                $menuUid = $uidsByIds[$menuId];
-                $configData = $this->getMenuById($menuId)->getConfig();
-                $configData['sortOrder'] = $navOrder + 1;
+                    // There's some edge-cases where devs know what they're doing.
+                    // See https://github.com/verbb/navigation/issues/88
+                    if ($settings->bypassProjectConfig && !Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+                        $event = new ConfigEvent([
+                            'tokenMatches' => [$menuUid],
+                            'newValue' => $configData,
+                        ]);
 
-                // There's some edge-cases where devs know what they're doing.
-                // See https://github.com/verbb/navigation/issues/88
-                if ($settings->bypassProjectConfig && !Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-                    $event = new ConfigEvent([
-                        'tokenMatches' => [$menuUid],
-                        'newValue' => $configData,
-                    ]);
-
-                    $this->handleChangedMenu($event);
-                } else {
-                    // Set the complete menu config so the containing project-config event always
-                    // receives the data required by handleChangedMenu().
-                    $projectConfig->set(self::CONFIG_MENU_KEY . '.' . $menuUid, $configData);
+                        $this->handleChangedMenu($event);
+                    } else {
+                        // Set the complete menu config so the containing project-config event always
+                        // receives the data required by handleChangedMenu().
+                        $projectConfig->set(self::CONFIG_MENU_KEY . '.' . $menuUid, $configData);
+                    }
                 }
             }
-        }
 
-        return true;
+            return true;
+        });
     }
 
     public function getBuilderTabs($nav): array

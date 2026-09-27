@@ -42,10 +42,14 @@
 {% set tableData = [] %}
 {% set editableNavs = 0 %}
 
-{% set canReorder = currentUser.can('navigation-createMenus') ? true : false %}
+{% set canReorder = editable and navigations | length > 1 %}
 
 {% for navigation in navigations %}
     {% set canDelete = currentUser.can('navigation-deleteMenu:' ~ navigation.uid) ? true : false %}
+
+    {% if not currentUser.can('navigation-editMenu:' ~ navigation.uid) %}
+        {% set canReorder = false %}
+    {% endif %}
 
     {% set tableData = tableData | merge([{
         id: navigation.id,
@@ -88,7 +92,7 @@
         container: '#navigations-vue-admin-table',
         deleteAction: '{{ editable ? 'navigation/menus/delete-menu' : '' }}',
         emptyMessage: Craft.t('navigation', 'No menus exist yet.'),
-        reorderAction: '{{ navigations | length > 1 and canReorder ? 'navigation/menus/reorder-menu' : '' }}',
+        reorderAction: '{{ canReorder ? 'navigation/menus/reorder-menu' : '' }}',
         tableData: {{ tableData | json_encode | raw }},
     });
 
