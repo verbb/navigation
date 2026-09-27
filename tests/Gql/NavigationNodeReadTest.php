@@ -178,3 +178,39 @@ it('includes projected nodes in the validated GraphQL interface schema', functio
     $definition = Craft::$app->getGql()->getSchemaDef($schema, true);
     expect(array_map(fn($error) => $error->getMessage(), $definition->validate()))->toBe([]);
 });
+
+it('only exposes inactive node status filtering to schemas with the Craft inactive scope', function() {
+    $menu = NavigationFixtureFactory::menu();
+    $node = NavigationFixtureFactory::customNode($menu, 'Disabled node', '/disabled');
+    $node->enabled = false;
+    expect(Craft::$app->getElements()->saveElement($node))->toBeTrue();
+
+    $query = 'query($handle: String!) { navigationNodes(menuHandle: $handle, status: "disabled") { id } }';
+    $restricted = new craft\models\GqlSchema([
+        'name' => 'Active navigation nodes only',
+        'scope' => ['navigationMenus.' . $menu->uid . ':read'],
+    ]);
+    $restrictedResult = Craft::$app->getGql()->executeQuery($restricted, $query, [
+        'handle' => $menu->handle,
+    ]);
+
+    expect($restrictedResult['errors'] ?? [])->not->toBeEmpty()
+        ->and(json_encode($restrictedResult['errors']))->toContain('Unknown argument');
+
+    Craft::$app->getGql()->flushCaches();
+    Craft::$app->set('gql', new craft\services\Gql());
+
+    $inactive = new craft\models\GqlSchema([
+        'name' => 'Inactive navigation nodes',
+        'scope' => [
+            'navigationMenus.' . $menu->uid . ':read',
+            'elements.inactive:read',
+        ],
+    ]);
+    $inactiveResult = Craft::$app->getGql()->executeQuery($inactive, $query, [
+        'handle' => $menu->handle,
+    ]);
+
+    expect($inactiveResult['errors'] ?? [])->toBe([])
+        ->and($inactiveResult['data']['navigationNodes'])->toBe([['id' => (string)$node->id]]);
+});
