@@ -5,6 +5,9 @@
 ### Fixed
 - Fixed Asset nodes pointing to files in subfolders being read-only and unable to be duplicated ([#459](https://github.com/verbb/navigation/issues/459)).
 - Fixed braced environment variable syntax in Custom URL nodes being misinterpreted as a node template.
+- Fixed a high-severity SQL injection vulnerability.
+- Fixed low-severity authorization and preview disclosure vulnerabilities.
+- Hardened stored element-condition configuration handling.
 
 ## 4.0.1 - 2026-09-23
 
