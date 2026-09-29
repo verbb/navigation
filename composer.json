@@ -1,6 +1,6 @@
 {
     "name": "verbb/navigation",
-    "description": "Create navigation menus for your site.",
+    "description": "A Craft CMS plugin for building nested site navigation.",
     "type": "craft-plugin",
     "version": "4.0.1",
     "keywords": [
