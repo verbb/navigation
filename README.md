@@ -4,36 +4,29 @@
 <p align="center"><img src="https://assets.verbb.io/plugins/navigation/navigation-icon.svg" width="100" height="100" alt="Navigation icon"></p>
 <h1 align="center">Navigation for Craft CMS</h1>
 
-Navigation is a Craft CMS plugin for building and rendering menus — nested link trees backed by Craft elements, custom URLs, dynamic branches, and structural node types.
+Navigation is a Craft CMS plugin that gives content teams a dedicated place to build menus while developers keep control of the markup. Mix Craft elements and custom URLs, manage the hierarchy visually, and query or render the result through a consistent API.
 
-## What's new in Navigation 4
-
-- **New menu builder** — a modern control panel experience with non-live edits you publish when ready, plus menu content editing in slide-outs.
-- **Menu element & menu fields** — menu-level custom fields on a dedicated `Menu` element, separate from node fields.
-- **Dynamic nodes** — pluggable dynamic sources that project entries, categories, assets, or Commerce products at read time, with entry conditions and sort order.
-- **Context API** — `craft.navigation.context(handle)` with `siblings()`, `branch()`, `ancestors()`, and more for section sidebars and sub-nav.
-- **Menu breadcrumbs** — `craft.navigation.menuBreadcrumbs(handle)` for trail output based on your menu structure, alongside URL-segment breadcrumbs.
-- **Performance & caching** — tagged tree caching, smart hierarchy wiring, and opt-in linked-element hydration to cut down N+1 queries on large menus.
-- **Smarter active state** — single-pass matching with `getActiveNodes()`, `getCurrentNodes()`, and improved `tree()` output (`current`, `hasActiveChild`).
-- **GraphQL** — menu queries, context, menu breadcrumbs, and hydration flags for headless front ends.
-- **Third-party migrations** — import menus from [FreeNav](https://plugins.craftcms.com/free-nav), [MenuBuilder](https://plugins.craftcms.com/menubuilder?craft5), [Navigate](https://plugins.craftcms.com/navigate), [Navkit](https://plugins.craftcms.com/navkit?craft5), [Olivemenus](https://plugins.craftcms.com/olivemenus), and [tka navigation](https://plugins.craftcms.com/tka-navigation).
+Create as many navigations as the site needs and arrange their nodes independently of Craft's section structure. Element-backed nodes can follow changes to their destination while still allowing menu-specific overrides.
 
 ## Features
 
-- Create multiple menus for your site
-- Link to entries, assets, categories, and Commerce products — or add custom URLs, site links, passive/group columns, and dynamic branches
-- Menu-level and node-level custom fields
-- Enable or disable nodes, open links in a new window, or apply additional CSS classes
-- Automatically updates nodes when linked elements' status or title changes
-- Navigation nodes are elements for flexible querying
-- Support for third-party node types with hooks
-- Multi-site menus with per-site link settings
-- Simple `render()` Twig function, or roll your own with `nodes()`, `tree()`, and the Context API
-- Generate breadcrumbs from your menu structure or from URL segments
-- GraphQL support for menus, nodes, context, and breadcrumbs
-- Performance caching with tagged invalidation ([Blitz](https://plugins.craftcms.com/blitz)-friendly)
-- Migrate from [FreeNav](https://plugins.craftcms.com/free-nav), [MenuBuilder](https://plugins.craftcms.com/menubuilder?craft5), [Navigate](https://plugins.craftcms.com/navigate), [Navkit](https://plugins.craftcms.com/navkit?craft5), [Olivemenus](https://plugins.craftcms.com/olivemenus), or [tka navigation](https://plugins.craftcms.com/tka-navigation)
-- [Feed Me](https://plugins.craftcms.com/feed-me) support for importing nodes
+- Model headers, footers, utility menus and other structures independently.
+- Arrange deep menu hierarchies through a visual control-panel interface.
+- Link entries, assets, categories, Commerce products and other supported elements.
+- Include external sites, anchors and destinations that do not belong to a Craft element.
+- Project entries, categories, assets or products into a menu at read time with conditions and ordering.
+- Follow changes to a destination's title and status, with per-node overrides when needed.
+- Manage navigation values and propagation across the project's sites.
+- Add project-specific content to menus and individual nodes through separate Craft field layouts.
+- Arrange and edit menu content without changing the live tree until the work is published.
+- Work with navigation nodes through familiar Craft element queries.
+- Generate a complete menu or render every element with project-owned templates.
+- Build breadcrumb data from the current URL and navigation structure.
+- Retrieve siblings, branches and ancestors, and identify the current or active path without rebuilding the tree in templates.
+- Cache trees with tagged invalidation and opt into linked-element or hierarchy hydration when a template needs it.
+- Add support for custom element types through the plugin's extension points.
+- Query navigations and nodes for decoupled front ends.
+- Move menus through JSON, import nodes with Feed Me or migrate from supported navigation plugins.
 
 ## Documentation
 
