@@ -142,6 +142,18 @@ class NodeTypeSchemaFields
         ]);
     }
 
+    public static function productTypeIdField(): array
+    {
+        return self::_comboboxField([
+            'name' => 'data.productTypeId',
+            'label' => Craft::t('commerce', 'Product Type'),
+            'instructions' => Craft::t('navigation', 'Choose a product type. Its products will appear as children when the menu is rendered.'),
+            'placeholder' => Craft::t('navigation', 'Select a product type'),
+            'validation' => 'required',
+            'options' => ProductTypeSettings::productTypeOptions(),
+        ]);
+    }
+
 
     // Private Methods
     // =========================================================================

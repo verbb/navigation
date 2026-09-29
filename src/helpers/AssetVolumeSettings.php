@@ -24,7 +24,7 @@ class AssetVolumeSettings
             'value' => '',
         ]];
 
-        foreach (Craft::$app->getAssets()->getViewableVolumes() as $volume) {
+        foreach (Craft::$app->getVolumes()->getViewableVolumes() as $volume) {
             $options[] = [
                 'label' => $volume->name,
                 'value' => (string)$volume->id,

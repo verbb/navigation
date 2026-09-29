@@ -11,6 +11,7 @@ use verbb\navigation\models\ProjectedNode;
 
 use Craft;
 use craft\helpers\Cp;
+use craft\helpers\Json;
 
 class Dynamic extends NodeType implements ProjectingNodeType
 {
@@ -44,17 +45,43 @@ class Dynamic extends NodeType implements ProjectingNodeType
 
     public static function getAddNodeSchema(array $context): array
     {
-        return [
-            NodeTypeSchemaFields::dynamicSourceField(),
-            NodeTypeSchemaFields::titleField(),
-        ];
+        $schema = [NodeTypeSchemaFields::dynamicSourceField()];
+
+        foreach (Navigation::$plugin->getDynamicSources()->getRegisteredProviderClasses() as $class) {
+            $condition = 'data.dynamicSource == ' . Json::encode($class::handle());
+
+            foreach ($class::getAddNodeSchema($context) as $field) {
+                if (!is_array($field)) {
+                    $schema[] = $field;
+                    continue;
+                }
+
+                // Provider settings share one quick-add form, so only render and validate
+                // the fields belonging to the currently selected Dynamic source.
+                $field['if'] = isset($field['if'])
+                    ? sprintf('(%s) && (%s)', $condition, $field['if'])
+                    : $condition;
+                $schema[] = $field;
+            }
+        }
+
+        $schema[] = NodeTypeSchemaFields::titleField();
+
+        return $schema;
     }
 
     public static function getAddNodeDefaultData(): array
     {
-        return [
-            'dynamicSource' => Navigation::$plugin->getDynamicSources()->getDefaultHandle(),
-        ];
+        $dynamicSources = Navigation::$plugin->getDynamicSources();
+        $defaults = [];
+
+        foreach ($dynamicSources->getRegisteredProviderClasses() as $class) {
+            $defaults = array_merge($defaults, $class::getAddNodeDefaultData());
+        }
+
+        $defaults['dynamicSource'] = $dynamicSources->getDefaultHandle();
+
+        return $defaults;
     }
 
 

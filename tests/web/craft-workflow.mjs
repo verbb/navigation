@@ -38,6 +38,12 @@ try {
   menuId = Number(page.url().match(/\/build\/(\d+)/)[1]);
   const builderUrl = page.url();
   const sidebar = page.locator('#navigation-builder-sidebar');
+
+  phase = 'dynamic source fields';
+  await sidebar.getByRole('button', { name: 'Dynamic', exact: true }).click();
+  await sidebar.getByText('Section', { exact: true }).waitFor();
+  assert.equal(await sidebar.getByText('Section', { exact: true }).count(), 1);
+
   await sidebar.getByRole('button', { name: 'Custom URL', exact: true }).click();
   const row = title => page.locator('[data-tree-row]').filter({ hasText: title });
 
@@ -151,5 +157,5 @@ try {
     await browser.close();
   }
 }
-await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['UI create', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'UI publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
-console.log('PASS: real Craft add, nested drag, type round-trip, edit, publish, reload, settings duplicate and delete.');
+await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['UI create', 'Dynamic source field', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'UI publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
+console.log('PASS: Dynamic source field, real Craft add, nested drag, type round-trip, edit, publish, reload, settings duplicate and delete.');

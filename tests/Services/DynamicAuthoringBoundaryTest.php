@@ -4,6 +4,43 @@ use Tests\Support\Fixtures\NavigationFixtureFactory as F;
 use verbb\navigation\Navigation as N;
 use verbb\navigation\elements\Node;
 
+it('adds a dynamic entry section below an entry node when the editor can view it', function() {
+    $menu = F::menu(); $section = F::entrySection();
+    $parent = F::entryNode($menu, F::entries(1, $section)[0]);
+    $menu->permissions = [verbb\navigation\nodetypes\Dynamic::class => ['enabled' => true]];
+    N::$plugin->getMenus()->saveMenu($menu);
+    boundaryRequest(function() use ($menu, $parent, $section) {
+        $editor = new craft\elements\User(['username' => uniqid('dynamicBuilder'), 'email' => uniqid('dynamicBuilder').'@example.test']);
+        expect(Craft::$app->elements->saveElement($editor))->toBeTrue();
+        Craft::$app->set('userPermissions', new craft\services\UserPermissions());
+        Craft::$app->userPermissions->saveUserPermissions($editor->id, [
+            'accessCp',
+            'navigation-manageMenu:'.$menu->uid,
+            'viewEntries:'.$section->uid,
+        ]);
+        Craft::$app->user->setIdentity($editor);
+        Craft::$app->request->setBodyParams(['nodes' => [[
+            'menuId' => $menu->id, 'siteId' => Craft::$app->sites->getPrimarySite()->id,
+            'type' => verbb\navigation\nodetypes\Dynamic::class, 'title' => 'Dynamic section',
+            'parentId' => $parent->id,
+            'data' => ['dynamicSource' => 'entrySection', 'sectionId' => $section->id],
+        ]]]);
+
+        $controller = new verbb\navigation\controllers\NodesController('nodes', N::$plugin);
+        $controller->actionAddNodes();
+
+        $node = Node::find()
+            ->menuId($menu->id)
+            ->type(verbb\navigation\nodetypes\Dynamic::class)
+            ->status(null)
+            ->one();
+        expect($node)->not->toBeNull()
+            ->and($node->data['dynamicSource'])->toBe('entrySection')
+            ->and((int)$node->data['sectionId'])->toBe((int)$section->id)
+            ->and((int)$node->getParent()?->id)->toBe((int)$parent->id);
+    });
+});
+
 it('rejects a posted dynamic section excluded from the editors source options', function() {
     $menu = F::menu(); $section = F::entrySection();
     $menu->permissions = [verbb\navigation\nodetypes\Dynamic::class => ['enabled' => true]];

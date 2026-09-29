@@ -1,5 +1,6 @@
 <?php
 
+use Tests\Support\Fixtures\NavigationFixtureFactory as F;
 use verbb\navigation\dynamic\sources\EntrySectionDynamicSource;
 use verbb\navigation\helpers\BuilderSchemaHelper;
 use verbb\navigation\nodetypes\Custom;
@@ -43,21 +44,32 @@ test('add node schema omits parent field when max levels is one', function () {
     expect($compiled['fieldEntries'][0]['path'])->toBe('newWindow');
 });
 
-test('add node schema includes dynamic source and title fields for dynamic nodes', function () {
+test('add node schema includes conditional provider fields for dynamic nodes', function () {
+    $section = F::entrySection();
     $compiled = BuilderSchemaHelper::compileAddNodeSchema([
         'category' => 'nodeType',
         'type' => Dynamic::class,
     ], false, []);
 
-    expect($compiled['fieldEntries'])->toHaveCount(2);
+    expect($compiled['fieldEntries'])->toHaveCount(5);
     expect($compiled['fieldEntries'][0]['path'])->toBe('data.dynamicSource');
     expect($compiled['fieldEntries'][0]['field']['$field'])->toBe('select');
-    expect($compiled['fieldEntries'][1]['path'])->toBe('title');
+    expect($compiled['fieldEntries'][1]['path'])->toBe('data.sectionId');
+    expect($compiled['fieldEntries'][1]['field']['if'])->toBe('data.dynamicSource == "entrySection"');
+    expect(array_column($compiled['fieldEntries'][1]['field']['options'], 'value'))->toContain((string)$section->id);
+    expect($compiled['fieldEntries'][2]['path'])->toBe('data.groupId');
+    expect($compiled['fieldEntries'][2]['field']['if'])->toBe('data.dynamicSource == "categoryGroup"');
+    expect($compiled['fieldEntries'][3]['path'])->toBe('data.volumeId');
+    expect($compiled['fieldEntries'][3]['field']['if'])->toBe('data.dynamicSource == "assetVolume"');
+    expect($compiled['fieldEntries'][4]['path'])->toBe('title');
 });
 
 test('node types provide quick-add default data', function () {
     expect(Dynamic::getAddNodeDefaultData())->toMatchArray([
         'dynamicSource' => EntrySectionDynamicSource::handle(),
+        'sectionId' => '',
+        'groupId' => '',
+        'volumeId' => '',
     ]);
     expect(\verbb\navigation\nodetypes\Site::getAddNodeDefaultData())->toBe(['siteId' => '']);
     expect(Custom::getAddNodeDefaultData())->toBe([]);

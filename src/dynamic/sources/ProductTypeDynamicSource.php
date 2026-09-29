@@ -1,12 +1,13 @@
 <?php
 namespace verbb\navigation\dynamic\sources;
 
+use verbb\navigation\Navigation;
 use verbb\navigation\base\DynamicSource;
 use verbb\navigation\elements\Node;
 use verbb\navigation\helpers\DynamicSourceTypes;
+use verbb\navigation\helpers\NodeTypeSchemaFields;
 use verbb\navigation\helpers\ProductTypeSettings;
 use verbb\navigation\models\ProjectedNode;
-use verbb\navigation\Navigation;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -37,7 +38,9 @@ class ProductTypeDynamicSource extends DynamicSource
 
     public static function getAddNodeSchema(array $context): array
     {
-        return [];
+        return [
+            NodeTypeSchemaFields::productTypeIdField(),
+        ];
     }
 
     public static function getAddNodeDefaultData(): array

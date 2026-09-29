@@ -6,6 +6,7 @@
 - Route plugin settings through the plugin’s authorized settings controller.
 
 ### Fixed
+- Fixed Dynamic node quick-add forms not showing the selected source’s Section, Category Group, Volume, or Product Type field.
 - Fixed Asset nodes pointing to files in subfolders being read-only and unable to be duplicated ([#459](https://github.com/verbb/navigation/issues/459)).
 - Fixed braced environment variable syntax in Custom URL nodes being misinterpreted as a node template.
 - Fixed a high-severity SQL injection vulnerability.
