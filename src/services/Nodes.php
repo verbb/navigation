@@ -243,7 +243,20 @@ class Nodes extends Component
                 }
             }
 
-            $this->_saveLinkedNode($node);
+            try {
+                $this->_saveLinkedNode($node);
+            } catch (Throwable $e) {
+                // Linked-node synchronization is secondary to the source save. A
+                // stale or otherwise invalid node must not block editing the source.
+                Craft::error([
+                    'message' => 'Failed to synchronize a linked navigation node while saving its source element.',
+                    'nodeId' => $node->id,
+                    'menuId' => $node->menuId,
+                    'siteId' => $node->siteId,
+                    'errors' => $node->getErrors(),
+                    'exception' => $e,
+                ], __METHOD__);
+            }
         }
     }
 

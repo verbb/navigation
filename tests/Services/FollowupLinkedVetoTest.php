@@ -52,7 +52,45 @@ it('preserves linked nodes when an entry hard delete is cancelled', function() {
     expect(Node::find()->id($node->id)->status(null)->one())->toBeNull();
 });
 
-it('undoes source changes when a linked node rejects the operation', function(string $operation) {
+it('saves a source element and logs when linked node synchronization fails', function() {
+    $menu = F::menu();
+    $entry = F::entries(1)[0];
+    $node = F::entryNode($menu, $entry);
+    $nodeTitle = $node->title;
+    $logger = Yii::getLogger();
+    $previousFlushInterval = $logger->flushInterval;
+    $logger->flushInterval = 0;
+    $logOffset = count($logger->messages);
+    $veto = static function($event) use ($node) {
+        if ($event->sender->id === $node->id) {
+            $event->isValid = false;
+        }
+    };
+    yii\base\Event::on(Node::class, Node::EVENT_BEFORE_SAVE, $veto);
+
+    try {
+        $entry->title = 'Saved source title';
+        expect(Craft::$app->elements->saveElement($entry))->toBeTrue();
+        $logs = array_slice($logger->messages, $logOffset);
+    } finally {
+        yii\base\Event::off(Node::class, Node::EVENT_BEFORE_SAVE, $veto);
+        $logger->flushInterval = $previousFlushInterval;
+    }
+
+    $syncErrors = array_values(array_filter($logs, static fn(array $message): bool =>
+        $message[1] === yii\log\Logger::LEVEL_ERROR
+        && $message[2] === get_class(N::$plugin->getNodes()) . '::onSaveElement'
+        && is_array($message[0])
+        && ($message[0]['nodeId'] ?? null) === $node->id
+    ));
+
+    expect(Entry::find()->id($entry->id)->one()?->title)->toBe('Saved source title');
+    expect(Node::find()->id($node->id)->one()?->title)->toBe($nodeTitle);
+    expect($syncErrors)->toHaveCount(1);
+    expect($syncErrors[0][0]['message'])->toContain('Failed to synchronize');
+});
+
+it('undoes source deletions when a linked node rejects the operation', function(string $operation) {
     $menu = F::menu();
     $entry = F::entries(1)[0];
     $node = F::entryNode($menu, $entry);
@@ -66,12 +104,7 @@ it('undoes source changes when a linked node rejects the operation', function(st
     yii\base\Event::on(Node::class, $eventName, $veto);
     try {
         $action = function() use ($entry, $operation) {
-            if ($operation === 'save') {
-                $entry->title = 'Uncommitted title';
-                Craft::$app->elements->saveElement($entry);
-            } else {
-                Craft::$app->elements->deleteElement($entry, $operation === 'hard-delete');
-            }
+            Craft::$app->elements->deleteElement($entry, $operation === 'hard-delete');
         };
         expect($action)->toThrow(yii\base\UserException::class);
     } finally {
@@ -82,7 +115,7 @@ it('undoes source changes when a linked node rejects the operation', function(st
     expect($reloaded?->title)->toBe($title);
     expect($reloaded?->elementId)->toBe($entry->id);
     expect($reloaded?->getIsDisabledByLinkedElement())->toBeFalse();
-})->with(['save', 'soft-delete', 'hard-delete']);
+})->with(['soft-delete', 'hard-delete']);
 
 it('synchronizes linked content while a menu deletion is staged', function(string $operation) {
     $menu = F::menu();
