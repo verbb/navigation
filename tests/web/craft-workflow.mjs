@@ -26,6 +26,22 @@ try {
   await page.locator('input[name="password"]:visible').press('Enter');
   await page.waitForURL(url => !url.pathname.includes('/login'));
 
+  for (const path of ['navigation', 'navigation/menus']) {
+    phase = `menus sidebar at ${path}`;
+    await page.goto(`${base}/admin/${path}`);
+    const navigationNav = page.locator('#nav-navigation');
+    await navigationNav.waitFor();
+    assert.equal(await navigationNav.locator('.nav-item__subnav').getAttribute('data-state'), 'expanded');
+    assert.equal(await navigationNav.getByRole('link', { name: 'Menus', exact: true }).getAttribute('aria-current'), 'page');
+  }
+
+  phase = 'settings sidebar';
+  await page.goto(`${base}/admin/navigation/settings`);
+  const navigationNav = page.locator('#nav-navigation');
+  await navigationNav.waitFor();
+  assert.equal(await navigationNav.locator('.nav-item__subnav').getAttribute('data-state'), 'expanded');
+  assert.equal(await navigationNav.getByRole('link', { name: 'Settings', exact: true }).getAttribute('aria-current'), 'page');
+
   phase = 'create menu';
   const name = `Browser workflow ${Date.now()}`;
   await page.goto(`${base}/admin/navigation/menus/new`);
@@ -90,7 +106,7 @@ try {
   phase = 'publish';
   const [response] = await Promise.all([
     page.waitForResponse(response => decodeURIComponent(response.url()).includes('navigation/build-sessions/publish')),
-    page.locator('#navigation-builder-actions-root').getByRole('button', { name: /^Save(?: \(\d+\))?$/ }).click(),
+    page.keyboard.press(process.platform === 'darwin' ? 'Meta+s' : 'Control+s'),
   ]);
   assert.equal(response.status(), 200);
   assert.notEqual((await response.json()).success, false);
@@ -157,5 +173,5 @@ try {
     await browser.close();
   }
 }
-await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['UI create', 'Dynamic source field', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'UI publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
-console.log('PASS: Dynamic source field, real Craft add, nested drag, type round-trip, edit, publish, reload, settings duplicate and delete.');
+await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['menus sidebar at both routes', 'settings sidebar', 'UI create', 'Dynamic source field', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'keyboard publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
+console.log('PASS: Menus sidebar at both routes, Settings sidebar, dynamic source field, real Craft add, nested drag, type round-trip, edit, keyboard publish, reload, settings duplicate and delete.');

@@ -6,7 +6,11 @@ type GarnishShortcutEvent = KeyboardEvent & {
 };
 
 type GarnishUiLayerManager = {
-  registerShortcut: (shortcut: { keyCode: number; ctrl: boolean }, handler: (event: GarnishShortcutEvent) => void) => void;
+  registerShortcut: (
+    shortcut: { keyCode: number; ctrl: boolean },
+    handler: (event: GarnishShortcutEvent) => void,
+    layer?: number,
+  ) => void;
   unregisterShortcut: (shortcut: { keyCode: number; ctrl: boolean }, layer: number) => void;
 };
 
@@ -53,7 +57,10 @@ export function useBuilderSaveShortcut(enabled: boolean): void {
       void useBuilderStore.getState().publish();
     };
 
-    garnish.uiLayerManager.registerShortcut(shortcut, handler);
+    // The async builder can finish mounting while a Craft modal layer is open.
+    // Pin the page-level shortcut to the base layer so closing that modal does
+    // not remove the shortcut, and cleanup targets the same layer.
+    garnish.uiLayerManager.registerShortcut(shortcut, handler, 0);
 
     return () => {
       garnish.uiLayerManager.unregisterShortcut(shortcut, 0);

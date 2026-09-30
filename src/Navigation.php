@@ -131,11 +131,12 @@ class Navigation extends Plugin
     {
         $nav = parent::getCpNavItem();
         $nav['label'] = $this->getPluginName();
-        $nav['url'] = 'navigation/menus';
 
+        // The menu index is also the top-level plugin screen. Using the common
+        // route here selects Menus at both /navigation and /navigation/menus.
         $nav['subnav']['menus'] = [
             'label' => Craft::t('navigation', 'Menus'),
-            'url' => 'navigation/menus',
+            'url' => 'navigation',
         ];
 
         if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {

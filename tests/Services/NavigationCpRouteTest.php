@@ -4,11 +4,12 @@ use Tests\Support\WebRequestSimulator;
 use verbb\navigation\Navigation;
 use verbb\navigation\controllers\MenusController;
 
-it('uses the menus route as the primary control panel destination', function() {
+it('uses the common plugin route as the primary control panel destination', function() {
     boundaryRequest(function() {
         $navItem = Navigation::$plugin->getCpNavItem();
 
-        expect($navItem['url'])->toBe('navigation/menus');
+        expect($navItem['url'])->toBe('navigation')
+            ->and($navItem['subnav']['menus']['url'])->toBe('navigation');
 
         WebRequestSimulator::withAbsoluteUrl('https://boundary.invalid/navigation', function() {
             Craft::$app->getRequest()->setQueryParams([
