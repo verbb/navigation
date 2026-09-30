@@ -26,9 +26,19 @@ try {
   await page.locator('input[name="password"]:visible').press('Enter');
   await page.waitForURL(url => !url.pathname.includes('/login'));
 
+  phase = 'Apache path carrier';
+  const apacheResponse = await page.goto(`${base}/index.php?p=admin/navigation`);
+  assert.equal(apacheResponse.status(), 200);
+  assert.equal(apacheResponse.request().redirectedFrom(), null);
+  const apacheNavigationNav = page.locator('#nav-navigation');
+  await apacheNavigationNav.waitFor();
+  assert.equal(await apacheNavigationNav.locator('.nav-item__subnav').getAttribute('data-state'), 'expanded');
+  assert.equal(await apacheNavigationNav.getByRole('link', { name: 'Menus', exact: true }).getAttribute('aria-current'), 'page');
+
   for (const path of ['navigation', 'navigation/menus']) {
     phase = `menus sidebar at ${path}`;
-    await page.goto(`${base}/admin/${path}`);
+    const navigationResponse = await page.goto(`${base}/admin/${path}`);
+    assert.equal(navigationResponse.status(), 200);
     const navigationNav = page.locator('#nav-navigation');
     await navigationNav.waitFor();
     assert.equal(await navigationNav.locator('.nav-item__subnav').getAttribute('data-state'), 'expanded');
@@ -173,5 +183,5 @@ try {
     await browser.close();
   }
 }
-await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['menus sidebar at both routes', 'settings sidebar', 'UI create', 'Dynamic source field', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'keyboard publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
-console.log('PASS: Menus sidebar at both routes, Settings sidebar, dynamic source field, real Craft add, nested drag, type round-trip, edit, keyboard publish, reload, settings duplicate and delete.');
+await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['menus sidebar at canonical, path-carrier and explicit routes', 'Apache path carrier does not redirect', 'settings sidebar', 'UI create', 'Dynamic source field', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'keyboard publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
+console.log('PASS: Menus sidebar at canonical, path-carrier and explicit routes, Apache path carrier without redirect, Settings sidebar, dynamic source field, real Craft add, nested drag, type round-trip, edit, keyboard publish, reload, settings duplicate and delete.');
