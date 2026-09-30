@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed direct Craft 4 to Craft 5 upgrades failing when migrating Navigation 2 content to Navigation 4 ([#460](https://github.com/verbb/navigation/issues/460)).
+
 ## 4.0.2 - 2026-09-30
 
 ### Changed
