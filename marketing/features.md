@@ -16,7 +16,7 @@ Manage navigation menus for your Craft site. Link to existing elements such as e
 
 Create as many navigations as the site needs and arrange their nodes independently of Craft’s section structure. Authors can build headers, footers, utility menus and deeply nested structures, with custom fields when a link needs more than a label and URL.
 
-![A populated Navigation menu arranged into a nested hierarchy in Craft.](../screenshots/output/docs/menus/overview-builder.png)
+![A populated Navigation menu arranged into a nested hierarchy in Craft.](../screenshots/navigation-builder.png)
 <!-- feature-section-end -->
 
 <!-- feature-grid -->

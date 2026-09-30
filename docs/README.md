@@ -11,20 +11,6 @@ npm run dev:plugin-docs
 
 The dev server runs at `http://localhost:5380`.
 
-## Screenshot Automation
-
-All product captures use the shared **`@verbb/craft-screenshots`** package from the plugin’s top-level **`screenshots/`** directory. Documentation scenarios live under **`screenshots/scenarios/docs/`**, Navigation-specific fixtures and framing live under **`screenshots/support/docs/`**, and generated documentation images live under **`screenshots/output/docs/`**.
-
-Run the workflow from the Navigation plugin root:
-
-```bash
-npm run screenshots -- prepare
-npm run screenshots -- preview --reuse-install last --filter docs/feature-tour/overview
-npm run screenshots -- capture --reuse-install last --filter docs/feature-tour/overview
-```
-
-The filter matches the scenario file path. The shared package owns the disposable Craft installation, Verbb capture identity, retina enforcement, and timeless control-panel cleanup; Navigation owns its scenarios, deterministic fixtures, framing, and outputs.
-
 ## Sections
 
 - [Get Started](/get-started/installation-setup) for installation, requirements, configuration, and upgrading from v3.
