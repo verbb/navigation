@@ -187,7 +187,7 @@ class Node extends Element
 
             if (preg_match('/^(?:nav|menu):(.+)$/', $source, $matches)) {
                 $nav = Navigation::$plugin->getMenus()->getMenuByUid($matches[1]);
-                
+
                 if ($nav) {
                     $navs[] = $nav;
                 }
@@ -237,7 +237,7 @@ class Node extends Element
         // Get the group we need to check permissions on
         if (preg_match('/^(?:nav|menu):(\d+)$/', $source, $matches)) {
             $nav = Navigation::$plugin->getMenus()->getMenuById($matches[1]);
-        } else if (preg_match('/^(?:nav|menu):(.+)$/', $source, $matches)) {
+        } elseif (preg_match('/^(?:nav|menu):(.+)$/', $source, $matches)) {
             $nav = Navigation::$plugin->getMenus()->getMenuByUid($matches[1]);
         }
 
@@ -536,6 +536,7 @@ class Node extends Element
             // that Craft has since removed. Do not copy stale flags into a locale
             // if it is later re-enabled and propagated from this node.
             $supportedSiteIds = $this->getMenuSettings()->getSiteIds();
+
             foreach (array_keys($state['sites']) as $siteId) {
                 if (!in_array((int)$siteId, $supportedSiteIds, true)) {
                     unset($state['sites'][$siteId]);
@@ -876,7 +877,7 @@ class Node extends Element
     {
         if ($this->nodeType()) {
             $url = $this->nodeType()->getUrl();
-        } else if ($this->isElement()) {
+        } elseif ($this->isElement()) {
             $url = $this->getElementUrl();
         } else {
             $url = $this->getRawUrl();
@@ -928,6 +929,7 @@ class Node extends Element
     public function getElementUrl()
     {
         $siteId = $this->getElementSiteId();
+
         if (!$siteId || !Craft::$app->getSites()->getSiteById($siteId)) {
             return null;
         }
@@ -951,6 +953,7 @@ class Node extends Element
     public function getNodeUri(): string
     {
         $url = $this->getUrl();
+
         if ($url !== null && $url !== '') {
             return str_replace(UrlHelper::siteUrl('', null, null, $this->siteId), '', $url);
         }
@@ -1072,7 +1075,7 @@ class Node extends Element
             }
         } catch (Throwable $e) {
             // This will throw an error if the class exists, but the plugin disabled/uninstalled,
-            // despite the check with `class_exists()` 
+            // despite the check with `class_exists()`
         }
 
         $classNameParts = explode('\\', $this->type);
@@ -1485,6 +1488,7 @@ class Node extends Element
         // Whole-menu removal intentionally discards the entire constrained tree.
         if (!$this->deletedWithMenu && $this->getIsCanonical()) {
             $menu = Navigation::$plugin->getMenus()->getMenuById($this->menuId);
+
             if ($menu) {
                 StructureLimits::requireCurrent($menu, (int)$this->siteId);
             }
@@ -1731,7 +1735,7 @@ class Node extends Element
     {
         if ($attribute == 'typeLabel') {
             return $this->getTypeLabelHtml();
-        } else if ($attribute == 'actions') {
+        } elseif ($attribute == 'actions') {
             $tags = Html::tag('a', null, ['class' => 'settings icon', 'title' => 'Settings']) . Html::tag('a', null, ['class' => 'delete icon', 'title' => 'Delete']);
 
             return Html::tag('div', $tags);
@@ -1743,7 +1747,7 @@ class Node extends Element
     protected function metaFieldsHtml(bool $static): string
     {
         $nav = $this->getMenuSettings();
-        
+
         $fields = [];
 
         // Type

@@ -397,14 +397,14 @@ class Menus extends Component
                 $layout->id = $navRecord->fieldLayoutId;
                 $layout->type = Node::class;
                 $layout->uid = key($data['fieldLayouts']);
-                
+
                 Craft::$app->getFields()->saveLayout($layout, false);
-                
+
                 $navRecord->fieldLayoutId = $layout->id;
-            } else if ($navRecord->fieldLayoutId) {
+            } elseif ($navRecord->fieldLayoutId) {
                 // Delete the field layout
                 Craft::$app->getFields()->deleteLayoutById($navRecord->fieldLayoutId);
-                
+
                 $navRecord->fieldLayoutId = null;
             }
 
@@ -418,7 +418,7 @@ class Menus extends Component
                 Craft::$app->getFields()->saveLayout($menuLayout, false);
 
                 $navRecord->menuFieldLayoutId = $menuLayout->id;
-            } else if ($navRecord->menuFieldLayoutId) {
+            } elseif ($navRecord->menuFieldLayoutId) {
                 Craft::$app->getFields()->deleteLayoutById($navRecord->menuFieldLayoutId);
 
                 $navRecord->menuFieldLayoutId = null;
@@ -549,7 +549,7 @@ class Menus extends Component
                             'structureId' => $navRecord->structureId,
                         ],
                     ]));
-                } else if ($this->autoResaveNodes) {
+                } elseif ($this->autoResaveNodes) {
                     Queue::push(new ResaveElements([
                         'description' => Translation::prep('app', 'Resaving {nav} nodes', [
                             'menu' => $navRecord->name,
@@ -661,6 +661,7 @@ class Menus extends Component
                 }
 
                 $node->deletedWithMenu = true;
+
                 if (!$elementsService->deleteElement($node)) {
                     throw new RuntimeException('Could not delete a menu node.');
                 }
@@ -957,31 +958,31 @@ class Menus extends Component
             ->where(['navs.dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);
 
-            $schemaVersion = Craft::$app->getProjectConfig()->get('plugins.navigation.schemaVersion');
+        $schemaVersion = Craft::$app->getProjectConfig()->get('plugins.navigation.schemaVersion');
 
-            if (version_compare($schemaVersion, '2.0.5', '>=')) {
-                $query->addSelect('navs.propagationMethod');
-            }
+        if (version_compare($schemaVersion, '2.0.5', '>=')) {
+            $query->addSelect('navs.propagationMethod');
+        }
 
-            if (version_compare($schemaVersion, '2.0.6', '>=')) {
-                $query->addSelect('navs.maxNodesSettings');
-            }
+        if (version_compare($schemaVersion, '2.0.6', '>=')) {
+            $query->addSelect('navs.maxNodesSettings');
+        }
 
-            if (version_compare($schemaVersion, '2.1.2', '>=')) {
-                $query->addSelect('navs.showSiteMenu');
-            }
+        if (version_compare($schemaVersion, '2.1.2', '>=')) {
+            $query->addSelect('navs.showSiteMenu');
+        }
 
-            if (version_compare($schemaVersion, '3.0.0', '>=')) {
-                $query->addSelect('navs.menuFieldLayoutId');
-            }
+        if (version_compare($schemaVersion, '3.0.0', '>=')) {
+            $query->addSelect('navs.menuFieldLayoutId');
+        }
 
-            if (version_compare($schemaVersion, '4.0.0', '>=')) {
-                $query->addSelect(['navs.titleTranslationMethod', 'navs.titleTranslationKeyFormat']);
-            }
+        if (version_compare($schemaVersion, '4.0.0', '>=')) {
+            $query->addSelect(['navs.titleTranslationMethod', 'navs.titleTranslationKeyFormat']);
+        }
 
-            if (version_compare($schemaVersion, '4.0.6', '>=')) {
-                $query->addSelect('navs.defaultEnabledForPropagatedSites');
-            }
+        if (version_compare($schemaVersion, '4.0.6', '>=')) {
+            $query->addSelect('navs.defaultEnabledForPropagatedSites');
+        }
 
         return $query;
     }
@@ -1123,6 +1124,7 @@ class Menus extends Component
                     if ($parent) {
                         $parent->structureId = $structureId;
                         $node->structureId = $structureId;
+
                         if (!$structuresService->append($structureId, $node, $parent)) {
                             throw new UserException(Craft::t('navigation', 'Couldn’t restore the menu structure.'));
                         }
@@ -1131,6 +1133,7 @@ class Menus extends Component
                 }
 
                 $node->structureId = $structureId;
+
                 if (!$structuresService->appendToRoot($structureId, $node)) {
                     throw new UserException(Craft::t('navigation', 'Couldn’t restore the menu structure.'));
                 }

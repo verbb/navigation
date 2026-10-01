@@ -465,7 +465,8 @@ class BuilderController extends Controller
         }
 
         MenuAuth::requireDuplicatableNodes(
-            Node::find()->id($nodeIds)->menuId($menuId)->siteId($siteId)->status(null)->all(), $deep,
+            Node::find()->id($nodeIds)->menuId($menuId)->siteId($siteId)->status(null)->all(),
+            $deep,
         );
 
         $buildSessions = Navigation::$plugin->getBuildSessions();

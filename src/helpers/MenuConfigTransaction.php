@@ -26,6 +26,7 @@ class MenuConfigTransaction
         } catch (Throwable $e) {
             $muteEvents = $config->muteEvents;
             $config->muteEvents = true;
+
             try {
                 $config->set('navigation', $before, null, false);
                 $config->set('dateModified', $timestamp, null, false);

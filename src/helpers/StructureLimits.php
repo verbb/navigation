@@ -23,9 +23,11 @@ class StructureLimits
         $key = $menu->id . ':' . $siteId;
         $previous = self::$_batches[$key] ?? 0;
         self::$_batches[$key] = $previous + 1;
+
         try {
             Craft::$app->getDb()->transaction(function() use ($menu, $siteId, $callback, $skipIds, $previous) {
                 $callback();
+
                 if (!$previous && ($menu->maxNodes || $menu->maxLevels || $menu->maxNodesSettings)) {
                     self::_validate($menu, array_diff_key(self::_tree($menu, $siteId), $skipIds));
                 }
@@ -50,10 +52,12 @@ class StructureLimits
     public static function requireMove(MoveElementEvent $event): void
     {
         $node = $event->element;
+
         if (!$node instanceof Node || !$node->getIsCanonical()) {
             return;
         }
         $menu = Navigation::$plugin->getMenus()->getMenuById($node->menuId);
+
         if (!$menu || (!$menu->maxNodes && !$menu->maxLevels && !$menu->maxNodesSettings)
             || isset(self::$_batches[$menu->id . ':' . $node->siteId])) {
             return;
@@ -65,8 +69,10 @@ class StructureLimits
         $parentId = $asChild ? ($target['id'] ?? null) : ($target['parentId'] ?? null);
         $level = $target ? $target['level'] + ($asChild ? 1 : 0) : 1;
         $original = $tree[$node->id] ?? null;
+
         if ($original) {
             $delta = $level - $original['level'];
+
             foreach ($tree as &$row) {
                 if ($row['lft'] > $original['lft'] && $row['rgt'] < $original['rgt']) {
                     $row['level'] += $delta;
@@ -92,6 +98,7 @@ class StructureLimits
             ->orderBy(['lft' => SORT_ASC])->all();
         $tree = [];
         $stack = [];
+
         foreach ($rows as $row) {
             while ($stack && end($stack)['rgt'] < $row['lft']) {
                 array_pop($stack);
@@ -112,12 +119,14 @@ class StructureLimits
         }
 
         $counts = [];
+
         foreach ($tree as $row) {
             if ($menu->maxLevels && $row['level'] > $menu->maxLevels) {
                 throw new BadRequestHttpException(Craft::t('navigation', 'Maximum menu depth exceeded.'));
             }
             $key = $row['level'] . ':' . ($row['parentId'] ?? 'root');
             $counts[$key] = ($counts[$key] ?? 0) + 1;
+
             foreach ($menu->maxNodesSettings ?? [] as $limit) {
                 if (isset($limit['level'], $limit['max']) && (int)$limit['level'] === $row['level']
                     && $counts[$key] > (int)$limit['max']) {

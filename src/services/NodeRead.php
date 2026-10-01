@@ -332,6 +332,7 @@ class NodeRead extends Component
         }
 
         $nestedKeys = [];
+
         foreach (NodeHierarchy::childrenByParent($nodes) as $children) {
             foreach ($children as $child) {
                 $nestedKeys[$this->_nodeSiteKey($child)] = true;
@@ -339,6 +340,7 @@ class NodeRead extends Component
         }
 
         $nodeTree = [];
+
         foreach ($nodes as $node) {
             // Filtered results form a forest without changing stored levels or parents.
             if ($node instanceof NodeElement && !isset($nestedKeys[$this->_nodeSiteKey($node)])) {

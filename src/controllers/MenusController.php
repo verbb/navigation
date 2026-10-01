@@ -338,6 +338,7 @@ class MenusController extends Controller
         $sources = NodeElement::find()->menuId($nav->id)->site('*')->unique()
             ->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all();
         MenuAuth::requireDuplicatableNodes($sources);
+
         foreach ($sources as $source) {
             if ($source->getIsPendingPublish() || $source->getIsPendingDelete()) {
                 throw new BadRequestHttpException('Save or discard pending changes before duplicating this menu.');
@@ -374,12 +375,14 @@ class MenusController extends Controller
             // Snapshot the source traversal before writing; copies must never become source children.
             $copies = [];
             $structures = Craft::$app->getStructures();
+
             foreach ($sources as $source) {
                 $copy = Craft::$app->getElements()->duplicateElement($source, ['menuId' => $newNav->id, 'fieldLayoutId' => $newNav->fieldLayoutId, 'parentId' => null, 'parent' => null], false);
                 $parent = $copies[$source->getParentId()] ?? null;
                 $placed = $parent
                     ? $structures->append($newNav->structureId, $copy, $parent)
                     : $structures->appendToRoot($newNav->structureId, $copy);
+
                 if (!$placed) {
                     throw new RuntimeException('Unable to duplicate menu structure.');
                 }
@@ -389,8 +392,10 @@ class MenusController extends Controller
             foreach ($nav->getSiteIds() as $siteId) {
                 $source = Menu::find()->id($nav->id)->siteId($siteId)->status(null)->one();
                 $target = Menu::find()->id($newNav->id)->siteId($siteId)->status(null)->one();
+
                 if ($source && $target) {
                     $target->setFieldValues($source->getFieldValues());
+
                     if (!Craft::$app->getElements()->saveElement($target)) {
                         throw new RuntimeException('Unable to duplicate menu content.');
                     }

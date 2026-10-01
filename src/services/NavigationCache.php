@@ -394,6 +394,7 @@ class NavigationCache extends Component
             $node->data = $nodeData['data'] ?? [];
             $node->elementId = $nodeData['elementId'] ?? null;
             $node->setElementSiteId($nodeData['elementSiteId'] ?? $node->siteId);
+
             foreach (['uid', 'fieldLayoutId', 'siteSettingsId', 'canonicalId', 'slug', 'uri', 'structureId', 'root', 'lft', 'rgt'] as $attribute) {
                 if (array_key_exists($attribute, $nodeData)) {
                     $node->$attribute = $nodeData[$attribute];
@@ -514,14 +515,19 @@ class NavigationCache extends Component
         $isCriterion = function($value) use (&$isCriterion): bool {
             if (is_array($value)) {
                 foreach ($value as $item) {
-                    if (!$isCriterion($item)) return false;
+                    if (!$isCriterion($item)) {
+                        return false;
+                    }
                 }
                 return true;
             }
             return $value === null || is_scalar($value);
         };
+
         foreach (['status', 'type', 'level', 'id', 'limit', 'offset', 'enabled', 'hasUrl'] as $attribute) {
-            if (!$isCriterion($query->$attribute)) return false;
+            if (!$isCriterion($query->$attribute)) {
+                return false;
+            }
         }
 
         // Compare every SQL/query property and custom-field criterion with an untouched
@@ -535,6 +541,7 @@ class NavigationCache extends Component
         ], true);
         $criteria = get_object_vars($query) + $query->getCriteria();
         $defaultCriteria = get_object_vars($defaults) + $defaults->getCriteria();
+
         foreach ($criteria as $attribute => $value) {
             if (!isset($allowed[$attribute]) && $value !== ($defaultCriteria[$attribute] ?? null)) {
                 // Craft initializes ordering with an Expression object on each query.

@@ -144,11 +144,13 @@ class NodeFeedMeElement extends Element
             // matching field instance's SQL so repeated layouts and scalar
             // field types resolve the same values that Craft reads.
             $globalField = Craft::$app->getFields()->getFieldByHandle((string)$match);
+
             if (!$globalField) {
                 return null;
             }
 
             $conditions = ['or'];
+
             foreach (Craft::$app->getFields()->getAllLayouts() as $layout) {
                 foreach ($layout->getCustomFields() as $field) {
                     // Feed Me lists global handles; layouts can override them.

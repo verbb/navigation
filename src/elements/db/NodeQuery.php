@@ -88,7 +88,7 @@ class NodeQuery extends ElementQuery
         if ($value instanceof MenuSettings || $value instanceof Menu) {
             $this->structureId = ($value->structureId ?: false);
             $this->menuId = $value->id;
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             $this->handle($value);
         } else {
             $this->menuId = null;
@@ -217,7 +217,7 @@ class NodeQuery extends ElementQuery
     }
 
     // We set the active state on each node, however it gets trickier when trying to do things like settings the active
-    // state when a child is active, which involves firing off additional element queries for each node's children, 
+    // state when a child is active, which involves firing off additional element queries for each node's children,
     // which quickly blow out queries. So instead, do this when the elements are populated
     public function populate($rows): array
     {
@@ -262,6 +262,7 @@ class NodeQuery extends ElementQuery
         // Hierarchy/projection traversal needs an ordered list. Apply caller keys only afterward.
         $indexBy = $this->indexBy;
         $this->indexBy = null;
+
         try {
             $rows = parent::populate($rows);
         } finally {

@@ -98,7 +98,9 @@ class NodesController extends Controller
         }
 
         MenuAuth::requireDuplicatableNodes(
-            Node::find()->id($nodeIds)->menuId($menuId)->siteId($sourceSiteId)->status(null)->all(), $deep, $targetSiteId,
+            Node::find()->id($nodeIds)->menuId($menuId)->siteId($sourceSiteId)->status(null)->all(),
+            $deep,
+            $targetSiteId,
         );
 
         $result = Navigation::$plugin->getNodes()->copyNodesToSite(
@@ -199,6 +201,7 @@ class NodesController extends Controller
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $addedNodeIds = [];
 

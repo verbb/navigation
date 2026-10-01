@@ -49,11 +49,16 @@ class BuildSessionsController extends Controller
 
         MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
-        $publish = fn() => BuilderStructureRevision::trackMutation($nav,
-            fn() => $this->_publishSession($menuId, $siteId, $applyStructure, $moves));
+        $publish = fn() => BuilderStructureRevision::trackMutation(
+            $nav,
+            fn() => $this->_publishSession($menuId, $siteId, $applyStructure, $moves)
+        );
+
         if ($applyStructure && $moves !== []) {
             return BuilderStructureRevision::apply(
-                $nav, $this->request->getBodyParam('structureRevision'), $publish,
+                $nav,
+                $this->request->getBodyParam('structureRevision'),
+                $publish,
             );
         }
         return $publish();
@@ -187,7 +192,9 @@ class BuildSessionsController extends Controller
 
         if ($hasStructurePayload) {
             MenuAuth::requireStructureMoves(
-                Navigation::$plugin->getMenus()->getMenuById($menuId), $siteId, $moves,
+                Navigation::$plugin->getMenus()->getMenuById($menuId),
+                $siteId,
+                $moves,
                 array_map('intval', array_column($session->stagedDeletes, 'nodeId')),
             );
             $buildSessions->setStructureMoves($session, $moves);

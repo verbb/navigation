@@ -60,7 +60,7 @@ class NavigationField extends Field
             'resolve' => NodeResolver::class . '::resolve',
         ];
     }
-    
+
 
     // Protected Methods
     // =========================================================================

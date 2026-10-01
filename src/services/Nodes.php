@@ -221,7 +221,9 @@ class Nodes extends Component
                 // locale once, retaining its own enabled flag and authored title.
                 if (!array_key_exists($linkedSiteId, $linkedElements)) {
                     $linkedElements[$linkedSiteId] = Craft::$app->getElements()->getElementById(
-                        $element->id, get_class($element), $linkedSiteId,
+                        $element->id,
+                        get_class($element),
+                        $linkedSiteId,
                     );
                 }
 
@@ -345,6 +347,7 @@ class Nodes extends Component
             ->all();
 
         $dataById = [];
+
         foreach ($nodes as $node) {
             $node->data = $dataById[$node->id] ?? $node->data;
 
@@ -778,6 +781,7 @@ class Nodes extends Component
 
             // A failed save or placement must not leave a pending copy outside its session.
             $transaction = Craft::$app->getDb()->beginTransaction();
+
             try {
                 $duplicate = $elementsService->duplicateElement(
                     $element,
@@ -791,6 +795,7 @@ class Nodes extends Component
                 if ($deferPublish) {
                     $duplicate->enabled = false;
                     $duplicate->setEnabledForSite(false);
+
                     if (!$elementsService->saveElement($duplicate)) {
                         throw new UserException('Could not save pending duplicate.');
                     }
@@ -799,6 +804,7 @@ class Nodes extends Component
                 $placed = $newParent
                     ? $structuresService->append($element->structureId, $duplicate, $newParent)
                     : $structuresService->moveAfter($element->structureId, $duplicate, $element);
+
                 if (!$placed) {
                     throw new UserException('Could not place duplicate.');
                 }
@@ -872,20 +878,27 @@ class Nodes extends Component
             $transaction = Craft::$app->getDb()->beginTransaction();
             $previousRemapped = $remappedLinkedElementCount;
             $previousSkipped = $skippedLinkedElementRemapCount;
+
             try {
                 $duplicate = $elementsService->duplicateElement($element, ['siteId' => $targetSiteId]);
+
                 if (!$duplicate instanceof NodeElement) {
                     throw new UserException('Could not copy node.');
                 }
 
                 $this->_copyNodeSiteSettings(
-                    $element, $duplicate, $targetSiteId, $remapLinkedElements,
-                    $remappedLinkedElementCount, $skippedLinkedElementRemapCount,
+                    $element,
+                    $duplicate,
+                    $targetSiteId,
+                    $remapLinkedElements,
+                    $remappedLinkedElementCount,
+                    $skippedLinkedElementRemapCount,
                 );
 
                 $nav = Navigation::$plugin->getMenus()->getMenuById($element->menuId);
                 $structureId = (int)$nav->structureId;
                 $structureParent = $newParent;
+
                 if (!$structureParent) {
                     $structureParent = $copiedSourceToTargetIds[$element->getParentId()] ?? null;
                 }
@@ -897,6 +910,7 @@ class Nodes extends Component
                 $placed = $structureParent
                     ? $structuresService->append($structureId, $duplicate, $structureParent)
                     : $structuresService->appendToRoot($structureId, $duplicate);
+
                 if (!$placed) {
                     throw new UserException('Could not place copied node.');
                 }

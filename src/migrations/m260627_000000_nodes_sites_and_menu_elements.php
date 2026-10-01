@@ -230,7 +230,9 @@ class m260627_000000_nodes_sites_and_menu_elements extends Migration
             ->where(['elementId' => $nodeIds])
             ->all($this->db);
 
-        $ids = array_column(array_filter($rows, static fn(array $row) =>
+        $ids = array_column(array_filter(
+            $rows,
+            static fn(array $row) =>
             $row['slug'] !== null && ctype_digit((string)$row['slug'])
         ), 'id');
 
@@ -287,6 +289,7 @@ class m260627_000000_nodes_sites_and_menu_elements extends Migration
                     'uid' => $nav['uid'],
                 ]);
             }
+
             if (!$tables['sites']) {
                 continue;
             }

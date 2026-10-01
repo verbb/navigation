@@ -31,12 +31,15 @@ class MenuPermissionMigration
     public static function migrate(): void
     {
         $db = Craft::$app->getDb();
+
         foreach ((new Query())->from('{{%userpermissions}}')->all($db) as $row) {
             $name = self::rename($row['name']);
+
             if ($name === $row['name']) {
                 continue;
             }
             $target = (new Query())->from('{{%userpermissions}}')->where(['name' => $name])->one($db);
+
             if ($target && (int)$target['id'] !== (int)$row['id']) {
                 foreach (['{{%userpermissions_users}}' => 'userId', '{{%userpermissions_usergroups}}' => 'groupId'] as $table => $ownerColumn) {
                     foreach ((new Query())->from($table)->where(['permissionId' => $row['id']])->all($db) as $assignment) {

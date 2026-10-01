@@ -95,8 +95,10 @@ class BuildSessions extends Component
         }
 
         $nodeId = (int)($node->canonicalId ?: $node->id);
+
         foreach (BuildSessionRecord::find()->where(['menuId' => $node->menuId])->all() as $record) {
             $session = $this->_recordToModel($record);
+
             if ((in_array($nodeId, $session->addedNodeIds, true)
                 || $this->_findStagedDelete($session, $nodeId))
                 && ((int)$session->userId !== $userId || (int)$session->siteId !== (int)$node->siteId)) {
@@ -112,12 +114,15 @@ class BuildSessions extends Component
     {
         foreach (BuildSessionRecord::find()->where(['menuId' => $node->menuId])->all() as $record) {
             $session = $this->_recordToModel($record);
+
             if (!in_array((int)$node->id, $session->addedNodeIds, true)) {
                 continue;
             }
 
-            $session->addedNodeIds = array_values(array_filter($session->addedNodeIds,
-                static fn(int $id) => $id !== (int)$node->id));
+            $session->addedNodeIds = array_values(array_filter(
+                $session->addedNodeIds,
+                static fn(int $id) => $id !== (int)$node->id
+            ));
             $this->saveSession($session);
         }
     }
@@ -279,7 +284,8 @@ class BuildSessions extends Component
     private function _lockMenu(int $menuId): void
     {
         Craft::$app->getDb()->createCommand(
-            'SELECT [[id]] FROM {{%navigation_menus}} WHERE [[id]] = :id FOR UPDATE', [':id' => $menuId],
+            'SELECT [[id]] FROM {{%navigation_menus}} WHERE [[id]] = :id FOR UPDATE',
+            [':id' => $menuId],
         )->queryScalar();
     }
 
@@ -313,7 +319,8 @@ class BuildSessions extends Component
         $session->uid = $record->uid;
         // A no-op save need not create a version visible to a repeatable-read snapshot.
         $record = BuildSessionRecord::findBySql(
-            'SELECT * FROM {{%navigation_build_sessions}} WHERE [[id]] = :id FOR UPDATE', [':id' => $record->id],
+            'SELECT * FROM {{%navigation_build_sessions}} WHERE [[id]] = :id FOR UPDATE',
+            [':id' => $record->id],
         )->one();
         $session->setStorageRevision($this->_storageRevision($record));
 
@@ -323,6 +330,7 @@ class BuildSessions extends Component
     private function _stageDelete(BuildSessionModel $session, NodeElement $node, bool $withDescendants = false): void
     {
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $elementsService = Craft::$app->getElements();
             $nodesToStage = [$node];
@@ -395,6 +403,7 @@ class BuildSessions extends Component
     private function _unstageDelete(BuildSessionModel $session, NodeElement $node): void
     {
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $this->_requireNodeOwnership($session, $node);
             $nodeId = (int)$node->id;
@@ -415,6 +424,7 @@ class BuildSessions extends Component
             ));
 
             $node->clearPendingDelete();
+
             // Current staged deletes leave statuses live. Preserve intervening source
             // updates; only older rows that disabled nodes need their saved status back.
             if ($stagedDelete['restoreEnabledState'] ?? true) {
@@ -589,6 +599,7 @@ class BuildSessions extends Component
                 }
 
                 $node->clearPendingDelete();
+
                 if ($stagedDelete['restoreEnabledState'] ?? true) {
                     $node->enabled = (bool)$stagedDelete['enabled'];
                     $node->setEnabledForSite((bool)$stagedDelete['enabledForSite']);
@@ -722,11 +733,13 @@ class BuildSessions extends Component
         if ((int)$node->menuId !== (int)$session->menuId || (int)$node->siteId !== (int)$session->siteId) {
             throw new BadRequestHttpException('Node does not belong to this menu/site session.');
         }
+
         foreach (BuildSessionRecord::find()->where(['menuId' => $session->menuId])->all() as $record) {
             if ((int)$record->id === (int)$session->id) {
                 continue;
             }
             $other = $this->_recordToModel($record);
+
             if (($node->getIsPendingPublish() && in_array((int)$node->id, $other->addedNodeIds, true)) || $this->_findStagedDelete($other, (int)$node->id)) {
                 throw new UserException(Craft::t('navigation', 'This node has pending changes in another build session.'));
             }

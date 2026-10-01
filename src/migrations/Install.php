@@ -235,6 +235,7 @@ class Install extends Migration
             }
 
             $layoutIds = (new Query())->select('id')->from('{{%fieldlayouts}}')->where(['type' => $type])->column();
+
             if ($layoutIds) {
                 Craft::$app->getFields()->deleteLayoutById($layoutIds, true);
             }

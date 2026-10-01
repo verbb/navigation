@@ -175,6 +175,7 @@ JS);
         // initial canSave check. Recheck the final source before persisting that change.
         if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
             $user = Craft::$app->getUser()->getIdentity();
+
             if (!$user || !MenuAuth::canAuthorDynamicSource($this->node, $user)) {
                 $this->node->addError('data', Craft::t('navigation', 'This dynamic source is not available.'));
                 return false;

@@ -23,4 +23,3 @@ class m260128_000000_site_menu extends Migration
         return false;
     }
 }
-

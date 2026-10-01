@@ -53,6 +53,7 @@ class BuilderStructureRevision
             self::_lock($menu);
             $before = self::get($menu);
             $response = $callback();
+
             if ($response->getStatusCode() < 400) {
                 $response->data['previousStructureRevision'] = $before;
                 $response->data['structureRevision'] = self::get($menu);

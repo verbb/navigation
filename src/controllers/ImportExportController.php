@@ -28,6 +28,7 @@ class ImportExportController extends Controller
     private static function _readImportPayload(string $path): array
     {
         $payload = Json::decode(file_get_contents($path));
+
         if (isset($payload[0]) && is_array($payload[0])) {
             $payload = $payload[0];
         }
@@ -55,11 +56,14 @@ class ImportExportController extends Controller
         // Review and completion must reject malformed trees before rendering
         // metadata or applying any imported settings and content.
         $nodes = $payload['nodes'];
+
         while ($nodes) {
             $node = array_pop($nodes);
+
             if (!is_array($node) || !is_array($node['children'] ?? [])) {
                 throw new InvalidArgumentException('Invalid node data.');
             }
+
             foreach (['title', 'type'] as $key) {
                 if (isset($node[$key]) && !is_string($node[$key])) {
                     throw new InvalidArgumentException('Invalid node metadata.');
@@ -130,6 +134,7 @@ class ImportExportController extends Controller
         }
 
         $fileLocation = Craft::$app->getPath()->getTempPath() . DIRECTORY_SEPARATOR . $filename;
+
         if (!$uploadedFile->saveAs($fileLocation, false)) {
             throw new BadRequestHttpException('Could not store the uploaded import file.');
         }

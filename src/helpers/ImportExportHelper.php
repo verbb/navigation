@@ -31,6 +31,7 @@ class ImportExportHelper
     public static function generateMenuExport(MenuSettings $menu, ?int $siteId = null): array
     {
         $allSites = $siteId === null;
+
         if ($siteId === null) {
             $primarySiteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
             $menuSiteIds = $menu->getSiteIds();
@@ -116,6 +117,7 @@ class ImportExportHelper
 
         // No configuration or content writes before the complete type preflight.
         self::_preflightNodeTree($json['nodes'] ?? [], $result);
+
         if ($result->hasImportErrors()) {
             $result->menu = $existingMenu;
             return $result;
@@ -127,23 +129,27 @@ class ImportExportHelper
         $writeYaml = $config->writeYamlAutomatically;
         $config->writeYamlAutomatically = false;
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             if (!Navigation::$plugin->getMenus()->saveMenu($menu)) {
                 throw new RuntimeException('Invalid menu settings: ' . Json::encode($menu->getErrors()));
             }
             $savedMenu = Navigation::$plugin->getMenus()->getMenuByHandle($menu->handle);
+
             if (!$savedMenu) {
                 throw new RuntimeException('Menu could not be reloaded.');
             }
             $result->menu = $savedMenu;
             $siteId = self::_resolveSiteIdByHandle($json['sourceSiteHandle'] ?? null)
                 ?? (int)Craft::$app->getSites()->getPrimarySite()->id;
+
             if ($menuAction === 'update') {
                 self::_deleteMenuNodes($savedMenu);
             }
             $skippedBefore = $result->nodesSkipped;
             self::_importNodeTree($json['nodes'] ?? [], $savedMenu, null, $siteId, $result);
             self::_importMenuFieldValues($savedMenu, $json['menuFieldValues'] ?? [], $result);
+
             if ($result->hasImportErrors() || $result->nodesSkipped > $skippedBefore) {
                 throw new RuntimeException('Menu import failed; original content was preserved.');
             }
@@ -155,12 +161,14 @@ class ImportExportHelper
             // without replaying lifecycle events against the already-restored database.
             $muteEvents = $config->muteEvents;
             $config->muteEvents = true;
+
             try {
                 $config->set('navigation', $configBefore, null, false);
                 $config->set('dateModified', $timestampBefore, null, false);
             } finally {
                 $config->muteEvents = $muteEvents;
             }
+
             if ($existingMenu) {
                 // Reassert the original active layouts through Craft's service. This also
                 // clears cached replacement field-element UIDs left behind by rollback.
@@ -169,6 +177,7 @@ class ImportExportHelper
                 }
             }
             Navigation::$plugin->getMenus()->resetCache();
+
             if (!$result->hasImportErrors()) {
                 $result->addImportError($e->getMessage());
             }
@@ -352,6 +361,7 @@ class ImportExportHelper
 
         if ($sourceOptions = self::_nodeSourceOptions($node)) {
             [$field, $sources] = $sourceOptions;
+
             if (isset($node->data[$field]) && $node->data[$field] !== '') {
                 $source = ArrayHelper::firstWhere($sources, 'id', (int)$node->data[$field]);
                 $data['sourceHandle'] = $source?->handle;
@@ -446,6 +456,7 @@ class ImportExportHelper
         // Shared identities still have independently authored Craft content.
         foreach (Node::find()->id($node->id)->site('*')->status(null)->all() as $localized) {
             $site = Craft::$app->getSites()->getSiteById($localized->siteId);
+
             if (!$site || $site->id === $node->siteId) {
                 continue;
             }
@@ -638,12 +649,14 @@ class ImportExportHelper
         if (array_key_exists('sourceHandle', $data)) {
             $handle = $data['sourceHandle'];
             $sourceOptions = self::_nodeSourceOptions($node);
+
             if (!is_string($handle) || !$sourceOptions) {
                 throw new RuntimeException("Invalid source reference for node “{$node->title}”.");
             }
 
             [$field, $sources] = $sourceOptions;
             $source = ArrayHelper::firstWhere($sources, 'handle', $handle);
+
             if (!$source) {
                 throw new RuntimeException("Source “{$handle}” for node “{$node->title}” was not found.");
             }
