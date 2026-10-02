@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Updated the required version of `verbb/base` to 3.0.19.
+
 ### Fixed
 - Fixed the Navigation sidebar subnavigation collapsing or losing its active item across Menus and Settings pages, and the menu builder’s Cmd/Ctrl+S shortcut becoming unavailable after Craft UI layers closed ([#461](https://github.com/verbb/navigation/issues/461)).
 - Fixed direct Craft 4 to Craft 5 upgrades failing when migrating Navigation 2 content to Navigation 4 ([#460](https://github.com/verbb/navigation/issues/460)).
