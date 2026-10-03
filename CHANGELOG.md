@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed a medium-severity information disclosure vulnerability.
+
 ## 4.0.3 - 2026-10-02
 
 ### Changed

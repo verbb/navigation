@@ -20,7 +20,7 @@ it('enforces linked section grants in the actual GraphQL response', function() {
     $allowed = F::entrySection(); $denied = F::entrySection();
     $a = F::entries(1, $allowed)[0]; $b = F::entries(1, $denied)[0];
     $na = F::entryNode($menu, $a); $nb = F::entryNode($menu, $b);
-    $schema = new GqlSchema(['name' => 'Restricted links', 'scope' => ['navigationMenus.'.$menu->uid.':read', 'sections.'.$allowed->uid.':read']]);
+    $schema = new GqlSchema(['name' => 'Restricted links', 'scope' => ['sites.'.Craft::$app->sites->primarySite->uid.':read', 'navigationMenus.'.$menu->uid.':read', 'sections.'.$allowed->uid.':read']]);
     $result = Craft::$app->gql->executeQuery($schema, 'query($h: String!) { navigationNodes(menuHandle: $h) { id element { id } } }', ['h' => $menu->handle]);
     expect($result)->not->toHaveKey('errors');
     expect($result['data']['navigationNodes'])->toBe([
@@ -33,7 +33,7 @@ it('enforces linked section grants on projected GraphQL children', function() {
     $menu = F::menu(); $allowed = F::entrySection(); $denied = F::entrySection();
     $a = F::entries(1, $allowed)[0]; $b = F::entries(1, $denied)[0];
     F::dynamicSectionNode($menu, $allowed); F::dynamicSectionNode($menu, $denied);
-    $schema = new GqlSchema(['name' => 'Restricted projections', 'scope' => ['navigationMenus.'.$menu->uid.':read', 'sections.'.$allowed->uid.':read']]);
+    $schema = new GqlSchema(['name' => 'Restricted projections', 'scope' => ['sites.'.Craft::$app->sites->primarySite->uid.':read', 'navigationMenus.'.$menu->uid.':read', 'sections.'.$allowed->uid.':read']]);
     $result = Craft::$app->gql->executeQuery($schema, 'query($h: String!) { navigationNodes(menuHandle: $h, level: 1, withNodeHierarchy: true) { children { element { id } } } }', ['h' => $menu->handle]);
     expect($result)->not->toHaveKey('errors');
     expect($result['data']['navigationNodes'])->toBe([

@@ -8,6 +8,8 @@ use verbb\navigation\gql\types\generators\MenuGenerator;
 use verbb\navigation\helpers\Gql as GqlHelper;
 use verbb\navigation\models\MenuSettings;
 
+use Craft;
+use craft\gql\ArgumentManager;
 use craft\gql\base\Query;
 
 use GraphQL\Type\Definition\Type;
@@ -51,17 +53,46 @@ class MenuQuery extends Query
                         'description' => 'The site handle.',
                     ],
                 ],
-                'resolve' => function($source, array $args) use ($menu, $nav) {
+                'resolve' => function($source, array $args, mixed $context = null) use ($menu, $nav) {
                     // Enforce per-menu scope when a schema is active (executeQuery / tokens).
                     // Direct resolver calls without a schema (unit tests) skip this gate.
                     try {
-                        $schema = \Craft::$app->getGql()->getActiveSchema();
+                        $schema = Craft::$app->getGql()->getActiveSchema();
                     } catch (\Throwable) {
                         $schema = null;
                     }
 
-                    if ($schema !== null && !GqlHelper::canQueryMenu($nav, $schema)) {
-                        return null;
+                    if ($schema !== null) {
+                        if (!GqlHelper::canQueryMenu($nav, $schema)) {
+                            return null;
+                        }
+
+                        $argumentManager = is_array($context) ? ($context['argumentManager'] ?? null) : null;
+
+                        if (!$argumentManager instanceof ArgumentManager) {
+                            $argumentManager = Craft::createObject(ArgumentManager::class);
+                        }
+
+                        // Match Craft's native element resolvers by intersecting site input with the active schema.
+                        $requestedSite = $args['site'] ?? null;
+
+                        if ($requestedSite === null || $requestedSite === '') {
+                            $requestedSite = Craft::$app->getSites()->getCurrentSite()->handle;
+                            $args['site'] = $requestedSite;
+                        }
+
+                        $args = $argumentManager->prepareArguments($args);
+
+                        if ($requestedSite !== '*') {
+                            $allowedSites = (array)($args['site'] ?? []);
+
+                            if (!in_array($requestedSite, $allowedSites, true)) {
+                                return null;
+                            }
+
+                            // Preserve the existing scalar argument contract after Craft has authorized it.
+                            $args['site'] = $requestedSite;
+                        }
                     }
 
                     $query = Menu::find()->id($menu->id)->status(null);

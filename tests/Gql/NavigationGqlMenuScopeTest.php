@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use craft\helpers\Gql as CraftGql;
+use craft\helpers\StringHelper;
 use craft\models\GqlSchema;
 use Tests\Support\Fixtures\NavigationFixtureFactory;
 use Tests\Support\WebRequestSimulator;
@@ -43,6 +44,7 @@ it('resolver returns null for menus outside an active restricted schema', functi
     $schema = new GqlSchema([
         'name' => 'Restricted resolver',
         'scope' => [
+            'sites.' . Craft::$app->getSites()->getPrimarySite()->uid . ':read',
             'navigationMenus.' . $allowed->uid . ':read',
         ],
     ]);
@@ -56,6 +58,85 @@ it('resolver returns null for menus outside an active restricted schema', functi
 
     expect($resolveDenied(null, []))->toBeNull();
     expect($resolveAllowed(null, []))->toBeInstanceOf(Menu::class);
+});
+
+it('enforces active schema site scope on per-menu queries', function() {
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $secondarySite = NavigationFixtureFactory::existingSecondarySite();
+    $menu = NavigationFixtureFactory::menu();
+    $query = sprintf(
+        'query($site: String!) { %s_Menu(site: $site) { ... on ElementInterface { siteId } } }',
+        $menu->handle,
+    );
+
+    $restrictedSchema = new GqlSchema([
+        'name' => 'Primary-site menu access',
+        'uid' => StringHelper::UUID(),
+        'scope' => [
+            'sites.' . $primarySite->uid . ':read',
+            'navigationMenus.' . $menu->uid . ':read',
+        ],
+    ]);
+
+    $deniedResult = Craft::$app->getGql()->executeQuery($restrictedSchema, $query, [
+        'site' => $secondarySite->handle,
+    ]);
+    $allowedResult = Craft::$app->getGql()->executeQuery($restrictedSchema, $query, [
+        'site' => $primarySite->handle,
+    ]);
+    $allAllowedResult = Craft::$app->getGql()->executeQuery($restrictedSchema, $query, [
+        'site' => '*',
+    ]);
+
+    expect($deniedResult['errors'] ?? [])->toBe([])
+        ->and($deniedResult['data'][$menu->handle . '_Menu'])->toBeNull()
+        ->and($allowedResult['errors'] ?? [])->toBe([])
+        ->and((int)$allowedResult['data'][$menu->handle . '_Menu']['siteId'])->toBe((int)$primarySite->id)
+        ->and($allAllowedResult['errors'] ?? [])->toBe([])
+        ->and((int)$allAllowedResult['data'][$menu->handle . '_Menu']['siteId'])->toBe((int)$primarySite->id);
+
+    $multiSiteSchema = new GqlSchema([
+        'name' => 'Multi-site menu access',
+        'uid' => StringHelper::UUID(),
+        'scope' => [
+            'sites.' . $primarySite->uid . ':read',
+            'sites.' . $secondarySite->uid . ':read',
+            'navigationMenus.' . $menu->uid . ':read',
+        ],
+    ]);
+    $multiSiteResult = Craft::$app->getGql()->executeQuery($multiSiteSchema, $query, [
+        'site' => $secondarySite->handle,
+    ]);
+
+    expect($multiSiteResult['errors'] ?? [])->toBe([])
+        ->and((int)$multiSiteResult['data'][$menu->handle . '_Menu']['siteId'])->toBe((int)$secondarySite->id);
+});
+
+it('enforces active schema site scope when the menu site is omitted or empty', function() {
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $secondarySite = NavigationFixtureFactory::existingSecondarySite();
+    $menu = NavigationFixtureFactory::menu();
+    $schema = new GqlSchema([
+        'name' => 'Secondary-only menu access',
+        'uid' => StringHelper::UUID(),
+        'scope' => [
+            'sites.' . $secondarySite->uid . ':read',
+            'navigationMenus.' . $menu->uid . ':read',
+        ],
+    ]);
+    $query = sprintf(
+        'query($site: String) { %s_Menu(site: $site) { ... on ElementInterface { siteId } } }',
+        $menu->handle,
+    );
+
+    expect(Craft::$app->getSites()->getCurrentSite()->id)->toBe($primarySite->id);
+
+    foreach ([[], ['site' => '']] as $variables) {
+        $result = Craft::$app->getGql()->executeQuery($schema, $query, $variables);
+
+        expect($result['errors'] ?? [])->toBe([])
+            ->and($result['data'][$menu->handle . '_Menu'])->toBeNull();
+    }
 });
 
 it('rejects navigationContext for menus outside the schema scope', function() {
@@ -134,6 +215,7 @@ it('hides linked entry elements outside the schema section scope', function() {
     $schema = new GqlSchema([
         'name' => 'Restricted linked elements',
         'scope' => [
+            'sites.' . Craft::$app->getSites()->getPrimarySite()->uid . ':read',
             'navigationMenus.' . $nav->uid . ':read',
             'sections.' . $allowedSection->uid . ':read',
         ],
@@ -144,3 +226,55 @@ it('hides linked entry elements outside the schema section scope', function() {
     expect(NavigationGql::canQueryNodeElement($allowedNode))->toBeTrue();
     expect(NavigationGql::canQueryNodeElement($deniedNode))->toBeFalse();
 });
+
+it('enforces active schema site scope on linked node elements', function(bool $withLinkedElements) {
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $secondarySite = NavigationFixtureFactory::existingSecondarySite();
+    $menu = NavigationFixtureFactory::menu();
+    $section = NavigationFixtureFactory::entrySection();
+    $entry = NavigationFixtureFactory::entries(1, $section)[0];
+    $node = NavigationFixtureFactory::entryNode($menu, $entry);
+    $node->setElementSiteId($secondarySite->id);
+
+    expect(Craft::$app->getElements()->saveElement($node, true, false))->toBeTrue();
+
+    $query = sprintf(
+        'query($handle: String!) { navigationNodes(menuHandle: $handle, withLinkedElements: %s) { id element { id } } }',
+        $withLinkedElements ? 'true' : 'false',
+    );
+    $variables = ['handle' => $menu->handle];
+    $restrictedSchema = new GqlSchema([
+        'name' => 'Primary-site linked element access',
+        'uid' => StringHelper::UUID(),
+        'scope' => [
+            'sites.' . $primarySite->uid . ':read',
+            'navigationMenus.' . $menu->uid . ':read',
+            'sections.' . $section->uid . ':read',
+        ],
+    ]);
+    $restrictedResult = Craft::$app->getGql()->executeQuery($restrictedSchema, $query, $variables);
+
+    expect($restrictedResult['errors'] ?? [])->toBe([])
+        ->and($restrictedResult['data']['navigationNodes'])->toBe([[
+            'id' => (string)$node->id,
+            'element' => null,
+        ]]);
+
+    $multiSiteSchema = new GqlSchema([
+        'name' => 'Multi-site linked element access',
+        'uid' => StringHelper::UUID(),
+        'scope' => [
+            'sites.' . $primarySite->uid . ':read',
+            'sites.' . $secondarySite->uid . ':read',
+            'navigationMenus.' . $menu->uid . ':read',
+            'sections.' . $section->uid . ':read',
+        ],
+    ]);
+    $multiSiteResult = Craft::$app->getGql()->executeQuery($multiSiteSchema, $query, $variables);
+
+    expect($multiSiteResult['errors'] ?? [])->toBe([])
+        ->and($multiSiteResult['data']['navigationNodes'])->toBe([[
+            'id' => (string)$node->id,
+            'element' => ['id' => (string)$entry->id],
+        ]]);
+})->with([false, true]);

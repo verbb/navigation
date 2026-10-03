@@ -35,6 +35,7 @@ it('enforces menu and projected element grants through a Navigation field respon
     }
 
     $schema = new GqlSchema(['name' => 'Field projection scope', 'scope' => [
+        'sites.' . Craft::$app->getSites()->getPrimarySite()->uid . ':read',
         'navigationMenus.' . $menu->uid . ':read',
         'sections.' . $allowed->uid . ':read',
         'sections.' . $holderSection->uid . ':read',

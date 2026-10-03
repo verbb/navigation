@@ -56,14 +56,34 @@ class Gql extends GqlHelper
             || self::canSchema('navigationNavs.' . $uid, 'read', $schema);
     }
 
-    public static function canQueryNodeElement(Node $node): bool
+    public static function canQueryNodeElement(Node $node, ?GqlSchema $schema = null): bool
     {
-        return self::canQueryLinkedElement($node->getElement());
+        return self::canQuerySite($node->getElementSiteId(), $schema)
+            && self::canQueryLinkedElement($node->getElement(), $schema);
     }
 
-    public static function canQueryProjectedNodeElement(ProjectedNode $node): bool
+    public static function canQueryProjectedNodeElement(ProjectedNode $node, ?GqlSchema $schema = null): bool
     {
-        return self::canQueryLinkedElement($node->getElement());
+        return self::canQuerySite($node->siteId, $schema)
+            && self::canQueryLinkedElement($node->getElement(), $schema);
+    }
+
+    /**
+     * Whether the active GraphQL schema may read content from a site.
+     */
+    public static function canQuerySite(?int $siteId, ?GqlSchema $schema = null): bool
+    {
+        if ($siteId === null) {
+            return true;
+        }
+
+        foreach (self::getAllowedSites($schema) as $site) {
+            if ((int)$site->id === $siteId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -75,6 +95,10 @@ class Gql extends GqlHelper
     {
         if ($element === null) {
             return true;
+        }
+
+        if (!self::canQuerySite($element->siteId, $schema)) {
+            return false;
         }
 
         if ($element instanceof Entry) {
