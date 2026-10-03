@@ -15,19 +15,21 @@ function readRawStorage(key: string): unknown {
   }).Craft;
 
   if (craft?.getLocalStorage) {
-    return craft.getLocalStorage(key, {});
+    // Keep a missing value distinct from an explicitly saved empty object,
+    // which represents a large tree whose parents are all expanded.
+    return craft.getLocalStorage(key, null);
   }
 
   try {
     const raw = localStorage.getItem(key);
 
     if (raw === null) {
-      return {};
+      return null;
     }
 
     return JSON.parse(raw);
   } catch {
-    return {};
+    return null;
   }
 }
 
@@ -107,12 +109,11 @@ export function buildInitialCollapsedNodeIds(
   siteId: number,
 ): CollapsedNodeIds {
   const validNodeIds = new Set(nodes.map((node) => node.id));
-  const saved = loadCollapsedNodeIds(menuId, siteId, validNodeIds);
   const storageKey = getStorageKey(menuId, siteId);
-  const hasSavedPreferences = Object.keys(normalizeCollapsedNodeIds(readRawStorage(storageKey))).length > 0;
+  const stored = readRawStorage(storageKey);
 
-  if (hasSavedPreferences) {
-    return saved;
+  if (stored !== null) {
+    return normalizeCollapsedNodeIds(stored, validNodeIds);
   }
 
   if (nodes.length <= LAZY_TREE_COLLAPSE_THRESHOLD) {

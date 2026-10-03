@@ -5,6 +5,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { useBuilderStore as store } from '../../src/web/src/store';
 import { acceptStructureRevision } from '../../src/web/src/api';
+import {
+  buildInitialCollapsedNodeIds,
+  saveCollapsedNodeIds,
+} from '../../src/web/src/utils/collapsedNodesStorage';
 import { baselineMoves } from '../../src/web/src/utils/tree';
 import type { BuilderNode, BuilderState } from '../../src/web/src/types';
 
@@ -22,6 +26,30 @@ function reset(send: (method: string, action: string, options: any) => Promise<a
     structureDirty: false, state: state(), publishing: false, discarding: false });
 }
 const ids = () => store.getState().nodes.map(n => n.id);
+
+test('a fully expanded large tree remains expanded after reload', () => {
+  let storedValue: unknown;
+
+  (globalThis as any).window = {
+    Craft: {
+      getLocalStorage: (_key: string, defaultValue: unknown) => storedValue ?? defaultValue,
+      setLocalStorage: (_key: string, value: unknown) => {
+        storedValue = value;
+      },
+    },
+  };
+
+  const largeTree = Array.from({ length: 101 }, (_, index) => ({
+    id: index + 1,
+    hasDescendants: index === 0,
+  }));
+
+  assert.deepEqual(buildInitialCollapsedNodeIds(largeTree, 1, 1), { 1: true });
+
+  saveCollapsedNodeIds(1, 1, {});
+
+  assert.deepEqual(buildInitialCollapsedNodeIds(largeTree, 1, 1), {});
+});
 
 test('a drag during delete survives the response and remains dirty', async () => {
   let complete!: (response: any) => void;

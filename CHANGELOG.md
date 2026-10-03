@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed a medium-severity information disclosure vulnerability.
+- Fixed large menus forgetting a fully expanded node state and collapsing again on later visits.
 
 ## 4.0.3 - 2026-10-02
 
