@@ -60,6 +60,10 @@ class Custom extends NodeType
         // Optional sandboxed Twig — authors are not full template authors.
         if ($url && str_contains($url, '{')) {
             $url = NodeOutputSafety::renderAuthorTemplate($url, NodeOutputSafety::authorTemplateObject());
+
+            if ($url === '') {
+                return null;
+            }
         }
 
         return NodeOutputSafety::sanitizeUrl($url);

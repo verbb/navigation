@@ -6,6 +6,8 @@ use verbb\navigation\Navigation;
 use Craft;
 use craft\helpers\UrlHelper;
 
+use Twig\Error\Error as TwigError;
+
 /**
  * Author-field output policy for front-end markup.
  *
@@ -40,7 +42,15 @@ class NodeOutputSafety
             return $placeholder;
         }, $template);
 
-        $rendered = Navigation::$plugin->getTemplates()->renderSandboxedObjectTemplate($template, $object);
+        try {
+            $rendered = Navigation::$plugin->getTemplates()->renderSandboxedObjectTemplate($template, $object);
+        } catch (TwigError $e) {
+            // A stale or mistyped author token should fail closed without taking
+            // down every front-end request that reads the affected menu.
+            Craft::warning('Unable to render an author-entered Navigation template: ' . $e->getMessage(), __METHOD__);
+
+            return '';
+        }
 
         return $protected ? strtr($rendered, $protected) : $rendered;
     }
@@ -121,14 +131,18 @@ class NodeOutputSafety
     public static function authorTemplateObject(): array
     {
         $site = Craft::$app->getSites()->getCurrentSite();
+        $siteUrl = UrlHelper::siteUrl('', null, null, $site->id);
 
         return [
+            // Preserve the historical scalar token without exposing Craft's
+            // broader template globals or the callable siteUrl() function.
+            'siteUrl' => $siteUrl,
             'site' => [
                 'id' => $site->id,
                 'name' => $site->name,
                 'handle' => $site->handle,
                 'language' => $site->language,
-                'baseUrl' => UrlHelper::siteUrl('', null, null, $site->id),
+                'baseUrl' => $siteUrl,
             ],
         ];
     }

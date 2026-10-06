@@ -53,11 +53,22 @@ it('does not expand server configuration in an editor-authored custom URL', func
     '@navigationAuditUrlValue',
 ]);
 
-it('preserves literal custom URLs and the documented sandboxed site token', function() {
+it('preserves literal custom URLs and sandboxed site URL tokens', function() {
     foreach (['/contact', 'https://example.test/contact', 'mailto:hello@example.test', 'tel:+61355550100'] as $url) {
         $node = new Node(['type' => Custom::class, 'url' => $url]);
         expect($node->getUrl())->toBe($url);
     }
-    $node = new Node(['type' => Custom::class, 'url' => '{site.baseUrl}contact']);
-    expect($node->getUrl())->toBe(craft\helpers\UrlHelper::siteUrl('') . 'contact');
+
+    $siteUrl = craft\helpers\UrlHelper::siteUrl('');
+
+    foreach (['{site.baseUrl}contact', '{siteUrl}contact', '{{ siteUrl }}contact'] as $url) {
+        $node = new Node(['type' => Custom::class, 'url' => $url]);
+        expect($node->getUrl())->toBe($siteUrl . 'contact');
+    }
+});
+
+it('fails closed when a custom URL contains an invalid author template', function() {
+    $node = new Node(['type' => Custom::class, 'url' => '{missingVariable}']);
+
+    expect($node->getUrl())->toBeNull();
 });
