@@ -180,9 +180,12 @@ it('loads menu content fields from the menu field layout, not node fields', func
 
     $layout = $menuElement->getFieldLayout();
     $handles = array_map(fn($field) => $field->handle, $layout->getCustomFields());
+    $nodeLayoutHandles = array_map(fn($field) => $field->handle, $menuElement->getNodeFieldLayout()?->getCustomFields() ?? []);
 
     expect($handles)->toContain($menuField->handle);
     expect($handles)->not->toContain($nodeField->handle);
+    expect($nodeLayoutHandles)->toContain($nodeField->handle);
+    expect($nodeLayoutHandles)->not->toContain($menuField->handle);
 });
 
 it('does not show menu content tabs when menu fields are not configured', function() {

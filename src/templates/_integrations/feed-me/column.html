@@ -1,3 +1,4 @@
-{% set nav = craft.navigation.getMenuById(feed.elementGroup[elementType]) %}
+{% set menuId = feed.elementGroup[elementType] ?? null %}
+{% set menu = menuId ? craft.navigation.getMenuById(menuId) : null %}
 
-{{ nav.name ?? '' }}
+{{ menu.title ?? '' }}

@@ -1,10 +1,12 @@
 {% import '_includes/forms' as forms %}
 {% import 'feed-me/_macros' as feedMeMacro %}
 
+{% set menu = null %}
+
 {% if feed.elementGroup %}
     {% set menuId = feed.elementGroup[feed.elementType] %}
 
-    {% set nav = craft.navigation.getMenuById(menuId) %}
+    {% set menu = craft.navigation.getMenuById(menuId) %}
 {% endif %}
 
 {% set types = [{ label: 'Don‘t import', value: '' }] %}
@@ -113,9 +115,10 @@
 </table>
 
 {% set tabs = [] %}
+{% set nodeFieldLayout = menu ? menu.getNodeFieldLayout() : null %}
 
-{% if nav.fieldLayoutId %}
-    {% set tabs = craft.app.fields.getLayoutById(nav.fieldLayoutId).getTabs() %}
+{% if nodeFieldLayout %}
+    {% set tabs = nodeFieldLayout.getTabs() %}
 
     {% for tab in tabs %}
         <hr>
