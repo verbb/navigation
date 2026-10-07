@@ -35,6 +35,8 @@ export default defineConfig(({ mode }) => {
         'lit-html',
         // One registry module so registerIcon() is visible to <pk-icon>/getIcon().
         '@verbb/plugin-kit-icons',
+        // One custom-element registry for direct imports and React facades.
+        '@verbb/plugin-kit-web',
       ],
     },
     // Optional plugin-local HMR — Craft must set NAVIGATION_USE_VITE_DEV_SERVER=true.

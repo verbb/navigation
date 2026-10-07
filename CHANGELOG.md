@@ -4,9 +4,11 @@
 
 ### Changed
 - Require Verbb Base 3.0.20 or later so shared control-panel layouts use the current asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
+- Standardized menu builder empty and failure feedback on the shared Plugin Kit state components.
 
 ### Fixed
 - Fixed legacy `{siteUrl}` tokens and invalid author-entered templates causing front-end errors when rendering menus.
+- Fixed menu builder initialization errors discarding their diagnostic details, preventing administrators from copying useful information for support.
 
 ## 4.0.4 - 2026-10-05
 

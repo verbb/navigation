@@ -66,7 +66,7 @@ type BuilderStore = {
   activeTabId: string | null;
   menuContentOpen: boolean;
   copyToSiteDialog: CopyToSiteDialogState;
-  error: string | null;
+  error: unknown | null;
 
   init: (menuId: number, siteId: number) => Promise<void>;
   refresh: (options?: { resetStructure?: boolean; structureRevision?: number }) => Promise<void>;
@@ -193,8 +193,9 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       });
     } catch (error) {
       if (!isCurrent()) return;
-      displayError(error);
-      set({ loading: false, error: t('Couldn’t load menu builder.') });
+      // Retain the original request/JavaScript error for the collapsed support
+      // details. React error boundaries do not catch rejected async work.
+      set({ loading: false, error });
     }
   },
 

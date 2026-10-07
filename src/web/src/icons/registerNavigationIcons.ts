@@ -17,7 +17,6 @@ import {
   plus,
   sliders,
   trash,
-  triangleExclamation,
   xmark,
 } from '@verbb/plugin-kit-icons';
 
@@ -52,8 +51,6 @@ export function registerNavigationIcons(): void {
     // View columns control
     sliders,
     trash,
-    // LargeErrorState / StatePanel error variant
-    triangleExclamation,
     xmark,
   });
   registered = true;

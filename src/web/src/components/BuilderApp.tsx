@@ -4,6 +4,7 @@ import { useBuilderSaveShortcut } from '../hooks/useBuilderSaveShortcut';
 import { NodeTree } from './NodeTree';
 import { MenuContentDialog } from './MenuContentDialog';
 import { CopyToSiteDialog } from './CopyToSiteDialog';
+import { BuilderLoadError } from './BuilderLoadError';
 
 type Props = {
   menuId: number;
@@ -47,7 +48,7 @@ export function BuilderApp({ menuId, siteId }: Props) {
   }
 
   if (error) {
-    return <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>;
+    return <BuilderLoadError error={error} onRetry={() => void init(menuId, siteId)} />;
   }
 
   return (

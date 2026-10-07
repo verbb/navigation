@@ -7,6 +7,7 @@ import {
 } from '@headless-tree/core';
 import { useTree } from '@headless-tree/react';
 import { Checkbox } from '@verbb/plugin-kit-react/components/Checkbox';
+import { StatePanel } from '@verbb/plugin-kit-react/components/StatePanel';
 import { cn } from '../utils/cn';
 import { useBuilderStore } from '../store';
 import { filterNodesByStatus } from '../utils/tree';
@@ -238,9 +239,13 @@ export function NodeTree() {
 
   if (!allNodes.length) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center border border-dashed border-gray-200 p-12 text-sm text-gray-500">
-        <p>{t('No nodes yet. Use the sidebar to add your first node.')}</p>
-      </div>
+      <StatePanel
+        variant="empty"
+        heading={t('No nodes yet')}
+        className="[--pk-state-panel-min-height:20rem]"
+      >
+        <span>{t('Use the sidebar to add your first node.')}</span>
+      </StatePanel>
     );
   }
 
@@ -282,12 +287,8 @@ export function NodeTree() {
           <div role="columnheader" className="sticky right-0 z-10 bg-gray-50 py-2.5" aria-hidden />
         </div>
 
-        <div role="rowgroup" className="select-none">
-          {items.length === 0 ? (
-            <div className="py-4 text-center text-sm text-gray-500">
-              {t('No nodes match the selected status.')}
-            </div>
-          ) : (
+        {items.length > 0 && (
+          <div role="rowgroup" className="select-none">
             <div
               {...treeContainerProps}
               className={cn('pb-8', isDragSession && 'cursor-grabbing')}
@@ -311,9 +312,19 @@ export function NodeTree() {
                 />
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+      {items.length === 0 && (
+        <StatePanel
+          variant="empty"
+          size="sm"
+          hideIcon
+          heading={t('No nodes match the selected status.')}
+          className="[--pk-state-panel-min-height:8rem]"
+        />
+      )}
     </div>
   );
 }

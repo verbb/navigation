@@ -10,6 +10,7 @@ import {
   saveCollapsedNodeIds,
 } from '../../src/web/src/utils/collapsedNodesStorage';
 import { baselineMoves } from '../../src/web/src/utils/tree';
+import { formatBuilderError } from '../../src/web/src/utils/builderError';
 import type { BuilderNode, BuilderState } from '../../src/web/src/types';
 
 const nodes = [1, 2, 3].map(id => ({ id, title: `Node ${id}`, level: 1, parentId: null,
@@ -26,6 +27,41 @@ function reset(send: (method: string, action: string, options: any) => Promise<a
     structureDirty: false, state: state(), publishing: false, discarding: false });
 }
 const ids = () => store.getState().nodes.map(n => n.id);
+
+test('builder initialization retains safe, copyable server error details', async () => {
+  let displayErrorCalls = 0;
+  const error = {
+    message: 'Request failed',
+    response: {
+      status: 500,
+      statusText: 'Internal Server Error',
+      data: {
+        name: 'Twig\\Error\\RuntimeError',
+        message: 'Variable "siteUrl" does not exist.',
+        file: '/app/vendor/twig/Environment.php',
+        line: 420,
+        trace: [
+          { file: '/app/vendor/verbb/navigation/src/elements/Node.php', line: 879, function: 'getUrl' },
+        ],
+      },
+    },
+    config: { headers: { Authorization: 'secret-token' } },
+  };
+
+  reset(async () => { throw error; });
+  (globalThis as any).window.Craft.cp.displayError = () => {
+    displayErrorCalls += 1;
+  };
+  await store.getState().init(1, 1);
+
+  assert.equal(store.getState().error, error);
+  assert.equal(displayErrorCalls, 0);
+  const details = formatBuilderError(store.getState().error);
+  assert.match(details, /HTTP 500 Internal Server Error/);
+  assert.match(details, /Variable "siteUrl" does not exist/);
+  assert.match(details, /Node\.php:879 — getUrl/);
+  assert.doesNotMatch(details, /secret-token/);
+});
 
 test('a fully expanded large tree remains expanded after reload', () => {
   let storedValue: unknown;
