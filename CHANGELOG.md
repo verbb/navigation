@@ -7,6 +7,7 @@
 - Standardized menu builder empty and failure feedback on the shared Plugin Kit state components.
 
 ### Fixed
+- Fixed stale or incomplete project config being able to remove every site association from upgraded menus, and added conservative recovery for existing affected menus.
 - Fixed legacy `{siteUrl}` tokens and invalid author-entered templates causing front-end errors when rendering menus.
 - Fixed menu builder initialization errors discarding their diagnostic details, preventing administrators from copying useful information for support.
 

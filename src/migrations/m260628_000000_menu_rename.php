@@ -2,6 +2,7 @@
 namespace verbb\navigation\migrations;
 
 use verbb\navigation\helpers\MenuPermissionMigration;
+use verbb\navigation\helpers\MenuSiteAssociationRepair;
 use verbb\navigation\helpers\ProjectConfigData;
 
 use Craft;
@@ -63,7 +64,7 @@ class m260628_000000_menu_rename extends Migration
             return;
         }
 
-        $navs = $projectConfig->get('navigation.navs');
+        $navs = MenuSiteAssociationRepair::mergeDatabaseSiteSettings($projectConfig->get('navigation.navs'));
         $projectConfig->set('navigation.menus', $navs, 'Rename navigation.navs to navigation.menus');
         $projectConfig->remove('navigation.navs');
     }

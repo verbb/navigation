@@ -456,6 +456,12 @@ class Menus extends Component
                 $navRecord->save(false);
             }
 
+            $siteIdMap = Db::idsByUids(Table::SITES, array_keys($siteSettingData));
+
+            if (!$isNewNav && !$siteIdMap && MenuSiteSettingsRecord::find()->where(['menuId' => $navRecord->id])->exists()) {
+                throw new RuntimeException("Refusing to remove every site association from menu {$menuUid}: project config contains no valid site settings.");
+            }
+
             $this->_syncMenuElement($navRecord, $siteSettingData);
 
             // Soft-deleted Menu elements must be restored with the settings row (A13).
@@ -476,7 +482,6 @@ class Menus extends Component
                 $allOldSiteSettingsRecords = [];
             }
 
-            $siteIdMap = Db::idsByUids(Table::SITES, array_keys($siteSettingData));
             $hasNewSite = false;
             $reEnabledSiteIds = [];
             $enabledSiteIds = [];

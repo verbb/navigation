@@ -2,17 +2,12 @@
 namespace verbb\navigation\console\controllers;
 
 use verbb\navigation\helpers\MenuElementCollisionRepair;
+use verbb\navigation\helpers\MenuSiteAssociationRepair;
 
-use Craft;
 use craft\console\Controller;
-use craft\db\Query;
 use craft\helpers\Console;
-use craft\helpers\Db;
-use craft\helpers\StringHelper;
 
 use yii\console\ExitCode;
-
-use DateTime;
 
 /**
  * Manages Navigations.
@@ -23,35 +18,25 @@ class MenusController extends Controller
     // =========================================================================
 
     /**
-     * Fix a Craft 3 > Craft 4 migration issue with empty sites.
+     * Repair menus with no site associations using project config or Menu element sites.
      */
     public function actionFixSites(): int
     {
-        $navs = (new Query())
-            ->select(['*'])
-            ->from('{{%navigation_menus}}')
-            ->all();
+        $this->stdout("Repairing missing menu site associations…\n", Console::FG_YELLOW);
 
-        foreach ($navs as $nav) {
-            $navSite = (new Query())
-                ->select(['*'])
-                ->from('{{%navigation_menus_sites}}')
-                ->where(['menuId' => $nav['id']])
-                ->all();
+        $result = MenuSiteAssociationRepair::run();
 
-            if (!$navSite) {
-                foreach (Craft::$app->getSites()->getAllSites() as $site) {
-                    Db::insert('{{%navigation_menus_sites}}', [
-                        'menuId' => $nav['id'],
-                        'siteId' => $site->id,
-                        'enabled' => true,
-                        'dateCreated' => Db::prepareDateForDb(new DateTime()),
-                        'dateUpdated' => Db::prepareDateForDb(new DateTime()),
-                        'uid' => StringHelper::UUID(),
-                    ]);
-                }
-            }
+        $this->stdout("Repaired menus: {$result['repairedMenus']}\n");
+        $this->stdout("Created site associations: {$result['insertedRows']}\n");
+        $this->stdout("Recovered from project config: {$result['sources']['projectConfig']}\n");
+        $this->stdout("Recovered from Menu elements: {$result['sources']['elements']}\n");
+        $this->stdout("Recovered with the single-site fallback: {$result['sources']['singleSite']}\n");
+
+        if ($result['unresolvedMenus'] > 0) {
+            $this->stderr("Skipped ambiguous multisite menus: {$result['unresolvedMenus']}\n", Console::FG_YELLOW);
         }
+
+        $this->stdout("Done.\n", Console::FG_GREEN);
 
         return ExitCode::OK;
     }
