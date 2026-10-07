@@ -69,7 +69,7 @@ it('requires edit permission for every menu before reordering any of them', func
     });
 });
 
-it('allows reordering when the user can edit every submitted menu', function() {
+it('allows reordering Craft AdminTable string IDs when the user can edit every submitted menu', function() {
     $first = NavigationFixtureFactory::menu();
     $second = NavigationFixtureFactory::menu();
 
@@ -88,7 +88,7 @@ it('allows reordering when the user can edit every submitted menu', function() {
         ]);
         Craft::$app->getUser()->setIdentity($user);
         Craft::$app->getRequest()->setBodyParams([
-            'ids' => craft\helpers\Json::encode([$second->id, $first->id]),
+            'ids' => craft\helpers\Json::encode([(string)$second->id, (string)$first->id]),
         ]);
 
         $response = (new MenusController('menus', Navigation::$plugin))->actionReorderMenu();
@@ -121,6 +121,8 @@ it('rejects malformed incomplete or duplicate reorder payloads before writing', 
 })->with([
     'empty list' => [[]],
     'duplicate IDs' => [[1, 1]],
-    'non-integer ID' => [['1']],
+    'non-integer ID' => [['not-an-id']],
+    'boolean ID' => [[true]],
+    'decimal ID' => [[1.5]],
     'unknown ID' => [[PHP_INT_MAX]],
 ]);

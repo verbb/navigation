@@ -291,11 +291,19 @@ class MenusController extends Controller
 
         $seen = [];
 
-        foreach ($navIds as $menuId) {
-            if (!is_int($menuId) || $menuId < 1 || isset($seen[$menuId])) {
+        foreach ($navIds as $navOrder => $menuId) {
+            // Craft's AdminTable reads IDs from data attributes, so its JSON payload contains strings.
+            if (!is_int($menuId) && !is_string($menuId)) {
                 throw new BadRequestHttpException('Invalid menu IDs.');
             }
 
+            $menuId = filter_var($menuId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+            if ($menuId === false || isset($seen[$menuId])) {
+                throw new BadRequestHttpException('Invalid menu IDs.');
+            }
+
+            $navIds[$navOrder] = $menuId;
             $seen[$menuId] = true;
             $menu = Navigation::$plugin->getMenus()->getMenuById($menuId);
             MenuAuth::requireEditMenu($this, $menu);

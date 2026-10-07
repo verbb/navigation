@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed menu reordering in the control panel being discarded after refreshing the page ([#465](https://github.com/verbb/navigation/issues/465)).
+
 ## 4.0.5 - 2026-10-07
 
 ### Changed
