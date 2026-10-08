@@ -2,7 +2,7 @@
     "name": "verbb/navigation",
     "description": "A Craft CMS plugin for building nested site navigation.",
     "type": "craft-plugin",
-    "version": "4.0.5",
+    "version": "4.0.6",
     "keywords": [
         "craft",
         "cms",
