@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed custom node title translation keys rendering through an unrestricted Twig environment.
+- Fixed Craft's native duplicate action bypassing the menu's node authoring rules.
 
 ## 4.0.7 - 2026-10-09
 

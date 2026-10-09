@@ -619,8 +619,7 @@ class Node extends Element
             return false;
         }
 
-        return $this->_userCanManageMenu($user)
-            && Navigation::$plugin->getBuildSessions()->canAuthorPendingNode($this, (int)$user->id);
+        return MenuAuth::canAuthorNode($user, $this);
     }
 
     public function canDelete(User $user): bool

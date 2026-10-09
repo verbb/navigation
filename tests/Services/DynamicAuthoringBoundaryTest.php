@@ -3,6 +3,22 @@
 use Tests\Support\Fixtures\NavigationFixtureFactory as F;
 use verbb\navigation\Navigation as N;
 use verbb\navigation\elements\Node;
+use verbb\navigation\nodetypes\Custom;
+
+it('applies node authoring policy to native duplication', function() {
+    $menu = F::menu();
+    $node = F::customNode($menu, 'Existing link', '/existing-link');
+    $menu->permissions = [Custom::class => ['enabled' => false]];
+    expect(N::$plugin->getMenus()->saveMenu($menu))->toBeTrue();
+
+    boundaryRequest(function() use ($menu, $node) {
+        $editor = new craft\elements\User(['username' => uniqid('duplicateEditor'), 'email' => uniqid('duplicateEditor') . '@example.test']);
+        expect(Craft::$app->elements->saveElement($editor))->toBeTrue();
+        Craft::$app->userPermissions->saveUserPermissions($editor->id, ['navigation-manageMenu:' . $menu->uid]);
+
+        expect($node->canDuplicate($editor))->toBeFalse();
+    });
+});
 
 it('adds a dynamic entry section below an entry node when the editor can view it', function() {
     $menu = F::menu(); $section = F::entrySection();
