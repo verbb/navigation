@@ -4,6 +4,7 @@ namespace verbb\navigation\fieldlayoutelements;
 use verbb\navigation\Navigation;
 use verbb\navigation\base\ElementNodeType;
 use verbb\navigation\helpers\ElementPickerHelper;
+use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\MenuPermissions;
 
 use Craft;
@@ -54,7 +55,18 @@ class NodeTypeElements extends BaseField
             $elementType = $nodeType::getElementType();
             $elementDisplayName = Craft::t('site', $elementType::displayName());
 
-            $siteId = $element->getElement()->siteId ?? null;
+            $linkedElement = $element->getElement();
+            $user = Craft::$app->getUser()->getIdentity();
+
+            if (
+                $linkedElement
+                && !MenuAuth::canUseLinkedElement($user, $element)
+                && !MenuAuth::linkedElementSelectionIsUnchanged($element)
+            ) {
+                $linkedElement = null;
+            }
+
+            $siteId = $linkedElement?->siteId ?? $element->getElementSiteId();
             $hidden = Html::hiddenInput('linkedElementSiteId', $siteId, [
                 'id' => 'linkedElementSiteId',
             ]);
@@ -80,7 +92,7 @@ class NodeTypeElements extends BaseField
                 'instructions' => Craft::t('navigation', 'The element this node is linked to.'),
                 'id' => 'linkedElementId',
                 'name' => 'linkedElementId',
-                'elements' => $element->getElement() ? [$element->getElement()] : [],
+                'elements' => $linkedElement ? [$linkedElement] : [],
                 'elementType' => $elementType,
                 'sources' => $sources,
                 'criteria' => $pickerConfig['criteria'] ?? null,

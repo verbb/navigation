@@ -61,6 +61,42 @@ it('applies Craft site authorization to linked elements', function() {
     });
 });
 
+it('authorizes linked element refreshes against selection changes', function() {
+    $menu = F::menu();
+    $section = F::entrySection();
+    [$original, $replacement] = F::entries(2, $section);
+    $node = F::entryNode($menu, $original);
+    $site = Craft::$app->getSites()->getSiteById($node->siteId);
+
+    boundaryRequest(function() use ($menu, $section, $original, $replacement, $node, $site) {
+        $editor = new craft\elements\User([
+            'username' => uniqid('linkedRefreshEditor'),
+            'email' => uniqid('linkedRefreshEditor') . '@example.test',
+        ]);
+        expect(Craft::$app->getElements()->saveElement($editor))->toBeTrue();
+        Craft::$app->getUserPermissions()->saveUserPermissions($editor->id, [
+            'accessCp',
+            'navigation-manageMenu:' . $menu->uid,
+            'editSite:' . $site->uid,
+        ]);
+        Craft::$app->getUser()->setIdentity($editor);
+
+        expect($editor->can('viewEntries:' . $section->uid))->toBeFalse()
+            ->and(verbb\navigation\helpers\MenuAuth::canUseLinkedElement($editor, $node))->toBeFalse()
+            ->and(verbb\navigation\helpers\MenuAuth::linkedElementSelectionIsUnchanged($node))->toBeTrue();
+
+        $field = new verbb\navigation\fieldlayoutelements\NodeTypeElements();
+        expect($field->formHtml($node))->toContain($original->title);
+
+        $node->setLinkedElementId($replacement->id);
+        $node->setElementSiteId($replacement->siteId);
+
+        expect(verbb\navigation\helpers\MenuAuth::canUseLinkedElement($editor, $node))->toBeFalse()
+            ->and(verbb\navigation\helpers\MenuAuth::linkedElementSelectionIsUnchanged($node))->toBeFalse()
+            ->and($field->formHtml($node))->not->toContain($replacement->title);
+    });
+});
+
 it('adds a dynamic entry section below an entry node when the editor can view it', function() {
     $menu = F::menu(); $section = F::entrySection();
     $parent = F::entryNode($menu, F::entries(1, $section)[0]);

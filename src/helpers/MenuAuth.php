@@ -220,11 +220,35 @@ class MenuAuth
         if (!$type instanceof ElementNodeType || !$node->elementId) {
             return true; // Missing required element IDs are reported by model validation.
         }
+
+        return self::canUseLinkedElement($user, $node)
+            || self::linkedElementSelectionIsUnchanged($node);
+    }
+
+    public static function canUseLinkedElement(?User $user, Node $node): bool
+    {
+        if (!$user || !$node->elementId) {
+            return false;
+        }
+
+        $type = $node->nodeType();
+
+        if (!$type instanceof ElementNodeType) {
+            return false;
+        }
+
         $element = $node->getElement();
 
         if (!$element || !Craft::$app->getElements()->canView($element, $user)) {
             return false;
         }
+
+        $menu = Navigation::$plugin->getMenus()->getMenuById($node->menuId);
+
+        if (!$menu) {
+            return false;
+        }
+
         $elementType = $type::getElementType();
         $sources = ElementPickerHelper::filterSourcesForUser($elementType, MenuPermissions::getTypeSources($menu->permissions ?? [], $type::class));
         $picker = ElementPickerHelper::getPickerConfig($menu->permissions ?? [], $type::class, $elementType);
@@ -264,6 +288,36 @@ class MenuAuth
             }
         }
         return false;
+    }
+
+    public static function linkedElementSelectionIsUnchanged(Node $node): bool
+    {
+        if (!$node->id || !$node->siteId || !$node->elementId) {
+            return false;
+        }
+
+        $record = (new Query())
+            ->select(['elementId', 'type'])
+            ->from('{{%navigation_nodes}}')
+            ->where(['id' => $node->id])
+            ->one();
+
+        if (!$record || (int)$record['elementId'] !== $node->elementId) {
+            return false;
+        }
+
+        $storedType = NodeTypeHelper::resolveTypeClass((string)$record['type']) ?? $record['type'];
+        $currentType = NodeTypeHelper::resolveTypeClass((string)$node->type) ?? $node->type;
+
+        if ($storedType !== $currentType) {
+            return false;
+        }
+
+        $settings = Navigation::$plugin->getNodeSites()->getSettings($node->id, $node->siteId);
+        $storedElementSiteId = (int)($settings?->linkedElementSiteId ?: $node->siteId);
+        $currentElementSiteId = (int)($node->getElementSiteId() ?: $node->siteId);
+
+        return $storedElementSiteId === $currentElementSiteId;
     }
 
     /** Structure edits require menu/site access and pending-work ownership, not node authoring access. */
