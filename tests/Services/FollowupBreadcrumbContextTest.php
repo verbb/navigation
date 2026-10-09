@@ -42,6 +42,36 @@ it('encodes linked entry titles in generated URL breadcrumb links', function() {
     });
 });
 
+it('does not expose pending entry metadata in public URL breadcrumbs', function() {
+    $entry = F::entries(1)[0];
+    $entry->title = 'Embargoed quarterly result';
+    $entry->postDate = (new DateTime())->modify('+1 day');
+    expect(Craft::$app->elements->saveElement($entry))->toBeTrue();
+
+    W::withAbsoluteUrl('https://breadcrumb.test/' . $entry->uri, function() use ($entry) {
+        $crumbs = N::$plugin->getBreadcrumbs()->getBreadcrumbs();
+        $crumb = end($crumbs);
+
+        expect($crumb['element'])->toBeNull()
+            ->and($crumb['elementId'])->toBeNull()
+            ->and($crumb['title'])->not->toBe($entry->title);
+    });
+
+    W::withAbsoluteUrl('https://breadcrumb.test/' . $entry->uri, function() use ($entry) {
+        Craft::$app->getRequest()->setIsLivePreview(true);
+
+        try {
+            $crumbs = N::$plugin->getBreadcrumbs()->getBreadcrumbs();
+            $crumb = end($crumbs);
+
+            expect($crumb['elementId'])->toBe($entry->id)
+                ->and($crumb['title'])->toBe($entry->title);
+        } finally {
+            Craft::$app->getRequest()->setIsLivePreview(false);
+        }
+    });
+});
+
 it('encodes Dynamic source names in native element index labels', function() {
     $section = F::entrySection();
     $section->name = '<img src=x onerror="window.breadcrumbExecuted=true">';
