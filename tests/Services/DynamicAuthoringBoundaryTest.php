@@ -4,6 +4,7 @@ use Tests\Support\Fixtures\NavigationFixtureFactory as F;
 use verbb\navigation\Navigation as N;
 use verbb\navigation\elements\Node;
 use verbb\navigation\nodetypes\Custom;
+use verbb\navigation\nodetypes\Entry as EntryNodeType;
 
 it('applies node authoring policy to native duplication', function() {
     $menu = F::menu();
@@ -17,6 +18,46 @@ it('applies node authoring policy to native duplication', function() {
         Craft::$app->userPermissions->saveUserPermissions($editor->id, ['navigation-manageMenu:' . $menu->uid]);
 
         expect($node->canDuplicate($editor))->toBeFalse();
+    });
+});
+
+it('applies Craft site authorization to linked elements', function() {
+    $secondarySite = F::secondarySite();
+    $primarySite = Craft::$app->getSites()->getPrimarySite();
+    $menu = F::menu();
+    $section = F::entrySection();
+    $entry = F::entries(1, $section)[0];
+    $node = new Node([
+        'menuId' => $menu->id,
+        'siteId' => $primarySite->id,
+        'type' => EntryNodeType::class,
+        'elementId' => $entry->id,
+    ]);
+    $node->setElementSiteId($secondarySite->id);
+
+    boundaryRequest(function() use ($menu, $node, $primarySite, $secondarySite, $section) {
+        $editor = new class extends craft\elements\User {
+            public array $grants = [];
+
+            public function can(string $permission): bool
+            {
+                return in_array($permission, $this->grants, true);
+            }
+        };
+        $editor->id = Craft::$app->getUser()->id;
+        $editor->grants = [
+            'navigation-manageMenu:' . $menu->uid,
+            'editSite:' . $primarySite->uid,
+            'viewEntries:' . $section->uid,
+            'viewPeerEntries:' . $section->uid,
+        ];
+        Craft::$app->getUser()->setIdentity($editor);
+
+        $linkedElement = $node->getElement();
+        expect($linkedElement->siteId)->toBe($secondarySite->id)
+            ->and($linkedElement->canView($editor))->toBeTrue()
+            ->and(Craft::$app->getElements()->canView($linkedElement, $editor))->toBeFalse()
+            ->and(verbb\navigation\helpers\MenuAuth::canAuthorNode($editor, $node))->toBeFalse();
     });
 });
 

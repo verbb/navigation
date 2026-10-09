@@ -6,6 +6,7 @@
 - Fixed custom node title translation keys rendering through an unrestricted Twig environment.
 - Fixed Craft's native duplicate action bypassing the menu's node authoring rules.
 - Fixed URL breadcrumbs exposing metadata for content that is not publicly available.
+- Fixed linked node authoring bypassing Craft's site and extension view authorization.
 
 ## 4.0.7 - 2026-10-09
 

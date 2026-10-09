@@ -212,7 +212,7 @@ class MenuAuth
         }
         $element = $node->getElement();
 
-        if (!$element || !$element->canView($user)) {
+        if (!$element || !Craft::$app->getElements()->canView($element, $user)) {
             return false;
         }
         $elementType = $type::getElementType();
