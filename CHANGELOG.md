@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed custom node title translation keys rendering through an unrestricted Twig environment.
+
 ## 4.0.7 - 2026-10-09
 
 ### Fixed

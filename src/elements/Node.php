@@ -1175,6 +1175,10 @@ class Node extends Element
     {
         $menu = $this->getMenuSettings();
 
+        if ($menu->titleTranslationMethod === Field::TRANSLATION_METHOD_CUSTOM && $menu->titleTranslationKeyFormat !== null) {
+            return NodeOutputSafety::renderTranslationKeyTemplate($menu->titleTranslationKeyFormat, $this);
+        }
+
         return ElementHelper::translationKey(
             $this,
             $menu->titleTranslationMethod,

@@ -2,9 +2,12 @@
 namespace verbb\navigation\helpers;
 
 use verbb\navigation\Navigation;
+use verbb\navigation\elements\Node;
 
 use Craft;
 use craft\helpers\UrlHelper;
+
+use Throwable;
 
 use Twig\Error\Error as TwigError;
 
@@ -44,7 +47,7 @@ class NodeOutputSafety
 
         try {
             $rendered = Navigation::$plugin->getTemplates()->renderSandboxedObjectTemplate($template, $object);
-        } catch (TwigError $e) {
+        } catch (Throwable $e) {
             // A stale or mistyped author token should fail closed without taking
             // down every front-end request that reads the affected menu.
             Craft::warning('Unable to render an author-entered Navigation template: ' . $e->getMessage(), __METHOD__);
@@ -53,6 +56,27 @@ class NodeOutputSafety
         }
 
         return $protected ? strtr($rendered, $protected) : $rendered;
+    }
+
+    /**
+     * Renders a custom title translation key with the node data Craft exposes to
+     * object templates, but without access to the unrestricted Twig environment.
+     */
+    public static function renderTranslationKeyTemplate(string $template, Node $node): string
+    {
+        try {
+            // Translation keys are identifiers rather than markup, so preserve
+            // Craft's historical unescaped object-template output.
+            return Navigation::$plugin->getTemplates()->renderSandboxedObjectTemplate(
+                $template,
+                self::_translationKeyObject($template, $node),
+                autoescape: false,
+            );
+        } catch (TwigError $e) {
+            Craft::warning('Unable to render a Navigation title translation key: ' . $e->getMessage(), __METHOD__);
+
+            return '';
+        }
     }
 
     /**
@@ -145,6 +169,58 @@ class NodeOutputSafety
                 'baseUrl' => $siteUrl,
             ],
         ];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Preserves Craft's safe element and Node attribute tokens without passing
+     * the Node model itself into the sandbox.
+     */
+    private static function _translationKeyObject(string $template, Node $node): array
+    {
+        $object = [
+            'id' => $node->id,
+            'uid' => $node->uid,
+            'title' => $node->title,
+            'slug' => $node->slug,
+            'uri' => $node->uri,
+            'siteId' => $node->siteId,
+            'enabled' => $node->enabled,
+            'dateCreated' => $node->dateCreated,
+            'dateUpdated' => $node->dateUpdated,
+            'elementId' => $node->elementId,
+            'menuId' => $node->menuId,
+            'type' => $node->type,
+            'classes' => $node->classes,
+            'urlSuffix' => $node->urlSuffix,
+            'customAttributes' => $node->customAttributes,
+            'data' => $node->data,
+            'newWindow' => $node->newWindow,
+            'deletedWithMenu' => $node->deletedWithMenu,
+        ];
+
+        if (preg_match('/\burl\b/', $template)) {
+            $object['url'] = $node->getUrl();
+        }
+
+        if (preg_match('/\bsite\b/', $template)) {
+            $object['site'] = $node->getSite();
+        }
+
+        if (preg_match('/\bstatus\b/', $template)) {
+            $object['status'] = $node->getStatus();
+        }
+
+        foreach ($node->getFieldLayout()?->getCustomFields() ?? [] as $field) {
+            if (preg_match('/\b' . preg_quote($field->handle, '/') . '\b/', $template)) {
+                $object[$field->handle] = $node->getFieldValue($field->handle);
+            }
+        }
+
+        return $object;
     }
 
 

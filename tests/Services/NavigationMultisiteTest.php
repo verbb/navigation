@@ -420,3 +420,20 @@ it('keeps node title overrides per site when title translation is site-specific'
     expect($secondaryNode)->not->toBeNull();
     expect($secondaryNode->title)->toBe('Original title');
 });
+
+it('sandboxes custom node title translation keys without changing supported tokens', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $nav->titleTranslationMethod = Field::TRANSLATION_METHOD_CUSTOM;
+    $nav->titleTranslationKeyFormat = '{site.handle}:{title}:{menuId}:{{ object.newWindow ? "new" : "same" }}';
+    expect(Navigation::$plugin->getMenus()->saveMenu($nav))->toBeTrue();
+
+    $node = NavigationFixtureFactory::customNode($nav, 'Shared & title', '/shared-title');
+    $site = Craft::$app->getSites()->getSiteById($node->siteId);
+
+    expect($node->getTitleTranslationKey())->toBe($site->handle . ':Shared & title:' . $node->menuId . ':same');
+
+    $nav->titleTranslationKeyFormat = '{{ getenv("PATH") }}';
+    expect(Navigation::$plugin->getMenus()->saveMenu($nav))->toBeTrue();
+
+    expect($node->getTitleTranslationKey())->toBe('');
+});
