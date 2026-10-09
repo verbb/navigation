@@ -7,6 +7,7 @@ use verbb\navigation\elements\Menu;
 use verbb\navigation\elements\Node as NodeElement;
 use verbb\navigation\helpers\BuilderSchemaHelper;
 use verbb\navigation\helpers\BuilderStructureRevision;
+use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\MenuContentFieldLayout;
 use verbb\navigation\helpers\NodeTypeHelper;
 use verbb\navigation\models\BuildSession as BuildSessionModel;
@@ -98,7 +99,7 @@ class BuilderState extends Component
             ],
             'permissions' => [
                 'canManage' => Craft::$app->getUser()->checkPermission('navigation-manageMenu:' . $nav->uid),
-                'canEditSettings' => Craft::$app->getUser()->checkPermission('navigation-editMenu:' . $nav->uid),
+                'canEditSettings' => MenuAuth::canEditMenuSettings(Craft::$app->getUser()->getIdentity(), $nav),
             ],
             'settingsUrl' => UrlHelper::cpUrl('navigation/menus/edit/' . $nav->id),
             'elementType' => NodeElement::class,

@@ -51,20 +51,15 @@ class MenusController extends Controller
             return $response;
         }
 
-        /* @var Settings $settings */
-        $settings = Navigation::$plugin->getSettings();
-
         // Get the current site from the global query param
         $siteHandle = $this->request->getParam('site', Craft::$app->getSites()->getPrimarySite()->handle);
         $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
 
         $navigations = Navigation::$plugin->getMenus()->getEditableMenusForSite($site);
 
-        $editable = $settings->bypassProjectConfig || Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
-
         return $this->renderTemplate('navigation/menus/index', [
             'navigations' => $navigations,
-            'editable' => $editable,
+            'editable' => MenuAuth::canChangeMenuSettings(),
         ]);
     }
 
@@ -120,6 +115,8 @@ class MenusController extends Controller
         } else {
             $this->requirePermission('navigation-createMenus');
         }
+
+        MenuAuth::requireMenuSettingsChanges();
 
         $site = Cp::requestedSite($nav->id ? $nav->getSites() : null) ?? Craft::$app->getSites()->getPrimarySite();
 
@@ -180,8 +177,6 @@ class MenusController extends Controller
             Craft::$app->getSession()->authorize('editStructure:' . $nav->structureId);
         }
 
-        $editable = $settings->bypassProjectConfig || Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
-
         NavigationPluginHelper::registerCpBuilderAssets();
 
         $menuElement = Menu::find()->id($nav->id)->siteId($site->id)->status(null)->one();
@@ -193,7 +188,7 @@ class MenusController extends Controller
             'site' => $site,
             'defaultSite' => $defaultSite,
             'settings' => $settings,
-            'editable' => $editable,
+            'editable' => MenuAuth::canChangeMenuSettings(),
         ]);
     }
 
@@ -215,6 +210,8 @@ class MenusController extends Controller
             MenuAuth::requireCreateMenus($this);
             $nav = new MenuSettings();
         }
+
+        MenuAuth::requireMenuSettingsChanges();
 
         $nav->name = $this->request->getBodyParam('name');
         $nav->handle = $this->request->getBodyParam('handle');
@@ -282,6 +279,7 @@ class MenusController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+        MenuAuth::requireMenuSettingsChanges();
 
         $navIds = Json::decode($this->request->getRequiredBodyParam('ids'));
 
@@ -322,6 +320,7 @@ class MenusController extends Controller
         $nav = Navigation::$plugin->getMenus()->getMenuById($menuId);
 
         MenuAuth::requireDeleteMenu($this, $nav);
+        MenuAuth::requireMenuSettingsChanges();
 
         Navigation::$plugin->getMenus()->deleteMenuById($menuId);
 
@@ -338,6 +337,7 @@ class MenusController extends Controller
         // Duplicate reads the source menu and creates a new one.
         MenuAuth::requireManageMenu($this, $nav);
         MenuAuth::requireCreateMenus($this);
+        MenuAuth::requireMenuSettingsChanges();
 
         // A menu copy can include propagated content from every enabled site.
         foreach ($nav->getSiteIds() as $siteId) {

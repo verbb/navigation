@@ -61,6 +61,18 @@ class MenuAuth
         return $uid ? $user->can('navigation-editMenu:' . $uid) : false;
     }
 
+    public static function canEditMenuSettings(?User $user, MenuSettings|string|null $menuOrUid): bool
+    {
+        return self::canChangeMenuSettings() && self::canEditMenu($user, $menuOrUid);
+    }
+
+    public static function canChangeMenuSettings(): bool
+    {
+        $settings = Navigation::$plugin->getSettings();
+
+        return $settings->bypassProjectConfig || Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+    }
+
     public static function canCreateMenus(?User $user): bool
     {
         if (!$user) {
@@ -112,6 +124,13 @@ class MenuAuth
     public static function requireCreateMenus(Controller $controller): void
     {
         $controller->requirePermission('navigation-createMenus');
+    }
+
+    public static function requireMenuSettingsChanges(): void
+    {
+        if (!self::canChangeMenuSettings()) {
+            throw new ForbiddenHttpException('Menu settings changes are disallowed in this environment.');
+        }
     }
 
     /**

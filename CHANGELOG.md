@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed menu settings remaining accessible from the menu builder when administrative changes are disabled ([#466](https://github.com/verbb/navigation/issues/466)).
+
 ## 4.0.6 - 2026-10-08
 
 ### Fixed
