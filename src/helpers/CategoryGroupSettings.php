@@ -172,6 +172,9 @@ class CategoryGroupSettings
     {
         $settings = is_array($parent->data) ? $parent->data : [];
         $group = self::getGroupFromNode($parent);
+        $groupId = (int)($settings['groupId'] ?? 0);
+        $siteId = $query->siteId;
+        $status = $query->status;
 
         if (!empty($settings['categoryCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
@@ -179,6 +182,8 @@ class CategoryGroupSettings
                 ['class' => CategoryCondition::class, 'elementType' => CategoryElement::class],
             ));
             $condition->modifyQuery($query);
+
+            $query->groupId($groupId)->siteId($siteId)->status($status);
         }
 
         self::applyOrderBy($query, $settings, $group);

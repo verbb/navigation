@@ -188,6 +188,9 @@ class EntrySectionSettings
     {
         $settings = is_array($parent->data) ? $parent->data : [];
         $section = self::getSectionFromNode($parent);
+        $sectionId = (int)($settings['sectionId'] ?? 0);
+        $siteId = $query->siteId;
+        $status = $query->status;
 
         if (!empty($settings['entryCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
@@ -195,6 +198,10 @@ class EntrySectionSettings
                 ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
             ));
             $condition->modifyQuery($query);
+
+            // Conditions refine the authorized projection source; they cannot
+            // replace its section, site, or public/preview status boundary.
+            $query->sectionId($sectionId)->siteId($siteId)->status($status);
         }
 
         self::applyOrderBy($query, $settings, $section);

@@ -159,6 +159,9 @@ class ProductTypeSettings
     public static function applyToQuery(ElementQuery $query, Node $parent): void
     {
         $settings = is_array($parent->data) ? $parent->data : [];
+        $productTypeId = (int)($settings['productTypeId'] ?? 0);
+        $siteId = $query->siteId;
+        $status = $query->status;
 
         if (!empty($settings['productCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
@@ -166,6 +169,8 @@ class ProductTypeSettings
                 ['class' => ProductCondition::class, 'elementType' => ProductElement::class],
             ));
             $condition->modifyQuery($query);
+
+            $query->typeId($productTypeId)->siteId($siteId)->status($status);
         }
 
         self::applyOrderBy($query, $settings);

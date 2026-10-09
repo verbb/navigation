@@ -158,6 +158,9 @@ class AssetVolumeSettings
     public static function applyToQuery(AssetQuery $query, Node $parent): void
     {
         $settings = is_array($parent->data) ? $parent->data : [];
+        $volumeId = (int)($settings['volumeId'] ?? 0);
+        $siteId = $query->siteId;
+        $status = $query->status;
 
         if (!empty($settings['assetCondition'])) {
             $condition = Craft::$app->getConditions()->createCondition(array_merge(
@@ -165,6 +168,8 @@ class AssetVolumeSettings
                 ['class' => AssetCondition::class, 'elementType' => AssetElement::class],
             ));
             $condition->modifyQuery($query);
+
+            $query->volumeId($volumeId)->siteId($siteId)->status($status);
         }
 
         self::applyOrderBy($query, $settings);

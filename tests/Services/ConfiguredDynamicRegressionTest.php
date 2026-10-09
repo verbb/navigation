@@ -19,3 +19,35 @@ it('retains a dynamic condition sort and limit after save and reload', function(
     $children = verbb\navigation\Navigation::$plugin->getDynamicSources()->getProjectedChildren($reloaded, $reloaded->siteId);
     expect(array_map(fn($child) => $child->getElement()->id, $children))->toBe([$entries[2]->id, $entries[3]->id]);
 });
+
+it('keeps dynamic conditions within the authorized source and public status', function() {
+    $menu = F::menu();
+    $allowedSection = F::entrySection();
+    $deniedSection = F::entrySection();
+    $allowedEntry = F::entries(1, $allowedSection)[0];
+    $deniedEntry = F::entries(1, $deniedSection)[0];
+    $deniedEntry->enabled = false;
+    expect(Craft::$app->getElements()->saveElement($deniedEntry))->toBeTrue();
+
+    $node = F::dynamicSectionNode($menu, $allowedSection, null, [
+        'entryCondition' => [
+            'class' => craft\elements\conditions\entries\EntryCondition::class,
+            'conditionRules' => [
+                [
+                    'class' => craft\elements\conditions\entries\SectionConditionRule::class,
+                    'operator' => 'in',
+                    'values' => [$deniedSection->uid],
+                ],
+                [
+                    'class' => craft\elements\conditions\StatusConditionRule::class,
+                    'operator' => 'in',
+                    'values' => [craft\base\Element::STATUS_DISABLED],
+                ],
+            ],
+        ],
+    ]);
+
+    $children = verbb\navigation\Navigation::$plugin->getDynamicSources()->getProjectedChildren($node, $node->siteId);
+
+    expect(array_map(fn($child) => $child->getElement()->id, $children))->toBe([$allowedEntry->id]);
+});

@@ -7,6 +7,7 @@
 - Fixed Craft's native duplicate action bypassing the menu's node authoring rules.
 - Fixed URL breadcrumbs exposing metadata for content that is not publicly available.
 - Fixed linked node authoring bypassing Craft's site and extension view authorization.
+- Fixed Dynamic node conditions overriding their authorized source, site, and content-status scope.
 
 ## 4.0.7 - 2026-10-09
 
