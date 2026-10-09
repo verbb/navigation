@@ -167,9 +167,19 @@ class MenuAuth
 
     public static function canManageMenuSite(?User $user, ?MenuSettings $menu, int $siteId): bool
     {
+        return self::canEditSite($user, $siteId) && self::canManageMenu($user, $menu)
+            && in_array($siteId, $menu->getSiteIds(), false);
+    }
+
+    public static function canEditSite(?User $user, int $siteId): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
         $site = Craft::$app->getSites()->getSiteById($siteId);
-        return $site !== null && self::canManageMenu($user, $menu)
-            && in_array($siteId, $menu->getSiteIds(), false)
+
+        return $site !== null
             && (!Craft::$app->getIsMultiSite() || $user->admin || $user->can('editSite:' . $site->uid));
     }
 

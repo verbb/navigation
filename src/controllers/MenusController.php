@@ -228,8 +228,19 @@ class MenusController extends Controller
         $nav->showSiteMenu = $this->request->getBodyParam('showSiteMenu');
 
         $allSiteSettings = [];
+        $existingSiteSettings = $nav->getSiteSettings();
+        $user = Craft::$app->getUser()->getIdentity();
 
         foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            if (!MenuAuth::canEditSite($user, (int)$site->id)) {
+                $siteSettings = $existingSiteSettings[$site->id] ?? new MenuSiteSettings([
+                    'siteId' => $site->id,
+                    'enabled' => false,
+                ]);
+                $allSiteSettings[$site->id] = $siteSettings;
+                continue;
+            }
+
             $postedSettings = $this->request->getBodyParam('sites.' . $site->handle);
 
             $siteSettings = new MenuSiteSettings();
@@ -262,12 +273,6 @@ class MenusController extends Controller
             ]);
 
             return null;
-        }
-
-        if ($nav->id && !$this->_saveMenuContent($nav)) {
-            $this->setFailFlash(Craft::t('navigation', 'Menu saved, but menu content could not be saved.'));
-
-            return $this->redirectToPostedUrl($nav);
         }
 
         $this->setSuccessFlash(Craft::t('navigation', 'Menu saved.'));
@@ -413,14 +418,4 @@ class MenusController extends Controller
             return $this->asSuccess();
         });
     }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private function _saveMenuContent(MenuSettings $nav): bool
-    {
-        return Navigation::$plugin->getMenus()->saveMenuContentFromRequest((int)$nav->id);
-    }
-
 }

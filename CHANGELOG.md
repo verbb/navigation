@@ -8,6 +8,7 @@
 - Fixed URL breadcrumbs exposing metadata for content that is not publicly available.
 - Fixed linked node authoring bypassing Craft's site and extension view authorization.
 - Fixed Dynamic node conditions overriding their authorized source, site, and content-status scope.
+- Fixed site-limited menu settings editors being able to change menu availability or content on other sites.
 
 ## 4.0.7 - 2026-10-09
 
