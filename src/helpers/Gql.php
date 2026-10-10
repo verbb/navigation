@@ -6,6 +6,7 @@ use verbb\navigation\elements\Node;
 use verbb\navigation\models\MenuSettings;
 use verbb\navigation\models\ProjectedNode;
 
+use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\Asset;
 use craft\elements\Category;
@@ -101,6 +102,25 @@ class Gql extends GqlHelper
             return false;
         }
 
+        if ($element->getIsDraft() && !self::canQueryDrafts($schema)) {
+            return false;
+        }
+
+        if ($element->getIsRevision() && !self::canQueryRevisions($schema)) {
+            return false;
+        }
+
+        $isInactive = match (true) {
+            $element instanceof Entry => $element->getStatus() !== Entry::STATUS_LIVE,
+            $element instanceof Category, $element instanceof Asset => $element->getStatus() !== Element::STATUS_ENABLED,
+            is_a($element, 'craft\\commerce\\elements\\Product') => $element->getStatus() !== 'live',
+            default => false,
+        };
+
+        if (!$element->getIsDraft() && !$element->getIsRevision() && $isInactive && !self::canQueryInactiveElements($schema)) {
+            return false;
+        }
+
         if ($element instanceof Entry) {
             $section = $element->getSection();
 
@@ -143,6 +163,8 @@ class Gql extends GqlHelper
             return self::isSchemaAwareOf('productTypes.' . $type->uid, $schema);
         }
 
+        // Custom node types retain their existing collection and status
+        // behavior; their active statuses are defined by the extension.
         return true;
     }
 }

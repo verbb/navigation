@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use craft\helpers\Gql as CraftGql;
 use craft\helpers\StringHelper;
+use craft\elements\User;
 use craft\models\GqlSchema;
 use Tests\Support\Fixtures\NavigationFixtureFactory;
 use Tests\Support\WebRequestSimulator;
@@ -225,6 +226,56 @@ it('hides linked entry elements outside the schema section scope', function() {
 
     expect(NavigationGql::canQueryNodeElement($allowedNode))->toBeTrue();
     expect(NavigationGql::canQueryNodeElement($deniedNode))->toBeFalse();
+});
+
+it('requires the matching Craft GraphQL scope for inactive and draft linked entries', function() {
+    $site = Craft::$app->getSites()->getPrimarySite();
+    $menu = NavigationFixtureFactory::menu();
+    $section = NavigationFixtureFactory::entrySection();
+    $entry = NavigationFixtureFactory::entries(1, $section)[0];
+    $node = NavigationFixtureFactory::entryNode($menu, $entry);
+    $baseScope = [
+        'sites.' . $site->uid . ':read',
+        'navigationMenus.' . $menu->uid . ':read',
+        'sections.' . $section->uid . ':read',
+    ];
+    $activeOnly = new GqlSchema(['name' => 'Active linked entries', 'scope' => $baseScope]);
+
+    expect(NavigationGql::canQueryNodeElement($node, $activeOnly))->toBeTrue();
+
+    $entry->postDate = new DateTime('+1 day');
+    expect(Craft::$app->getElements()->saveElement($entry))->toBeTrue();
+    $pendingNode = \verbb\navigation\elements\Node::find()->id($node->id)->status(null)->one();
+
+    expect($pendingNode->getElement()->getStatus())->toBe(\craft\elements\Entry::STATUS_PENDING)
+        ->and(NavigationGql::canQueryNodeElement($pendingNode, $activeOnly))->toBeFalse()
+        ->and(NavigationGql::canQueryNodeElement($pendingNode, new GqlSchema([
+            'name' => 'Inactive linked entries',
+            'scope' => [...$baseScope, 'elements.inactive:read'],
+        ])))->toBeTrue();
+
+    $draft = Craft::$app->getDrafts()->createDraft($entry, Craft::$app->getUser()->getId(), 'Linked entry draft');
+
+    expect(NavigationGql::canQueryLinkedElement($draft, $activeOnly))->toBeFalse()
+        ->and(NavigationGql::canQueryLinkedElement($draft, new GqlSchema([
+            'name' => 'Draft linked entries',
+            'scope' => [...$baseScope, 'elements.drafts:read'],
+        ])))->toBeTrue();
+});
+
+it('preserves registered element extension status semantics', function() {
+    $activeUser = new User([
+        'active' => true,
+        'pending' => false,
+    ]);
+
+    expect($activeUser->getStatus())->toBe(User::STATUS_ACTIVE)
+        ->and(NavigationGql::canQueryLinkedElement($activeUser, new GqlSchema([
+            'name' => 'Registered element extension',
+            'scope' => [
+                'sites.' . Craft::$app->getSites()->getPrimarySite()->uid . ':read',
+            ],
+        ])))->toBeTrue();
 });
 
 it('enforces active schema site scope on linked node elements', function(bool $withLinkedElements) {
