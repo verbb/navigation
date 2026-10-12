@@ -1349,9 +1349,11 @@ class Node extends Element
             $localeElement = Craft::$app->getElements()->getElementById($this->elementId, $elementType, $this->siteId);
 
             if ($localeElement) {
+                // Compare against the original linked site before switching to the translated element.
+                $hasOverriddenTitle = $this->hasOverriddenTitle();
                 $this->setLinkedElementSiteId($localeElement->siteId);
 
-                if (!$this->hasOverriddenTitle()) {
+                if (!$hasOverriddenTitle) {
                     $this->title = $localeElement->title;
                 }
             }

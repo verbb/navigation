@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed a medium-severity information disclosure vulnerability.
+- Fixed propagated linked nodes retaining the source site's title instead of the linked element's translated title ([#467](https://github.com/verbb/navigation/issues/467)).
 - Fixed field-layout refreshes allowing editors to substitute linked elements outside their current authoring scope.
 - Fixed custom node title translation keys rendering through an unrestricted Twig environment.
 - Fixed Craft's native duplicate action bypassing the menu's node authoring rules.
