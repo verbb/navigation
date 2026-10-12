@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Updated Craft API usage to avoid deprecated calls.
+
 ### Fixed
 - Fixed a medium-severity information disclosure vulnerability.
 - Fixed propagated linked nodes retaining the source site's title instead of the linked element's translated title ([#467](https://github.com/verbb/navigation/issues/467)).

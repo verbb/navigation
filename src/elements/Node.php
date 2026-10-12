@@ -558,7 +558,7 @@ class Node extends Element
         parent::init();
 
         // Handle validation of max levels when dragging items across levels in structure
-        Event::on(Structures::class, Structures::EVENT_BEFORE_MOVE_ELEMENT, function(MoveElementEvent $event) {
+        Event::on(Structures::class, Structures::EVENT_BEFORE_UPDATE_ELEMENT, function(MoveElementEvent $event) {
             if (!($event->element instanceof $this)) {
                 return;
             }

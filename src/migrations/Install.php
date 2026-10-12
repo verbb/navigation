@@ -9,7 +9,6 @@ use Craft;
 use craft\base\Field;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\MigrationHelper;
 
 use RuntimeException;
 
@@ -176,23 +175,32 @@ class Install extends Migration
     public function dropForeignKeys(): void
     {
         if ($this->db->tableExists('{{%navigation_nodes}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%navigation_nodes}}', $this);
+            $this->dropForeignKeyIfExists('{{%navigation_nodes}}', 'menuId');
+            $this->dropForeignKeyIfExists('{{%navigation_nodes}}', 'elementId');
+            $this->dropForeignKeyIfExists('{{%navigation_nodes}}', 'id');
         }
 
         if ($this->db->tableExists('{{%navigation_nodes_sites}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%navigation_nodes_sites}}', $this);
+            $this->dropForeignKeyIfExists('{{%navigation_nodes_sites}}', 'nodeId');
+            $this->dropForeignKeyIfExists('{{%navigation_nodes_sites}}', 'siteId');
         }
 
         if ($this->db->tableExists('{{%navigation_build_sessions}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%navigation_build_sessions}}', $this);
+            $this->dropForeignKeyIfExists('{{%navigation_build_sessions}}', 'menuId');
+            $this->dropForeignKeyIfExists('{{%navigation_build_sessions}}', 'siteId');
+            $this->dropForeignKeyIfExists('{{%navigation_build_sessions}}', 'userId');
         }
 
         if ($this->db->tableExists('{{%navigation_menus}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%navigation_menus}}', $this);
+            $this->dropForeignKeyIfExists('{{%navigation_menus}}', 'id');
+            $this->dropForeignKeyIfExists('{{%navigation_menus}}', 'structureId');
+            $this->dropForeignKeyIfExists('{{%navigation_menus}}', 'fieldLayoutId');
+            $this->dropForeignKeyIfExists('{{%navigation_menus}}', 'menuFieldLayoutId');
         }
 
         if ($this->db->tableExists('{{%navigation_menus_sites}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%navigation_menus_sites}}', $this);
+            $this->dropForeignKeyIfExists('{{%navigation_menus_sites}}', 'siteId');
+            $this->dropForeignKeyIfExists('{{%navigation_menus_sites}}', 'menuId');
         }
     }
 
