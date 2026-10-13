@@ -52,6 +52,7 @@ class BuildSessions extends Component
         }
 
         $session = $this->_recordToModel($record);
+        $this->_pruneStaleNodeReferences($session);
 
         return $session;
     }
@@ -69,7 +70,13 @@ class BuildSessions extends Component
             )->one();
 
             if ($record) {
-                return $this->_recordToModel($record);
+                $session = $this->_recordToModel($record);
+
+                if ($this->_pruneStaleNodeReferences($session)) {
+                    $this->_saveSession($session, $record);
+                }
+
+                return $session;
             }
 
             $session = new BuildSessionModel([
@@ -96,13 +103,27 @@ class BuildSessions extends Component
         }
 
         $nodeId = (int)($node->canonicalId ?: $node->id);
+        $storedNode = null;
 
         foreach (BuildSessionRecord::find()->where(['menuId' => $node->menuId])->all() as $record) {
             $session = $this->_recordToModel($record);
+            $referencesPendingAdd = in_array($nodeId, $session->addedNodeIds, true);
+            $referencesPendingDelete = (bool)$this->_findStagedDelete($session, $nodeId);
 
-            if ((in_array($nodeId, $session->addedNodeIds, true)
-                || $this->_findStagedDelete($session, $nodeId))
-                && ((int)$session->userId !== $userId || (int)$session->siteId !== (int)$node->siteId)) {
+            if ((!$referencesPendingAdd && !$referencesPendingDelete)
+                || ((int)$session->userId === $userId && (int)$session->siteId === (int)$node->siteId)) {
+                continue;
+            }
+
+            $storedNode ??= NodeElement::find()
+                ->id($nodeId)
+                ->menuId($node->menuId)
+                ->siteId($node->siteId)
+                ->status(null)
+                ->one();
+
+            if (($referencesPendingAdd && $storedNode?->getIsPendingPublish())
+                || ($referencesPendingDelete && $storedNode?->getIsPendingDelete())) {
                 return false;
             }
         }
@@ -772,6 +793,52 @@ class BuildSessions extends Component
         $session->setStorageRevision($this->_storageRevision($record));
 
         return $session;
+    }
+
+    /**
+     * Session lists can outlive their element flags when a node is published or restored through
+     * another Craft save path. Keep real pending work, but stop stale IDs from locking live nodes.
+     */
+    private function _pruneStaleNodeReferences(BuildSessionModel $session): bool
+    {
+        $nodeIds = array_values(array_unique(array_merge(
+            $session->addedNodeIds,
+            array_map('intval', array_column($session->stagedDeletes, 'nodeId')),
+        )));
+
+        if ($nodeIds === []) {
+            return false;
+        }
+
+        $nodesById = [];
+        $nodes = NodeElement::find()
+            ->id($nodeIds)
+            ->menuId($session->menuId)
+            ->siteId($session->siteId)
+            ->status(null)
+            ->all();
+
+        foreach ($nodes as $node) {
+            $nodesById[(int)$node->id] = $node;
+        }
+
+        $addedNodeIds = array_values(array_filter(
+            $session->addedNodeIds,
+            static fn(int $nodeId): bool => isset($nodesById[$nodeId]) && $nodesById[$nodeId]->getIsPendingPublish(),
+        ));
+        $stagedDeletes = array_values(array_filter(
+            $session->stagedDeletes,
+            static function(array $stagedDelete) use ($nodesById): bool {
+                $nodeId = (int)($stagedDelete['nodeId'] ?? 0);
+
+                return isset($nodesById[$nodeId]) && $nodesById[$nodeId]->getIsPendingDelete();
+            },
+        ));
+        $changed = $addedNodeIds !== $session->addedNodeIds || $stagedDeletes !== $session->stagedDeletes;
+        $session->addedNodeIds = $addedNodeIds;
+        $session->stagedDeletes = $stagedDeletes;
+
+        return $changed;
     }
 
     /** Canonical pending flags are shared across sites; never adopt another session's work. */

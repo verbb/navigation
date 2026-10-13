@@ -63,8 +63,14 @@ it('allows an empty intermediate element picker in a draft but requires a link o
     expect($node->getElement())->toBeNull();
 
     $node->draftId = null;
+    expect($node->validate())->toBeFalse();
+    expect($node->getErrors('linkedElementId'))->not->toBeEmpty()
+        ->and($node->getErrors('elementId'))->toBeEmpty();
+
+    $node->clearErrors();
     expect($node->nodeType()->beforeSaveNode(false))->toBeFalse();
-    expect($node->getErrors('linkedElementId'))->not->toBeEmpty();
+    expect($node->getErrors('linkedElementId'))->not->toBeEmpty()
+        ->and($node->getErrors('elementId'))->toBeEmpty();
 
     $node->setLinkedElementId($entry->id);
     expect($node->getElement()?->id)->toBe($entry->id);

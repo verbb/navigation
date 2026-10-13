@@ -111,7 +111,6 @@ abstract class ElementNodeType extends NodeType
         // Craft autosaves intermediate type changes before the new picker has a selection.
         // Only a published element node must already have a linked element.
         if (!$this->node?->elementId && !$this->node?->getIsDraft()) {
-            $this->node->addError('elementId', Craft::t('navigation', 'Element ID is required.'));
             $this->node->addError('linkedElementId', Craft::t('navigation', 'Linked Element ID is required.'));
 
             return false;

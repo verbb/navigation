@@ -101,10 +101,11 @@ class NodeTypeElements extends BaseField
                 'required' => true,
                 'limit' => 1,
                 'modalStorageKey' => 'navigation.linkedElementId',
+                'disabled' => $static,
             ]);
 
             $namespace = Craft::$app->getView()->getNamespace();
-            $script = "<script>new Craft.Navigation.ElementSelect('#" . $namespace ."-linkedElementId', '#" . $namespace ."-linkedElementSiteId')</script>";
+            $script = $static ? '' : "<script>new Craft.Navigation.ElementSelect('#" . $namespace ."-linkedElementId', '#" . $namespace ."-linkedElementSiteId')</script>";
 
             // Keep a single `.field` root for alwaysRefresh + flex-fields spacing
             // (nesting `.field` inside a wrapper re-applies Craft’s 24px field margins).

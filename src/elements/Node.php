@@ -1724,8 +1724,6 @@ class Node extends Element
             function($attribute, $params, Validator $validator): void {
                 // Don't check if this is a draft, likely just switched to different node type
                 if (!$this->getIsDraft() && $this->isElement() && empty($this->elementId)) {
-                    // Add to both attributes as the element slide-out uses `linkedElementId`
-                    $validator->addError($this, 'elementId', Craft::t('navigation', 'Element ID is required.'));
                     $validator->addError($this, 'linkedElementId', Craft::t('navigation', 'Linked Element ID is required.'));
                 }
             },
@@ -1787,7 +1785,10 @@ const getEditor = () => {
 });
 })();
 EOD;
-            $view->registerJs($js);
+
+            if (!$static) {
+                $view->registerJs($js);
+            }
 
             return Cp::selectFieldHtml([
                 'label' => Craft::t('navigation', 'Type'),
@@ -1795,6 +1796,7 @@ EOD;
                 'name' => 'type',
                 'value' => $this->type,
                 'options' => $nodeTypeOptions,
+                'disabled' => $static,
             ]);
         })();
 

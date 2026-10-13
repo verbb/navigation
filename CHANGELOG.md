@@ -10,6 +10,7 @@
 - Fixed a medium-severity information disclosure vulnerability.
 - Fixed menu publishing skipping custom node validation for structure-only changes and hiding validation or structure-move error messages ([#370](https://github.com/verbb/navigation/issues/370)).
 - Fixed rapid node selection sometimes clearing existing selections, and restored Shift-click range selection for node checkboxes ([#468](https://github.com/verbb/navigation/issues/468)).
+- Fixed stale builder-session references leaving published nodes read-only, and made genuinely read-only node controls consistently non-interactive ([#470](https://github.com/verbb/navigation/issues/470)).
 - Fixed propagated linked nodes retaining the source site's title instead of the linked element's translated title ([#467](https://github.com/verbb/navigation/issues/467)).
 - Fixed field-layout refreshes allowing editors to substitute linked elements outside their current authoring scope.
 - Fixed custom node title translation keys rendering through an unrestricted Twig environment.

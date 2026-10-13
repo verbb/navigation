@@ -161,6 +161,10 @@ it('bounds subtree authorization reads and restores the cache after rejection', 
         $owner = new craft\elements\User(['username' => uniqid('owner'), 'email' => uniqid('owner').'@example.test']);
         Craft::$app->elements->saveElement($owner);
         $sessions = N::$plugin->getBuildSessions();
+        $parent->setPendingPublish(true);
+        $parent->enabled = false;
+        $parent->setEnabledForSite(false);
+        expect(Craft::$app->elements->saveElement($parent))->toBeTrue();
         $sessions->stageAddedNodes($sessions->getOrCreate($menu->id, $parent->siteId, $owner->id), [$parent->id]);
         expect($check)->toThrow(ForbiddenHttpException::class);
         expect($db->queryCache)->toBe($cache);
