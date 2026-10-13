@@ -11,6 +11,7 @@ use verbb\navigation\records\BuildSession as BuildSessionRecord;
 use Craft;
 use craft\base\Component;
 use craft\elements\User;
+use craft\errors\InvalidElementException;
 use craft\helpers\Json;
 
 use yii\base\UserException;
@@ -508,7 +509,12 @@ class BuildSessions extends Component
                 $node->publishPendingAdd();
 
                 if (!$elementsService->saveElement($node)) {
-                    throw new UserException(Craft::t('navigation', 'Couldn’t save menu.'));
+                    $errors = $node->getErrorSummary(true);
+
+                    throw new InvalidElementException(
+                        $node,
+                        $errors ? implode(' ', $errors) : Craft::t('navigation', 'Couldn’t save menu.'),
+                    );
                 }
 
                 $publishedCount++;
@@ -547,6 +553,10 @@ class BuildSessions extends Component
 
             $this->deleteSession($session);
         });
+
+        if ($applyStructure && $structureMoves !== []) {
+            $this->_validateStructureNodes($menuId, $siteId, $structureMoves, $stagedDeleteIds);
+        }
 
         Navigation::$plugin->getNavigationCache()->invalidateMenuSite($nav->uid, $siteId);
 
@@ -703,6 +713,43 @@ class BuildSessions extends Component
             }
         }
 
+    }
+
+    private function _validateStructureNodes(int $menuId, int $siteId, array $structureMoves, array $skipElementIds): void
+    {
+        $nodeIds = [];
+
+        foreach ($structureMoves as $move) {
+            $nodeId = (int)($move['elementId'] ?? 0);
+
+            if ($nodeId && !isset($skipElementIds[$nodeId])) {
+                $nodeIds[$nodeId] = true;
+            }
+        }
+
+        if ($nodeIds === []) {
+            return;
+        }
+
+        $nodes = NodeElement::find()
+            ->id(array_keys($nodeIds))
+            ->siteId($siteId)
+            ->menuId($menuId)
+            ->status(null)
+            ->all();
+
+        foreach ($nodes as $node) {
+            if ($node->validate()) {
+                continue;
+            }
+
+            $errors = $node->getErrorSummary(true);
+
+            throw new InvalidElementException(
+                $node,
+                $errors ? implode(' ', $errors) : Craft::t('navigation', 'Couldn’t save menu.'),
+            );
+        }
     }
 
     private function _recordToModel(BuildSessionRecord $record): BuildSessionModel

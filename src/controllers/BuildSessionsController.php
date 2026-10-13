@@ -7,8 +7,10 @@ use verbb\navigation\helpers\BuilderStructureRevision;
 use verbb\navigation\helpers\MenuAuth;
 
 use Craft;
+use craft\errors\InvalidElementException;
 use craft\web\Controller;
 
+use yii\base\UserException;
 use yii\web\BadRequestHttpException;
 use yii\web\ConflictHttpException;
 use yii\web\ForbiddenHttpException;
@@ -208,10 +210,10 @@ class BuildSessionsController extends Controller
                 $result = ['publishedCount' => 0, 'deletedCount' => 0];
                 $buildSessions->deleteSession($session);
             }
-        } catch (BadRequestHttpException $e) {
-            return $this->asFailure($e->getMessage());
         } catch (ConflictHttpException $e) {
             throw $e;
+        } catch (InvalidElementException|UserException $e) {
+            return $this->asFailure($e->getMessage());
         } catch (Throwable $e) {
             Craft::error('Failed to save menu build session: ' . $e->getMessage(), __METHOD__);
 
