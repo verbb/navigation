@@ -74,6 +74,43 @@ try {
   await page.getByText('Opens in a new window', { exact: true }).waitFor({ state: 'visible' });
   assert.equal(await newWindow.locator('[title], svg title').count(), 0);
   assert.equal(await newWindow.getAttribute('title'), null);
+
+  const selectedNodeIds = () => page.evaluate(
+    () => window.boundary.store.getState().selectedNodeIds,
+  );
+  const firstCheckbox = page.locator('[data-node-id="1"] pk-checkbox');
+  const secondCheckbox = page.locator('[data-node-id="2"] pk-checkbox');
+  const thirdCheckbox = page.locator('[data-node-id="3"] pk-checkbox');
+
+  await firstCheckbox.click();
+  await secondCheckbox.click();
+  assert.deepEqual(await selectedNodeIds(), [1, 2]);
+
+  const thirdSelectionCell = thirdCheckbox.locator('xpath=..');
+  const [thirdCellBox, thirdCheckboxBox] = await Promise.all([
+    thirdSelectionCell.boundingBox(),
+    thirdCheckbox.boundingBox(),
+  ]);
+  assert.ok(thirdCellBox && thirdCheckboxBox);
+  const cellPaddingX = thirdCellBox.x + thirdCellBox.width - 3;
+  assert.ok(cellPaddingX > thirdCheckboxBox.x + thirdCheckboxBox.width);
+  await thirdSelectionCell.click({
+    position: { x: thirdCellBox.width - 3, y: thirdCellBox.height / 2 },
+  });
+  await page.waitForTimeout(250);
+  assert.deepEqual(await selectedNodeIds(), [1, 2, 3]);
+
+  await page.evaluate(() => window.boundary.store.getState().clearSelection());
+  await firstCheckbox.click();
+  await page.keyboard.down('Shift');
+  try {
+    await thirdCheckbox.click();
+  } finally {
+    await page.keyboard.up('Shift');
+  }
+  assert.deepEqual(await selectedNodeIds(), [1, 2, 3]);
+  await page.evaluate(() => window.boundary.store.getState().clearSelection());
+
   await page.locator('#delete').click();
   // Exercise the actual tree drag handlers with a browser DataTransfer object.
   const source = page.getByRole('row').filter({ hasText: 'Node 2' });

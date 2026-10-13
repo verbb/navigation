@@ -11,7 +11,7 @@ import type { BuilderNode } from '../types';
 import { useBuilderStore } from '../store';
 import { t } from '../api';
 import { openNodeEditor } from '../utils/craft';
-import { isRowInteractiveTarget } from '../utils/selection';
+import { isRowInteractiveTarget, type NodeSelectionModifiers } from '../utils/selection';
 import { getNodeRowPaddingLeft, nodeTreeGridClass } from '../utils/nodeRowLayout';
 import { NodeTypeBadge } from './NodeTypeBadge';
 import { NodeRowActionsMenu } from './NodeRowActionsMenu';
@@ -94,6 +94,12 @@ export function NodeRow({
   const siteId = useBuilderStore((s) => s.siteId);
   const refresh = useBuilderStore((s) => s.refresh);
   const selectClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const checkboxSelectionModifiersRef = useRef<NodeSelectionModifiers>({
+    shiftKey: false,
+    metaKey: false,
+    ctrlKey: false,
+    toggle: true,
+  });
 
   useEffect(() => {
     return () => {
@@ -208,17 +214,56 @@ export function NodeRow({
         handleEditNode();
       }}
     >
-      <div role="cell" className="flex items-center px-3">
+      <div
+        role="cell"
+        data-no-row-select
+        className="flex items-center px-3"
+        onClick={(event) => {
+          if (!isSelectable) {
+            return;
+          }
+
+          event.stopPropagation();
+
+          selectNode(
+            node.id,
+            {
+              shiftKey: event.shiftKey,
+              metaKey: event.metaKey,
+              ctrlKey: event.ctrlKey,
+              toggle: true,
+            },
+            visibleSelectableNodeIds,
+          );
+        }}
+      >
         {isSelectable && (
           <Checkbox
             aria-label={`Select ${node.title}`}
             checked={isSelected}
             tabIndex={-1}
+            // `pk-change` does not carry the originating click modifiers.
+            onClickCapture={(event) => {
+              checkboxSelectionModifiersRef.current = {
+                shiftKey: event.shiftKey,
+                metaKey: event.metaKey,
+                ctrlKey: event.ctrlKey,
+                toggle: true,
+              };
+            }}
             onClick={(event) => event.stopPropagation()}
             onPkChange={() => {
+              const modifiers = checkboxSelectionModifiersRef.current;
+              checkboxSelectionModifiersRef.current = {
+                shiftKey: false,
+                metaKey: false,
+                ctrlKey: false,
+                toggle: true,
+              };
+
               selectNode(
                 node.id,
-                { shiftKey: false, metaKey: false, ctrlKey: false, toggle: true },
+                modifiers,
                 visibleSelectableNodeIds,
               );
             }}
