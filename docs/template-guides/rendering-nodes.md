@@ -17,7 +17,7 @@ The quickest option — Navigation outputs a nested `<ul>` with active classes a
 }) }}
 ```
 
-`render()` outputs a fixed nested list from stored node titles and URLs. Parent/child relationships are wired in memory on front-end requests; no additional loading flags are needed for typical use.
+`render()` outputs a nested list from stored nodes and any children projected by Dynamic nodes. Parent/child relationships are wired in memory on front-end requests, and projected children are included by default, so no additional loading flags are needed for typical use.
 
 ## `craft.navigation.nodes()`
 
@@ -47,13 +47,24 @@ You can pass the menu handle as a shorthand:
 {% set nodes = craft.navigation.nodes('mainMenu').all() %}
 ```
 
-On frontend menu-scoped reads, parent/child relationships are loaded together automatically — you do not need Craft eager-loading for hierarchy in most cases. See [Performance & Caching](/frontend/performance-and-caching).
+On front-end menu-scoped reads, parent/child relationships are loaded together automatically — you do not need Craft eager-loading for hierarchy in most cases. Projected children are also included by default. Calling `withProjectedChildren()` without an argument is unnecessary; use `withProjectedChildren(false)` only when you want stored nodes without projections. See [Performance & Caching](/frontend/performance-and-caching).
+
+A Dynamic node remains part of the menu as a stored parent. Its matching entries, categories, assets, or products are attached beneath it as projected children rather than replacing it:
+
+```text
+Passive node
+└── Dynamic node
+    ├── Projected child
+    └── Projected child
+```
+
+If you fetch only level-one nodes, the result array contains the Passive node. Reading its `children` reaches the Dynamic node, and reading that node's `children` reaches the projected items. [Auto-List a Section with Dynamic Nodes](/user-guides/templating/auto-list-a-section-with-dynamic-nodes) provides a complete example using an automatically updated section.
 
 For query parameters, see [Node Queries](/getting-elements/node-queries).
 
 ### Recursive Macro (Without `{% nav %}`)
 
-If you prefer macros, fetch only top-level nodes and recurse manually:
+If you prefer macros, fetch only top-level nodes and recurse manually. Each call receives the next node in the hierarchy, so the same macro renders stored and projected children without a separate query or projection flag:
 
 ```twig
 {% import _self as macros %}
@@ -85,6 +96,8 @@ If you prefer macros, fetch only top-level nodes and recurse manually:
     </li>
 {% endmacro %}
 ```
+
+For the Passive → Dynamic structure shown above, the first recursive call renders the Passive node, the second renders the Dynamic node, and subsequent calls render its projected children.
 
 ## Custom Markup
 

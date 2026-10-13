@@ -945,11 +945,16 @@ $nodes = \verbb\navigation\elements\Node::find()
 
 ### `withProjectedChildren`
 
-Controls whether Dynamic nodes append read-time projected children.
+Controls whether Dynamic nodes append read-time projected children. Projected children are included by default, so calling `withProjectedChildren()` without an argument is unnecessary. Pass `false` when you need only the stored menu nodes.
+
+A Dynamic node remains in the hierarchy and receives the projected items as its children; projections do not replace the Dynamic node. On a normal front-end menu-scoped query, Navigation also wires the hierarchy automatically. Calling `withNodeHierarchy(false)` disables that assembly and is not suitable for recursive rendering that needs projected children.
+
+When the hierarchy has been assembled, `node.children` is an `ElementCollection`, not another `NodeQuery`. Apply `withProjectedChildren()` to the original query before calling `all()` rather than calling it on `node.children`.
 
 | Value | Behaviour |
 | --- | --- |
 | `null` (default) | Project children |
+| `true` | Explicitly project children; equivalent to the default |
 | `false` | Skip projection (stored children only) |
 
 ::: code

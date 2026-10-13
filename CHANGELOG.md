@@ -4,6 +4,7 @@
 
 ### Changed
 - Updated Craft API usage to avoid deprecated calls.
+- Clarified how Dynamic nodes remain in the hierarchy, include projected children by default, and work with recursive rendering ([#469](https://github.com/verbb/navigation/issues/469)).
 
 ### Fixed
 - Fixed a medium-severity information disclosure vulnerability.

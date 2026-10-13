@@ -9,7 +9,7 @@ Each node type exposes **`getTag()`** — the HTML element name for the node wra
 | Type | Default tag |
 | --- | --- |
 | Entry, Category, Custom, Site, … | `a` |
-| Passive, GroupColumn | `span` |
+| Passive, GroupColumn, Dynamic | `span` |
 
 `craft.navigation.render()` respects `getTag()` for accessibility (no empty `href` on passive items).
 
@@ -54,10 +54,28 @@ Node custom fields (configured on the menu’s node field layout) are available 
 
 ## Projected Children
 
-Dynamic children are [ProjectedNode](/reference/projected-node) objects — not full `Node` elements. They support `title`, `url`, active flags, and `element`, but not node custom fields.
+Dynamic nodes remain in the saved menu hierarchy. Navigation attaches each matching entry, category, asset, or product beneath its Dynamic node as a [ProjectedNode](/reference/projected-node) object; the projected items do not replace their parent.
+
+For example, suppose the first top-level node in `mainMenu` is a Passive node named **News**, and its first child is a Dynamic node that projects entries from a News section. The resulting hierarchy has three levels:
+
+```text
+News (Passive)
+└── News entries (Dynamic)
+    ├── First article (ProjectedNode)
+    └── Second article (ProjectedNode)
+```
+
+Put the following code in a Twig template to reach the Dynamic node and inspect its projected children:
 
 ```twig
-{% for child in node.children %}
+{% set roots = craft.navigation.nodes('mainMenu')
+    .level(1)
+    .all() %}
+
+{% set newsGroup = roots|first %}
+{% set dynamicNode = newsGroup.children|first %}
+
+{% for child in dynamicNode.children %}
     {% if child.isProjected ?? false %}
         {# projected entry #}
     {% else %}
@@ -65,6 +83,10 @@ Dynamic children are [ProjectedNode](/reference/projected-node) objects — not 
     {% endif %}
 {% endfor %}
 ```
+
+Projected children are included by default. When Navigation has assembled the hierarchy, `node.children` is an `ElementCollection`, so apply query options such as `withProjectedChildren(false)` to the original `craft.navigation.nodes()` query before calling `all()`. Do not disable hierarchy assembly for recursive menu rendering. See [Rendering Nodes](/template-guides/rendering-nodes) for a complete recursive macro and [Auto-List a Section with Dynamic Nodes](/user-guides/templating/auto-list-a-section-with-dynamic-nodes) for a full walkthrough.
+
+Projected nodes support `title`, `url`, active flags, and `element`, but not node custom fields.
 
 ## Mega Menus
 
