@@ -44,8 +44,42 @@ class NavigationCache extends Component
     use NavigationCacheDeprecations;
 
 
+    // Properties
+    // =========================================================================
+
+    private int $_invalidationBatchDepth = 0;
+    private array $_pendingInvalidationTags = [];
+    private array $_pendingInvalidationContexts = [];
+
+
     // Public Methods
     // =========================================================================
+
+    /** Defer cache invalidation and emit one consolidated event after successful work. */
+    public function batchInvalidations(callable $callback): mixed
+    {
+        $previousTags = $this->_pendingInvalidationTags;
+        $previousContexts = $this->_pendingInvalidationContexts;
+        $this->_invalidationBatchDepth++;
+
+        try {
+            $result = $callback();
+        } catch (Throwable $e) {
+            $this->_invalidationBatchDepth--;
+            $this->_pendingInvalidationTags = $previousTags;
+            $this->_pendingInvalidationContexts = $previousContexts;
+
+            throw $e;
+        }
+
+        $this->_invalidationBatchDepth--;
+
+        if ($this->_invalidationBatchDepth === 0) {
+            $this->_flushInvalidationBatch();
+        }
+
+        return $result;
+    }
 
     public function isEnabled(): bool
     {
@@ -259,15 +293,13 @@ class NavigationCache extends Component
 
     public function invalidateTags(array $tags): void
     {
-        TagDependency::invalidate(Craft::$app->getCache(), $tags);
-        $this->_triggerInvalidateEvent($tags);
+        $this->_invalidate($tags);
     }
 
     public function invalidateMenu(string $menuUid): void
     {
         $tags = $this->_menuInvalidationTags($menuUid);
-        TagDependency::invalidate(Craft::$app->getCache(), $tags);
-        $this->_triggerInvalidateEvent($tags, menuUid: $menuUid);
+        $this->_invalidate($tags, menuUid: $menuUid);
     }
 
     public function invalidateMenuSite(string $menuUid, int $siteId): void
@@ -276,8 +308,7 @@ class NavigationCache extends Component
             $this->_menuInvalidationTags($menuUid),
             [$this->menuSiteTag($menuUid, $siteId)],
         );
-        TagDependency::invalidate(Craft::$app->getCache(), $tags);
-        $this->_triggerInvalidateEvent($tags, menuUid: $menuUid, siteId: $siteId);
+        $this->_invalidate($tags, menuUid: $menuUid, siteId: $siteId);
     }
 
     public function invalidateNode(int $nodeId, ?string $menuUid = null, ?int $siteId = null): void
@@ -292,16 +323,14 @@ class NavigationCache extends Component
             }
         }
 
-        TagDependency::invalidate(Craft::$app->getCache(), $tags);
-        $this->_triggerInvalidateEvent($tags, menuUid: $menuUid, siteId: $siteId, nodeId: $nodeId);
+        $this->_invalidate($tags, menuUid: $menuUid, siteId: $siteId, nodeId: $nodeId);
     }
 
     public function invalidateByHandle(?string $handle = null): void
     {
         if ($handle === null) {
             $tags = ['navigation'];
-            TagDependency::invalidate(Craft::$app->getCache(), $tags);
-            $this->_triggerInvalidateEvent($tags);
+            $this->_invalidate($tags);
 
             return;
         }
@@ -557,6 +586,48 @@ class NavigationCache extends Component
         }
 
         return true;
+    }
+
+    private function _invalidate(array $tags, ?string $menuUid = null, ?int $siteId = null, ?int $nodeId = null): void
+    {
+        $tags = array_values(array_unique($tags));
+
+        if ($this->_invalidationBatchDepth > 0) {
+            $this->_pendingInvalidationTags = array_values(array_unique(array_merge($this->_pendingInvalidationTags, $tags)));
+            $this->_pendingInvalidationContexts[] = compact('menuUid', 'siteId', 'nodeId');
+
+            return;
+        }
+
+        TagDependency::invalidate(Craft::$app->getCache(), $tags);
+        $this->_triggerInvalidateEvent($tags, $menuUid, $siteId, $nodeId);
+    }
+
+    private function _flushInvalidationBatch(): void
+    {
+        if ($this->_pendingInvalidationTags === []) {
+            $this->_pendingInvalidationContexts = [];
+
+            return;
+        }
+
+        $tags = $this->_pendingInvalidationTags;
+        $contexts = $this->_pendingInvalidationContexts;
+        $this->_pendingInvalidationTags = [];
+        $this->_pendingInvalidationContexts = [];
+        $menuUid = $this->_sharedContextValue($contexts, 'menuUid');
+        $siteId = $this->_sharedContextValue($contexts, 'siteId');
+        $nodeId = $this->_sharedContextValue($contexts, 'nodeId');
+
+        TagDependency::invalidate(Craft::$app->getCache(), $tags);
+        $this->_triggerInvalidateEvent($tags, $menuUid, $siteId, $nodeId);
+    }
+
+    private function _sharedContextValue(array $contexts, string $key): mixed
+    {
+        $values = array_values(array_unique(array_column($contexts, $key), SORT_REGULAR));
+
+        return count($values) === 1 ? $values[0] : null;
     }
 
     private function _triggerInvalidateEvent(array $tags, ?string $menuUid = null, ?int $siteId = null, ?int $nodeId = null): void

@@ -81,8 +81,8 @@ it('returns user-facing exceptions raised while applying structure moves', funct
     $first = F::customNode($menu, 'First', '/first');
     $second = F::customNode($menu, 'Second', '/second');
     $message = 'Only passive nodes are allowed to have children.';
-    $reject = static function($event) use ($second, $message) {
-        if ($event->element instanceof Node && $event->element->id === $second->id) {
+    $reject = static function($event) use ($menu, $message) {
+        if ($event->element instanceof Node && $event->element->menuId === $menu->id) {
             throw new UserException($message);
         }
     };

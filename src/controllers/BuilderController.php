@@ -144,29 +144,31 @@ class BuilderController extends Controller
         // Match the build-page authorize so Craft’s structure service accepts moves.
         Craft::$app->getSession()->authorize('editStructure:' . $nav->structureId);
 
-        $transaction = Craft::$app->getDb()->beginTransaction();
+        $cache = Navigation::$plugin->getNavigationCache();
 
         try {
-            BuilderStructureRevision::requireCurrent($nav, $this->request->getBodyParam('structureRevision'));
-            MenuAuth::requireStructureMoves($nav, $siteId, $moves);
-            $buildSessions->applyStructureMoves($nav, $siteId, $moves);
-            $structureRevision = BuilderStructureRevision::get($nav);
-            $transaction->commit();
+            $structureRevision = $cache->batchInvalidations(function() use ($nav, $siteId, $moves, $buildSessions, $cache) {
+                $revision = Craft::$app->getDb()->transaction(function() use ($nav, $siteId, $moves, $buildSessions) {
+                    BuilderStructureRevision::requireCurrent($nav, $this->request->getBodyParam('structureRevision'));
+                    MenuAuth::requireStructureMoves($nav, $siteId, $moves);
+                    $buildSessions->applyStructureMoves($nav, $siteId, $moves);
+
+                    return BuilderStructureRevision::get($nav);
+                });
+
+                $cache->invalidateMenuSite($nav->uid, $siteId);
+
+                return $revision;
+            });
         } catch (ConflictHttpException $e) {
-            $transaction->rollBack();
             throw $e;
         } catch (BadRequestHttpException $e) {
-            $transaction->rollBack();
-
             return $this->asFailure($e->getMessage());
         } catch (Throwable $e) {
-            $transaction->rollBack();
             Craft::error('Failed to apply live structure: ' . $e->getMessage(), __METHOD__);
 
             return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu structure.'));
         }
-
-        Navigation::$plugin->getNavigationCache()->invalidateMenuSite($nav->uid, $siteId);
 
         return $this->asSuccess(Craft::t('navigation', 'Menu structure saved.'), [
             'structureRevision' => $structureRevision,

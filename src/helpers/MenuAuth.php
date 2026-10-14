@@ -458,61 +458,30 @@ class MenuAuth
         $rows = (new Query())->select(['elementId', 'lft', 'rgt'])
             ->from('{{%structureelements}}')->where(['structureId' => $menu->structureId])
             ->orderBy(['lft' => SORT_ASC])->all();
+        $currentMoves = StructureMovePlanner::fromStructureRows($rows, array_keys($nodes));
+        $plannedMoves = StructureMovePlanner::plan($currentMoves, $moves, $skipIds);
         $parents = [];
         $children = [];
-        $stack = [];
 
-        foreach ($rows as $row) {
-            if (!$row['elementId']) {
-                continue;
-            }
+        foreach ($currentMoves as $move) {
+            $id = $move['elementId'];
+            $parent = $move['parentId'] ?? 0;
 
-            while ($stack && end($stack)['rgt'] < $row['lft']) {
-                array_pop($stack);
-            }
-            $id = (int)$row['elementId'];
-            $parent = $stack ? (int)end($stack)['elementId'] : 0;
-
-            // The complete physical tree already supplies parent IDs; avoid lazy ancestor reads.
-            if (isset($nodes[$id])) {
-                $nodes[$id]->setParentId($parent ?: null);
-            }
+            $nodes[$id]->setParentId($parent ?: null);
             $parents[$id] = $parent;
             $children[$parent][] = $id;
-            $stack[] = $row;
+            $children[$id] ??= [];
         }
 
         $user = Craft::$app->getUser()->getIdentity();
 
-        foreach ($moves as $move) {
-            if (!is_array($move)) {
-                throw new BadRequestHttpException('Invalid move payload.');
-            }
-            $id = self::_moveId($move['elementId'] ?? null);
-
-            if (in_array($id, $skipIds, true)) {
-                continue;
-            }
-            $parent = self::_moveId($move['parentId'] ?? null, true) ?? 0;
-            $prev = self::_moveId($move['prevId'] ?? null, true);
-
-            foreach (array_filter([$id, $parent, $prev]) as $targetId) {
-                if (!isset($nodes[$targetId], $parents[$targetId])) {
-                    throw new BadRequestHttpException('Invalid move node or target.');
-                }
-            }
+        foreach ($plannedMoves as $move) {
+            $id = $move['elementId'];
+            $parent = $move['parentId'] ?? 0;
+            $prev = $move['prevId'];
             $destination = $prev ? $parents[$prev] : $parent;
-
-            if ($prev === $id || $destination === $id) {
-                throw new BadRequestHttpException('Invalid move target.');
-            }
             $oldParent = $parents[$id];
             $oldIndex = array_search($id, $children[$oldParent], true);
-            $oldPrev = $oldIndex ? $children[$oldParent][$oldIndex - 1] : null;
-
-            if ($oldParent === $destination && $oldPrev === $prev) {
-                continue;
-            }
 
             // A parent move carries descendants, including nodes absent from the posted tree.
             $affected = [$id];

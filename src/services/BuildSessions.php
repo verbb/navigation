@@ -3,6 +3,7 @@ namespace verbb\navigation\services;
 
 use verbb\navigation\Navigation;
 use verbb\navigation\elements\Node as NodeElement;
+use verbb\navigation\helpers\StructureMovePlanner;
 use verbb\navigation\helpers\StructureLimits;
 use verbb\navigation\models\BuildSession as BuildSessionModel;
 use verbb\navigation\models\MenuSettings;
@@ -10,6 +11,7 @@ use verbb\navigation\records\BuildSession as BuildSessionRecord;
 
 use Craft;
 use craft\base\Component;
+use craft\db\Query;
 use craft\elements\User;
 use craft\errors\InvalidElementException;
 use craft\helpers\Json;
@@ -230,7 +232,9 @@ class BuildSessions extends Component
 
     public function publish(BuildSessionModel $session, bool $applyStructure = false, ?array $moves = null): array
     {
-        return $this->_withSession($session, fn() => $this->_publish($session, $applyStructure, $moves));
+        return Navigation::$plugin->getNavigationCache()->batchInvalidations(
+            fn() => $this->_withSession($session, fn() => $this->_publish($session, $applyStructure, $moves)),
+        );
     }
 
     public function discard(BuildSessionModel $session): void
@@ -672,45 +676,37 @@ class BuildSessions extends Component
 
         $menuId = (int)$nav->id;
         $structuresService = Craft::$app->getStructures();
-        $elementsService = Craft::$app->getElements();
-        $levels = [];
+        $nodes = NodeElement::find()
+            ->menuId($menuId)
+            ->siteId($siteId)
+            ->status(null)
+            ->drafts(null)
+            ->provisionalDrafts(null)
+            ->withNodeHierarchy(false)
+            ->withProjectedChildren(false)
+            ->indexBy('id')
+            ->all();
+        $rows = (new Query())
+            ->select(['elementId', 'lft', 'rgt'])
+            ->from('{{%structureelements}}')
+            ->where(['structureId' => $nav->structureId])
+            ->orderBy(['lft' => SORT_ASC])
+            ->all();
+        $currentMoves = StructureMovePlanner::fromStructureRows($rows, array_keys($nodes));
+        $plannedMoves = StructureMovePlanner::plan($currentMoves, $structureMoves, array_keys($skipElementIds));
 
-        foreach ($structureMoves as $move) {
-            $elementId = (int)($move['elementId'] ?? 0);
-            $parentId = isset($move['parentId']) && $move['parentId'] !== '' ? (int)$move['parentId'] : null;
-            $prevId = isset($move['prevId']) && $move['prevId'] !== '' ? (int)$move['prevId'] : null;
-
-            if (!$elementId) {
-                throw new BadRequestHttpException('Invalid move payload.');
-            }
-
-            if (isset($skipElementIds[$elementId])) {
-                continue;
-            }
-
-            /* @var NodeElement|null $element */
-            $element = NodeElement::find()
-                ->id($elementId)
-                ->siteId($siteId)
-                ->menuId($menuId)
-                ->status(null)
-                ->structureId($nav->structureId)
-                ->one();
+        foreach ($plannedMoves as $move) {
+            $elementId = $move['elementId'];
+            $parentId = $move['parentId'];
+            $prevId = $move['prevId'];
+            $element = $nodes[$elementId] ?? null;
 
             if (!$element) {
                 throw new BadRequestHttpException("Invalid node ID: $elementId");
             }
 
-            $parentLevel = $parentId ? ($levels[$parentId] ?? 0) : 0;
-            $level = $parentLevel + 1;
-            $levels[$elementId] = $level;
-
-            if ($nav->maxLevels && $level > $nav->maxLevels) {
-                throw new BadRequestHttpException(Craft::t('navigation', 'Maximum menu depth exceeded.'));
-            }
-
             if ($prevId) {
-                $prevElement = $elementsService->getElementById($prevId, NodeElement::class, $siteId);
+                $prevElement = $nodes[$prevId] ?? null;
 
                 if (!$prevElement || $prevElement->menuId !== $menuId) {
                     throw new BadRequestHttpException("Invalid previous node ID: $prevId");
@@ -720,7 +716,7 @@ class BuildSessions extends Component
                     throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t save menu structure.'));
                 }
             } elseif ($parentId) {
-                $parentElement = $elementsService->getElementById($parentId, NodeElement::class, $siteId);
+                $parentElement = $nodes[$parentId] ?? null;
 
                 if (!$parentElement || $parentElement->menuId !== $menuId) {
                     throw new BadRequestHttpException("Invalid parent node ID: $parentId");
@@ -733,7 +729,6 @@ class BuildSessions extends Component
                 throw new BadRequestHttpException(Craft::t('navigation', 'Couldn’t save menu structure.'));
             }
         }
-
     }
 
     private function _validateStructureNodes(int $menuId, int $siteId, array $structureMoves, array $skipElementIds): void
