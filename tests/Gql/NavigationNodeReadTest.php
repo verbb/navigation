@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use craft\helpers\Gql as CraftGql;
 use Tests\Support\Fixtures\NavigationFixtureFactory;
+use verbb\navigation\helpers\DynamicProjectionSettings;
 
 afterEach(function (): void {
     Craft::$app->getGql()->setActiveSchema(null);
@@ -80,6 +81,28 @@ it('returns projected dynamic section children through GraphQL', function() {
     expect($nodes[0]['children'][0]['isProjected'] ?? null)->toBeTrue();
     expect($nodes[0]['children'][1]['isProjected'] ?? null)->toBeTrue();
     expect(array_column($nodes[0]['children'], 'data'))->toBe([null, null]);
+});
+
+it('returns projected children before manual children when configured', function() {
+    $nav = NavigationFixtureFactory::menu();
+    $section = NavigationFixtureFactory::entrySection();
+    $entry = NavigationFixtureFactory::entries(1, $section)[0];
+    $dynamic = NavigationFixtureFactory::dynamicSectionNode($nav, $section, null, [
+        DynamicProjectionSettings::POSITION_DATA_KEY => DynamicProjectionSettings::POSITION_BEFORE,
+    ]);
+    NavigationFixtureFactory::customNode($nav, 'Manual child', '/manual', $dynamic);
+
+    $result = Craft::$app->getGql()->executeQuery(
+        CraftGql::createFullAccessSchema(),
+        'query($handle: String!) { navigationNodes(navHandle: $handle, level: 1, withNodeHierarchy: true) { children { title isProjected } } }',
+        ['handle' => $nav->handle],
+    );
+
+    expect($result['errors'] ?? [])->toBe([]);
+    expect($result['data']['navigationNodes'][0]['children'])->toBe([
+        ['title' => $entry->title, 'isProjected' => true],
+        ['title' => 'Manual child', 'isProjected' => false],
+    ]);
 });
 
 it('batch-hydrates linked elements through GraphQL withLinkedElements', function() {

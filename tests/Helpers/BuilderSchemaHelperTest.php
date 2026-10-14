@@ -51,7 +51,7 @@ test('add node schema includes conditional provider fields for dynamic nodes', f
         'type' => Dynamic::class,
     ], false, []);
 
-    expect($compiled['fieldEntries'])->toHaveCount(5);
+    expect($compiled['fieldEntries'])->toHaveCount(6);
     expect($compiled['fieldEntries'][0]['path'])->toBe('data.dynamicSource');
     expect($compiled['fieldEntries'][0]['field']['$field'])->toBe('select');
     expect($compiled['fieldEntries'][1]['path'])->toBe('data.sectionId');
@@ -61,7 +61,12 @@ test('add node schema includes conditional provider fields for dynamic nodes', f
     expect($compiled['fieldEntries'][2]['field']['if'])->toBe('data.dynamicSource == "categoryGroup"');
     expect($compiled['fieldEntries'][3]['path'])->toBe('data.volumeId');
     expect($compiled['fieldEntries'][3]['field']['if'])->toBe('data.dynamicSource == "assetVolume"');
-    expect($compiled['fieldEntries'][4]['path'])->toBe('title');
+    expect($compiled['fieldEntries'][4]['path'])->toBe('data.projectedChildrenPosition');
+    expect($compiled['fieldEntries'][4]['field']['options'])->toBe([
+        ['label' => 'After manual children', 'value' => 'after'],
+        ['label' => 'Before manual children', 'value' => 'before'],
+    ]);
+    expect($compiled['fieldEntries'][5]['path'])->toBe('title');
 });
 
 test('node types provide quick-add default data', function () {
@@ -70,6 +75,7 @@ test('node types provide quick-add default data', function () {
         'sectionId' => '',
         'groupId' => '',
         'volumeId' => '',
+        'projectedChildrenPosition' => 'after',
     ]);
     expect(\verbb\navigation\nodetypes\Site::getAddNodeDefaultData())->toBe(['siteId' => '']);
     expect(Custom::getAddNodeDefaultData())->toBe([]);

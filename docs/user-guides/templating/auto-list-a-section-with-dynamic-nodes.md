@@ -20,14 +20,14 @@ Start with a saved `mainMenu`, a Blog channel containing at least two live entri
 3. In the slide-out, choose a **source**:
    - **Entries** — pick a section and optional entry conditions
    - **Categories**, **Assets**, or **Products** (Commerce) as needed
-4. Select the Blog section and set the limit to `5`. Choose a sort order appropriate to your list.
+4. Select the Blog section and set the limit to `5`. Choose a sort order appropriate to your list, and choose whether projected items should appear before or after any manually added children.
 5. **Save menu**.
 
 Built-in sources are listed in [Node Types](/feature-tour/node-types). Plugins can register more via [Events](/developers/events).
 
 ## Step 2 — Expected Behaviour
 
-- Manual nodes nested under the Dynamic node render **before** projected children.
+- Manual nodes nested under the Dynamic node render before or after projected children according to its **Projected items position** setting. Existing and newly created Dynamic nodes default to manual children first.
 - Each projected item is a [ProjectedNode](/reference/projected-node) — not a stored CP node.
 - New entries matching the source appear on the next front-end request without editing the menu.
 - Deleting the source section (or group, volume, etc.) removes matching Dynamic nodes — see [Events — Linked-element lifecycle](/developers/events).

@@ -6,7 +6,7 @@ The returned `ProjectedNode` object gives your template a title, destination and
 
 ## When You See Them
 
-Projected nodes appear among a Dynamic node's children, after any manually stored children. You can encounter them through `node.children`, `{% children %}` and `tree()` output. Active-state helpers can also return a projected node when it matches the current URL.
+Projected nodes appear among a Dynamic node's children. They follow any manually stored children by default, or precede them when the Dynamic node's **Projected items position** setting is set to **Before manual children**. The chosen order applies to `node.children`, `{% children %}`, `render()`, `tree()` and GraphQL output. Active-state helpers can also return a projected node when it matches the current URL.
 
 ## Template Example
 

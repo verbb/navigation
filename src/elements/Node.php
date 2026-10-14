@@ -11,6 +11,7 @@ use verbb\navigation\elements\conditions\NodeCondition;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\events\NodeActiveEvent;
+use verbb\navigation\helpers\DynamicProjectionSettings;
 use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\NodeOutputSafety;
 use verbb\navigation\helpers\NodeTypeHelper;
@@ -864,7 +865,7 @@ class Node extends Element
             ? (parent::getEagerLoadedElements('children')?->all() ?? [])
             : [];
 
-        $merged = array_merge($stored, $this->_projectedChildren);
+        $merged = DynamicProjectionSettings::mergeChildren($this, $stored, $this->_projectedChildren);
         $this->_wireMixedSiblingPointers($merged);
 
         return ElementCollection::make($merged);

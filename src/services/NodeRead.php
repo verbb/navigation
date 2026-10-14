@@ -7,6 +7,7 @@ use verbb\navigation\base\ProjectingNodeType;
 use verbb\navigation\elements\db\NodeQuery;
 use verbb\navigation\elements\Menu;
 use verbb\navigation\elements\Node as NodeElement;
+use verbb\navigation\helpers\DynamicProjectionSettings;
 use verbb\navigation\helpers\NodeHierarchy;
 use verbb\navigation\models\ProjectedNode;
 
@@ -262,7 +263,8 @@ class NodeRead extends Component
     /**
      * Inserts projected nodes into the flat query list so Craft's {% nav %} tag can render them.
      *
-     * Stored descendants remain in structure order; projected nodes are appended after each parent subtree.
+     * Stored descendants remain in structure order; each Dynamic node controls whether
+     * its projected children appear before or after its stored child subtrees.
      */
     public function injectProjectedNodesIntoFlatList(array $nodes): array
     {
@@ -284,7 +286,7 @@ class NodeRead extends Component
     }
 
     /**
-     * Appends read-time projected children for Dynamic nodes (stored children first).
+     * Appends read-time projected children for Dynamic nodes in their configured position.
      *
      * Projections stay on Node::setProjectedChildren() — never in Craft's eager-loaded
      * ElementCollection — so Element::getEagerLoadedElements() does not run setNextPrev
@@ -369,6 +371,12 @@ class NodeRead extends Component
 
         $level = (int)$node->level;
         $childIndex = $index + 1;
+        $projectedChildren = $this->_projectedChildrenForNode($node);
+        $projectedChildrenFirst = DynamicProjectionSettings::projectedChildrenFirst($node);
+
+        if ($projectedChildrenFirst) {
+            $this->_appendProjectedChildren($node, $projectedChildren, $level, $output);
+        }
 
         while (
             $childIndex < $count
@@ -383,19 +391,22 @@ class NodeRead extends Component
             $childIndex = $this->_appendStoredNodeWithProjections($nodes, $childIndex, $count, $output);
         }
 
-        $projectedChildren = $this->_projectedChildrenForNode($node);
-
-        if ($projectedChildren !== []) {
-            // Projections use synthetic positions; never overwrite stored structure bounds.
-            foreach ($projectedChildren as $childIdx => $projectedNode) {
-                $projectedNode->lft = (int)$node->lft + 1 + ($childIdx * 2);
-                $projectedNode->rgt = $projectedNode->lft + 1;
-                $projectedNode->level = $level + 1;
-                $output[] = $projectedNode;
-            }
+        if (!$projectedChildrenFirst) {
+            $this->_appendProjectedChildren($node, $projectedChildren, $level, $output);
         }
 
         return $childIndex;
+    }
+
+    private function _appendProjectedChildren(NodeElement $node, array $children, int $level, array &$output): void
+    {
+        // Projections use synthetic positions; never overwrite stored structure bounds.
+        foreach ($children as $childIdx => $projectedNode) {
+            $projectedNode->lft = (int)$node->lft + 1 + ($childIdx * 2);
+            $projectedNode->rgt = $projectedNode->lft + 1;
+            $projectedNode->level = $level + 1;
+            $output[] = $projectedNode;
+        }
     }
 
     private function _projectedChildrenForNode(NodeElement $node): array

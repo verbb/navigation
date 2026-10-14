@@ -106,6 +106,16 @@ class NodeTypeSchemaFields
         ]);
     }
 
+    public static function projectedChildrenPositionField(): array
+    {
+        return self::_selectField([
+            'name' => 'data.' . DynamicProjectionSettings::POSITION_DATA_KEY,
+            'label' => Craft::t('navigation', 'Projected items position'),
+            'instructions' => Craft::t('navigation', 'Choose whether projected items appear before or after manually added children.'),
+            'options' => DynamicProjectionSettings::positionOptions(),
+        ]);
+    }
+
     public static function sectionIdField(): array
     {
         return self::_comboboxField([

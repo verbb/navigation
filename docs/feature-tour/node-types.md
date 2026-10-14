@@ -28,7 +28,7 @@ Use **GroupColumn** when custom templates need to arrange links into columns. Th
 
 Use **Dynamic** when a menu should list matching content automatically, such as the latest five News entries. Choose **Entries** as the source, select the News section, and configure the available ordering and limit controls in the slide-out. Save the menu and view it on your site.
 
-Matching entries appear as children when the menu is read. You do not need to add another stored node for every new entry. Any manually added children appear before these generated children. These generated items are called projected nodes; they provide links and linked-element data but do not have their own node custom fields.
+Matching entries appear as children when the menu is read. You do not need to add another stored node for every new entry. Use **Projected items position** to place generated children before or after any manually added children; manual children come first by default. These generated items are called projected nodes; they provide links and linked-element data but do not have their own node custom fields.
 
 Built-in sources cover Entries, Categories, Assets, and Commerce Products. The controls depend on the source you choose. For a complete example, see [Auto-List a Section with Dynamic Nodes](/user-guides/templating/auto-list-a-section-with-dynamic-nodes).
 

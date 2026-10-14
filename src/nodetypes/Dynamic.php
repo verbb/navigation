@@ -5,6 +5,7 @@ use verbb\navigation\Navigation;
 use verbb\navigation\base\NodeType;
 use verbb\navigation\base\ProjectingNodeType;
 use verbb\navigation\elements\Node;
+use verbb\navigation\helpers\DynamicProjectionSettings;
 use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\NodeTypeSchemaFields;
 use verbb\navigation\models\ProjectedNode;
@@ -65,6 +66,7 @@ class Dynamic extends NodeType implements ProjectingNodeType
             }
         }
 
+        $schema[] = NodeTypeSchemaFields::projectedChildrenPositionField();
         $schema[] = NodeTypeSchemaFields::titleField();
 
         return $schema;
@@ -80,6 +82,7 @@ class Dynamic extends NodeType implements ProjectingNodeType
         }
 
         $defaults['dynamicSource'] = $dynamicSources->getDefaultHandle();
+        $defaults[DynamicProjectionSettings::POSITION_DATA_KEY] = DynamicProjectionSettings::POSITION_AFTER;
 
         return $defaults;
     }
@@ -134,6 +137,8 @@ JS);
             $html .= $class::renderSlideoutHtml($this->node);
         }
 
+        $html .= DynamicProjectionSettings::positionFieldHtml($this->node);
+
         return $html;
     }
 
@@ -169,7 +174,10 @@ JS);
             return false;
         }
 
+        // Keep this type-level setting even if a third-party source rebuilds its provider data.
+        $projectedChildrenPosition = $this->node->data[DynamicProjectionSettings::POSITION_DATA_KEY] ?? null;
         $class::applyPostData($this->node);
+        DynamicProjectionSettings::setPosition($this->node, $projectedChildrenPosition);
 
         // Native element editors apply provider fields during the save lifecycle, after their
         // initial canSave check. Recheck the final source before persisting that change.
