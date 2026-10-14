@@ -247,6 +247,37 @@ test('reopening a saved draft retains the revision its ordering was based on', a
   assert.equal(sent.structureRevision, 'draft-baseline');
 });
 
+test('reopening a rejected structure draft restores its new parent and children', async () => {
+  const restoredMoves = [
+    { elementId: 1, parentId: null, prevId: null },
+    { elementId: 2, parentId: 1, prevId: null },
+    { elementId: 3, parentId: null, prevId: 1 },
+  ];
+
+  reset(async (_method, action) => ({
+    data: action.endsWith('get-state')
+      ? {
+          ...state(),
+          session: {
+            ...state().session,
+            changeCount: 1,
+            hasStructureMoves: true,
+            structureRevision: 'draft-baseline',
+            structureMoves: restoredMoves,
+          },
+        }
+      : {},
+  }));
+
+  await store.getState().init(1, 1);
+
+  assert.deepEqual(ids(), [1, 2, 3]);
+  assert.equal(store.getState().nodes[0].hasDescendants, true);
+  assert.equal(store.getState().nodes[1].parentId, 1);
+  assert.equal(store.getState().nodes[1].level, 2);
+  assert.equal(store.getState().structureDirty, true);
+});
+
 test('an older draft with no known baseline cannot adopt the current revision', async () => {
   let sent: any;
   reset(async (_method, action, options) => {

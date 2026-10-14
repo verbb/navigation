@@ -8,7 +8,7 @@
 
 ### Fixed
 - Fixed a medium-severity information disclosure vulnerability.
-- Fixed menu publishing skipping custom node validation for structure-only changes and hiding validation or structure-move error messages ([#370](https://github.com/verbb/navigation/issues/370)).
+- Fixed menu publishing skipping custom node validation for structure-only changes, hiding validation or structure-move error messages, and incompletely restoring rejected structure drafts after reload ([#370](https://github.com/verbb/navigation/issues/370)).
 - Fixed rapid node selection sometimes clearing existing selections, and restored Shift-click range selection for node checkboxes ([#468](https://github.com/verbb/navigation/issues/468)).
 - Fixed stale builder-session references leaving published nodes read-only, and made genuinely read-only node controls consistently non-interactive ([#470](https://github.com/verbb/navigation/issues/470)).
 - Fixed reordering a menu node replaying the entire tree through Craft’s structure service and triggering duplicate cache revalidation events ([#471](https://github.com/verbb/navigation/issues/471)).

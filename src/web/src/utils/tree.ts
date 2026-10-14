@@ -571,7 +571,7 @@ export function applyStructureMoves(nodes: BuilderNode[], moves: StructureMove[]
     };
   });
 
-  return recalculateLevels(withLevels);
+  return normalizeTreeNodes(withLevels);
 }
 
 export type NodeDuplication = {
