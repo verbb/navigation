@@ -105,6 +105,10 @@ try {
   await page.keyboard.down('Shift');
   try {
     await thirdCheckbox.click();
+    assert.deepEqual(await selectedNodeIds(), [1, 2, 3]);
+    await secondCheckbox.click();
+    assert.deepEqual(await selectedNodeIds(), [1, 2]);
+    await thirdCheckbox.click();
   } finally {
     await page.keyboard.up('Shift');
   }

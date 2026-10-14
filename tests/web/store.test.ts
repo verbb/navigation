@@ -11,6 +11,7 @@ import {
 } from '../../src/web/src/utils/collapsedNodesStorage';
 import { baselineMoves } from '../../src/web/src/utils/tree';
 import { formatBuilderError } from '../../src/web/src/utils/builderError';
+import { computeNodeSelection, type NodeSelectionState } from '../../src/web/src/utils/selection';
 import type { BuilderNode, BuilderState } from '../../src/web/src/types';
 
 const nodes = [1, 2, 3].map(id => ({ id, title: `Node ${id}`, level: 1, parentId: null,
@@ -27,6 +28,42 @@ function reset(send: (method: string, action: string, options: any) => Promise<a
     structureDirty: false, state: state(), publishing: false, discarding: false });
 }
 const ids = () => store.getState().nodes.map(n => n.id);
+
+test('repeated Shift-clicks resize from the original selection anchor', () => {
+  const visibleNodeIds = [1, 2, 3, 4, 5];
+  const shiftClick = (nodeId: number, current: NodeSelectionState) => computeNodeSelection(
+    nodeId,
+    visibleNodeIds,
+    current,
+    { shiftKey: true, metaKey: false, ctrlKey: false, toggle: true },
+  );
+  let selection: NodeSelectionState = {
+    selectedNodeIds: [2],
+    lastSelectedNodeId: 2,
+    selectionAnchorNodeId: 2,
+  };
+
+  selection = shiftClick(5, selection);
+  assert.deepEqual(selection, {
+    selectedNodeIds: [2, 3, 4, 5],
+    lastSelectedNodeId: 5,
+    selectionAnchorNodeId: 2,
+  });
+
+  selection = shiftClick(3, selection);
+  assert.deepEqual(selection, {
+    selectedNodeIds: [2, 3],
+    lastSelectedNodeId: 3,
+    selectionAnchorNodeId: 2,
+  });
+
+  selection = shiftClick(4, selection);
+  assert.deepEqual(selection, {
+    selectedNodeIds: [2, 3, 4],
+    lastSelectedNodeId: 4,
+    selectionAnchorNodeId: 2,
+  });
+});
 
 test('builder initialization retains safe, copyable server error details', async () => {
   let displayErrorCalls = 0;

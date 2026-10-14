@@ -60,6 +60,7 @@ type BuilderStore = {
   structureDirty: boolean;
   selectedNodeIds: number[];
   lastSelectedNodeId: number | null;
+  selectionAnchorNodeId: number | null;
   statusFilter: NodeStatusFilter;
   visibleColumns: Record<TreeColumnId, boolean>;
   collapsedNodeIds: Record<number, boolean>;
@@ -150,6 +151,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   structureDirty: false,
   selectedNodeIds: [],
   lastSelectedNodeId: null,
+  selectionAnchorNodeId: null,
   statusFilter: 'all',
   visibleColumns: { type: true },
   collapsedNodeIds: {},
@@ -190,6 +192,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
         collapsedNodeIds,
         loading: false,
         lastSelectedNodeId: null,
+        selectionAnchorNodeId: null,
       });
     } catch (error) {
       if (!isCurrent()) return;
@@ -254,6 +257,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
         collapsedNodeIds,
         selectedNodeIds: [],
         lastSelectedNodeId: null,
+        selectionAnchorNodeId: null,
       });
     } catch (error) {
       if (!isCurrent()) return;
@@ -397,14 +401,16 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
         ? [...new Set([...selectedNodeIds, nodeId])]
         : selectedNodeIds.filter((id) => id !== nodeId),
       lastSelectedNodeId: nodeId,
+      selectionAnchorNodeId: nodeId,
     });
   },
 
   selectNode: (nodeId, modifiers, visibleSelectableNodeIds) => {
-    const { selectedNodeIds, lastSelectedNodeId } = get();
+    const { selectedNodeIds, lastSelectedNodeId, selectionAnchorNodeId } = get();
     const next = computeNodeSelection(nodeId, visibleSelectableNodeIds, {
       selectedNodeIds,
       lastSelectedNodeId,
+      selectionAnchorNodeId,
     }, modifiers);
 
     set(next);
@@ -418,6 +424,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     set({
       selectedNodeIds: nodeIds,
       lastSelectedNodeId: nodeIds.length ? nodeIds[nodeIds.length - 1] : null,
+      selectionAnchorNodeId: nodeIds.length ? nodeIds[nodeIds.length - 1] : null,
     }),
 
   toggleSelectAll: (selected) => {
@@ -428,10 +435,11 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     set({
       selectedNodeIds: selected ? selectableIds : [],
       lastSelectedNodeId: selected ? selectableIds[selectableIds.length - 1] ?? null : null,
+      selectionAnchorNodeId: selected ? selectableIds[selectableIds.length - 1] ?? null : null,
     });
   },
 
-  clearSelection: () => set({ selectedNodeIds: [], lastSelectedNodeId: null }),
+  clearSelection: () => set({ selectedNodeIds: [], lastSelectedNodeId: null, selectionAnchorNodeId: null }),
 
   setStatusFilter: (statusFilter) => set({ statusFilter }),
 
@@ -691,7 +699,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       }
     }
 
-    set({ selectedNodeIds: [], lastSelectedNodeId: null });
+    set({ selectedNodeIds: [], lastSelectedNodeId: null, selectionAnchorNodeId: null });
 
     if (firstError) {
       displayError(firstError);
@@ -858,6 +866,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       structureDirty: false,
       selectedNodeIds: [],
       lastSelectedNodeId: null,
+      selectionAnchorNodeId: null,
     });
   },
 
@@ -880,6 +889,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
           : state,
       selectedNodeIds: [],
       lastSelectedNodeId: null,
+      selectionAnchorNodeId: null,
     });
   },
 
@@ -900,6 +910,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       state: state && session !== undefined ? { ...state, session } : state,
       selectedNodeIds: [],
       lastSelectedNodeId: null,
+      selectionAnchorNodeId: null,
     });
   },
 }));

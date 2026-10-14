@@ -9,6 +9,7 @@ export type NodeSelectionModifiers = {
 export type NodeSelectionState = {
   selectedNodeIds: number[];
   lastSelectedNodeId: number | null;
+  selectionAnchorNodeId: number | null;
 };
 
 export function isRowInteractiveTarget(target: EventTarget | null): boolean {
@@ -29,15 +30,16 @@ export function computeNodeSelection(
   current: NodeSelectionState,
   modifiers: NodeSelectionModifiers,
 ): NodeSelectionState {
-  const { selectedNodeIds, lastSelectedNodeId } = current;
+  const { selectedNodeIds, lastSelectedNodeId, selectionAnchorNodeId } = current;
   const additive = modifiers.metaKey || modifiers.ctrlKey;
+  const rangeAnchorNodeId = selectionAnchorNodeId ?? lastSelectedNodeId;
   const range =
     modifiers.shiftKey &&
-    lastSelectedNodeId !== null &&
-    visibleSelectableNodeIds.includes(lastSelectedNodeId);
+    rangeAnchorNodeId !== null &&
+    visibleSelectableNodeIds.includes(rangeAnchorNodeId);
 
   if (range) {
-    const anchorIndex = visibleSelectableNodeIds.indexOf(lastSelectedNodeId);
+    const anchorIndex = visibleSelectableNodeIds.indexOf(rangeAnchorNodeId);
     const targetIndex = visibleSelectableNodeIds.indexOf(nodeId);
 
     if (anchorIndex !== -1 && targetIndex !== -1) {
@@ -47,18 +49,22 @@ export function computeNodeSelection(
       return {
         selectedNodeIds: visibleSelectableNodeIds.slice(from, to + 1),
         lastSelectedNodeId: nodeId,
+        // Repeated Shift-clicks resize the range from its original anchor.
+        selectionAnchorNodeId: rangeAnchorNodeId,
       };
     }
   }
 
   if (additive || modifiers.toggle) {
     const isSelected = selectedNodeIds.includes(nodeId);
+    const nextSelectedNodeIds = isSelected
+      ? selectedNodeIds.filter((id) => id !== nodeId)
+      : [...selectedNodeIds, nodeId];
 
     return {
-      selectedNodeIds: isSelected
-        ? selectedNodeIds.filter((id) => id !== nodeId)
-        : [...selectedNodeIds, nodeId],
+      selectedNodeIds: nextSelectedNodeIds,
       lastSelectedNodeId: isSelected && selectedNodeIds.length === 1 ? null : nodeId,
+      selectionAnchorNodeId: nextSelectedNodeIds.length ? nodeId : null,
     };
   }
 
@@ -69,11 +75,13 @@ export function computeNodeSelection(
     return {
       selectedNodeIds: [],
       lastSelectedNodeId: null,
+      selectionAnchorNodeId: null,
     };
   }
 
   return {
     selectedNodeIds: [nodeId],
     lastSelectedNodeId: nodeId,
+    selectionAnchorNodeId: nodeId,
   };
 }
