@@ -33,6 +33,7 @@ class NewWindowField extends BaseNativeField
         return Cp::lightswitchHtml([
             'name' => $this->attribute,
             'on' => $element->newWindow,
+            'disabled' => $static,
         ]);
     }
 }

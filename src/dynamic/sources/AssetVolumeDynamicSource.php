@@ -21,6 +21,10 @@ class AssetVolumeDynamicSource extends DynamicSource
 
     public static function canAuthorNode(Node $node, User $user): bool
     {
+        if (!(int)($node->data['volumeId'] ?? 0)) {
+            return true;
+        }
+
         $source = AssetVolumeSettings::getVolumeFromNode($node);
 
         return $source !== null && $user->can('viewAssets:' . $source->uid);

@@ -22,6 +22,10 @@ class EntrySectionDynamicSource extends DynamicSource
 
     public static function canAuthorNode(Node $node, User $user): bool
     {
+        if (!(int)($node->data['sectionId'] ?? 0)) {
+            return true;
+        }
+
         $source = EntrySectionSettings::getSectionFromNode($node);
 
         return $source !== null && $user->can('viewEntries:' . $source->uid);

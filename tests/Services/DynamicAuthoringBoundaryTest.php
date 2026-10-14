@@ -156,6 +156,53 @@ it('rejects a posted dynamic section excluded from the editors source options', 
     });
 });
 
+it('keeps an incomplete dynamic node authorable until its required source is selected', function() {
+    $menu = F::menu();
+    $menu->permissions = [verbb\navigation\nodetypes\Dynamic::class => ['enabled' => true]];
+    expect(N::$plugin->getMenus()->saveMenu($menu))->toBeTrue();
+
+    $node = new Node([
+        'menuId' => $menu->id,
+        'siteId' => Craft::$app->getSites()->getPrimarySite()->id,
+        'type' => verbb\navigation\nodetypes\Dynamic::class,
+        'data' => ['dynamicSource' => 'entrySection', 'sectionId' => ''],
+    ]);
+
+    boundaryRequest(function() use ($menu, $node) {
+        $editor = new craft\elements\User([
+            'username' => uniqid('incompleteDynamicEditor'),
+            'email' => uniqid('incompleteDynamicEditor') . '@example.test',
+        ]);
+        expect(Craft::$app->getElements()->saveElement($editor))->toBeTrue();
+        Craft::$app->set('userPermissions', new craft\services\UserPermissions());
+        Craft::$app->getUserPermissions()->saveUserPermissions($editor->id, [
+            'accessCp',
+            'navigation-manageMenu:' . $menu->uid,
+        ]);
+        Craft::$app->getUser()->setIdentity($editor);
+
+        $resolvedMenu = N::$plugin->getMenus()->getMenuById($menu->id);
+        expect($editor->can('navigation-manageMenu:' . $menu->uid))->toBeTrue()
+            ->and(verbb\navigation\helpers\MenuAuth::canManageMenuSite($editor, $resolvedMenu, (int)$node->siteId))->toBeTrue()
+            ->and(verbb\navigation\helpers\MenuAuth::canAuthorDynamicSource($node, $editor))->toBeTrue()
+            ->and($node->canSave($editor))->toBeTrue();
+
+        $node->data['sectionId'] = 999999;
+        expect($node->canSave($editor))->toBeFalse();
+    });
+});
+
+it('keeps blank built-in dynamic source settings authorable', function(string $provider, string $sourceKey) {
+    $node = new Node(['data' => [$sourceKey => '']]);
+
+    expect($provider::canAuthorNode($node, new craft\elements\User()))->toBeTrue();
+})->with([
+    [verbb\navigation\dynamic\sources\EntrySectionDynamicSource::class, 'sectionId'],
+    [verbb\navigation\dynamic\sources\CategoryGroupDynamicSource::class, 'groupId'],
+    [verbb\navigation\dynamic\sources\AssetVolumeDynamicSource::class, 'volumeId'],
+    [verbb\navigation\dynamic\sources\ProductTypeDynamicSource::class, 'productTypeId'],
+]);
+
 it('allows an explicitly granted dynamic section and rejects a later source switch', function() {
     $menu = F::menu(); $allowed = F::entrySection(); $denied = F::entrySection();
     $node = F::dynamicSectionNode($menu, $allowed);

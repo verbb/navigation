@@ -21,6 +21,10 @@ class ProductTypeDynamicSource extends DynamicSource
 
     public static function canAuthorNode(Node $node, User $user): bool
     {
+        if (!(int)($node->data['productTypeId'] ?? 0)) {
+            return true;
+        }
+
         $source = ProductTypeSettings::getProductTypeFromNode($node);
 
         return $source !== null && \craft\commerce\Plugin::getInstance()->getProductTypes()->hasPermission($user, $source, 'commerce-editProductType');

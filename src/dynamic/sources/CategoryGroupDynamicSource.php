@@ -21,6 +21,10 @@ class CategoryGroupDynamicSource extends DynamicSource
 
     public static function canAuthorNode(Node $node, User $user): bool
     {
+        if (!(int)($node->data['groupId'] ?? 0)) {
+            return true;
+        }
+
         $source = CategoryGroupSettings::getGroupFromNode($node);
 
         return $source !== null && $user->can('viewCategories:' . $source->uid);

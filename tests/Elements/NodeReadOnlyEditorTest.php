@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 use Tests\Support\Fixtures\NavigationFixtureFactory as F;
 use Tests\Support\WebRequestSimulator as W;
+use verbb\navigation\elements\Node;
+use verbb\navigation\fieldlayoutelements\CustomAttributesField;
+use verbb\navigation\fieldlayoutelements\NewWindowField;
 use verbb\navigation\fieldlayoutelements\NodeTypeElements;
 use verbb\navigation\Navigation;
 use verbb\navigation\nodetypes\Custom;
+use verbb\navigation\nodetypes\Dynamic;
 
 it('disables the linked-element picker in a read-only node editor', function() {
     $menu = F::menu();
@@ -36,4 +40,40 @@ it('disables the node type selector without registering its change handler', fun
 
     expect($html)->toMatch('/<select(?=[^>]*name="type")(?=[^>]*disabled)[^>]*>/')
         ->and($registeredJs)->not->toContain('const getEditor');
+});
+
+it('disables custom node-type controls in a read-only node editor', function() {
+    $menu = F::menu();
+    $node = new Node([
+        'menuId' => $menu->id,
+        'siteId' => Craft::$app->getSites()->getPrimarySite()->id,
+        'type' => Dynamic::class,
+        'data' => ['dynamicSource' => 'entrySection', 'sectionId' => ''],
+    ]);
+
+    $html = W::withAbsoluteUrl(
+        'https://navigation.test/admin/navigation',
+        fn() => (new NodeTypeElements())->formHtml($node, true),
+    );
+
+    expect($html)->toMatch('/<fieldset(?=[^>]*class="navigation-node-type-fields")(?=[^>]*disabled)[^>]*>/');
+});
+
+it('disables native Navigation fields in a read-only node editor', function() {
+    $menu = F::menu();
+    $node = F::customNode($menu, 'Read-only native fields', '/read-only-native');
+    $node->customAttributes = [['attribute' => 'data-test', 'value' => 'value']];
+
+    [$newWindowHtml, $attributesHtml] = W::withAbsoluteUrl(
+        'https://navigation.test/admin/navigation',
+        fn() => [
+            (new NewWindowField())->inputHtml($node, true),
+            (new CustomAttributesField())->inputHtml($node, true),
+        ],
+    );
+
+    expect($newWindowHtml)->toContain('disabled')
+        ->and($attributesHtml)->not->toContain('Add a row')
+        ->and($attributesHtml)->toContain('class="editable fullwidth static"')
+        ->and($attributesHtml)->not->toContain('<input');
 });

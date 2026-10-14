@@ -48,6 +48,7 @@ class CustomAttributesField extends BaseNativeField
             'allowAdd' => true,
             'allowDelete' => true,
             'allowReorder' => true,
+            'static' => $static,
         ]);
     }
 }

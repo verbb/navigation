@@ -115,7 +115,7 @@ class NodeTypeElements extends BaseField
         if ($nodeType = $element->nodeType()) {
             $html = $nodeType->getEditorHtml();
 
-            return $html ? self::_wrapEditorHtml($html) : null;
+            return $html ? self::_wrapEditorHtml($html, $static) : null;
         }
 
         return null;
@@ -152,11 +152,17 @@ class NodeTypeElements extends BaseField
      * Nested `.field` margins are reset in `node-type-fields.css` (flex-fields only zeroes
      * margins on direct children).
      */
-    private static function _wrapEditorHtml(string $html): string
+    private static function _wrapEditorHtml(string $html, bool $static = false): string
     {
-        return Html::tag('div', $html, [
+        $attributes = [
             'class' => 'navigation-node-type-fields',
-        ]);
+        ];
+
+        if ($static) {
+            $attributes['disabled'] = true;
+        }
+
+        return Html::tag($static ? 'fieldset' : 'div', $html, $attributes);
     }
 
     /**
