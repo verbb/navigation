@@ -348,7 +348,9 @@ class Node extends Element
     // Traits
     // =========================================================================
 
-    use NodeDeprecations;
+    use NodeDeprecations {
+        __get as private _getDeprecatedProperty;
+    }
 
 
     // Properties
@@ -385,6 +387,17 @@ class Node extends Element
 
     // Public Methods
     // =========================================================================
+
+    public function __get($name)
+    {
+        // Craft returns eager-loaded elements before checking the component getter,
+        // so projected children must explicitly pass through our merged collection.
+        if ($name === 'children' && $this->_projectedChildren !== []) {
+            return $this->getChildren();
+        }
+
+        return $this->_getDeprecatedProperty($name);
+    }
 
     public function getIsPendingPublish(): bool
     {

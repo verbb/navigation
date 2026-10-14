@@ -169,5 +169,6 @@ it('projects dynamic category group children at read time', function() {
 
     expect($roots)->toHaveCount(1);
     expect($roots[0]->getChildren())->toHaveCount(2);
+    expect($roots[0]->children)->toHaveCount(2);
     expect($roots[0]->getChildren()[0]->getIsProjected())->toBeTrue();
 });
