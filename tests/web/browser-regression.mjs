@@ -106,13 +106,16 @@ try {
   try {
     await thirdCheckbox.click();
     assert.deepEqual(await selectedNodeIds(), [1, 2, 3]);
+    assert.equal(await thirdCheckbox.evaluate(element => element.checked), true);
     await secondCheckbox.click();
     assert.deepEqual(await selectedNodeIds(), [1, 2]);
+    assert.equal(await secondCheckbox.evaluate(element => element.checked), true);
     await thirdCheckbox.click();
   } finally {
     await page.keyboard.up('Shift');
   }
   assert.deepEqual(await selectedNodeIds(), [1, 2, 3]);
+  assert.equal(await thirdCheckbox.evaluate(element => element.checked), true);
   await page.evaluate(() => window.boundary.store.getState().clearSelection());
 
   await page.locator('#delete').click();

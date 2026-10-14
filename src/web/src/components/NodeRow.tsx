@@ -11,7 +11,7 @@ import type { BuilderNode } from '../types';
 import { useBuilderStore } from '../store';
 import { t } from '../api';
 import { openNodeEditor } from '../utils/craft';
-import { isRowInteractiveTarget, type NodeSelectionModifiers } from '../utils/selection';
+import { isRowInteractiveTarget } from '../utils/selection';
 import { getNodeRowPaddingLeft, nodeTreeGridClass } from '../utils/nodeRowLayout';
 import { NodeTypeBadge } from './NodeTypeBadge';
 import { NodeRowActionsMenu } from './NodeRowActionsMenu';
@@ -94,12 +94,6 @@ export function NodeRow({
   const siteId = useBuilderStore((s) => s.siteId);
   const refresh = useBuilderStore((s) => s.refresh);
   const selectClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const checkboxSelectionModifiersRef = useRef<NodeSelectionModifiers>({
-    shiftKey: false,
-    metaKey: false,
-    ctrlKey: false,
-    toggle: true,
-  });
 
   useEffect(() => {
     return () => {
@@ -242,28 +236,20 @@ export function NodeRow({
             aria-label={`Select ${node.title}`}
             checked={isSelected}
             tabIndex={-1}
-            // `pk-change` does not carry the originating click modifiers.
-            onClickCapture={(event) => {
-              checkboxSelectionModifiersRef.current = {
-                shiftKey: event.shiftKey,
-                metaKey: event.metaKey,
-                ctrlKey: event.ctrlKey,
-                toggle: true,
-              };
-            }}
-            onClick={(event) => event.stopPropagation()}
-            onPkChange={() => {
-              const modifiers = checkboxSelectionModifiersRef.current;
-              checkboxSelectionModifiersRef.current = {
-                shiftKey: false,
-                metaKey: false,
-                ctrlKey: false,
-                toggle: true,
-              };
+            onClick={(event) => {
+              // Keep the custom element controlled by the selection store. If its native
+              // checkbox toggles first, React cannot restore an unchanged checked prop.
+              event.preventDefault();
+              event.stopPropagation();
 
               selectNode(
                 node.id,
-                modifiers,
+                {
+                  shiftKey: event.shiftKey,
+                  metaKey: event.metaKey,
+                  ctrlKey: event.ctrlKey,
+                  toggle: true,
+                },
                 visibleSelectableNodeIds,
               );
             }}
