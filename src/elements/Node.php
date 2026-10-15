@@ -182,7 +182,9 @@ class Node extends Element
     protected static function defineFieldLayouts(?string $source): array
     {
         if ($source === null || $source === '*') {
-            $navs = Navigation::$plugin->getMenus()->getEditableMenus();
+            // Craft uses the unscoped layouts for eager loading, GraphQL, and conditions.
+            // They describe the element type, so front-end user permissions must not filter them.
+            $navs = Navigation::$plugin->getMenus()->getAllMenus();
         } else {
             $navs = [];
 

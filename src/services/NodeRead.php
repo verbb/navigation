@@ -516,10 +516,11 @@ class NodeRead extends Component
     private function _fetchNavNodesForHierarchy(NodeQuery $query): array
     {
         $navQuery = NodeElement::find();
-        $navQuery->internalReadFetch = true;
-        $navQuery->bypassReadCache = true;
-        $navQuery->skipPostCacheProcessing = true;
+        // Cache the canonical flat menu read so repeated subset queries can rebuild
+        // their hierarchy without querying the complete menu again.
         $navQuery->withNodeHierarchy(false);
+        $navQuery->withProjectedChildren(false);
+        $navQuery->withNavigationCache($query->useNavigationCache);
 
         $navQuery->status($query->status);
 

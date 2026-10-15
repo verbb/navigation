@@ -106,7 +106,8 @@ it('invalidates cached nav reads when nav settings are saved', function() {
     });
 });
 
-it('preserves children on cached level-scoped front-end reads', function() {
+it('preserves children on cached level-scoped front-end reads', function(string $mode) {
+    Navigation::$plugin->getSettings()->cacheMode = $mode;
     $nav = NavigationFixtureFactory::menu();
     $parent = NavigationFixtureFactory::customNode($nav, 'Parent', '/parent');
     NavigationFixtureFactory::customNode($nav, 'Child', '/parent/child', $parent);
@@ -116,15 +117,23 @@ it('preserves children on cached level-scoped front-end reads', function() {
 
     WebRequestSimulator::withAbsoluteUrl($siteUrl, function() use ($criteria) {
         $variable = new NavigationVariable();
-        $variable->nodes($criteria)->level(1)->all();
+        $query = fn() => $variable
+            ->nodes($criteria)
+            ->level(1)
+            ->withNavigationCache();
+        $query()->all();
+        $roots = [];
 
-        $roots = $variable->nodes($criteria)->level(1)->all();
+        $warm = QueryProfiler::profile(function() use ($query, &$roots): array {
+            return $roots = $query()->all();
+        });
 
+        expect($warm['queries'])->toBe(0);
         expect($roots)->toHaveCount(1);
         expect($roots[0]->getChildren())->toHaveCount(1);
         expect($roots[0]->getChildren()[0]->title)->toBe('Child');
     });
-});
+})->with([NavigationCache::MODE_AUTO, NavigationCache::MODE_MANUAL]);
 
 it('preserves standard profile custom field values from cache', function() {
     $nav = NavigationFixtureFactory::menu();
