@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.8 - 2026-10-15
 
 ### Added
 - Added a Dynamic node setting for placing projected items before or after manually added children ([#469](https://github.com/verbb/navigation/issues/469)).
