@@ -25,7 +25,7 @@ class ProductTypeSettings
             'value' => '',
         ]];
 
-        foreach (Commerce::getInstance()->getProductTypes()->getEditableProductTypes() as $productType) {
+        foreach (Commerce::getInstance()->getProductTypes()->getViewableProductTypes() as $productType) {
             $options[] = [
                 'label' => $productType->name,
                 'value' => (string)$productType->id,

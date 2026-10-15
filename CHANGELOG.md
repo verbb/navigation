@@ -6,7 +6,7 @@
 - Added a Dynamic node setting for placing projected items before or after manually added children ([#469](https://github.com/verbb/navigation/issues/469)).
 
 ### Changed
-- Updated Craft API usage to avoid deprecated calls.
+- Updated Craft and Craft Commerce API usage to avoid deprecated calls ([#472](https://github.com/verbb/navigation/issues/472)).
 - Clarified how Dynamic nodes remain in the hierarchy, include projected children by default, and work with recursive rendering ([#469](https://github.com/verbb/navigation/issues/469)).
 
 ### Fixed
