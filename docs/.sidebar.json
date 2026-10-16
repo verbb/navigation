@@ -4,7 +4,6 @@
         "collapsable": false,
         "children": [
             "get-started/installation-setup",
-            "get-started/creating-your-first-menu",
             "get-started/requirements",
             "get-started/configuration",
             "get-started/upgrading-from-v3"
