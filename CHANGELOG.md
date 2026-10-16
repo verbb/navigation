@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.9 - 2026-10-16
 
 ### Fixed
 - Fixed node custom fields not eager-loading for front-end users without menu-management permissions, and repeated cached subset queries unnecessarily reloading the complete menu ([#476](https://github.com/verbb/navigation/issues/476)).
