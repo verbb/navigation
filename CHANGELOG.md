@@ -5,6 +5,9 @@
 ### Changed
 - Updated menu deletion confirmations on multi-site installs to clarify that the menu and all its nodes will be deleted across all sites.
 
+### Fixed
+- Fixed an authorization bypass vulnerability.
+
 ## 4.0.9 - 2026-10-16
 
 ### Fixed

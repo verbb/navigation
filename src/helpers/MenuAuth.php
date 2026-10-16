@@ -221,8 +221,7 @@ class MenuAuth
             return true; // Missing required element IDs are reported by model validation.
         }
 
-        return self::canUseLinkedElement($user, $node)
-            || self::linkedElementSelectionIsUnchanged($node);
+        return self::canUseLinkedElement($user, $node);
     }
 
     public static function canUseLinkedElement(?User $user, Node $node): bool

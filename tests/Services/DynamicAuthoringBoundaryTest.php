@@ -74,6 +74,8 @@ it('authorizes linked element refreshes against selection changes', function() {
             'email' => uniqid('linkedRefreshEditor') . '@example.test',
         ]);
         expect(Craft::$app->getElements()->saveElement($editor))->toBeTrue();
+        // Earlier tests may have cached the permission catalogue before this menu existed.
+        Craft::$app->set('userPermissions', new craft\services\UserPermissions());
         Craft::$app->getUserPermissions()->saveUserPermissions($editor->id, [
             'accessCp',
             'navigation-manageMenu:' . $menu->uid,
@@ -81,9 +83,12 @@ it('authorizes linked element refreshes against selection changes', function() {
         ]);
         Craft::$app->getUser()->setIdentity($editor);
 
+        expect(verbb\navigation\helpers\MenuAuth::canManageMenuSite($editor, $menu, (int)$node->siteId))->toBeTrue();
         expect($editor->can('viewEntries:' . $section->uid))->toBeFalse()
             ->and(verbb\navigation\helpers\MenuAuth::canUseLinkedElement($editor, $node))->toBeFalse()
-            ->and(verbb\navigation\helpers\MenuAuth::linkedElementSelectionIsUnchanged($node))->toBeTrue();
+            ->and(verbb\navigation\helpers\MenuAuth::linkedElementSelectionIsUnchanged($node))->toBeTrue()
+            ->and($node->canSave($editor))->toBeFalse()
+            ->and($node->canDuplicate($editor))->toBeFalse();
 
         $field = new verbb\navigation\fieldlayoutelements\NodeTypeElements();
         expect($field->formHtml($node))->toContain($original->title);
