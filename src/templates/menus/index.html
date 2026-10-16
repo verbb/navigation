@@ -91,6 +91,9 @@
         columns: columns,
         container: '#navigations-vue-admin-table',
         deleteAction: '{{ editable ? 'navigation/menus/delete-menu' : '' }}',
+        {% if craft.app.getIsMultiSite() %}
+            deleteConfirmationMessage: {{ 'Are you sure you want to delete “{name}”? This will delete the menu and all its nodes across all sites.' | t('navigation') | json_encode | raw }},
+        {% endif %}
         emptyMessage: Craft.t('navigation', 'No menus exist yet.'),
         reorderAction: '{{ canReorder ? 'navigation/menus/reorder-menu' : '' }}',
         tableData: {{ tableData | json_encode | raw }},

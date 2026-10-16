@@ -64,7 +64,9 @@
         params: { id: nav.id },
         redirect: 'navigation/menus' | hash,
         destructive: true,
-        confirm: 'Are you sure you want to delete “{name}”?' | t('app', {
+        confirm: craft.app.getIsMultiSite() ? 'Are you sure you want to delete “{name}”? This will delete the menu and all its nodes across all sites.' | t('navigation', {
+            name: nav.name,
+        }) : 'Are you sure you want to delete “{name}”?' | t('app', {
             name: nav.name,
         }),
     },

@@ -13,6 +13,7 @@ return [
   'Add {name}' => 'Add {name}',
   'Add node' => 'Add node',
   'After other {type}' => 'After other {type}',
+  'Are you sure you want to delete “{name}”? This will delete the menu and all its nodes across all sites.' => 'Are you sure you want to delete “{name}”? This will delete the menu and all its nodes across all sites.',
   'Attribute' => 'Attribute',
   'Before other {type}' => 'Before other {type}',
   'Choose node type' => 'Choose node type',
