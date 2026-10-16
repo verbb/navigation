@@ -445,6 +445,8 @@ class NavigationCache extends Component
             $nodes[] = $node;
         }
 
+        Navigation::$plugin->getNodeRead()->deferLinkedElements($nodes);
+
         return $nodes;
     }
 

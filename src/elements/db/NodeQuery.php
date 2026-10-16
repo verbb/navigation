@@ -297,6 +297,8 @@ class NodeQuery extends ElementQuery
             }
         }
 
+        Navigation::$plugin->getNodeRead()->deferLinkedElements($rows);
+
         if ($this->shouldWireNodeHierarchy()) {
             $rows = Navigation::$plugin->getNodeRead()->assembleNodeHierarchyForQueryResult(
                 $this,

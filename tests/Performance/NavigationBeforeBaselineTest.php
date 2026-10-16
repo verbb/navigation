@@ -157,7 +157,7 @@ it('captures mixed node type and linked element baselines', function() {
 
     expect($profiles['touch-linked-elements']['queries'])->toBeGreaterThan($profiles['query-only']['queries']);
     expect($profiles['with-linked-elements']['resultSize'])->toBeGreaterThan(0);
-    expect($profiles['with-linked-elements']['queries'])->toBeLessThan($profiles['touch-linked-elements']['queries']);
+    expect($profiles['touch-linked-elements']['queries'])->toBe(3);
     expect($profiles['with-linked-elements']['queries'])->toBeLessThanOrEqual(3);
 
     fwrite(STDERR, "\nNavigation mixed node baseline: " . json_encode(compactNavigationProfiles($profiles), JSON_PRETTY_PRINT) . "\n");

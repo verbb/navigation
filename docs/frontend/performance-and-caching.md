@@ -35,15 +35,17 @@ You can also use Craft’s `{% nav %}` tag for recursive markup. It does not ena
 
 ## Load Linked Entries or Menu Fields
 
-A node already supplies its title and URL. If your design also reads `node.element`, use `withLinkedElements()` to load the linked Craft elements together. If it reads menu field values through many nodes, `withMenu()` loads their menus together.
+A node supplies its stored title without loading its linked Craft element. When you first read a linked node's `url` or `element`, Navigation loads the pending linked elements from that query result together, grouped by element type and linked site. This also applies to nodes returned from the tree cache. URLs still come from the Craft elements, preserving URL events and custom node types.
+
+Use `withLinkedElements()` when you want those elements loaded as part of the query instead of on first access. If your design reads menu field values through many nodes, `withMenu()` loads their menus together.
 
 | Query option | Use when | Tree cache |
 | --- | --- | --- |
-| `withLinkedElements()` | You read fields from linked entries, categories, assets, or products | Bypassed |
+| `withLinkedElements()` | You want linked elements loaded before the query returns | Bypassed |
 | `withMenu()` | You read menu field values through the returned nodes | Bypassed |
 | `withNavigationCache()` | Cache mode is Manual and this query should use the cache | Eligible queries can be cached |
 
-For example, add `withLinkedElements()` to a query before reading a linked entry’s fields. It loads the linked entry itself; any relational fields on that entry, such as an Assets field, can need their own eager-loading strategy.
+Both automatic and explicit batching load the linked entry itself; any relational fields on that entry, such as an Assets field, can need their own eager-loading strategy.
 
 When promotional content is needed once above the menu, fetch `craft.navigation.menu('mainMenu').one()` separately. This keeps the node query eligible for tree caching. See [Menu Fields](/feature-tour/menu-fields).
 

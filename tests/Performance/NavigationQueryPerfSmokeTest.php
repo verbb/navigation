@@ -63,7 +63,7 @@ it('captures linked element hydration costs for entry-backed nodes', function() 
     fwrite(STDERR, "\nNavigation linked element perf profile: " . json_encode($profiles, JSON_PRETTY_PRINT) . "\n");
 })->group('perf');
 
-it('captures batched linked element hydration improvements', function() {
+it('keeps lazy linked element hydration as bounded as explicit batching', function() {
     $nav = NavigationFixtureFactory::menu();
 
     foreach (NavigationFixtureFactory::entries(10) as $entry) {
@@ -101,7 +101,9 @@ it('captures batched linked element hydration improvements', function() {
     ];
 
     expect($profiles['batched-touch-linked-elements']['resultSize'])->toBe(10);
-    expect($profiles['batched-touch-linked-elements']['queries'])->toBeLessThan($profiles['lazy-touch-linked-elements']['queries']);
+    expect($profiles['lazy-touch-linked-elements']['resultSize'])->toBe(10);
+    expect($profiles['lazy-touch-linked-elements']['queries'])->toBe(2);
+    expect($profiles['batched-touch-linked-elements']['queries'])->toBe(2);
 
     fwrite(STDERR, "\nNavigation batched linked element perf profile: " . json_encode($profiles, JSON_PRETTY_PRINT) . "\n");
 })->group('perf');

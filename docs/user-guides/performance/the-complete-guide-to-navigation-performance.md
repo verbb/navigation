@@ -43,9 +43,9 @@ Craft’s `{% nav %}` tag is another way to write recursive markup; changing a `
 
 ## Read Fields from Linked Entries
 
-Suppose each entry in your menu has a Plain Text field with handle `summary`, and your design shows that text beneath the link. Accessing `node.element` without a loading flag can fetch each linked entry separately.
+Suppose each entry in your menu has a Plain Text field with handle `summary`, and your design shows that text beneath the link. Navigation loads linked entries together when you first read a linked node's `url` or `element`. This works with the default query and with nodes returned from the tree cache.
 
-Replace the query and output in the partial with:
+To load the entries before the query returns, replace the query and output in the partial with:
 
 ```twig
 {% set nodes = craft.navigation.nodes('mainMenu')
@@ -64,7 +64,7 @@ Replace the query and output in the partial with:
 </ul>
 ```
 
-This example displays a flat list so you can isolate linked-entry loading. The flag batches linked elements rather than loading each through separate lazy access. It also bypasses Navigation’s tree cache for this query, so compare the full request cost, including repeated requests.
+This example displays a flat list so you can isolate linked-entry loading. The flag makes the batch load happen immediately. It also bypasses Navigation’s tree cache for this query. Omit it to keep automatic loading on first access and preserve cache eligibility.
 
 The flag loads the entry, not all of its relations. If you replace the summary with an Assets field and call `.one()` on that field for every entry, those asset queries are additional work. Do not assume linked-entry loading eliminates every query inside the loop.
 

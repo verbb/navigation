@@ -174,10 +174,10 @@ Not every v4 improvement requires migration work.
 
 v4 improves read performance without changing typical template output:
 
-- **`withLinkedElements()`** — batch-loads linked Craft elements. **`node.element`** still works without it (lazy-loaded per node).
+- **`withLinkedElements()`** — batch-loads linked Craft elements before the query returns. Without it, reading **`node.url`** or **`node.element`** loads pending linked elements from the query result together on first access.
 - **`withNodeHierarchy()`** — wires parent/child relationships in memory after the query. **`node.children`** and the `{% nav %}` tag still work without it (children load on demand). On menu-scoped front-end reads, hierarchy wiring is enabled automatically when you omit the flag; pass **`withNodeHierarchy(false)`** to opt out of that loading.
 - **Tree caching** — defaults to **`auto`** on front-end menu reads. Active/current state is always resolved after a cache hit, so highlight behaviour stays correct. Set **`cacheMode`** to **`off`** in **Navigation → Settings → Performance** only when debugging or when you need every read to hit the database.
-- **`craft.navigation.tree()`** — returns nested arrays; linked element hydration is **opt-in** via `{ withLinkedElements: true }`. Use **`nodes()`** when you want element objects with the same opt-in defaults as queries.
+- **`craft.navigation.tree()`** — returns nested arrays; including linked element data in the output is **opt-in** via `{ withLinkedElements: true }`. Use **`nodes()`** when you want node objects with linked elements available on demand.
 - **Passive / group nodes** — use **`node.getTag()`** in custom templates (`span` vs `a`); the default `render()` helper respects this for accessibility.
 
 See [Node Queries](/getting-elements/node-queries) and [Performance & Caching](/frontend/performance-and-caching).

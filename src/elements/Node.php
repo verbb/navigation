@@ -647,24 +647,14 @@ class Node extends Element
 
     public function getElement(): ?ElementInterface
     {
-        $nodeType = $this->nodeType();
-        $identity = [$this->type, $this->elementId, $this->getElementSiteId()];
-
-        if ($this->_elementResolved && $this->_resolvedElementIdentity === $identity) {
-            // Cache misses belong to a selection too; an editor may change the
-            // type or ID after a missing/incompatible element was looked up.
-            if ($this->_element === null || (
-                $nodeType instanceof ElementNodeType
-                && $this->elementId === $this->_element->id
-                && $this->_element instanceof ($nodeType::getElementType())
-            )) {
-                return $this->_element;
-            }
+        if ($this->hasResolvedElement()) {
+            return $this->_element;
         }
 
+        $nodeType = $this->nodeType();
         $this->_element = null;
         $this->_elementResolved = true;
-        $this->_resolvedElementIdentity = $identity;
+        $this->_resolvedElementIdentity = [$this->type, $this->elementId, $this->getElementSiteId()];
 
         // To prevent potentially nasty errors, check if this node is an appropriate element node type
         // Otherwise, in some rare scenarios where there's elementId info for a node, but a non-element node type
@@ -677,6 +667,10 @@ class Node extends Element
             return null;
         }
 
+        if (Navigation::$plugin->getNodeRead()->loadDeferredLinkedElements($this)) {
+            return $this->_element;
+        }
+
         $this->_element = Craft::$app->getElements()->getElementById(
             $this->elementId,
             $nodeType::getElementType(),
@@ -686,8 +680,26 @@ class Node extends Element
         return $this->_element;
     }
 
+    public function hasResolvedElement(): bool
+    {
+        // Cache misses belong to a selection too; an editor may change the
+        // type, ID or site after a missing/incompatible element was looked up.
+        if (!$this->_elementResolved || $this->_resolvedElementIdentity !== [$this->type, $this->elementId, $this->getElementSiteId()]) {
+            return false;
+        }
+
+        $nodeType = $this->nodeType();
+
+        return $this->_element === null || (
+            $nodeType instanceof ElementNodeType
+            && $this->elementId === $this->_element->id
+            && $this->_element instanceof ($nodeType::getElementType())
+        );
+    }
+
     public function setElement($element = null): void
     {
+        Navigation::$plugin->getNodeRead()->forgetDeferredLinkedElement($this);
         $this->_element = $element;
         $this->_elementResolved = true;
         $this->_resolvedElementIdentity = [$this->type, $this->elementId, $this->getElementSiteId()];

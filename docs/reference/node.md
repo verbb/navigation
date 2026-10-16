@@ -25,7 +25,7 @@ Linked Craft element ID (element-backed nodes)
 
 **Type:** `craft\base\ElementInterface|null`
 
-Linked Craft element — lazy-loaded; use `withLinkedElements()` on the query to batch-load
+Linked Craft element — loaded on first access, together with pending linked elements from the same query result. Use `withLinkedElements()` to load them before the query returns.
 :::
 
 ::: reference
@@ -281,4 +281,4 @@ This property contains the authored `{ attribute, value }` rows. Use [linkAttrib
 {% endif %}
 ```
 
-Use `withLinkedElements()` on the parent query to avoid N+1 loads.
+Linked elements from the query result load together on first access. Use `withLinkedElements()` on the parent query to load them immediately; relational fields on those elements may still need their own eager-loading strategy.

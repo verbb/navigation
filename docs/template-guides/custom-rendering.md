@@ -29,7 +29,7 @@ Each node type exposes **`getTag()`** — the HTML element name for the node wra
 
 ## Linked Element Fields
 
-`node.element` is lazy-loaded by default. Use **`withLinkedElements()`** when reading linked entry/category fields in the loop:
+`node.element` loads on first access, together with pending linked elements from the same query result. You can use **`withLinkedElements()`** to load them before the query returns:
 
 ```twig
 {% set nodes = craft.navigation.nodes()

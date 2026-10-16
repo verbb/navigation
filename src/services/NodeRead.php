@@ -16,8 +16,16 @@ use craft\base\Component;
 use craft\base\ElementInterface;
 use craft\elements\db\EagerLoadPlan;
 
+use WeakMap;
+
 class NodeRead extends Component
 {
+    // Properties
+    // =========================================================================
+
+    private ?WeakMap $_deferredLinkedElements = null;
+
+
     // Public Methods
     // =========================================================================
 
@@ -69,6 +77,54 @@ class NodeRead extends Component
         }
 
         return $nodes;
+    }
+
+    /**
+     * Shares a lazy batch without retaining query results or serializing request state with nodes.
+     * URL generation still runs on real elements so instance behaviors, events and previews apply.
+     */
+    public function deferLinkedElements(array $nodes): void
+    {
+        $this->_deferredLinkedElements ??= new WeakMap();
+        $batch = new WeakMap();
+
+        foreach ($nodes as $node) {
+            if ($node instanceof NodeElement && $node->elementId && !$node->hasResolvedElement()) {
+                $batch[$node] = true;
+                $this->_deferredLinkedElements[$node] = $batch;
+            }
+        }
+    }
+
+    public function loadDeferredLinkedElements(NodeElement $node): bool
+    {
+        $batch = $this->_deferredLinkedElements[$node] ?? null;
+
+        if ($batch === null) {
+            return false;
+        }
+
+        $nodes = [];
+
+        foreach ($batch as $member => $unused) {
+            // Explicitly assigned elements and nodes moved into another batch keep their state.
+            if (($this->_deferredLinkedElements[$member] ?? null) === $batch) {
+                $nodes[] = $member;
+                unset($this->_deferredLinkedElements[$member]);
+            }
+        }
+
+        // Detach before querying: element hydration can invoke extension callbacks.
+        $this->eagerLoadLinkedElements($nodes);
+
+        return true;
+    }
+
+    public function forgetDeferredLinkedElement(NodeElement $node): void
+    {
+        if (isset($this->_deferredLinkedElements[$node])) {
+            unset($this->_deferredLinkedElements[$node]);
+        }
     }
 
     public function eagerLoadLinkedElements(array $nodes): array

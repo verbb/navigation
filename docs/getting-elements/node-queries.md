@@ -847,7 +847,7 @@ $node = \verbb\navigation\elements\Node::find()
 
 ### `withLinkedElements`
 
-Batch-loads linked Craft elements after the query executes. Use this when templates read `node.element` or linked element fields.
+Batch-loads linked Craft elements before the query returns. Without this flag, the first access to a linked node's `url` or `element` loads the pending linked elements from the query result together. Both approaches preserve Craft URL events and custom node types.
 
 Disables the plugin tree cache for that query.
 
