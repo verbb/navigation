@@ -43,7 +43,6 @@ use craft\elements\ElementCollection;
 use craft\elements\User;
 use craft\enums\Color;
 use craft\errors\UnsupportedSiteException;
-use craft\events\MoveElementEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
 use craft\helpers\Db;
@@ -567,31 +566,6 @@ class Node extends Element
 
         $this->setDisabledByLinkedElement(false);
         unset($this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY]);
-    }
-
-    public function init(): void
-    {
-        parent::init();
-
-        // Handle validation of max levels when dragging items across levels in structure
-        Event::on(Structures::class, Structures::EVENT_BEFORE_UPDATE_ELEMENT, function(MoveElementEvent $event) {
-            if (!($event->element instanceof $this)) {
-                return;
-            }
-
-            $nav = $event->element->getMenuSettings();
-
-            // Check for max nodes at level. This was only added in Craft 4.5, so check
-            if (property_exists($event, 'targetElementId')) {
-                if ($nav->maxNodesSettings && $node = $event->getTargetElement()) {
-                    Navigation::$plugin->getNodes()->setTempNodes([$node]);
-
-                    if ($nav->isOverMaxLevel($node, $event->getTargetElement())) {
-                        $event->isValid = false;
-                    }
-                }
-            }
-        });
     }
 
     public function createAnother(): ?self

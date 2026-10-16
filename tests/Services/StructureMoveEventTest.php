@@ -13,6 +13,39 @@ use craft\services\Structures;
 use yii\base\Event;
 use yii\web\BadRequestHttpException;
 
+it('keeps capacity checks independent after a limited menu move', function() {
+    $menu = F::menu();
+    $first = F::customNode($menu, 'First', '/first');
+    $second = F::customNode($menu, 'Second', '/second');
+    $menu->maxNodesSettings = [['level' => 1, 'max' => 2]];
+    expect(Navigation::$plugin->getMenus()->saveMenu($menu))->toBeTrue();
+
+    $nodes = Navigation::$plugin->getNodes();
+    $previousTempNodes = $nodes->getTempNodes();
+
+    try {
+        expect(Craft::$app->getStructures()->moveBefore($menu->structureId, $second, $first))->toBeTrue();
+
+        $otherMenu = F::menu();
+        $other = F::customNode($otherMenu, 'Other', '/other');
+        $otherMenu->maxNodes = 1;
+        $otherMenu->maxNodesSettings = [['level' => 1, 'max' => 1]];
+        expect(Navigation::$plugin->getMenus()->saveMenu($otherMenu))->toBeTrue();
+
+        $other->title = 'Edited';
+        expect(Craft::$app->getElements()->saveElement($other))->toBeTrue();
+
+        $sessions = Navigation::$plugin->getBuildSessions();
+        $session = $sessions->getOrCreate($otherMenu->id, $other->siteId);
+        $sessions->stageDelete($session, $other);
+
+        expect(Node::find()->id($other->id)->status(null)->one()->getIsPendingDelete())->toBeTrue();
+        expect($nodes->getTempNodes())->toBe($previousTempNodes);
+    } finally {
+        $nodes->setTempNodes($previousTempNodes);
+    }
+});
+
 it('publishes a full tree snapshot with one real move and one cache invalidation', function() {
     $menu = F::menu();
     $nodes = [];

@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fixed an authorization bypass vulnerability.
+- Fixed moving nodes in a menu with level limits causing subsequent edits or staged deletions in other menus to fail capacity validation.
 
 ## 4.0.9 - 2026-10-16
 
