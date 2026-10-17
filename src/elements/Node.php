@@ -374,6 +374,7 @@ class Node extends Element
     private ?string $_url = null;
     private ?ElementInterface $_element = null;
     private bool $_elementResolved = false;
+    private int $_elementAssignmentVersion = 0;
     private ?array $_resolvedElementIdentity = null;
     private array $_nodeTypes = [];
     private ?string $_elementUrl = null;
@@ -672,11 +673,21 @@ class Node extends Element
             return $this->hasResolvedElement() ? $this->_element : $this->getElement();
         }
 
-        $this->setElement(Craft::$app->getElements()->getElementById(
+        $identity = [$this->type, $this->elementId, $this->getElementSiteId()];
+        $assignmentVersion = $this->_elementAssignmentVersion;
+        $element = Craft::$app->getElements()->getElementById(
             $this->elementId,
             $nodeType::getElementType(),
             $this->getElementSiteId(),
-        ));
+        );
+
+        // Individual and reentrant lookups must also defer to hydration callbacks.
+        // The version distinguishes an explicit null assignment from the pending null value.
+        if ($assignmentVersion !== $this->_elementAssignmentVersion || $identity !== [$this->type, $this->elementId, $this->getElementSiteId()]) {
+            return $this->getElement();
+        }
+
+        $this->setElement($element);
 
         return $this->_element;
     }
@@ -700,6 +711,7 @@ class Node extends Element
 
     public function setElement($element = null): void
     {
+        $this->_elementAssignmentVersion++;
         Navigation::$plugin->getNodeRead()->forgetDeferredLinkedElement($this);
         $this->_element = $element;
         $this->_elementResolved = true;

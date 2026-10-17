@@ -433,12 +433,17 @@ class NodeRead extends Component
                 // preserves initialization/population handlers, behaviors, fields and placeholders;
                 // cloning elements would strip their instance events and behaviors.
                 $rowsById = [];
+                $indexBy = $query->indexBy;
 
-                foreach ($query->asArray()->all() as $row) {
-                    $rowsById[$row['id']] = $row;
+                try {
+                    // Custom indexes may read element properties or require an element instance.
+                    // Apply them during hydration, not while collecting database rows.
+                    foreach ($query->indexBy(null)->asArray()->all() as $row) {
+                        $rowsById[$row['id']] = $row;
+                    }
+                } finally {
+                    $query->indexBy($indexBy)->asArray(false);
                 }
-
-                $query->asArray(false);
 
                 foreach ($nodeGroup['nodes'] as [$node, $identity]) {
                     if (!$this->_canApplyLinkedElement($node, $identity, $batch)) {
