@@ -1,0 +1,16 @@
+{
+    "Cake\\Utility\\Hash": "cakephp/utility (optional Feed Me dependency)",
+    "craft\\commerce\\Plugin": "craftcms/commerce (optional Commerce integration)",
+    "craft\\commerce\\elements\\Product": "craftcms/commerce (optional Commerce integration)",
+    "craft\\commerce\\elements\\conditions\\products\\ProductCondition": "craftcms/commerce (optional Commerce integration)",
+    "craft\\commerce\\models\\ProductType": "craftcms/commerce (optional Commerce integration)",
+    "craft\\feedme\\Plugin": "craftcms/feed-me (optional import integration)",
+    "craft\\feedme\\base\\Element": "craftcms/feed-me (optional import integration)",
+    "craft\\feedme\\events\\FeedProcessEvent": "craftcms/feed-me (optional import integration)",
+    "craft\\feedme\\events\\RegisterFeedMeElementsEvent": "craftcms/feed-me (optional import integration)",
+    "craft\\feedme\\services\\Elements": "craftcms/feed-me (optional import integration)",
+    "craft\\feedme\\services\\Process": "craftcms/feed-me (optional import integration)",
+    "craft\\gatsbyhelper\\events\\RegisterSourceNodeTypesEvent": "craftcms/gatsby-helper (optional Gatsby integration)",
+    "craft\\gatsbyhelper\\services\\SourceNodes": "craftcms/gatsby-helper (optional Gatsby integration)",
+    "jainilnagar\\navkit\\elements\\Node": "jainilnagar/navkit (legacy migration source)"
+}

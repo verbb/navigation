@@ -55,3 +55,4 @@ node_modules
 
 # Disposable browser-test resources
 /tests/runtime/web/cpresources/
+/.ddev/config.zz-ci.yaml
