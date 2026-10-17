@@ -31,7 +31,7 @@ use craft\events\DefineElementInnerHtmlEvent;
 use craft\events\MoveElementEvent;
 use craft\fields\data\ColorData;
 use craft\helpers\App;
-use Craft\helpers\ArrayHelper;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
 use craft\helpers\Db;
 use craft\helpers\Html;
@@ -224,7 +224,7 @@ class Node extends Element
         // Get the group we need to check permissions on
         if (preg_match('/^nav:(\d+)$/', $source, $matches)) {
             $nav = Navigation::$plugin->getNavs()->getNavById($matches[1]);
-        } else if (preg_match('/^nav:(.+)$/', $source, $matches)) {
+        } elseif (preg_match('/^nav:(.+)$/', $source, $matches)) {
             $nav = Navigation::$plugin->getNavs()->getNavByUid($matches[1]);
         }
 
@@ -445,7 +445,7 @@ class Node extends Element
     {
         if ($this->nodeType()) {
             $url = $this->nodeType()->getUrl();
-        } else if ($this->isElement()) {
+        } elseif ($this->isElement()) {
             $url = $this->getElementUrl();
         } else {
             $url = $this->getRawUrl();
@@ -579,7 +579,7 @@ class Node extends Element
             }
         } catch (Throwable $e) {
             // This will throw an error if the class exists, but the plugin disabled/uninstalled,
-            // despite the check with `class_exists()` 
+            // despite the check with `class_exists()`
         }
 
         $classNameParts = explode('\\', $this->type);
@@ -617,7 +617,7 @@ class Node extends Element
             }
         } catch (Throwable $e) {
             // This will throw an error if the class exists, but the plugin disabled/uninstalled,
-            // despite the check with `class_exists()` 
+            // despite the check with `class_exists()`
         }
 
         // Convert to rgb to play nice with opacity alterations
@@ -1192,7 +1192,7 @@ EOD;
 
         return implode("\n", $fields);
     }
-    
+
 
     // Private Methods
     // =========================================================================
