@@ -6,6 +6,7 @@
 - Updated menu deletion confirmations on multi-site installs to clarify that the menu and all its nodes will be deleted across all sites.
 
 ### Fixed
+- Fixed entry pickers offering sources and entries outside the editor’s view permissions.
 - Fixed invalid menu limits being saved instead of displaying validation errors.
 - Fixed cache duration validation errors not appearing beside the setting.
 - Fixed an authorization bypass vulnerability.

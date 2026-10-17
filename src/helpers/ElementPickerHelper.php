@@ -20,8 +20,18 @@ class ElementPickerHelper
     public static function filterSourcesForUser(string $elementType, mixed $configuredSources): array
     {
         $availableKeys = [];
+        $context = 'modal';
 
-        foreach (Craft::$app->getElementSources()->getSources($elementType, 'modal') as $source) {
+        if ($elementType === EntryElement::class) {
+            // Entry modal sources include every section, regardless of view permissions.
+            if (Craft::$app->getEntries()->getEditableSections() === []) {
+                return [];
+            }
+
+            $context = 'index';
+        }
+
+        foreach (Craft::$app->getElementSources()->getSources($elementType, $context) as $source) {
             if (!isset($source['key'])) {
                 continue;
             }
@@ -55,7 +65,8 @@ class ElementPickerHelper
 
         $settings = self::getTypeSettings($permissions, EntryNodeType::class);
         $config = [];
-        $criteria = [];
+        // Craft calls this "editable", but it checks view and peer-entry permissions.
+        $criteria = ['editable' => true];
 
         if (!empty($settings['excludeWithoutUri'])) {
             $criteria['uri'] = ':notempty:';

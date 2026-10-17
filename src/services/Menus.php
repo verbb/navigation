@@ -846,6 +846,11 @@ class Menus extends Component
                 $config = $nodeType::getBuilderConfig();
                 $elementType = $nodeType::getElementType();
                 $configuredSources = MenuPermissions::getTypeSources($permissions, $typeClass);
+                $sources = ElementPickerHelper::filterSourcesForUser($elementType, $configuredSources);
+
+                if ($sources === []) {
+                    continue;
+                }
 
                 $tabs[$key] = [
                     'label' => $config['label'],
@@ -853,7 +858,7 @@ class Menus extends Component
                     'type' => $typeClass,
                     'elementType' => $elementType,
                     'category' => 'element',
-                    'sources' => ElementPickerHelper::filterSourcesForUser($elementType, $configuredSources),
+                    'sources' => $sources,
                     'pickerConfig' => ElementPickerHelper::getPickerConfig($permissions, $typeClass, $elementType),
                 ];
                 continue;
