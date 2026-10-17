@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.1.6 - 2026-10-17
 
 ### Fixed
 - Fixed a helper class reference that could fail on case-sensitive filesystems.
