@@ -6,6 +6,7 @@
 - Updated menu deletion confirmations on multi-site installs to clarify that the menu and all its nodes will be deleted across all sites.
 
 ### Fixed
+- Fixed duplicate nodes being created when retrying an add after its response was lost.
 - Fixed category and asset pickers offering content outside the editor’s view permissions.
 - Fixed the menu builder overflowing narrow mobile screens.
 - Fixed Dynamic menu rendering omitting projected children.

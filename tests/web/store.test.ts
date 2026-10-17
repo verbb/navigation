@@ -4,7 +4,7 @@ import { BuilderActions } from '../../src/web/src/components/BuilderActions';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { useBuilderStore as store } from '../../src/web/src/store';
-import { acceptStructureRevision } from '../../src/web/src/api';
+import { acceptStructureRevision, addNodes } from '../../src/web/src/api';
 import {
   buildInitialCollapsedNodeIds,
   saveCollapsedNodeIds,
@@ -439,4 +439,22 @@ test('menu content remains available with live structure saves while staging con
   } finally {
     Object.assign(initial, snapshot);
   }
+});
+
+
+test('a lost add response reuses its request identity, while a new add gets a new identity', async () => {
+  const requests: any[] = [];
+  reset(async (_method, action, options) => {
+    assert.equal(action, 'navigation/nodes/add-nodes');
+    requests.push(options.data);
+    if (requests.length === 1) throw new Error('Response lost after server commit');
+    return { data: { changeCount: 1 } };
+  });
+  const payload = [{ menuId: 902, siteId: 1, title: 'Retry me', url: '/retry' }];
+  await assert.rejects(addNodes(payload));
+  await addNodes(payload);
+  await addNodes(payload);
+  assert.match(requests[0].requestId, /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);
+  assert.equal(requests[1].requestId, requests[0].requestId);
+  assert.notEqual(requests[2].requestId, requests[1].requestId);
 });

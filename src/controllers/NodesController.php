@@ -8,10 +8,13 @@ use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\models\MenuSettings;
 
 use Craft;
+use craft\db\Query;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
+use yii\web\ConflictHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
@@ -164,6 +167,16 @@ class NodesController extends Controller
             throw new BadRequestHttpException('No nodes to add.');
         }
 
+        $requestId = $this->request->getBodyParam('requestId');
+
+        if ($requestId !== null && (!is_string($requestId) || !StringHelper::isUUID($requestId))) {
+            throw new BadRequestHttpException('Invalid add request ID.');
+        }
+
+        $batchIdentity = $requestId === null ? null : Json::encode([
+            $requestId, Craft::$app->getUser()->getId(), $nodesPost, $this->request->getBodyParam('fields'),
+        ]);
+
         // Authorize the whole batch before any write so a mixed-menu payload cannot
         // create nodes on an unauthorized menu after a permitted first item saves.
         $nodes = [];
@@ -197,7 +210,28 @@ class NodesController extends Controller
             if (!MenuAuth::canAuthorNode(Craft::$app->getUser()->getIdentity(), $node)) {
                 throw new ForbiddenHttpException('Node type, source or parent is not available for this menu.');
             }
+
+            if ($batchIdentity !== null) {
+                // Persist retry identity with the elements, in the same transaction as the add.
+                $hash = hash('sha256', $batchIdentity . ':' . $nodeMenuId . ':' . $nodeSiteId . ':' . $key);
+                $node->uid = substr($hash, 0, 8) . '-' . substr($hash, 8, 4) . '-4' . substr($hash, 13, 3)
+                    . '-8' . substr($hash, 17, 3) . '-' . substr($hash, 20, 12);
+            }
+
             $nodes[] = $node;
+        }
+
+        if ($batchIdentity !== null) {
+            $existing = (new Query())->select(['id', 'dateDeleted'])->from('{{%elements}}')
+                ->where(['uid' => array_map(fn(Node $node) => $node->uid, $nodes)])->all();
+
+            if ($existing !== []) {
+                if (count($existing) !== count($nodes) || array_filter($existing, fn(array $row) => $row['dateDeleted'] !== null)) {
+                    throw new ConflictHttpException(Craft::t('navigation', 'These nodes changed after they were added. Reload the menu before adding them again.'));
+                }
+
+                return $this->_addSuccess(count($nodesPost), $deferPublish, $menuId, $siteId);
+            }
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
@@ -250,13 +284,18 @@ class NodesController extends Controller
             $nodesService->setTempNodes([]);
         }
 
+        return $this->_addSuccess(count($nodesPost), $deferPublish, $menuId, $siteId);
+    }
+
+    private function _addSuccess(int $count, bool $deferPublish, ?int $menuId, ?int $siteId): Response
+    {
         $message = $deferPublish
-            ? Craft::t('navigation', 'Node{plural} added. Save menu to apply.', ['plural' => count($nodesPost) > 1 ? 's' : ''])
-            : Craft::t('navigation', 'Node{plural} added.', ['plural' => count($nodesPost) > 1 ? 's' : '']);
+            ? Craft::t('navigation', 'Node{plural} added. Save menu to apply.', ['plural' => $count > 1 ? 's' : ''])
+            : Craft::t('navigation', 'Node{plural} added.', ['plural' => $count > 1 ? 's' : '']);
 
         return $this->asSuccess($message, [
             'changeCount' => ($deferPublish && $menuId && $siteId)
-                ? $buildSessions->getChangeCount($menuId, $siteId)
+                ? Navigation::$plugin->getBuildSessions()->getChangeCount($menuId, $siteId)
                 : 0,
         ]);
     }

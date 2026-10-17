@@ -5,6 +5,7 @@ import { getCraft } from './utils/cp';
 // older response alone cannot prevent that older request from winning on the server.
 const requests = new Map<string, Promise<unknown>>();
 const serverStructureRevisions = new Map<string, string>();
+const pendingNodeAdds = new Map<string, { fingerprint: string; requestId: string }>();
 // Only call when the store adopts a server tree, never while retaining dirty structure.
 export function acceptStructureRevision(menuId: number, revision?: string): void {
   if (revision) serverStructureRevisions.set(String(menuId), revision);
@@ -71,6 +72,7 @@ export async function publishMenu(
     data: { menuId, siteId, applyStructure, moves, structureRevision },
   });
 
+  pendingNodeAdds.delete(String(menuId));
   return response.data;
 }
 
@@ -93,6 +95,7 @@ export async function discardSession(menuId: number, siteId: number): Promise<Re
     data: { menuId, siteId },
   });
 
+  pendingNodeAdds.delete(String(menuId));
   return response.data;
 }
 
@@ -186,10 +189,28 @@ export async function copyNodeToSite(
   return response.data as { nodeId?: number; message?: string };
 }
 
+function newAddRequestId(): string {
+  // getRandomValues also works in HTTP development control panels.
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+  return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
+}
+
 export async function addNodes(nodes: Record<string, unknown>[]): Promise<Record<string, unknown>> {
+  const key = String(nodes[0]?.menuId ?? 'legacy');
+  const fingerprint = JSON.stringify(nodes);
+  let pending = pendingNodeAdds.get(key);
+  if (!pending || pending.fingerprint !== fingerprint) {
+    pending = { fingerprint, requestId: newAddRequestId() };
+    pendingNodeAdds.set(key, pending);
+  }
+  // Keep the identity after an uncertain response, so a manual retry cannot add twice.
   const response = await sendBuilderRequest('POST', 'navigation/nodes/add-nodes', {
-    data: { nodes },
+    data: { nodes, requestId: pending.requestId },
   });
+  if (pendingNodeAdds.get(key) === pending) pendingNodeAdds.delete(key);
 
   return response.data;
 }
