@@ -10,16 +10,15 @@ jobs:
   php-check:
     name: PHP 8.2.0 syntax and imports
     runs-on: ubuntu-22.04
+    # setup-php selects a current patch; the official image preserves the exact minimum.
+    container: php:8.2.0-cli@sha256:fa840989efc52df732278f59377e780f65d6aa8c384bb9724babf190b49f4c35
+    env:
+      COMPOSER_ALLOW_SUPERUSER: 1
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2.0'
-          extensions: bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, sodium, zip
-          coverage: none
-          tools: composer:v2
-          ini-values: memory_limit=1G
+      - name: Install minimum PHP dependencies
+        run: bash .github/scripts/setup-minimum-php.sh
       - name: Verify exact minimum interpreter
         run: |
           php -r 'echo PHP_VERSION, PHP_EOL; exit(PHP_VERSION === "8.2.0" ? 0 : 1);'
