@@ -14,6 +14,7 @@ use verbb\navigation\models\ProjectedNode;
 use Craft;
 use craft\base\Component;
 use craft\base\ElementInterface;
+use craft\db\QueryAbortedException;
 use craft\elements\db\EagerLoadPlan;
 
 use WeakMap;
@@ -433,16 +434,20 @@ class NodeRead extends Component
                 // preserves initialization/population handlers, behaviors, fields and placeholders;
                 // cloning elements would strip their instance events and behaviors.
                 $rowsById = [];
-                $indexBy = $query->indexBy;
+                $rows = [];
 
-                try {
-                    // Custom indexes may read element properties or require an element instance.
-                    // Apply them during hydration, not while collecting database rows.
-                    foreach ($query->indexBy(null)->asArray()->all() as $row) {
-                        $rowsById[$row['id']] = $row;
+                if (!$query->emulateExecution) {
+                    try {
+                        // Prepare normally, preserving indexes set by query hooks. Fetch raw
+                        // rows without invoking indexing until real elements are populated.
+                        $rows = $query->createCommand()->queryAll();
+                    } catch (QueryAbortedException) {
+                        // Match Craft's all()/one() behavior for cancelled or impossible queries.
                     }
-                } finally {
-                    $query->indexBy($indexBy)->asArray(false);
+                }
+
+                foreach ($rows as $row) {
+                    $rowsById[$row['id']] = $row;
                 }
 
                 foreach ($nodeGroup['nodes'] as [$node, $identity]) {

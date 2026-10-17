@@ -681,10 +681,15 @@ class Node extends Element
             $this->getElementSiteId(),
         );
 
-        // Individual and reentrant lookups must also defer to hydration callbacks.
-        // The version distinguishes an explicit null assignment from the pending null value.
-        if ($assignmentVersion !== $this->_elementAssignmentVersion || $identity !== [$this->type, $this->elementId, $this->getElementSiteId()]) {
+        // Only a changed selection requires another lookup. Retrying an incompatible
+        // assignment would invoke the same hydration callback indefinitely.
+        if ($identity !== [$this->type, $this->elementId, $this->getElementSiteId()]) {
             return $this->getElement();
+        }
+
+        // Preserve compatible callback assignments, including an explicit null.
+        if ($assignmentVersion !== $this->_elementAssignmentVersion && $this->hasResolvedElement()) {
+            return $this->_element;
         }
 
         $this->setElement($element);
@@ -704,8 +709,9 @@ class Node extends Element
 
         return $this->_element === null || (
             $nodeType instanceof ElementNodeType
-            && $this->elementId === $this->_element->id
             && $this->_element instanceof ($nodeType::getElementType())
+            // Preview drafts and revisions can represent the selected canonical element.
+            && ($this->elementId === $this->_element->id || $this->elementId === $this->_element->getCanonicalId())
         );
     }
 

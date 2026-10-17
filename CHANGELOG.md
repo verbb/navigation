@@ -7,7 +7,7 @@
 
 ### Fixed
 - Fixed an authorization bypass vulnerability.
-- Fixed reading linked node URLs issuing a separate element query for each node, including cached menus, while preserving independent Craft URL handlers, hydration callback changes, and custom node types with indexed element queries ([#477](https://github.com/verbb/navigation/issues/477)).
+- Fixed reading linked node URLs issuing a separate element query for each node, including cached menus, while preserving independent Craft URL handlers, draft assignments, hydration callback changes, and custom query indexing configured during preparation ([#477](https://github.com/verbb/navigation/issues/477)).
 - Fixed moving nodes in a menu with level limits causing subsequent edits or staged deletions in other menus to fail capacity validation.
 
 ## 4.0.9 - 2026-10-16
