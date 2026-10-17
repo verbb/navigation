@@ -28,6 +28,7 @@ use craft\models\FieldLayout;
 use craft\models\FieldLayoutTab;
 use craft\web\Controller;
 
+use yii\base\DynamicModel;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -63,7 +64,7 @@ class MenusController extends Controller
         ]);
     }
 
-    public function actionEditMenu(int $menuId = null, ?int $navId = null, MenuSettings $nav = null): Response
+    public function actionEditMenu(int $menuId = null, ?int $navId = null, MenuSettings $nav = null, array $limitValues = []): Response
     {
         $menuId = DeprecationHelper::resolveMenuIdParam($menuId, $navId, 'navigation.cp.editMenu.navId');
 
@@ -124,6 +125,7 @@ class MenusController extends Controller
             'menuId' => $menuId,
             'nav' => $nav,
             'site' => $site,
+            'limitValues' => $limitValues,
         ]);
     }
 
@@ -220,8 +222,22 @@ class MenusController extends Controller
         $nav->titleTranslationMethod = $this->request->getBodyParam('titleTranslationMethod', Field::TRANSLATION_METHOD_SITE);
         $nav->titleTranslationKeyFormat = $this->request->getBodyParam('titleTranslationKeyFormat') ?: null;
         $nav->defaultEnabledForPropagatedSites = (bool)$this->request->getBodyParam('defaultEnabledForPropagatedSites', true);
-        $nav->maxLevels = (int)$this->request->getBodyParam('maxLevels') ?: null;
-        $nav->maxNodes = (int)$this->request->getBodyParam('maxNodes') ?: null;
+        // Validate raw input before assigning typed properties so invalid limits cannot become unlimited.
+        $limits = new DynamicModel([
+            'maxLevels' => $this->request->getBodyParam('maxLevels'),
+            'maxNodes' => $this->request->getBodyParam('maxNodes'),
+        ]);
+        $limits->setAttributeLabels($nav->attributeLabels());
+
+        foreach ($limits->getAttributes() as $attribute => $value) {
+            foreach ($nav->getActiveValidators($attribute) as $validator) {
+                $validator->validateAttributes($limits, [$attribute]);
+            }
+
+            if (!$limits->hasErrors($attribute)) {
+                $nav->$attribute = (int)$value ?: null;
+            }
+        }
         $nav->maxNodesSettings = $this->request->getBodyParam('maxNodesSettings') ?: [];
         $nav->permissions = MenuPermissions::normalize($this->request->getBodyParam('permissions') ?? []);
         $nav->defaultPlacement = $this->request->getBodyParam('defaultPlacement') ?? $nav->defaultPlacement;
@@ -265,11 +281,17 @@ class MenusController extends Controller
         $menuFieldLayout->type = Menu::class;
         $nav->setMenuFieldLayout($menuFieldLayout);
 
-        if (!Navigation::$plugin->getMenus()->saveMenu($nav)) {
+        if ($limits->hasErrors()) {
+            $nav->validate();
+            $nav->addErrors($limits->getErrors());
+        }
+
+        if ($limits->hasErrors() || !Navigation::$plugin->getMenus()->saveMenu($nav)) {
             $this->setFailFlash(Craft::t('navigation', 'Unable to save menu.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'nav' => $nav,
+                'limitValues' => array_map(static fn($value) => is_scalar($value) ? $value : '', $limits->getAttributes()),
             ]);
 
             return null;

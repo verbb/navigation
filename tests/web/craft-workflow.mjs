@@ -69,6 +69,18 @@ try {
   await page.goto(`${base}/admin/navigation/menus/new`);
   await page.locator('#name').fill(name);
   await page.locator('#handle').fill(`browserWorkflow${Date.now()}`);
+  phase = 'menu limit validation';
+  await page.getByRole('textbox', { name: 'Max Levels', exact: true }).fill('invalid');
+  await page.getByRole('textbox', { name: 'Max Nodes', exact: true }).fill('-1');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.locator('#maxLevels-errors').waitFor();
+  assert.equal(await page.locator('#maxLevels').inputValue(), 'invalid');
+  assert.equal(await page.locator('#maxNodes').inputValue(), '-1');
+  assert.match(await page.locator('#maxLevels-errors').innerText(), /must be an integer/);
+  assert.match(await page.locator('#maxNodes-errors').innerText(), /must be no less than 0/);
+  await page.locator('#maxLevels').fill('');
+  await page.locator('#maxNodes').fill('');
+  phase = 'create menu';
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await page.waitForURL(url => !url.pathname.endsWith('/new'));
   await page.goto(`${base}/admin/navigation`);
@@ -195,5 +207,5 @@ try {
     await browser.close();
   }
 }
-await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['menus sidebar at canonical, path-carrier and explicit routes', 'Apache path carrier does not redirect', 'settings sidebar', 'cache duration field errors and rejected-save persistence', 'UI create', 'Dynamic source field', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'keyboard publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
-console.log('PASS: Menus sidebar at canonical, path-carrier and explicit routes, Apache path carrier without redirect, Settings sidebar, cache duration validation, dynamic source field, real Craft add, nested drag, type round-trip, edit, keyboard publish, reload, settings duplicate and delete.');
+await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['menus sidebar at canonical, path-carrier and explicit routes', 'Apache path carrier does not redirect', 'settings sidebar', 'cache duration field errors and rejected-save persistence', 'invalid menu limits retain values and show field errors', 'UI create', 'Dynamic source field', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'keyboard publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
+console.log('PASS: Menus sidebar at canonical, path-carrier and explicit routes, Apache path carrier without redirect, Settings sidebar, cache duration and menu limit validation, dynamic source field, real Craft add, nested drag, type round-trip, edit, keyboard publish, reload, settings duplicate and delete.');

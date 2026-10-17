@@ -73,6 +73,8 @@ class MenuSettings extends Model
         return [
             'handle' => Craft::t('app', 'Handle'),
             'name' => Craft::t('app', 'Name'),
+            'maxLevels' => Craft::t('navigation', 'Max Levels'),
+            'maxNodes' => Craft::t('navigation', 'Max Nodes'),
         ];
     }
 
@@ -313,7 +315,9 @@ class MenuSettings extends Model
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['id', 'structureId', 'fieldLayoutId', 'maxLevels'], 'number', 'integerOnly' => true];
+        $rules[] = [['id', 'structureId', 'fieldLayoutId'], 'number', 'integerOnly' => true];
+        $rules[] = [['maxLevels'], 'integer', 'min' => 0, 'max' => 65535];
+        $rules[] = [['maxNodes'], 'integer', 'min' => 0, 'max' => 2147483647];
         $rules[] = [['defaultEnabledForPropagatedSites'], 'boolean'];
         $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']];
         $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => MenuRecord::class];

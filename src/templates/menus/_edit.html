@@ -232,7 +232,7 @@
             id: 'maxLevels',
             name: 'maxLevels',
             size: 5,
-            value: (nav is defined ? nav.maxLevels : null),
+            value: limitValues.maxLevels ?? (nav is defined ? nav.maxLevels : null),
             errors: (nav is defined ? nav.getErrors('maxLevels') : null),
         }) }}
 
@@ -242,7 +242,7 @@
             id: 'maxNodes',
             name: 'maxNodes',
             size: 5,
-            value: (nav is defined ? nav.maxNodes : null),
+            value: limitValues.maxNodes ?? (nav is defined ? nav.maxNodes : null),
             errors: (nav is defined ? nav.getErrors('maxNodes') : null),
         }) }}
 
