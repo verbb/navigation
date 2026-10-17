@@ -53,7 +53,7 @@ export function BuilderApp({ menuId, siteId }: Props) {
 
   return (
     <>
-      <div className="-mx-6 -mb-2.5 overflow-hidden rounded-md border border-black/10 bg-white shadow-[0_0_0_1px_rgba(205,216,228,0.25),0_2px_12px_rgba(205,216,228,0.5)]">
+      <div className="mx-[var(--neg-padding)] -mb-2.5 overflow-hidden rounded-md border border-black/10 bg-white shadow-[0_0_0_1px_rgba(205,216,228,0.25),0_2px_12px_rgba(205,216,228,0.5)]">
         <NodeTree />
       </div>
 

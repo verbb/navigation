@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fixed category and asset pickers offering content outside the editor’s view permissions.
+- Fixed the menu builder overflowing narrow mobile screens.
 - Fixed Dynamic menu rendering omitting projected children.
 - Fixed entry pickers offering sources and entries outside the editor’s view permissions.
 - Fixed invalid menu limits being saved instead of displaying validation errors.
