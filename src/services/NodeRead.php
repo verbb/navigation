@@ -24,6 +24,7 @@ class NodeRead extends Component
     // =========================================================================
 
     private ?WeakMap $_deferredLinkedElements = null;
+    private ?WeakMap $_loadingLinkedElementBatches = null;
 
 
     // Public Methods
@@ -100,22 +101,34 @@ class NodeRead extends Component
     {
         $batch = $this->_deferredLinkedElements[$node] ?? null;
 
-        if ($batch === null) {
+        if ($batch === null || isset($this->_loadingLinkedElementBatches[$batch])) {
             return false;
         }
 
+        $this->_loadingLinkedElementBatches ??= new WeakMap();
+        $this->_loadingLinkedElementBatches[$batch] = true;
         $nodes = [];
 
         foreach ($batch as $member => $unused) {
             // Explicitly assigned elements and nodes moved into another batch keep their state.
             if (($this->_deferredLinkedElements[$member] ?? null) === $batch) {
                 $nodes[] = $member;
-                unset($this->_deferredLinkedElements[$member]);
             }
         }
 
-        // Detach before querying: element hydration can invoke extension callbacks.
-        $this->eagerLoadLinkedElements($nodes);
+        try {
+            // Keep ownership until assignment so callbacks can cancel or replace pending work.
+            // Reentrant reads use the individual lookup instead of starting this batch again.
+            $this->_loadLinkedElements($nodes, $batch);
+        } finally {
+            foreach ($batch as $member => $unused) {
+                if (($this->_deferredLinkedElements[$member] ?? null) === $batch) {
+                    unset($this->_deferredLinkedElements[$member]);
+                }
+            }
+
+            unset($this->_loadingLinkedElementBatches[$batch]);
+        }
 
         return true;
     }
@@ -129,53 +142,7 @@ class NodeRead extends Component
 
     public function eagerLoadLinkedElements(array $nodes): array
     {
-        $nodeGroups = [];
-
-        foreach ($nodes as $node) {
-            if (!$node instanceof NodeElement || !$node->elementId || !$node->isElement()) {
-                continue;
-            }
-
-            $nodeType = $node->nodeType();
-
-            if (!$nodeType instanceof ElementNodeType) {
-                continue;
-            }
-
-            $elementType = $nodeType::getElementType();
-
-            $siteId = $node->getElementSiteId();
-            $groupKey = $elementType . ':' . ($siteId ?? '*');
-            $nodeGroups[$groupKey]['type'] = $elementType;
-            $nodeGroups[$groupKey]['siteId'] = $siteId;
-            $nodeGroups[$groupKey]['elementIds'][$node->elementId] = $node->elementId;
-            $nodeGroups[$groupKey]['nodes'][] = $node;
-        }
-
-        foreach ($nodeGroups as $nodeGroup) {
-            $elementType = $nodeGroup['type'];
-            $elements = Craft::$app->getElements()
-                ->createElementQuery($elementType)
-                ->siteId($nodeGroup['siteId'])
-                ->status(null)
-                ->drafts(null)
-                ->provisionalDrafts(null)
-                ->revisions(null)
-                ->id(array_values($nodeGroup['elementIds']))
-                ->all();
-
-            $elementsById = [];
-
-            foreach ($elements as $element) {
-                $elementsById[$element->id] = $element;
-            }
-
-            foreach ($nodeGroup['nodes'] as $node) {
-                $node->setElement($elementsById[$node->elementId] ?? null);
-            }
-        }
-
-        return $nodes;
+        return $this->_loadLinkedElements($nodes);
     }
 
     /**
@@ -412,6 +379,107 @@ class NodeRead extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _loadLinkedElements(array $nodes, ?WeakMap $batch = null): array
+    {
+        $nodeGroups = [];
+
+        foreach ($nodes as $node) {
+            if (!$node instanceof NodeElement || !$node->elementId || !$node->isElement()) {
+                continue;
+            }
+
+            $nodeType = $node->nodeType();
+
+            if (!$nodeType instanceof ElementNodeType) {
+                continue;
+            }
+
+            $elementType = $nodeType::getElementType();
+
+            $siteId = $node->getElementSiteId();
+            $identity = [$node->type, $node->elementId, $siteId];
+
+            if (!$this->_canApplyLinkedElement($node, $identity, $batch)) {
+                continue;
+            }
+
+            // Match getElementById() when an optional element provider is unavailable.
+            if (!class_exists($elementType)) {
+                $node->setElement(null);
+                continue;
+            }
+
+            $groupKey = $elementType . ':' . ($siteId ?? '*');
+            $nodeGroups[$groupKey]['type'] = $elementType;
+            $nodeGroups[$groupKey]['siteId'] = $siteId;
+            $nodeGroups[$groupKey]['elementIds'][$node->elementId] = $node->elementId;
+            $nodeGroups[$groupKey]['nodes'][] = [$node, $identity];
+        }
+
+        foreach ($nodeGroups as $nodeGroup) {
+            $elementType = $nodeGroup['type'];
+            $query = Craft::$app->getElements()
+                ->createElementQuery($elementType)
+                ->siteId($nodeGroup['siteId'])
+                ->status(null)
+                ->drafts(null)
+                ->provisionalDrafts(null)
+                ->revisions(null)
+                ->id(array_values($nodeGroup['elementIds']));
+
+            if ($batch !== null) {
+                // Share database rows, not mutable element instances. Re-populating each row
+                // preserves initialization/population handlers, behaviors, fields and placeholders;
+                // cloning elements would strip their instance events and behaviors.
+                $rowsById = [];
+
+                foreach ($query->asArray()->all() as $row) {
+                    $rowsById[$row['id']] = $row;
+                }
+
+                $query->asArray(false);
+
+                foreach ($nodeGroup['nodes'] as [$node, $identity]) {
+                    if (!$this->_canApplyLinkedElement($node, $identity, $batch)) {
+                        continue;
+                    }
+
+                    $row = $rowsById[$identity[1]] ?? null;
+                    $elements = $query->populate($row ? [$row] : []);
+
+                    // Hydration callbacks may explicitly assign an element or change the link.
+                    if ($this->_canApplyLinkedElement($node, $identity, $batch)) {
+                        $node->setElement(reset($elements) ?: null);
+                    }
+                }
+
+                continue;
+            }
+
+            $elements = $query->all();
+
+            $elementsById = [];
+
+            foreach ($elements as $element) {
+                $elementsById[$element->id] = $element;
+            }
+
+            foreach ($nodeGroup['nodes'] as [$node, $identity]) {
+                $node->setElement($elementsById[$node->elementId] ?? null);
+            }
+        }
+
+        return $nodes;
+    }
+
+    private function _canApplyLinkedElement(NodeElement $node, array $identity, ?WeakMap $batch): bool
+    {
+        return $batch === null || (
+            ($this->_deferredLinkedElements[$node] ?? null) === $batch
+            && $identity === [$node->type, $node->elementId, $node->getElementSiteId()]
+        );
+    }
 
     /**
      * Appends one stored node, its stored descendants (recursively), then its projections.

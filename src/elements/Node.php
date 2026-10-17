@@ -668,14 +668,15 @@ class Node extends Element
         }
 
         if (Navigation::$plugin->getNodeRead()->loadDeferredLinkedElements($this)) {
-            return $this->_element;
+            // A hydration callback may have changed this node's selection during the batch.
+            return $this->hasResolvedElement() ? $this->_element : $this->getElement();
         }
 
-        $this->_element = Craft::$app->getElements()->getElementById(
+        $this->setElement(Craft::$app->getElements()->getElementById(
             $this->elementId,
             $nodeType::getElementType(),
             $this->getElementSiteId(),
-        );
+        ));
 
         return $this->_element;
     }
