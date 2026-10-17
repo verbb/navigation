@@ -6,6 +6,7 @@
 - Updated menu deletion confirmations on multi-site installs to clarify that the menu and all its nodes will be deleted across all sites.
 
 ### Fixed
+- Fixed cache duration validation errors not appearing beside the setting.
 - Fixed an authorization bypass vulnerability.
 - Fixed reading linked node URLs issuing a separate element query for each node, including cached menus, while preserving independent Craft URL handlers, draft assignments, hydration callback changes, and custom query indexing configured during preparation ([#477](https://github.com/verbb/navigation/issues/477)).
 - Fixed moving nodes in a menu with level limits causing subsequent edits or staged deletions in other menus to fail capacity validation.

@@ -52,6 +52,18 @@ try {
   assert.equal(await navigationNav.locator('.nav-item__subnav').getAttribute('data-state'), 'expanded');
   assert.equal(await navigationNav.getByRole('link', { name: 'Settings', exact: true }).getAttribute('aria-current'), 'page');
 
+  phase = 'cache duration validation';
+  await page.goto(`${base}/admin/navigation/settings/performance`);
+  const duration = page.getByRole('textbox', { name: 'Static Cache Duration (seconds)', exact: true });
+  const savedDuration = await duration.inputValue();
+  await duration.fill('10');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.locator('ul.errors').waitFor();
+  assert.match(await page.locator('ul.errors').innerText(), /must be no less than 60/);
+  assert.equal(await duration.inputValue(), '10');
+  await page.goto(`${base}/admin/navigation/settings/performance`);
+  assert.equal(await duration.inputValue(), savedDuration);
+
   phase = 'create menu';
   const name = `Browser workflow ${Date.now()}`;
   await page.goto(`${base}/admin/navigation/menus/new`);
@@ -183,5 +195,5 @@ try {
     await browser.close();
   }
 }
-await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['menus sidebar at canonical, path-carrier and explicit routes', 'Apache path carrier does not redirect', 'settings sidebar', 'UI create', 'Dynamic source field', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'keyboard publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
-console.log('PASS: Menus sidebar at canonical, path-carrier and explicit routes, Apache path carrier without redirect, Settings sidebar, dynamic source field, real Craft add, nested drag, type round-trip, edit, keyboard publish, reload, settings duplicate and delete.');
+await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['menus sidebar at canonical, path-carrier and explicit routes', 'Apache path carrier does not redirect', 'settings sidebar', 'cache duration field errors and rejected-save persistence', 'UI create', 'Dynamic source field', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'keyboard publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
+console.log('PASS: Menus sidebar at canonical, path-carrier and explicit routes, Apache path carrier without redirect, Settings sidebar, cache duration validation, dynamic source field, real Craft add, nested drag, type round-trip, edit, keyboard publish, reload, settings duplicate and delete.');

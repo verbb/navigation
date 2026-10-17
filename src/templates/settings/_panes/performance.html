@@ -37,5 +37,6 @@
     instructions: 'Used when cache mode is Static.' | t('navigation'),
     warning: macros.configWarning('cacheDuration', 'navigation'),
     value: settings.cacheDuration,
+    errors: settings.getErrors('cacheDuration'),
     size: 10,
 }) }}
