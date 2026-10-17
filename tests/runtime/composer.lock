@@ -10275,16 +10275,16 @@
         },
         {
             "name": "verbb/base",
-            "version": "3.0.17",
+            "version": "3.0.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/verbb-base.git",
-                "reference": "5f75dc606cdce82c8a2aa1c9abc7f9e7ac11d294"
+                "reference": "0b60c166a79e2762aa968e062dc84ca6c0a9406e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/5f75dc606cdce82c8a2aa1c9abc7f9e7ac11d294",
-                "reference": "5f75dc606cdce82c8a2aa1c9abc7f9e7ac11d294",
+                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/0b60c166a79e2762aa968e062dc84ca6c0a9406e",
+                "reference": "0b60c166a79e2762aa968e062dc84ca6c0a9406e",
                 "shasum": ""
             },
             "require": {
@@ -10321,21 +10321,21 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-23T12:08:56+00:00"
+            "time": "2026-10-04T21:22:12+00:00"
         },
         {
             "name": "verbb/navigation",
-            "version": "4.0.1",
+            "version": "4.0.9",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "aaa2983593bd3392ccd7df94e11b29c68ff2aa66"
+                "reference": "8d6e2e7c466f1de225411907f05550762e020a7d"
             },
             "require": {
                 "craftcms/cms": "^5.9.11",
                 "nystudio107/craft-plugin-vite": "^5.0.0",
                 "php": "^8.2",
-                "verbb/base": "^3.0.17"
+                "verbb/base": "^3.0.20"
             },
             "require-dev": {
                 "craftcms/cms": "^5.9.11",
@@ -10382,7 +10382,7 @@
                     "homepage": "https://verbb.io"
                 }
             ],
-            "description": "Create navigation menus for your site.",
+            "description": "A Craft CMS plugin for building nested site navigation.",
             "keywords": [
                 "cms",
                 "craft",
