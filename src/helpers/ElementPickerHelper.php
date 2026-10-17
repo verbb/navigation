@@ -4,6 +4,8 @@ namespace verbb\navigation\helpers;
 use verbb\navigation\nodetypes\Entry as EntryNodeType;
 
 use Craft;
+use craft\elements\Asset as AssetElement;
+use craft\elements\Category as CategoryElement;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\conditions\entries\EntryCondition;
 use craft\elements\Entry as EntryElement;
@@ -31,12 +33,21 @@ class ElementPickerHelper
             $context = 'index';
         }
 
+        if (in_array($elementType, [CategoryElement::class, AssetElement::class], true)) {
+            $context = 'index';
+        }
+
         foreach (Craft::$app->getElementSources()->getSources($elementType, $context) as $source) {
             if (!isset($source['key'])) {
                 continue;
             }
 
             if (($source['type'] ?? null) === 'heading') {
+                continue;
+            }
+
+            // Temporary uploads do not provide permanent menu destinations.
+            if ($elementType === AssetElement::class && $source['key'] === 'temp') {
                 continue;
             }
 
@@ -59,6 +70,11 @@ class ElementPickerHelper
 
     public static function getPickerConfig(array $permissions, string $nodeTypeClass, string $elementType): array
     {
+        if (in_array($elementType, [CategoryElement::class, AssetElement::class], true)) {
+            // Asset view permissions distinguish the user's uploads from peer uploads.
+            return ['criteria' => ['editable' => true]];
+        }
+
         if ($elementType !== EntryElement::class && $nodeTypeClass !== EntryNodeType::class) {
             return [];
         }
