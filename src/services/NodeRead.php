@@ -429,7 +429,8 @@ class NodeRead extends Component
                 ->revisions(null)
                 ->id(array_values($nodeGroup['elementIds']));
 
-            if ($batch !== null) {
+            // Cached provider results are already hydrated and must retain their instances.
+            if ($batch !== null && $query->getCachedResult() === null) {
                 // Share database rows, not mutable element instances. Re-populating each row
                 // preserves initialization/population handlers, behaviors, fields and placeholders;
                 // cloning elements would strip their instance events and behaviors.
@@ -470,13 +471,21 @@ class NodeRead extends Component
             $elements = $query->all();
 
             $elementsById = [];
+            $cachedElementsByCanonicalId = [];
 
             foreach ($elements as $element) {
                 $elementsById[$element->id] = $element;
+
+                if ($batch !== null) {
+                    // A provider may supply a draft in place of the selected canonical element.
+                    $cachedElementsByCanonicalId[$element->getCanonicalId()] ??= $element;
+                }
             }
 
             foreach ($nodeGroup['nodes'] as [$node, $identity]) {
-                $node->setElement($elementsById[$node->elementId] ?? null);
+                if ($this->_canApplyLinkedElement($node, $identity, $batch)) {
+                    $node->setElement($elementsById[$node->elementId] ?? $cachedElementsByCanonicalId[$node->elementId] ?? null);
+                }
             }
         }
 
