@@ -534,10 +534,11 @@ class NodeRead extends Component
 
     private function _appendProjectedChildren(NodeElement $node, array $children, int $level, array &$output): void
     {
-        // Projections use synthetic positions; never overwrite stored structure bounds.
-        foreach ($children as $childIdx => $projectedNode) {
-            $projectedNode->lft = (int)$node->lft + 1 + ($childIdx * 2);
-            $projectedNode->rgt = $projectedNode->lft + 1;
+        // Craft's nav tag checks parent bounds, but projections have no stored positions.
+        // Keep them inside the parent; list order and level determine their render order.
+        foreach ($children as $projectedNode) {
+            $projectedNode->lft = (int)$node->lft + 1;
+            $projectedNode->rgt = (int)$node->rgt;
             $projectedNode->level = $level + 1;
             $output[] = $projectedNode;
         }

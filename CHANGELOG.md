@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fixed category and asset pickers offering content outside the editor’s view permissions.
+- Fixed Dynamic menu rendering omitting projected children.
 - Fixed entry pickers offering sources and entries outside the editor’s view permissions.
 - Fixed invalid menu limits being saved instead of displaying validation errors.
 - Fixed cache duration validation errors not appearing beside the setting.
