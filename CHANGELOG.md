@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed linked node URL batching ignoring cached results supplied by custom element queries ([#477](https://github.com/verbb/navigation/issues/477)).
+- Fixed retrying a duplicate action after a lost response creating additional copies of nodes.
 
 ## 4.0.10 - 2026-10-17
 

@@ -44,7 +44,20 @@ class BuilderController extends Controller
         $this->requireAcceptsJson();
         [, , $menu] = $this->_requireBuilderMenuContext();
 
-        return BuilderStructureRevision::trackMutation($menu, fn() => $this->_duplicateNodes());
+        $duplicate = fn() => BuilderStructureRevision::trackMutation($menu, fn() => $this->_duplicateNodes());
+        $revision = $this->request->getBodyParam('structureRevision');
+
+        // A lost response must not let the same stale builder create another copy.
+        // Older integrations without a revision retain their existing behavior.
+        if ($revision !== null) {
+            try {
+                return BuilderStructureRevision::apply($menu, $revision, $duplicate);
+            } catch (ConflictHttpException $e) {
+                throw new ConflictHttpException(Craft::t('navigation', 'This menu changed since it was loaded. Reload it to review the current nodes before duplicating again.'));
+            }
+        }
+
+        return $duplicate();
     }
 
     public function actionGetState(): Response

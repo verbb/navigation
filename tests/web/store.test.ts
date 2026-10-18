@@ -458,3 +458,29 @@ test('a lost add response reuses its request identity, while a new add gets a ne
   assert.equal(requests[1].requestId, requests[0].requestId);
   assert.notEqual(requests[2].requestId, requests[1].requestId);
 });
+
+test('duplicate retries retain the old revision after a lost response and adopt it only after reload', async () => {
+  const { duplicateNodes } = await import('../../src/web/src/api');
+  const sent: string[] = [];
+  let current = 'before';
+  let drop = true;
+  reset(async (_method, action, options) => {
+    if (action.endsWith('get-state')) return { data: { ...state(), structureRevision: current } };
+    assert.equal(action, 'navigation/builder/duplicate-nodes');
+    const expected = options.data.structureRevision;
+    sent.push(expected);
+    if (expected !== current) throw { response: { status: 409 } };
+    const previous = current;
+    current = `${current}-copy`;
+    if (drop) { drop = false; throw new Error('Response lost after duplication'); }
+    return { data: { previousStructureRevision: previous, structureRevision: current } };
+  });
+  await store.getState().init(1, 1);
+  await assert.rejects(duplicateNodes(1, 1, [1]));
+  await assert.rejects(duplicateNodes(1, 1, [1]));
+  assert.deepEqual(sent, ['before', 'before']);
+  await store.getState().init(1, 1);
+  await duplicateNodes(1, 1, [1]);
+  await duplicateNodes(1, 1, [1]);
+  assert.deepEqual(sent, ['before', 'before', 'before-copy', 'before-copy-copy']);
+});
