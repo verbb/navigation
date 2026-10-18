@@ -76,6 +76,7 @@ class Menus extends Component
     public bool $autoResaveNodes = true;
 
     private ?MemoizableArray $_menus = null;
+    private array $_menuContentSaveErrors = [];
 
 
     // Public Methods
@@ -216,6 +217,7 @@ class Menus extends Component
 
     public function saveMenuContentFromRequest(int $menuId, ?int $siteId = null): bool
     {
+        $this->_menuContentSaveErrors = [];
         $request = Craft::$app->getRequest();
 
         if ($request->getBodyParam('fieldsLocation') === null) {
@@ -253,6 +255,7 @@ class Menus extends Component
         $menuElement->setScenario(Menu::SCENARIO_LIVE);
 
         if (!Craft::$app->getElements()->saveElement($menuElement)) {
+            $this->_menuContentSaveErrors = $menuElement->getErrors();
             Craft::error('Menu content save failed: ' . json_encode($menuElement->getErrors()), __METHOD__);
 
             return false;
@@ -261,6 +264,11 @@ class Menus extends Component
         Craft::$app->getElements()->invalidateCachesForElement($menuElement);
 
         return true;
+    }
+
+    public function getMenuContentSaveErrors(): array
+    {
+        return $this->_menuContentSaveErrors;
     }
 
     public function saveMenuContentFromDraft(int $menuId, int $siteId, array $fieldValues): bool

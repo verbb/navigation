@@ -237,7 +237,9 @@ class BuilderController extends Controller
         MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         if (!Navigation::$plugin->getMenus()->saveMenuContentFromRequest($menuId, $siteId)) {
-            return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu content.'));
+            return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu content.'), [
+                'errors' => Navigation::$plugin->getMenus()->getMenuContentSaveErrors(),
+            ]);
         }
 
         $buildSessions = Navigation::$plugin->getBuildSessions();
@@ -300,7 +302,9 @@ class BuilderController extends Controller
         MenuAuth::requireManageMenuSite($this, $nav, $siteId);
 
         if (!Navigation::$plugin->getMenus()->saveMenuContentFromRequest($menuId, $siteId)) {
-            return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu content.'));
+            return $this->asFailure(Craft::t('navigation', 'Couldn’t save menu content.'), [
+                'errors' => Navigation::$plugin->getMenus()->getMenuContentSaveErrors(),
+            ]);
         }
 
         $buildSessions = Navigation::$plugin->getBuildSessions();

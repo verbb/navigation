@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed menu content validation errors not appearing beside their fields.
 - Fixed manually disabled linked nodes becoming enabled after their source element was disabled and re-enabled.
 - Fixed linked node URL batching ignoring cached results supplied by custom element queries ([#477](https://github.com/verbb/navigation/issues/477)).
 - Fixed retrying a duplicate action after a lost response creating additional copies of nodes.
