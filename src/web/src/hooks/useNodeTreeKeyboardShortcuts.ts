@@ -2,28 +2,13 @@ import { useEffect } from 'react';
 import { useBuilderStore } from '../store';
 import { getNodeMoveCapabilities } from '../utils/nodeMoveActions';
 
-function isTypingTarget(): boolean {
-  const focused = document.activeElement;
-
-  if (!(focused instanceof Element)) {
-    return false;
-  }
-
-  if (
-    focused instanceof HTMLInputElement ||
-    focused instanceof HTMLTextAreaElement ||
-    focused instanceof HTMLSelectElement
-  ) {
-    return true;
-  }
-
-  if (focused instanceof HTMLElement && focused.isContentEditable) {
-    return true;
-  }
-
-  return Boolean(
-    focused.closest('[contenteditable="true"], [role="textbox"], [role="menu"], [role="dialog"]'),
-  );
+function isEditingControlEvent(event: KeyboardEvent): boolean {
+  // The document's active element is the shadow host, not the input or
+  // overlay receiving the shortcut. The composed path includes both.
+  return event.composedPath().some((target) => target instanceof Element && (
+    target.matches('input, textarea, select, dialog, [role="textbox"], [role="combobox"], [role="listbox"], [role="menu"], [role="dialog"]')
+    || (target instanceof HTMLElement && target.isContentEditable)
+  ));
 }
 
 function getSelectedMoveNodeId(
@@ -58,7 +43,7 @@ export function useNodeTreeKeyboardShortcuts(enabled: boolean): void {
         return;
       }
 
-      if (isTypingTarget()) {
+      if (event.defaultPrevented || isEditingControlEvent(event)) {
         return;
       }
 

@@ -28,16 +28,14 @@ export function NodeTreeViewPopover() {
         </div>
         <div className="flex flex-col justify-center px-4 py-2">
           {COLUMN_OPTIONS.map((column) => (
-            <label
+            <Checkbox
               key={column.id}
-              className="flex min-h-9 cursor-pointer items-center gap-2 text-[13px] leading-tight text-gray-900"
+              className="flex min-h-9 items-center text-[13px] leading-tight text-gray-900"
+              checked={visibleColumns[column.id]}
+              onPkChange={(event) => setColumnVisible(column.id, (event as PkCheckedChangeEvent).detail.checked)}
             >
-              <Checkbox
-                checked={visibleColumns[column.id]}
-                onPkChange={(event) => setColumnVisible(column.id, (event as PkCheckedChangeEvent).detail.checked)}
-              />
               <span className="min-w-0 flex-1 truncate">{t(column.label)}</span>
-            </label>
+            </Checkbox>
           ))}
         </div>
       </div>

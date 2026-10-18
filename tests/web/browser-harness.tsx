@@ -8,8 +8,10 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Button } from '@verbb/plugin-kit-react/components/Button';
 import { Icon } from '@verbb/plugin-kit-react/components/Icon';
+import { Input } from '@verbb/plugin-kit-react/components/Input';
 import { emptySet, registerIcons, triangleExclamation } from '@verbb/plugin-kit-icons';
 import { NodeTree } from '../../src/web/src/components/NodeTree';
+import { NodeTreeViewPopover } from '../../src/web/src/components/NodeTreeViewPopover';
 import { CopyToSiteDialog } from '../../src/web/src/components/CopyToSiteDialog';
 import { BuilderApp } from '../../src/web/src/components/BuilderApp';
 import { BuilderErrorBoundary } from '../../src/web/src/components/BuilderErrorBoundary';
@@ -110,6 +112,17 @@ function Harness() {
 
   if (search.has('copy-dialog')) return <CopyDialogHarness />;
 
+  if (search.has('controls')) {
+    return <>
+      <style>{'[role=row]{display:grid;grid-template-columns:40px 350px 120px;min-height:40px}pk-button{display:inline-block}pk-input{display:block;width:300px}'}</style>
+      <Input label="New title" />
+      <div role="dialog"><button>Dialog action</button></div>
+      <div role="menu"><button>Menu action</button></div>
+      <NodeTreeViewPopover />
+      <NodeTree />
+    </>;
+  }
+
   if (search.get('legacy') === 'load-error') {
     return (
       <div style={{ borderRadius: 4, border: '1px solid #fecaca', background: '#fef2f2', padding: 16, fontSize: 14, color: '#b91c1c' }}>
@@ -182,4 +195,7 @@ function Harness() {
     <button id="discard" onClick={() => void store.getState().discard()}>Discard</button>
     <output id="dirty">{String(dirty)}</output><NodeTree /></>;
 }
-createRoot(document.getElementById('root')!).render(<Harness />);
+const root = document.getElementById('root')!;
+createRoot(new URLSearchParams(window.location.search).has('controls')
+  ? root.attachShadow({ mode: 'open' })
+  : root).render(<Harness />);

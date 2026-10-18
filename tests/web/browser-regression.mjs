@@ -157,6 +157,29 @@ try {
   await page.evaluate(() => window.boundary.store.setState({ statusFilter: 'disabled' }));
   await page.getByRole('heading', { name: 'No nodes match the selected status.' }).waitFor();
 
+  await page.goto(`http://127.0.0.1:${server.address().port}?controls=1`);
+  await page.locator('[data-node-id="2"] pk-checkbox').click();
+  const nodeOrder = () => page.evaluate(() => window.boundary.store.getState().nodes.map(node => node.id));
+  const titleInput = page.getByRole('textbox', { name: 'New title', exact: true });
+  await titleInput.fill('Writing a title');
+  await titleInput.press('Alt+ArrowUp');
+  assert.deepEqual(await nodeOrder(), [1, 2, 3], 'Text editing must not reorder the selected node');
+  for (const name of ['Dialog action', 'Menu action']) {
+    await page.getByRole('button', { name, exact: true }).press('Alt+ArrowUp');
+    assert.deepEqual(await nodeOrder(), [1, 2, 3], 'Overlay controls must not reorder the underlying tree');
+  }
+  await page.locator('[data-node-id="2"]').press('Alt+ArrowUp');
+  assert.deepEqual(await nodeOrder(), [2, 1, 3], 'Tree keyboard reordering must still work');
+  await page.getByRole('button', { name: 'View', exact: true }).click();
+  const columnCheckbox = page.locator('.navigation-node-tree-view-popover').getByRole('checkbox');
+  await columnCheckbox.waitFor();
+  await page.locator('.navigation-node-tree-view-popover').getByText('Type', { exact: true }).click();
+  assert.equal(await columnCheckbox.isChecked(), false, 'The visible column label must toggle the checkbox');
+  assert.equal(await page.getByRole('checkbox', { name: 'Type', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('columnheader', { name: 'Type', exact: true }).count(), 0);
+  await columnCheckbox.press('Space');
+  await page.getByRole('columnheader', { name: 'Type', exact: true }).waitFor();
+
   await page.goto(`http://127.0.0.1:${server.address().port}?copy-dialog=1`);
   await page.getByRole('dialog').waitFor();
   const descendants = page.getByRole('checkbox', { name: 'Include descendants', exact: true });
