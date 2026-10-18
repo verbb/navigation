@@ -188,6 +188,7 @@ class Nodes extends Component
         unset($this->_linkedElementSaveState[$key]);
         $globalStatusChanged = $currentElement && $element->enabled !== $currentElement->enabled;
         $linkedElements = [(int)$element->siteId => $currentElement];
+        $dataById = [];
 
         foreach ($nodes as $node) {
             $linkedSiteId = $node->getElementSiteId();
@@ -200,6 +201,8 @@ class Nodes extends Component
             if (!$this->_canSyncLinkedNode($node)) {
                 continue;
             }
+
+            $node->data = $dataById[$node->id] ?? $node->data;
 
             if ($sameSite) {
                 if ($element->uri) {
@@ -233,8 +236,31 @@ class Nodes extends Component
                 $elementEnabled = $element->enabled && $siteIsEnabled;
                 $currentElementEnabled = $currentElement->enabled && $siteWasEnabled;
 
-                // Is the status different between the element and the node?
-                if ($elementEnabled !== $currentElementEnabled && $elementEnabled !== $nodeEnabled) {
+                $preserveDisabled = false;
+
+                if ($elementEnabled !== $currentElementEnabled) {
+                    $key = NodeElement::LINKED_ELEMENT_STATUS_OVERRIDE_DATA_KEY;
+                    $overrides = is_array($node->data[$key] ?? null) ? $node->data[$key] : [];
+                    $sourceKey = $element->id . ':' . $linkedSiteId;
+
+                    // Once the source is disabled, its status can no longer tell
+                    // us which links were already disabled by their author.
+                    if (!$elementEnabled && (!$node->enabled || !$nodeEnabled)) {
+                        $overrides[$node->siteId] = $sourceKey;
+                        $preserveDisabled = true;
+                    } elseif ($elementEnabled) {
+                        $preserveDisabled = ($overrides[$node->siteId] ?? null) === $sourceKey;
+                        unset($overrides[$node->siteId]);
+                    }
+
+                    if ($overrides) {
+                        $node->data[$key] = $overrides;
+                    } else {
+                        unset($node->data[$key]);
+                    }
+                }
+
+                if (!$preserveDisabled && $elementEnabled !== $currentElementEnabled && $elementEnabled !== $nodeEnabled) {
                     if ($isMultiSite) {
                         $node->enabled = true;
                         $node->setEnabledForSite($elementEnabled);
@@ -247,6 +273,7 @@ class Nodes extends Component
 
             try {
                 $this->_saveLinkedNode($node);
+                $dataById[$node->id] = $node->data;
             } catch (Throwable $e) {
                 // Linked-node synchronization is secondary to the source save. A
                 // stale or otherwise invalid node must not block editing the source.

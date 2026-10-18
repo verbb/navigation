@@ -340,6 +340,9 @@ class Node extends Element
     /** Stored enabled state to restore when the linked element is restored. */
     public const LINKED_ELEMENT_DISABLED_STATE_DATA_KEY = '_linkedElementDisabledState';
 
+    /** Locales explicitly disabled before their linked source was disabled. */
+    public const LINKED_ELEMENT_STATUS_OVERRIDE_DATA_KEY = '_linkedElementStatusOverride';
+
     public const ENABLED_FOR_PROPAGATED_SITES_DATA_KEY = 'enabledForPropagatedSites';
 
     public const STATUS_PENDING_ADD = 'pending-add';

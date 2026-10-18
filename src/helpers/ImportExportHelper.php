@@ -416,6 +416,7 @@ class ImportExportHelper
             Node::PENDING_EDIT_DATA_KEY,
             Node::LINKED_ELEMENT_DISABLED_DATA_KEY,
             Node::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY,
+            Node::LINKED_ELEMENT_STATUS_OVERRIDE_DATA_KEY,
         ];
 
         foreach ($keys as $key) {
