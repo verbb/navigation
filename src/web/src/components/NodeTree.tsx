@@ -10,7 +10,7 @@ import { Checkbox } from '@verbb/plugin-kit-react/components/Checkbox';
 import { StatePanel } from '@verbb/plugin-kit-react/components/StatePanel';
 import { cn } from '../utils/cn';
 import { useBuilderStore } from '../store';
-import { filterNodesByStatus } from '../utils/tree';
+import { filterNodesByStatus, filterVisibleNodes } from '../utils/tree';
 import { type PkCheckedChangeEvent } from '../utils/pluginKitEvents';
 import { t } from '../api';
 import {
@@ -80,7 +80,10 @@ export function NodeTree() {
   );
 
   const selectableNodes = treeNodes.filter((node) => !node.pendingDelete);
-  const visibleSelectableNodeIds = selectableNodes.map((node) => node.id);
+  // Range selection follows rendered rows, not descendants hidden by collapse.
+  const visibleSelectableNodeIds = filterVisibleNodes(treeNodes, collapsedNodeIds)
+    .filter((node) => !node.pendingDelete)
+    .map((node) => node.id);
   const allSelected = selectableNodes.length > 0 && selectedNodeIds.length === selectableNodes.length;
   const showTypeColumn = visibleColumns.type;
 

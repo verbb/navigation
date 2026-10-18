@@ -92,6 +92,15 @@ try {
   const secondCheckbox = page.locator('[data-node-id="2"] pk-checkbox');
   const thirdCheckbox = page.locator('[data-node-id="3"] pk-checkbox');
 
+  const keyboardCheckbox = firstCheckbox.getByRole('checkbox');
+  await keyboardCheckbox.press('Space');
+  assert.deepEqual(await selectedNodeIds(), [1]);
+  assert.equal(await keyboardCheckbox.isChecked(), true, 'Keyboard selection must update the native accessible checkbox state');
+  assert.equal(await keyboardCheckbox.evaluate(input => input.getRootNode().activeElement === input), true, 'Keyboard selection must retain focus');
+  await page.keyboard.press('Space');
+  assert.deepEqual(await selectedNodeIds(), []);
+  assert.equal(await keyboardCheckbox.isChecked(), false);
+
   await firstCheckbox.click();
   await secondCheckbox.click();
   assert.deepEqual(await selectedNodeIds(), [1, 2]);
@@ -179,6 +188,22 @@ try {
   assert.equal(await page.getByRole('columnheader', { name: 'Type', exact: true }).count(), 0);
   await columnCheckbox.press('Space');
   await page.getByRole('columnheader', { name: 'Type', exact: true }).waitFor();
+
+  await page.goto(`http://127.0.0.1:${server.address().port}?controls=1&nested=1`);
+  const branch = id => page.locator(`[data-node-id="${id}"] button[aria-expanded]`);
+  await branch(2).click();
+  await branch(1).click();
+  await branch(5).click();
+  await page.locator('[data-node-id="1"] pk-checkbox').click();
+  await page.locator('[data-node-id="7"] pk-checkbox').click({ modifiers: ['Shift'] });
+  assert.deepEqual(await selectedNodeIds(), [1, 5, 7], 'Shift selection must skip collapsed descendants');
+  await page.getByRole('button', { name: 'Expand Node 1', exact: true }).click();
+  await page.getByRole('button', { name: 'Collapse Node 1', exact: true }).waitFor();
+  await page.locator('[data-node-id="4"] pk-checkbox').click({ modifiers: ['Shift'] });
+  assert.deepEqual(await selectedNodeIds(), [1, 2, 4], 'Nested collapsed descendants must stay outside the visible range');
+  await branch(2).click();
+  await page.locator('[data-node-id="4"] pk-checkbox').click({ modifiers: ['Shift'] });
+  assert.deepEqual(await selectedNodeIds(), [1, 2, 3, 4], 'Expanded descendants must join the visible range');
 
   await page.goto(`http://127.0.0.1:${server.address().port}?controls=1&long-tree=1`);
   await page.evaluate(() => {

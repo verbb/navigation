@@ -236,6 +236,28 @@ export function NodeRow({
             aria-label={`Select ${node.title}`}
             checked={isSelected}
             tabIndex={-1}
+            onKeyDown={(event) => {
+              if (event.key !== ' ') {
+                return;
+              }
+
+              // Handle Space before native activation: cancelling its later click
+              // can restore the input's old checked state after the store updates.
+              event.preventDefault();
+              event.stopPropagation();
+              if (event.repeat) {
+                return;
+              }
+
+              selectNode(node.id, {
+                shiftKey: event.shiftKey,
+                metaKey: event.metaKey,
+                ctrlKey: event.ctrlKey,
+                toggle: true,
+              }, visibleSelectableNodeIds);
+              // Pointer selection blurs the control; keyboard selection keeps focus.
+              event.currentTarget.focus();
+            }}
             onClick={(event) => {
               // Keep the custom element controlled by the selection store. If its native
               // checkbox toggles first, React cannot restore an unchanged checked prop.
@@ -264,6 +286,7 @@ export function NodeRow({
               type="button"
               data-no-row-select
               className="absolute top-1/2 left-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded bg-transparent text-gray-400 hover:bg-transparent hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600/40"
+              aria-label={t(isCollapsed ? 'Expand {title}' : 'Collapse {title}', { title: node.title })}
               aria-expanded={!isCollapsed}
               onClick={(event) => {
                 event.stopPropagation();

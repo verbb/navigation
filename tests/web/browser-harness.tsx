@@ -20,16 +20,24 @@ import { useBuilderStore as store } from '../../src/web/src/store';
 import { baselineMoves } from '../../src/web/src/utils/tree';
 import { registerNavigationIcons } from '../../src/web/src/icons/registerNavigationIcons';
 
-const nodeCount = new URLSearchParams(window.location.search).has('long-tree') ? 80 : 3;
+const searchParams = new URLSearchParams(window.location.search);
+const nodeCount = searchParams.has('long-tree') ? 80 : searchParams.has('nested') ? 7 : 3;
 const nodes = Array.from({ length: nodeCount }, (_, index) => index + 1).map(id => ({ id, title: `Node ${id}`, type: 'Custom', typeLabel: 'Custom',
   typeClass: 'Custom', typeColorRgb: '0,0,0', typeTextColorRgb: '0,0,0', url: `/node-${id}`,
   level: 1, parentId: null, status: 'live', newWindow: id === 1, classes: null,
   pendingAdd: false, pendingDelete: false, pendingEdit: false, enabled: true,
   enabledForSite: true, hasDescendants: false, isElementLinked: id === 1,
   hasTitleOverride: id === 1 }));
-const fixture = { nodes, canCopyToSite: false, copyToSiteTargets: [], elementType: 'Node', menu: { maxLevels: 1 }, builderTabs: [], stagingEnabled: true,
+if (searchParams.has('nested')) {
+  for (const [index, parentIndex, level] of [[1, 0, 2], [2, 1, 3], [3, 0, 2], [5, 4, 2]]) {
+    Object.assign(nodes[index], { parentId: nodes[parentIndex].id, level });
+    nodes[parentIndex].hasDescendants = true;
+  }
+}
+const fixture = { nodes, canCopyToSite: false, copyToSiteTargets: [], elementType: 'Node', menu: { maxLevels: searchParams.has('nested') ? 3 : 1 }, builderTabs: [], stagingEnabled: true,
   session: { changeCount: 0, hasStructureMoves: false } };
-(window as any).Craft = { t: (_: string, text: string) => text,
+(window as any).Craft = { t: (_: string, text: string, params?: Record<string, unknown>) =>
+  text.replace(/\{(\w+)\}/g, (match, key) => String(params?.[key] ?? match)),
   cp: { displayNotice() {}, displayError() {} },
   sendActionRequest: async (_: string, action: string, options: any) => {
     const response = await fetch('/action', {

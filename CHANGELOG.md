@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Fixed
+- Fixed Shift-click selection including nodes hidden inside collapsed branches.
+- Fixed branch expand and collapse buttons missing accessible labels.
+- Fixed node selection checkboxes reporting an incorrect checked state after keyboard selection.
 - Fixed keyboard reordering allowing the selected node to scroll out of view in large menus.
 - Fixed keyboard shortcuts reordering selected nodes while editing fields or using dialogs and menus.
 - Fixed the View menu’s “Type” label not toggling its checkbox.
