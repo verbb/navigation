@@ -32,6 +32,8 @@ try {
   page = await browser.newPage();
   page.setDefaultTimeout(8000);
   page.on('pageerror', error => errors.push(error.message));
+  let copyAttempts = 0;
+  const copyPayloads = [];
   let finishDelete;
   const delayed = new Promise(resolve => { finishDelete = resolve; });
   await page.route('**/action', async route => {
@@ -50,6 +52,14 @@ try {
           ],
         },
       });
+      return;
+    }
+    if (body.action.endsWith('copy-to-site')) {
+      copyPayloads.push(body);
+      copyAttempts += 1;
+      await route.fulfill(copyAttempts === 1
+        ? { status: 503, json: { message: 'Temporary connection failure' } }
+        : { json: { copiedNodeIds: [4, 5], message: 'Nodes copied.' } });
       return;
     }
     if (body.action.endsWith('stage-delete')) await delayed;
@@ -146,6 +156,22 @@ try {
   await page.evaluate(() => window.boundary.reset());
   await page.evaluate(() => window.boundary.store.setState({ statusFilter: 'disabled' }));
   await page.getByRole('heading', { name: 'No nodes match the selected status.' }).waitFor();
+
+  await page.goto(`http://127.0.0.1:${server.address().port}?copy-dialog=1`);
+  await page.getByRole('dialog').waitFor();
+  const descendants = page.getByRole('checkbox', { name: 'Include descendants', exact: true });
+  // Click the visible label, not the custom element's surrounding whitespace.
+  await page.locator('pk-checkbox [part="label"]').click();
+  await descendants.and(page.locator(':checked')).waitFor();
+  const failedCopy = page.waitForResponse(response => response.status() === 503);
+  await page.getByRole('button', { name: 'Copy', exact: true }).click();
+  await failedCopy;
+  assert.equal(await page.getByRole('dialog').isVisible(), true);
+  assert.equal(await descendants.isChecked(), true);
+  await page.getByRole('button', { name: 'Copy', exact: true }).click();
+  await page.getByRole('dialog').waitFor({ state: 'hidden' });
+  assert.equal(copyPayloads.length, 2);
+  assert.ok(copyPayloads.every(payload => payload.siteId === 2 && payload.deep === true));
 
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto(`http://127.0.0.1:${server.address().port}?init-error=1`);

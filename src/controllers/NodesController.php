@@ -92,6 +92,33 @@ class NodesController extends Controller
         $nav = MenuAuth::requireManageMenuSite($this, Navigation::$plugin->getMenus()->getMenuById($menuId), $sourceSiteId);
         MenuAuth::requireManageMenuSite($this, $nav, $targetSiteId);
 
+        $copy = fn() => BuilderStructureRevision::trackMutation($nav, fn() => $this->_copyToSite($nav, $sourceSiteId, $targetSiteId, $nodeIds, $deep, $remapLinkedElements));
+        $revision = $this->request->getBodyParam('structureRevision');
+
+        // Copy changes the shared menu structure even when the source site stays unchanged.
+        // Keep the original behavior for integrations that do not send a revision.
+        if ($revision !== null) {
+            try {
+                return BuilderStructureRevision::apply($nav, $revision, $copy);
+            } catch (ConflictHttpException $e) {
+                throw new ConflictHttpException(Craft::t('navigation', 'This menu changed since it was loaded. Reload it to review the current nodes before copying again.'));
+            }
+        }
+
+        return $copy();
+    }
+
+    public function actionSaveStructure(): Response
+    {
+        return (new BuildSessionsController('build-sessions', Navigation::$plugin))->actionPublish();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _copyToSite(MenuSettings $nav, int $sourceSiteId, int $targetSiteId, array $nodeIds, bool $deep, bool $remapLinkedElements): Response
+    {
         if ($nav->propagationMethod !== MenuSettings::PROPAGATION_METHOD_NONE) {
             return $this->asFailure(Craft::t('navigation', 'Nodes in this menu are propagated automatically. Switch sites to edit them instead of copying.'));
         }
@@ -101,13 +128,13 @@ class NodesController extends Controller
         }
 
         MenuAuth::requireDuplicatableNodes(
-            Node::find()->id($nodeIds)->menuId($menuId)->siteId($sourceSiteId)->status(null)->all(),
+            Node::find()->id($nodeIds)->menuId($nav->id)->siteId($sourceSiteId)->status(null)->all(),
             $deep,
             $targetSiteId,
         );
 
         $result = Navigation::$plugin->getNodes()->copyNodesToSite(
-            $menuId,
+            $nav->id,
             $sourceSiteId,
             $nodeIds,
             $targetSiteId,
@@ -142,15 +169,6 @@ class NodesController extends Controller
             'skippedLinkedElementRemapCount' => $result['skippedLinkedElementRemapCount'],
         ]);
     }
-
-    public function actionSaveStructure(): Response
-    {
-        return (new BuildSessionsController('build-sessions', Navigation::$plugin))->actionPublish();
-    }
-
-
-    // Private Methods
-    // =========================================================================
 
     private function _addNodes(): Response
     {

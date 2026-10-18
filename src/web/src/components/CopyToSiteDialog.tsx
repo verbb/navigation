@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@verbb/plugin-kit-react/components/Button';
-import { CheckboxInput } from '@verbb/plugin-kit-react/components/CheckboxInput';
+import { Checkbox } from '@verbb/plugin-kit-react/components/Checkbox';
 import { Dialog } from '@verbb/plugin-kit-react/components/Dialog';
 import { Lightswitch } from '@verbb/plugin-kit-react/components/Lightswitch';
 import { SelectInput } from '@verbb/plugin-kit-react/components/SelectInput';
@@ -69,8 +69,8 @@ export function CopyToSiteDialog({
     setSubmitting(true);
 
     try {
-      await copyNodesToSite(nodeIds, targetSiteId, includeDescendants, remapLinkedElements);
-      onOpenChange(false);
+      const copied = await copyNodesToSite(nodeIds, targetSiteId, includeDescendants, remapLinkedElements);
+      if (copied) onOpenChange(false);
     } finally {
       setSubmitting(false);
     }
@@ -99,11 +99,12 @@ export function CopyToSiteDialog({
         </div>
 
         {showDescendantsOption && (
-          <CheckboxInput
-            label={t('Include descendants')}
+          <Checkbox
             checked={includeDescendants}
             onCheckedChange={(checked) => setIncludeDescendants(!!checked)}
-          />
+          >
+            {t('Include descendants')}
+          </Checkbox>
         )}
 
         {hasElementLinkedNodes && (

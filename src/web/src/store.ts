@@ -108,7 +108,7 @@ type BuilderStore = {
   setSelectedNodesStatus: (status: 'enabled' | 'disabled') => Promise<void>;
   duplicateNode: (nodeId: number, deep?: boolean) => Promise<void>;
   duplicateSelectedNodes: (deep?: boolean) => Promise<void>;
-  copyNodesToSite: (nodeIds: number[], targetSiteId: number, deep?: boolean, remapLinkedElements?: boolean) => Promise<void>;
+  copyNodesToSite: (nodeIds: number[], targetSiteId: number, deep?: boolean, remapLinkedElements?: boolean) => Promise<boolean>;
   restoreNode: (nodeId: number) => Promise<void>;
   /** Hard-replace tree from server (clears structure dirty). Prefer applyMutationNodes for stage actions. */
   applyServerNodes: (nodes: BuilderNode[]) => void;
@@ -808,14 +808,14 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     const isCurrent = () => generation === contextGeneration && get().menuId === scopeMenuId && get().siteId === scopeSiteId;
 
     if (!nodeIds.length) {
-      return;
+      return false;
     }
 
     const { menuId, siteId } = get();
 
     try {
       const data = await copyNodesToSiteApi(menuId, siteId, nodeIds, targetSiteId, deep, remapLinkedElements);
-      if (!isCurrent()) return;
+      if (!isCurrent()) return false;
 
       displayNotice(
         data.message
@@ -824,10 +824,11 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
             : t('{count} nodes copied to site.', { count: nodeIds.length })),
       );
       await get().refresh();
-      if (!isCurrent()) return;
+      return isCurrent();
     } catch (error) {
-      if (!isCurrent()) return;
+      if (!isCurrent()) return false;
       displayError(error);
+      return false;
     }
   },
 

@@ -10,6 +10,7 @@ import { Button } from '@verbb/plugin-kit-react/components/Button';
 import { Icon } from '@verbb/plugin-kit-react/components/Icon';
 import { emptySet, registerIcons, triangleExclamation } from '@verbb/plugin-kit-icons';
 import { NodeTree } from '../../src/web/src/components/NodeTree';
+import { CopyToSiteDialog } from '../../src/web/src/components/CopyToSiteDialog';
 import { BuilderApp } from '../../src/web/src/components/BuilderApp';
 import { BuilderErrorBoundary } from '../../src/web/src/components/BuilderErrorBoundary';
 import { BuilderLoadError } from '../../src/web/src/components/BuilderLoadError';
@@ -54,7 +55,17 @@ reset();
 if (new URLSearchParams(window.location.search).has('empty')) {
   store.setState({ nodes: [], state: { ...fixture, nodes: [] } as any });
 }
+if (new URLSearchParams(window.location.search).has('copy-dialog')) {
+  nodes[0].hasDescendants = true;
+  Object.assign(fixture, { copyToSiteTargets: [{ id: 2, name: 'Secondary site' }] });
+  reset();
+}
 (window as any).boundary = { store, nodes, fixture, reset };
+
+function CopyDialogHarness() {
+  const [open, setOpen] = React.useState(true);
+  return <CopyToSiteDialog open={open} nodeIds={[1]} includeDeepOption onOpenChange={setOpen} />;
+}
 
 function RenderCrash(): never {
   throw new Error('Synthetic render exception from the Navigation builder.');
@@ -96,6 +107,8 @@ function Harness() {
   const dirty = store(s => s.structureDirty);
   const search = new URLSearchParams(window.location.search);
   const errorType = search.get('error');
+
+  if (search.has('copy-dialog')) return <CopyDialogHarness />;
 
   if (search.get('legacy') === 'load-error') {
     return (

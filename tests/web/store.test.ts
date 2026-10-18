@@ -484,3 +484,40 @@ test('duplicate retries retain the old revision after a lost response and adopt 
   await duplicateNodes(1, 1, [1]);
   assert.deepEqual(sent, ['before', 'before', 'before-copy', 'before-copy-copy']);
 });
+
+test('cross-site copy retries keep the last acknowledged revision', async () => {
+  const { copyNodesToSite } = await import('../../src/web/src/api');
+  const sent: string[] = [];
+  let current = 'source-tree';
+  let drop = true;
+  reset(async (_method, action, options) => {
+    if (action.endsWith('get-state')) return { data: { ...state(), structureRevision: current } };
+    assert.equal(action, 'navigation/nodes/copy-to-site');
+    const revision = options.data.structureRevision;
+    sent.push(revision);
+    if (revision !== current) throw { response: { status: 409 } };
+    const previous = current;
+    current += '-copy';
+    if (drop) { drop = false; throw new Error('Response lost after copy'); }
+    return { data: { previousStructureRevision: previous, structureRevision: current } };
+  });
+  await store.getState().init(1, 1);
+  await assert.rejects(copyNodesToSite(1, 1, [1], 2));
+  await assert.rejects(copyNodesToSite(1, 1, [1], 2));
+  assert.deepEqual(sent, ['source-tree', 'source-tree']);
+  await store.getState().init(1, 1);
+  await copyNodesToSite(1, 1, [1], 2);
+  await copyNodesToSite(1, 1, [1], 2);
+  assert.deepEqual(sent, ['source-tree', 'source-tree', 'source-tree-copy', 'source-tree-copy-copy']);
+});
+
+test('copy dialog receives a failure result and can retry without losing its options', async () => {
+  let fail = true;
+  reset(async (_method, action) => {
+    if (action.endsWith('get-state')) return { data: state() };
+    if (fail) { fail = false; throw new Error('Connection interrupted'); }
+    return { data: { copiedNodeIds: [4] } };
+  });
+  assert.equal(await store.getState().copyNodesToSite([1], 2, true, true), false);
+  assert.equal(await store.getState().copyNodesToSite([1], 2, true, true), true);
+});

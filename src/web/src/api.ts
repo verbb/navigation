@@ -17,7 +17,7 @@ function sendBuilderRequest(...args: Parameters<ReturnType<typeof getCraft>['sen
   const key = String(data?.menuId ?? firstNode?.menuId ?? 'legacy');
   const previous = requests.get(key);
   const send = () => {
-    if (['navigation/builder/apply-structure', 'navigation/build-sessions/publish', 'navigation/builder/save-draft', 'navigation/builder/duplicate-nodes'].includes(args[1]) && data && serverStructureRevisions.has(key)) {
+    if (['navigation/builder/apply-structure', 'navigation/build-sessions/publish', 'navigation/builder/save-draft', 'navigation/builder/duplicate-nodes', 'navigation/nodes/copy-to-site'].includes(args[1]) && data && serverStructureRevisions.has(key)) {
       data.structureRevision = serverStructureRevisions.get(key);
     }
     return getCraft().sendActionRequest(...args).then((response) => {
