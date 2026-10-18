@@ -180,6 +180,33 @@ try {
   await columnCheckbox.press('Space');
   await page.getByRole('columnheader', { name: 'Type', exact: true }).waitFor();
 
+  await page.goto(`http://127.0.0.1:${server.address().port}?controls=1&long-tree=1`);
+  await page.evaluate(() => {
+    const header = document.createElement('header');
+    header.id = 'header';
+    header.style.cssText = 'position:fixed;top:0;left:0;right:0;height:56px;z-index:100;background:white';
+    document.body.prepend(header);
+  });
+  const movingRow = page.locator('[data-node-id="1"]');
+  await movingRow.getByRole('checkbox').press('Space');
+  await movingRow.focus();
+  for (let index = 0; index < 40; index += 1) {
+    await page.keyboard.press('Alt+ArrowDown');
+    await page.waitForFunction(expected => window.boundary.store.getState().nodes[expected].id === 1, index + 1);
+  }
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const movedBox = await movingRow.boundingBox();
+  assert.ok(movedBox && movedBox.y >= 0 && movedBox.y + movedBox.height <= page.viewportSize().height,
+    'The selected row must remain visible after keyboard moves in a long shadow-root tree');
+  for (let index = 39; index >= 0; index -= 1) {
+    await page.keyboard.press('Alt+ArrowUp');
+    await page.waitForFunction(expected => window.boundary.store.getState().nodes[expected].id === 1, index);
+  }
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const returnedBox = await movingRow.boundingBox();
+  assert.ok(returnedBox && returnedBox.y >= 56,
+    `Upward keyboard moves must keep the selected row below the fixed CP header: ${JSON.stringify(returnedBox)}`);
+
   await page.goto(`http://127.0.0.1:${server.address().port}?copy-dialog=1`);
   await page.getByRole('dialog').waitFor();
   const descendants = page.getByRole('checkbox', { name: 'Include descendants', exact: true });

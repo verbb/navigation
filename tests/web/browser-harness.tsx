@@ -20,7 +20,8 @@ import { useBuilderStore as store } from '../../src/web/src/store';
 import { baselineMoves } from '../../src/web/src/utils/tree';
 import { registerNavigationIcons } from '../../src/web/src/icons/registerNavigationIcons';
 
-const nodes = [1, 2, 3].map(id => ({ id, title: `Node ${id}`, type: 'Custom', typeLabel: 'Custom',
+const nodeCount = new URLSearchParams(window.location.search).has('long-tree') ? 80 : 3;
+const nodes = Array.from({ length: nodeCount }, (_, index) => index + 1).map(id => ({ id, title: `Node ${id}`, type: 'Custom', typeLabel: 'Custom',
   typeClass: 'Custom', typeColorRgb: '0,0,0', typeTextColorRgb: '0,0,0', url: `/node-${id}`,
   level: 1, parentId: null, status: 'live', newWindow: id === 1, classes: null,
   pendingAdd: false, pendingDelete: false, pendingEdit: false, enabled: true,

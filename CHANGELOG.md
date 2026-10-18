@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed keyboard reordering allowing the selected node to scroll out of view in large menus.
 - Fixed keyboard shortcuts reordering selected nodes while editing fields or using dialogs and menus.
 - Fixed the View menu’s “Type” label not toggling its checkbox.
 - Fixed menu content validation errors not appearing beside their fields.

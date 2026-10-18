@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   dragAndDropFeature,
   syncDataLoaderFeature,
@@ -54,6 +54,7 @@ const ROOT_NODE: BuilderNode = {
 };
 
 export function NodeTree() {
+  const treeContainerRef = useRef<HTMLDivElement>(null);
   const allNodes = useBuilderStore((s) => s.nodes);
   const maxLevels = useBuilderStore((s) => s.state?.menu.maxLevels ?? null);
   const collapsedNodeIds = useBuilderStore((s) => s.collapsedNodeIds);
@@ -235,7 +236,7 @@ export function NodeTree() {
     isDragSession,
   );
 
-  useNodeTreeKeyboardShortcuts(!isDragSession && treeNodes.length > 0);
+  useNodeTreeKeyboardShortcuts(!isDragSession && treeNodes.length > 0, treeContainerRef);
 
   if (!allNodes.length) {
     return (
@@ -254,7 +255,7 @@ export function NodeTree() {
   const { onDragOver: treeOnDragOver, ...treeContainerProps } = containerProps;
 
   return (
-    <div className="overflow-x-auto">
+    <div ref={treeContainerRef} className="overflow-x-auto">
       <div role="table" className="min-w-[640px] text-sm">
         <div
           role="rowgroup"

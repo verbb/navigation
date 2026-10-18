@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type RefObject } from 'react';
 import { useBuilderStore } from '../store';
 import { getNodeMoveCapabilities } from '../utils/nodeMoveActions';
 
@@ -27,7 +27,10 @@ function getSelectedMoveNodeId(
 }
 
 /** Alt/Option + arrow keys reorder the highlighted row when nothing else is focused. */
-export function useNodeTreeKeyboardShortcuts(enabled: boolean): void {
+export function useNodeTreeKeyboardShortcuts(
+  enabled: boolean,
+  treeContainerRef: RefObject<HTMLDivElement | null>,
+): void {
   const moveNodeUp = useBuilderStore((s) => s.moveNodeUp);
   const moveNodeDown = useBuilderStore((s) => s.moveNodeDown);
   const indent = useBuilderStore((s) => s.indent);
@@ -37,6 +40,8 @@ export function useNodeTreeKeyboardShortcuts(enabled: boolean): void {
     if (!enabled) {
       return;
     }
+
+    let scrollFrame: number | null = null;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!event.altKey || event.metaKey || event.ctrlKey || event.shiftKey) {
@@ -94,9 +99,28 @@ export function useNodeTreeKeyboardShortcuts(enabled: boolean): void {
 
       if (handled) {
         event.preventDefault();
-        document
-          .querySelector<HTMLElement>(`[data-node-id="${nodeId}"]`)
-          ?.scrollIntoView({ block: 'nearest' });
+        if (scrollFrame !== null) {
+          cancelAnimationFrame(scrollFrame);
+        }
+
+        // Rows live inside the builder's shadow root. Wait for the reordered
+        // tree to render before scrolling to the row's new position.
+        scrollFrame = requestAnimationFrame(() => {
+          scrollFrame = null;
+          const row = treeContainerRef.current?.querySelector<HTMLElement>(`[data-node-id="${nodeId}"]`);
+          if (!row) {
+            return;
+          }
+
+          // Craft fixes the page header while scrolling. Reserve its height
+          // so upward moves do not hide the selected row underneath it.
+          const headerHeight = row.ownerDocument.getElementById('header')?.getBoundingClientRect().height ?? 0;
+          const scrollMarginTop = row.style.scrollMarginTop;
+          // Round outwards for browsers that align scroll offsets to whole pixels.
+          row.style.scrollMarginTop = `${Math.ceil(headerHeight) + 1}px`;
+          row.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          row.style.scrollMarginTop = scrollMarginTop;
+        });
       }
     };
 
@@ -104,6 +128,9 @@ export function useNodeTreeKeyboardShortcuts(enabled: boolean): void {
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      if (scrollFrame !== null) {
+        cancelAnimationFrame(scrollFrame);
+      }
     };
-  }, [enabled, indent, moveNodeDown, moveNodeUp, outdent]);
+  }, [enabled, indent, moveNodeDown, moveNodeUp, outdent, treeContainerRef]);
 }
