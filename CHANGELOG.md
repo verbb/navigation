@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.11 - 2026-10-20
 
 ### Fixed
 - Fixed Shift-click selection including nodes hidden inside collapsed branches.
