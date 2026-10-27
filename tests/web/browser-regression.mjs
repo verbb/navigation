@@ -190,7 +190,7 @@ try {
   await page.getByRole('columnheader', { name: 'Type', exact: true }).waitFor();
 
   await page.goto(`http://127.0.0.1:${server.address().port}?controls=1&nested=1`);
-  const branch = id => page.locator(`[data-node-id="${id}"] button[aria-expanded]`);
+  const branch = id => page.locator(`[data-node-id="${id}"]`).getByRole('button', { name: new RegExp(`^(Expand|Collapse) Node ${id}$`) });
   await branch(2).click();
   await branch(1).click();
   await branch(5).click();
