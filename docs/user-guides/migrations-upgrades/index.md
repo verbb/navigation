@@ -6,6 +6,10 @@ Move menus from another navigation plugin into Navigation.
 
 If your Craft site runs [FreeNav](https://plugins.craftcms.com/free-nav) (`justinholtweb/craft-free-nav`), Navigation can copy menus and node structure without modifying FreeNav data.
 
+##### [Migrating from Menu](/user-guides/migrations-upgrades/migrating-from-menu)
+
+Copy menus from Menu by Rewish, including nested nodes, translated content, site restrictions and dynamic source settings.
+
 ##### [Migrating from MenuBuilder](/user-guides/migrations-upgrades/migrating-from-menubuilder)
 
 If your Craft site runs [MenuBuilder](https://plugins.craftcms.com/menubuilder?craft5) (`tahadudhiya/craft-menu-builder`), Navigation can copy menus and hierarchical items without modifying MenuBuilder data.

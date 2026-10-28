@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added migration support for Menu by Rewish.
+
 ## 4.0.12 - 2026-10-22
 
 ### Changed

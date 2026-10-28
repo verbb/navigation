@@ -10,7 +10,7 @@ use craft\models\Structure;
 use ReflectionProperty;
 use RuntimeException;
 
-/** Source-table contracts from Navkit 1.0.0, FreeNav 5.1.4, MenuBuilder 1.0.0 and TKA Navigation 1.0. */
+/** Source-table contracts from Navkit 1.0.0, FreeNav 5.1.4, MenuBuilder 1.0.0 TKA Navigation 1.0 and Menu 1.0.0. */
 final class PluginMigrationFixture
 {
     public static function with(string $provider, callable $callback, bool $legacyFreeNav = false): mixed
@@ -19,6 +19,7 @@ final class PluginMigrationFixture
             throw new RuntimeException('Migration fixtures require the isolated test environment.');
         }
         $tables = match ($provider) {
+            'menu' => ['menu_menus', 'menu_nodes', 'menu_menus_sites'],
             'navkit' => ['navkit_menus', 'navkit_nodes'],
             'free-nav' => ['freenav_menus', 'freenav_menu_sites', 'freenav_nodes'],
             'menu-builder' => ['menubuilder_groups', 'menubuilder_items'],
@@ -52,6 +53,12 @@ final class PluginMigrationFixture
 
     private static function createTables(Migration $m, string $provider, bool $legacy): void
     {
+        if ($provider === 'menu') {
+            $m->createTable('{{%menu_menus}}', ['id'=>$m->integer()->notNull(), 'structureId'=>$m->integer()->notNull(), 'handle'=>$m->string()->notNull(), 'instructions'=>$m->text(), 'maxLevels'=>$m->smallInteger(), 'sortOrder'=>$m->smallInteger(), 'nodeFieldLayoutId'=>$m->integer(), 'PRIMARY KEY([[id]])']);
+            $m->createTable('{{%menu_nodes}}', ['id'=>$m->integer()->notNull(), 'menuId'=>$m->integer()->notNull(), 'type'=>$m->string(64)->notNull(), 'elementId'=>$m->integer(), 'url'=>$m->text(), 'classes'=>$m->string(), 'urlSuffix'=>$m->string(), 'newWindow'=>$m->boolean()->notNull()->defaultValue(false), 'followElement'=>$m->boolean()->notNull()->defaultValue(true), 'customAttributes'=>$m->text(), 'data'=>$m->text(), 'PRIMARY KEY([[id]])']);
+            $m->createTable('{{%menu_menus_sites}}', ['id'=>$m->primaryKey(), 'menuId'=>$m->integer()->notNull(), 'siteId'=>$m->integer()->notNull(), 'enabled'=>$m->boolean()->notNull()->defaultValue(true)]);
+            return;
+        }
         if ($provider === 'tka-navigation') {
             $m->createTable('{{%tka_navigations}}', ['id'=>$m->integer()->notNull(), 'handle'=>$m->string()->notNull(), 'PRIMARY KEY([[id]])']);
             $m->createTable('{{%tka_navigations_sites}}', ['id'=>$m->primaryKey(), 'elementId'=>$m->integer()->notNull(), 'siteId'=>$m->integer()->notNull(), 'nodes'=>$m->mediumText()]);
@@ -98,7 +105,31 @@ final class PluginMigrationFixture
             )->execute();
         }
         $handle = 'provider' . bin2hex(random_bytes(5));
-        if ($provider === 'menu-builder') {
+        if ($provider === 'menu') {
+            $menuElement = NavigationFixtureFactory::entries(1)[0];
+            $db->createCommand()->insert('{{%menu_menus}}', ['id'=>$menuElement->id, 'structureId'=>$structure->id, 'handle'=>$handle, 'instructions'=>'Menu migration fixture', 'maxLevels'=>3, 'sortOrder'=>1])->execute();
+            foreach ([$primary, $secondary] as $site) {
+                $db->createCommand()->insert('{{%menu_menus_sites}}', ['menuId'=>$menuElement->id, 'siteId'=>$site->id, 'enabled'=>true])->execute();
+            }
+            $extra = NavigationFixtureFactory::entries(5);
+            foreach ($extra as $entry) {
+                Craft::$app->getStructures()->appendToRoot($structure->id, $entry);
+            }
+            $types = ['custom', 'entry', 'custom', 'passive', 'site', 'dynamic', 'entry', 'dynamic'];
+            foreach (array_merge([$parent, $child, $disabled], $extra) as $index => $entry) {
+                $db->createCommand()->insert('{{%menu_nodes}}', [
+                    'id'=>$entry->id, 'menuId'=>$menuElement->id, 'type'=>$types[$index],
+                    'elementId'=>match ($index) { 1 => $linked->id, 4 => $secondary->id, 6 => 999999999, default => null },
+                    'url'=>$index === 6 ? '/missing-fallback' : '/provider-' . $index,
+                    'classes'=>'provider-class', 'urlSuffix'=>$index === 0 ? '?source=menu' : null,
+                    'newWindow'=>true, 'followElement'=>false,
+                    'customAttributes'=>json_encode(['rel'=>'nofollow', 'data-source'=>'menu']),
+                    'data'=>json_encode($index === 5 ? ['source'=>'entrySection', 'section'=>$linked->getSection()->handle, 'limit'=>4] : ($index === 7 ? ['source'=>'unknown'] : [])),
+                ])->execute();
+                $db->createCommand()->update('{{%elements_sites}}', ['title'=>'Menu node ' . $index], ['elementId'=>$entry->id, 'siteId'=>$primary->id])->execute();
+                $db->createCommand()->update('{{%elements_sites}}', ['title'=>'Translated node ' . $index, 'enabled'=>$index !== 1], ['elementId'=>$entry->id, 'siteId'=>$secondary->id])->execute();
+            }
+        } elseif ($provider === 'menu-builder') {
             $db->createCommand()->insert('{{%menubuilder_groups}}', [
                 'name' => 'Provider menu',
                 'handle' => $handle,

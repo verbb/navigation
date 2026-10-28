@@ -3,6 +3,7 @@ namespace verbb\navigation\services;
 
 use verbb\navigation\helpers\PluginMigrationHelper;
 use verbb\navigation\migrations\plugins\MigrateFromFreeNav;
+use verbb\navigation\migrations\plugins\MigrateFromMenu;
 use verbb\navigation\migrations\plugins\MigrateFromMenuBuilder;
 use verbb\navigation\migrations\plugins\MigrateFromNavigate;
 use verbb\navigation\migrations\plugins\MigrateFromNavkit;
@@ -20,6 +21,7 @@ class Migrations extends Component
     {
         return [
             'free-nav' => $this->_sourceInfo(MigrateFromFreeNav::class, 'free-nav'),
+            'menu' => $this->_sourceInfo(MigrateFromMenu::class, 'menu'),
             'menu-builder' => $this->_sourceInfo(MigrateFromMenuBuilder::class, 'menu-builder'),
             'navigate' => $this->_sourceInfo(MigrateFromNavigate::class, 'navigate'),
             'navkit' => $this->_sourceInfo(MigrateFromNavkit::class, 'navkit'),
@@ -32,6 +34,7 @@ class Migrations extends Component
     {
         return match ($sourceId) {
             'free-nav' => MigrateFromFreeNav::class,
+            'menu' => MigrateFromMenu::class,
             'menu-builder' => MigrateFromMenuBuilder::class,
             'navigate' => MigrateFromNavigate::class,
             'navkit' => MigrateFromNavkit::class,
