@@ -5,6 +5,9 @@
 ### Added
 - Added migration support for Menu by Rewish.
 
+### Fixed
+- Fixed the menu builder loading twice when opening fields from the production JavaScript bundle.
+
 ## 4.0.12 - 2026-10-22
 
 ### Changed

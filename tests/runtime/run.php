@@ -98,7 +98,8 @@ try {
         'repositories' => [['type' => 'path', 'url' => '../../..', 'options' => ['symlink' => true, 'reference' => 'config']]],
         'minimum-stability' => 'dev', 'prefer-stable' => true,
         'autoload-dev' => ['psr-4' => ['Tests\\' => '../../../tests/']],
-        'config' => ['allow-plugins' => ['craftcms/plugin-installer' => true, 'pestphp/pest-plugin' => true, 'yiisoft/yii2-composer' => true]],
+        // Keep the shared dependency lock compatible with the minimum PHP job.
+        'config' => ['platform' => ['php' => '8.2.0'], 'allow-plugins' => ['craftcms/plugin-installer' => true, 'pestphp/pest-plugin' => true, 'yiisoft/yii2-composer' => true]],
     ];
     file_put_contents($app . '/composer.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
     if (is_file(__DIR__ . '/composer.lock')) {

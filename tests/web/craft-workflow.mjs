@@ -94,6 +94,15 @@ try {
   await sidebar.getByText('Section', { exact: true }).waitFor();
   assert.equal(await sidebar.getByText('Section', { exact: true }).count(), 1);
 
+  // Lazy field chunks can import the builder entry; all imports must share its URL.
+  assert.equal(await sidebar.count(), 1, 'Loading field chunks must not mount a second builder sidebar.');
+  const builderModuleRequests = await page.evaluate(() => [...new Set(
+    performance.getEntriesByType('resource')
+      .map(resource => resource.name)
+      .filter(url => /\/assets\/builder-[^/]+\.js(?:\?|$)/.test(url)),
+  )]);
+  assert.equal(builderModuleRequests.length, 1, 'The builder entry must load under one canonical module URL.');
+
   await sidebar.getByRole('button', { name: 'Custom URL', exact: true }).click();
   const row = title => page.locator('[data-tree-row]').filter({ hasText: title });
 
@@ -207,5 +216,5 @@ try {
     await browser.close();
   }
 }
-await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['menus sidebar at canonical, path-carrier and explicit routes', 'Apache path carrier does not redirect', 'settings sidebar', 'cache duration field errors and rejected-save persistence', 'invalid menu limits retain values and show field errors', 'UI create', 'Dynamic source field', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'keyboard publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
+await fs.writeFile(new URL('result.json', output), JSON.stringify({ pass: true, checks: ['menus sidebar at canonical, path-carrier and explicit routes', 'Apache path carrier does not redirect', 'settings sidebar', 'cache duration field errors and rejected-save persistence', 'invalid menu limits retain values and show field errors', 'UI create', 'Dynamic source field', 'single builder module URL and sidebar after lazy fields', 'UI add', 'nested pointer drag', 'type round-trip', 'native edit', 'keyboard publish', 'reload and persisted hierarchy', 'settings duplicate', 'settings delete'], errors }, null, 2));
 console.log('PASS: Menus sidebar at canonical, path-carrier and explicit routes, Apache path carrier without redirect, Settings sidebar, cache duration and menu limit validation, dynamic source field, real Craft add, nested drag, type round-trip, edit, keyboard publish, reload, settings duplicate and delete.');

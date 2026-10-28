@@ -29,6 +29,8 @@ class Plugin
         $viteService = Navigation::$plugin->getVite();
 
         $scriptOptions = [
+            // Vite hashes filenames. Query timestamps make lazy imports execute the entry twice.
+            'appendTimestamp' => false,
             'depends' => [
                 BuilderAsset::class,
             ],
