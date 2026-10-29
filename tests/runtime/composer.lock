@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "479f309349a7e7bc3a9aac351c4edfa8",
+    "content-hash": "a09bde21a018b21b7fbf910fb2435fb8",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -10325,11 +10325,11 @@
         },
         {
             "name": "verbb/navigation",
-            "version": "4.0.12",
+            "version": "4.0.13",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "01f6e48abc3d37201dbc4c49bdb1d212c02bb9ff"
+                "reference": "a7fd245947420709a98121f8cdaa1375ab030f3e"
             },
             "require": {
                 "craftcms/cms": "^5.9.11",
@@ -11339,7 +11339,8 @@
     "platform": {},
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.2.0"
+        "php": "8.2.0",
+        "php-64bit": "8.2.0"
     },
     "plugin-api-version": "2.6.0"
 }
