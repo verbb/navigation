@@ -173,6 +173,7 @@ class Menus extends Component
 
         if ($runValidation && !$nav->validate()) {
             Navigation::info('Navigation not saved due to validation error.');
+
             return false;
         }
 
@@ -592,6 +593,7 @@ class Menus extends Component
         } catch (Throwable $e) {
             $transaction->rollBack();
             $this->_menus = null;
+
             throw $e;
         }
 
@@ -690,6 +692,10 @@ class Menus extends Component
                 Craft::$app->getFields()->deleteLayoutById($navRecord->fieldLayoutId);
             }
 
+            if ($navRecord->menuFieldLayoutId) {
+                Craft::$app->getFields()->deleteLayoutById($navRecord->menuFieldLayoutId);
+            }
+
             // Soft-delete settings then the owned Menu element. Element soft-delete does not
             // hard-remove the elements row, so the menus.id → elements.id FK stays valid.
             Craft::$app->getDb()->createCommand()
@@ -710,6 +716,7 @@ class Menus extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -869,6 +876,7 @@ class Menus extends Component
                     'sources' => $sources,
                     'pickerConfig' => ElementPickerHelper::getPickerConfig($permissions, $typeClass, $elementType),
                 ];
+
                 continue;
             }
 
@@ -1023,6 +1031,7 @@ class Menus extends Component
     {
         $query = $withTrashed ? MenuRecord::findWithTrashed() : MenuRecord::find();
         $query->andWhere(['uid' => $uid]);
+
         return $query->one() ?? new MenuRecord();
     }
 
@@ -1146,6 +1155,7 @@ class Menus extends Component
                         if (!$structuresService->append($structureId, $node, $parent)) {
                             throw new UserException(Craft::t('navigation', 'Couldn’t restore the menu structure.'));
                         }
+
                         continue;
                     }
                 }

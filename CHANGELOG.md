@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed the menu builder rendering twice when Craft’s `buildId` setting is configured ([#479](https://github.com/verbb/navigation/issues/479)).
+- Fixed deleting a menu leaving its menu content field layout behind.
 
 ## 4.0.13 - 2026-10-28
 
