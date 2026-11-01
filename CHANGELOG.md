@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.14 - 2026-11-01
 
 ### Fixed
 - Fixed the menu builder rendering twice when Craft’s `buildId` setting is configured ([#479](https://github.com/verbb/navigation/issues/479)).
