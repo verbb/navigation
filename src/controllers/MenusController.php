@@ -54,7 +54,7 @@ class MenusController extends Controller
 
         // Get the current site from the global query param
         $siteHandle = $this->request->getParam('site', Craft::$app->getSites()->getPrimarySite()->handle);
-        $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+        $site = Craft::$app->getSites()->getSiteByHandle($siteHandle) ?? Craft::$app->getSites()->getPrimarySite();
 
         $navigations = Navigation::$plugin->getMenus()->getEditableMenusForSite($site);
 
@@ -238,6 +238,7 @@ class MenusController extends Controller
                 $nav->$attribute = (int)$value ?: null;
             }
         }
+
         $nav->maxNodesSettings = $this->request->getBodyParam('maxNodesSettings') ?: [];
         $nav->permissions = MenuPermissions::normalize($this->request->getBodyParam('permissions') ?? []);
         $nav->defaultPlacement = $this->request->getBodyParam('defaultPlacement') ?? $nav->defaultPlacement;
@@ -254,6 +255,7 @@ class MenusController extends Controller
                     'enabled' => false,
                 ]);
                 $allSiteSettings[$site->id] = $siteSettings;
+
                 continue;
             }
 
@@ -306,6 +308,7 @@ class MenusController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+
         MenuAuth::requireMenuSettingsChanges();
 
         $navIds = Json::decode($this->request->getRequiredBodyParam('ids'));
@@ -370,6 +373,7 @@ class MenusController extends Controller
         foreach ($nav->getSiteIds() as $siteId) {
             MenuAuth::requireManageMenuSite($this, $nav, (int)$siteId);
         }
+
         $sources = NodeElement::find()->menuId($nav->id)->site('*')->unique()
             ->status(null)->orderBy(['structureelements.lft' => SORT_ASC])->all();
         MenuAuth::requireDuplicatableNodes($sources);
@@ -421,6 +425,7 @@ class MenusController extends Controller
                 if (!$placed) {
                     throw new RuntimeException('Unable to duplicate menu structure.');
                 }
+
                 $copies[$source->id] = $copy;
             }
 
