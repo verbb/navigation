@@ -1,4 +1,4 @@
-import{r as e}from"./rolldown-runtime-XKyaHtl9.js";import{B as t,G as n,H as r,K as i,Q as a,R as o,U as s,W as c,X as l,a as u,o as d,t as f,z as p}from"./Field-BW9S1s7O.js";import{t as m}from"./useEngineField-DV7poIfG.js";import"./builder-CZP__dus.js";var h=t(),g=e(p(),1),_=a`
+import{r as e}from"./rolldown-runtime-XKyaHtl9.js";import{B as t,G as n,H as r,K as i,Q as a,R as o,U as s,W as c,X as l,a as u,o as d,t as f,z as p}from"./Field-BW9S1s7O.js";import"./pk-checkbox-bfqcQikR-65sfIG8o.js";import{t as m}from"./useEngineField-DV7poIfG.js";var h=t(),g=e(p(),1),_=a`
     @layer pk-component {
         :host {
             display: block;
@@ -40,4 +40,4 @@ import{r as e}from"./rolldown-runtime-XKyaHtl9.js";import{B as t,G as n,H as r,K
                 class=${d({options:!0,"options--horizontal":this.orientation===`horizontal`})}
             ></div>
         `}};n([s({attribute:`options`,converter:v})],b.prototype,`options`,void 0),n([s({attribute:`value`,converter:y})],b.prototype,`value`,void 0),n([s({type:Boolean,attribute:`show-all-option`})],b.prototype,`showAllOption`,void 0),n([s({attribute:`all-label`})],b.prototype,`allLabel`,void 0),n([s({type:Boolean,reflect:!0})],b.prototype,`disabled`,void 0),n([s({reflect:!0})],b.prototype,`orientation`,void 0),n([s({attribute:`aria-label`})],b.prototype,`ariaLabel`,void 0),n([r()],b.prototype,`optionElements`,void 0),b=n([i(`pk-checkbox-select`)],b);var x=o({tagName:`pk-checkbox-select`,elementClass:b,react:g.default,events:{onPkChange:`pk-change`,onNativeChange:`change`}}),S=(0,g.forwardRef)(function({disabled:e,onChange:t,onPkChange:n,...r},i){let a=(0,g.useCallback)(e=>{if(n?.(e),!t)return;let r=e.detail;r&&`value`in r&&t(r.value)},[t,n]);return(0,h.jsx)(x,{ref:i,...r,...u([`disabled`],{disabled:e}),...t||n?{onPkChange:a}:{}})});S.displayName=`CheckboxSelect`;var C=({form:e,field:t})=>{let{value:n,setValue:r,errors:i}=m(e,t.name);return(0,h.jsx)(f,{name:t.name,label:t.label,instructions:t.instructions,warning:t.warning,required:t.required,errors:i,children:(0,h.jsx)(S,{options:t.options||[],value:n??[],onChange:r,showAllOption:t.showAllOption??!1,allLabel:t.allLabel,disabled:t.disabled})})};export{C as CheckboxSelectField};
-//# sourceMappingURL=CheckboxSelectField-D7J6yXoE.js.map
+//# sourceMappingURL=CheckboxSelectField-BhMaHIXE.js.map

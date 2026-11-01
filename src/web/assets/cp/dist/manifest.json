@@ -1,6 +1,6 @@
 {
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/AutocompleteField.js": {
-    "file": "assets/AutocompleteField-DVvMZLP6.js",
+    "file": "assets/AutocompleteField-CJDBr0TA.js",
     "name": "AutocompleteField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/AutocompleteField.js",
     "isDynamicEntry": true,
@@ -10,22 +10,22 @@
       "_pk-select-CpF5WOhn-y5xrX8iD.js",
       "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
       "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
+      "_Select-BJpJpCag.js",
       "_pk-clear-DHxP_2cm-BHgvcQ98.js",
       "_useEngineField-DV7poIfG.js",
-      "src/main.tsx",
       "_option-filter-BkKyBg8L-vJdQCq8o.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js": {
-    "file": "assets/CheckboxSelectField-D7J6yXoE.js",
+    "file": "assets/CheckboxSelectField-BhMaHIXE.js",
     "name": "CheckboxSelectField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
       "_Field-BW9S1s7O.js",
-      "_useEngineField-DV7poIfG.js",
-      "src/main.tsx"
+      "_pk-checkbox-bfqcQikR-65sfIG8o.js",
+      "_useEngineField-DV7poIfG.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js": {
@@ -56,7 +56,7 @@
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js": {
-    "file": "assets/ComboboxField-CUbJd07l.js",
+    "file": "assets/ComboboxField-DggG9z8O.js",
     "name": "ComboboxField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js",
     "isDynamicEntry": true,
@@ -66,9 +66,9 @@
       "_pk-select-CpF5WOhn-y5xrX8iD.js",
       "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
       "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
+      "_Select-BJpJpCag.js",
       "_pk-clear-DHxP_2cm-BHgvcQ98.js",
       "_useEngineField-DV7poIfG.js",
-      "src/main.tsx",
       "_option-filter-BkKyBg8L-vJdQCq8o.js"
     ]
   },
@@ -100,64 +100,65 @@
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js": {
-    "file": "assets/LightswitchField-BZ76s-_E.js",
+    "file": "assets/LightswitchField-TgYaAULK.js",
     "name": "LightswitchField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js",
     "isDynamicEntry": true,
     "imports": [
       "_Field-BW9S1s7O.js",
-      "_useEngineField-DV7poIfG.js",
-      "src/main.tsx"
+      "_Lightswitch-CyELh9ql.js",
+      "_useEngineField-DV7poIfG.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js": {
-    "file": "assets/NumberField-BEB2hSgE.js",
+    "file": "assets/NumberField-IIimOTAe.js",
     "name": "NumberField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js",
     "isDynamicEntry": true,
     "imports": [
       "_Field-BW9S1s7O.js",
       "_useEngineField-DV7poIfG.js",
-      "_Input-Bt0nKG69.js"
+      "_Input-CfdG1Ow9.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js": {
-    "file": "assets/RadioGroupField-BhiIJ5pd.js",
+    "file": "assets/RadioGroupField-BQqpRzLL.js",
     "name": "RadioGroupField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
       "_Field-BW9S1s7O.js",
+      "_dist-CRYcAgQf.js",
       "_pk-change-BMLA71i0.js",
       "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
       "_required-validator-I58oJGZ3-Do2Ml_-w.js",
       "_field-labels-pY-gQDwQ-qJ92s-2-.js",
-      "_useEngineField-DV7poIfG.js",
-      "src/main.tsx"
+      "_useEngineField-DV7poIfG.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js": {
-    "file": "assets/SelectField-D3Ti30gr.js",
+    "file": "assets/SelectField-DCqKwX0p.js",
     "name": "SelectField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
       "_Field-BW9S1s7O.js",
-      "_useEngineField-DV7poIfG.js",
-      "src/main.tsx"
+      "_dist-CRYcAgQf.js",
+      "_SelectInput-_DwMogbS.js",
+      "_useEngineField-DV7poIfG.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js": {
-    "file": "assets/TextField-r_yNAMFH.js",
+    "file": "assets/TextField-CPmdX3lc.js",
     "name": "TextField",
     "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js",
     "isDynamicEntry": true,
     "imports": [
       "_Field-BW9S1s7O.js",
       "_useEngineField-DV7poIfG.js",
-      "_Input-Bt0nKG69.js"
+      "_Input-CfdG1Ow9.js"
     ]
   },
   "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js": {
@@ -183,20 +184,62 @@
       "_rolldown-runtime-XKyaHtl9.js"
     ]
   },
-  "_Input-Bt0nKG69.js": {
-    "file": "assets/Input-Bt0nKG69.js",
+  "_Input-CfdG1Ow9.js": {
+    "file": "assets/Input-CfdG1Ow9.js",
     "name": "Input",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
       "_Field-BW9S1s7O.js",
+      "_button-group-item.styles-D7tuu-sr-CQ2EXAh9.js",
       "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
       "_required-validator-I58oJGZ3-Do2Ml_-w.js",
       "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
       "_field-labels-pY-gQDwQ-qJ92s-2-.js",
       "_pk-clear-DHxP_2cm-BHgvcQ98.js",
-      "src/main.tsx",
       "_if-defined-BQgLTGQn.js"
     ]
+  },
+  "_Lightswitch-CyELh9ql.js": {
+    "file": "assets/Lightswitch-CyELh9ql.js",
+    "name": "Lightswitch",
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_Field-BW9S1s7O.js",
+      "_pk-change-BMLA71i0.js",
+      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
+      "_required-validator-I58oJGZ3-Do2Ml_-w.js",
+      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
+      "_field-labels-pY-gQDwQ-qJ92s-2-.js"
+    ]
+  },
+  "_Select-BJpJpCag.js": {
+    "file": "assets/Select-BJpJpCag.js",
+    "name": "Select",
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_Field-BW9S1s7O.js",
+      "_pk-select-CpF5WOhn-y5xrX8iD.js"
+    ]
+  },
+  "_SelectInput-_DwMogbS.js": {
+    "file": "assets/SelectInput-_DwMogbS.js",
+    "name": "SelectInput",
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_Field-BW9S1s7O.js",
+      "_Select-BJpJpCag.js"
+    ]
+  },
+  "_button-group-item.styles-D7tuu-sr-CQ2EXAh9.js": {
+    "file": "assets/button-group-item.styles-D7tuu-sr-CQ2EXAh9.js",
+    "name": "button-group-item.styles-D7tuu-sr",
+    "imports": [
+      "_Field-BW9S1s7O.js"
+    ]
+  },
+  "_dist-CRYcAgQf.js": {
+    "file": "assets/dist-CRYcAgQf.js",
+    "name": "dist"
   },
   "_field-labels-pY-gQDwQ-qJ92s-2-.js": {
     "file": "assets/field-labels-pY-gQDwQ-qJ92s-2-.js",
@@ -223,6 +266,15 @@
   "_pk-change-BMLA71i0.js": {
     "file": "assets/pk-change-BMLA71i0.js",
     "name": "pk-change"
+  },
+  "_pk-checkbox-bfqcQikR-65sfIG8o.js": {
+    "file": "assets/pk-checkbox-bfqcQikR-65sfIG8o.js",
+    "name": "pk-checkbox-bfqcQikR",
+    "imports": [
+      "_Field-BW9S1s7O.js",
+      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
+      "_required-validator-I58oJGZ3-Do2Ml_-w.js"
+    ]
   },
   "_pk-clear-DHxP_2cm-BHgvcQ98.js": {
     "file": "assets/pk-clear-DHxP_2cm-BHgvcQ98.js",
@@ -262,7 +314,7 @@
     ]
   },
   "src/main.tsx": {
-    "file": "assets/builder-CZP__dus.js",
+    "file": "assets/builder-Ce06qXHB.js",
     "name": "builder",
     "src": "src/main.tsx",
     "isEntry": true,
@@ -270,11 +322,12 @@
       "_rolldown-runtime-XKyaHtl9.js",
       "_Field-BW9S1s7O.js",
       "_pk-select-CpF5WOhn-y5xrX8iD.js",
+      "_dist-CRYcAgQf.js",
+      "_button-group-item.styles-D7tuu-sr-CQ2EXAh9.js",
       "_pk-change-BMLA71i0.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
-      "_required-validator-I58oJGZ3-Do2Ml_-w.js",
-      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
-      "_field-labels-pY-gQDwQ-qJ92s-2-.js"
+      "_pk-checkbox-bfqcQikR-65sfIG8o.js",
+      "_SelectInput-_DwMogbS.js",
+      "_Lightswitch-CyELh9ql.js"
     ],
     "dynamicImports": [
       "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js",

@@ -13,6 +13,8 @@ for (const entry of Object.values(manifest)) {
   for (const file of entry.css ?? []) await access(path.join(dist, file));
   for (const key of [...(entry.imports ?? []), ...(entry.dynamicImports ?? [])]) {
     assert.ok(manifest[key], `Missing manifest dependency: ${key}`);
+    // Craft can add buildId to page scripts; chunks must never import that entry's bare URL.
+    assert.notEqual(key, 'src/main.tsx', 'A chunk imports the builder entry and can mount it twice with buildId set.');
   }
 }
 

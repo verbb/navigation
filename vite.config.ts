@@ -58,6 +58,8 @@ export default defineConfig(({ mode }) => {
       // Target modern browsers (optional — no longer required for top-level await).
       target: 'es2022',
       rollupOptions: {
+        // Keep shared exports out of the page entry: Craft may append buildId to its URL.
+        preserveEntrySignatures: 'strict',
         input: {
           builder: path.resolve(webRoot, 'src/main.tsx'),
         },
