@@ -1,6 +1,7 @@
 <?php
 namespace verbb\navigation\helpers;
 
+use verbb\navigation\elements\conditions\EntryPickerCondition;
 use verbb\navigation\nodetypes\Entry as EntryNodeType;
 
 use Craft;
@@ -90,15 +91,11 @@ class ElementPickerHelper
 
         $hiddenSectionIds = self::_resolveHiddenSingleSectionIds($settings['hideSingleSectionUids'] ?? []);
 
-        if ($hiddenSectionIds) {
-            $criteria['sectionId'] = array_merge(['not'], $hiddenSectionIds);
-        }
-
         if ($criteria) {
             $config['criteria'] = $criteria;
         }
 
-        $condition = self::_resolveSelectionCondition($settings['selectionCondition'] ?? null);
+        $condition = self::_resolveSelectionCondition($settings['selectionCondition'] ?? null, $hiddenSectionIds);
 
         if ($condition) {
             $config['condition'] = $condition->getConfig();
@@ -149,15 +146,22 @@ class ElementPickerHelper
         return $ids;
     }
 
-    private static function _resolveSelectionCondition(?array $config): ?ElementConditionInterface
+    private static function _resolveSelectionCondition(?array $config, array $hiddenSectionIds = []): ?ElementConditionInterface
     {
-        if (empty($config['conditionRules'])) {
+        if (empty($config['conditionRules']) && !$hiddenSectionIds) {
             return null;
         }
 
+        $typeConfig = ['class' => EntryCondition::class, 'elementType' => EntryElement::class];
+
+        if ($hiddenSectionIds) {
+            $typeConfig['class'] = EntryPickerCondition::class;
+            $typeConfig['hiddenSectionIds'] = $hiddenSectionIds;
+        }
+
         $condition = Craft::$app->getConditions()->createCondition(array_merge(
-            $config,
-            ['class' => EntryCondition::class, 'elementType' => EntryElement::class],
+            $config ?? [],
+            $typeConfig,
         ));
 
         return $condition instanceof ElementConditionInterface ? $condition : null;

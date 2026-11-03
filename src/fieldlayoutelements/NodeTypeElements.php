@@ -81,10 +81,8 @@ class NodeTypeElements extends BaseField
             $pickerCondition = null;
 
             if (isset($pickerConfig['condition'])) {
-                $pickerCondition = Craft::$app->getConditions()->createCondition(array_merge(
-                    $pickerConfig['condition'],
-                    ['class' => $elementType::createCondition()::class, 'elementType' => $elementType],
-                ));
+                // The helper normalizes the condition type and includes picker-specific restrictions.
+                $pickerCondition = Craft::$app->getConditions()->createCondition($pickerConfig['condition']);
             }
 
             $fieldHtml = Cp::elementSelectFieldHtml([

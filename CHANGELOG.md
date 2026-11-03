@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed hiding Singles overriding custom source filters in entry pickers.
+
 ## 4.0.14 - 2026-11-01
 
 ### Fixed
