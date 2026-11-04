@@ -37,6 +37,10 @@ it('projects assets from the selected volume without including another volume', 
     try {
         foreach (['Selected', 'Other'] as $label) {
             $volume = new \craft\models\Volume(['name' => $label, 'handle' => $handle . $label, 'fsHandle' => $fs->handle, 'subpath' => $label, 'titleTranslationMethod' => 'site']);
+            // Craft 5.12 saves assets in new volumes to their own site only. The secondary-site reads below need every site.
+            if (property_exists($volume, 'propagationMethod')) {
+                $volume->propagationMethod = \craft\enums\PropagationMethod::All;
+            }
             expect(Craft::$app->getVolumes()->saveVolume($volume))->toBeTrue();
             $volumes[] = $volume;
             $temporary = tempnam(sys_get_temp_dir(), 'navigation-projection-');
