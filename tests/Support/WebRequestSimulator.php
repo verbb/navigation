@@ -60,6 +60,11 @@ class WebRequestSimulator
         }
         Craft::$app->set('request', $request);
 
+        // Craft deletes expired tokens once per request, and that deletion is what
+        // rejects them. Every simulated request needs its own chance to run it.
+        $tokens = Craft::$app->getTokens();
+        (new \ReflectionProperty($tokens, '_deletedExpiredTokens'))->setValue($tokens, false);
+
         try {
             return $callback();
         } finally {

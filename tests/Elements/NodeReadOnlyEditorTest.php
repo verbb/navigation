@@ -33,9 +33,12 @@ it('disables the node type selector without registering its change handler', fun
     [$html, $registeredJs] = W::withAbsoluteUrl('https://navigation.test/admin/navigation', function() use ($node) {
         $method = new ReflectionMethod($node, 'metaFieldsHtml');
         $method->setAccessible(true);
+        // The View outlives each test, so only look at what this render registers.
+        $view = Craft::$app->getView();
+        $view->startJsBuffer();
         $html = $method->invoke($node, true);
 
-        return [$html, json_encode(Craft::$app->getView()->js)];
+        return [$html, json_encode($view->clearJsBuffer(false, false))];
     });
 
     expect($html)->toMatch('/<select(?=[^>]*name="type")(?=[^>]*disabled)[^>]*>/')
