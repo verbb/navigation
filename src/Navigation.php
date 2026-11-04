@@ -20,6 +20,8 @@ use verbb\navigation\helpers\Gql as GqlHelper;
 use verbb\navigation\helpers\MenuAuth;
 use verbb\navigation\helpers\ProjectConfigData;
 use verbb\navigation\integrations\NodeFeedMeElement;
+use verbb\navigation\integrations\NodeMcpAdapter;
+use verbb\navigation\integrations\NodeMcpTools;
 use verbb\navigation\models\Settings;
 use verbb\navigation\services\Menus;
 use verbb\navigation\variables\NavigationVariable;
@@ -67,6 +69,8 @@ use craft\feedme\events\RegisterFeedMeElementsEvent;
 use craft\feedme\services\Elements as FeedMeElements;
 use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
 use craft\gatsbyhelper\services\SourceNodes;
+use craft\mcp\elements\ElementAdapterRegistry;
+use craft\services\Mcp;
 
 class Navigation extends Plugin
 {
@@ -103,6 +107,7 @@ class Navigation extends Plugin
         $this->_registerElementTypes();
         $this->_registerGraphQl();
         $this->_registerFeedMeSupport();
+        $this->_registerMcpSupport();
 
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpRoutes();
@@ -358,6 +363,20 @@ class Navigation extends Plugin
         if (class_exists(FeedMeElements::class)) {
             Event::on(FeedMeElements::class, FeedMeElements::EVENT_REGISTER_FEED_ME_ELEMENTS, function(RegisterFeedMeElementsEvent $event) {
                 $event->elements[] = NodeFeedMeElement::class;
+            });
+        }
+    }
+
+    private function _registerMcpSupport(): void
+    {
+        // Craft's MCP server arrived in 5.12, after Navigation's minimum Craft version.
+        if (class_exists(ElementAdapterRegistry::class)) {
+            Event::on(ElementAdapterRegistry::class, ElementAdapterRegistry::EVENT_REGISTER_ADAPTERS, function(RegisterComponentTypesEvent $event) {
+                $event->types[] = NodeMcpAdapter::class;
+            });
+
+            Event::on(Mcp::class, Mcp::EVENT_REGISTER_CAPABILITY_TYPES, function(RegisterComponentTypesEvent $event) {
+                $event->types[] = NodeMcpTools::class;
             });
         }
     }
