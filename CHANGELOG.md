@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.1.0 - 2026-11-05
 
 ### Added
 - Added support for Craft’s MCP server (Craft 5.12+): menu nodes in the `elements.*` tools, plus `navigation.menus.list`, `navigation.menus.tree` and `navigation.nodes.move`.
