@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Added support for Craft’s MCP server (Craft 5.12+): menu nodes in the `elements.*` tools, plus `navigation.menus.list`, `navigation.menus.tree` and `navigation.nodes.move`.
+
 ### Fixed
 - Fixed hiding Singles overriding custom source filters in entry pickers.
 

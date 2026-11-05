@@ -19,7 +19,7 @@ The dev server runs at `http://localhost:5380`.
 - [Frontend](/frontend/performance-and-caching) for caching, loading options, and headless tree output.
 - [Getting Elements](/getting-elements/node-queries) for node query parameters.
 - [GraphQL](/graphql/query-nodes) for headless node queries, context, and breadcrumbs.
-- [Integrations](/integrations/feed-me) for Feed Me import mapping.
+- [Integrations](/integrations/feed-me) for Feed Me import mapping and Craft’s MCP server.
 - [Reference](/reference/node) for the core public objects most template authors work with.
 - [Developers](/developers/events) for extension points, events, custom node types, and command-line tooling.
 

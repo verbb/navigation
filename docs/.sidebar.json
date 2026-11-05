@@ -48,7 +48,8 @@
         "title": "Integrations",
         "collapsable": false,
         "children": [
-            "integrations/feed-me"
+            "integrations/feed-me",
+            "integrations/mcp"
         ]
     },
     {
