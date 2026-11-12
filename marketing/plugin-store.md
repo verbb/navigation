@@ -8,7 +8,7 @@ Create as many navigations as the site needs and arrange their nodes independent
 - Arrange deep menu hierarchies through a visual control-panel interface.
 - Link entries, assets, categories, Commerce products and other supported elements.
 - Include external sites, anchors and destinations that do not belong to a Craft element.
-- Project entries, categories, assets or products into a menu at read time with conditions and ordering.
+- Fill part of a menu automatically with entries, categories, assets or products, using conditions and ordering.
 - Follow changes to a destination's title and status, with per-node overrides when needed.
 - Manage navigation values and propagation across the project's sites.
 - Add project-specific content to menus and individual nodes through separate Craft field layouts.
