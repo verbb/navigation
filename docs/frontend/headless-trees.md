@@ -88,10 +88,10 @@ With `withLinkedElements: true`, `element` holds the linked entry (or category, 
 
 Navigation loads linked elements as needed to build their URLs, but the tree’s `element` key is `null` for both stored and projected nodes unless you enable the `withLinkedElements` output option. This option includes linked element data after the underlying node fetch, which can still use the tree cache. Setting `withLinkedElements` in the query criteria instead bypasses that cache for the node fetch.
 
-`tree()` runs through the same read pipeline as `nodes().all()` — caching and active-state rules apply to the underlying fetch. See [Performance & Caching](/frontend/performance-and-caching).
+`tree()` runs through the same read pipeline as `nodes().all()` — caching and active-state rules apply to the underlying fetch. See [Performance & Caching](/frontend/performance-caching).
 
 ## Dynamic Projection
 
 Projected Dynamic children appear in `children` with `isProjected: true` unless you opt out with `withProjectedChildren(false)` on the underlying query criteria.
 
-For GraphQL headless access, see [Query Nodes](/graphql/query-nodes).
+For GraphQL headless access, see [GraphQL Queries](/graphql/queries).

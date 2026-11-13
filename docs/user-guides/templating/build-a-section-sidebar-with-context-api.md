@@ -1,6 +1,6 @@
 # Build a Section Sidebar with Context API
 
-Content-heavy sites often show a sidebar listing sibling pages in the current section — every page under **Products**, for example, with the current page highlighted. Navigation's [Context API](/template-guides/active-state-and-context) resolves that branch without manual parent lookups.
+Content-heavy sites often show a sidebar listing sibling pages in the current section — every page under **Products**, for example, with the current page highlighted. Navigation's [Context API](/template-guides/active-state-context) resolves that branch without manual parent lookups.
 
 ## What You Are Building
 

@@ -2,7 +2,7 @@
 
 Breadcrumbs answer “where am I?” — but the right answer depends on whether you mean **URL structure** or **position in the menu tree**. Navigation provides both.
 
-The [Context & Breadcrumbs reference](/template-guides/context-and-breadcrumbs) covers the available methods when adapting these two approaches.
+The [Context & Breadcrumbs reference](/template-guides/context-breadcrumbs) covers the available methods when adapting these two approaches.
 
 ## Quick Decision
 
@@ -100,4 +100,4 @@ They are not mutually exclusive — pick per template.
 
 ## GraphQL
 
-Headless equivalents: `navigationContext` and `navigationMenuBreadcrumbs`. See [Context & Breadcrumbs](/graphql/context-and-breadcrumbs).
+Headless equivalents: `navigationContext` and `navigationMenuBreadcrumbs`. See [Context & Breadcrumbs](/graphql/context-breadcrumbs).

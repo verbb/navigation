@@ -17,7 +17,7 @@ A cached HTML response keeps the menu produced when that page was generated. Com
 
 ## Default Behaviour
 
-- Navigation **tree cache** mode defaults to `auto` — see [Performance & Caching](/frontend/performance-and-caching).
+- Navigation **tree cache** mode defaults to `auto` — see [Performance & Caching](/frontend/performance-caching).
 - Menu and node saves invalidate Navigation cache tags automatically.
 - Blitz does not know about Navigation's tags unless you connect them.
 

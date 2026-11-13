@@ -62,7 +62,7 @@ For sidebars and section navigation, use **`craft.navigation.context()`** to fin
 
 Use `siblings()` for pages beside the current page, or `children()` when the current page is a section root. `branch()` combines the current node, its ancestors, and siblings. The [Context reference](/reference/context) lists all methods and empty-match behaviour.
 
-See [Context & Breadcrumbs](/template-guides/context-and-breadcrumbs) for breadcrumb trails.
+See [Context & Breadcrumbs](/template-guides/context-breadcrumbs) for breadcrumb trails.
 
 ## Dynamic Children
 

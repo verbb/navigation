@@ -13,12 +13,12 @@ The dev server runs at `http://localhost:5380`.
 
 ## Sections
 
-- [Get Started](/get-started/installation-setup) for installation, requirements, configuration, and upgrading from v3.
+- [Get Started](/get-started/installation-setup) for installation, requirements, configuration, and upgrading.
 - [Feature Tour](/feature-tour/overview) for creating menus, menu fields, and node types in the control panel.
 - [Template Guides](/template-guides/rendering-nodes) for Twig patterns — rendering menus, active state, context sub-nav, and breadcrumbs.
-- [Frontend](/frontend/performance-and-caching) for caching, loading options, and headless tree output.
+- [Frontend](/frontend/performance-caching) for caching, loading options, and headless tree output.
 - [Getting Elements](/getting-elements/node-queries) for node query parameters.
-- [GraphQL](/graphql/query-nodes) for headless node queries, context, and breadcrumbs.
+- [GraphQL](/graphql/queries) for headless node queries, context, and breadcrumbs.
 - [Integrations](/integrations/feed-me) for Feed Me import mapping and Craft’s MCP server.
 - [Reference](/reference/node) for the core public objects most template authors work with.
 - [Developers](/developers/events) for extension points, events, custom node types, and command-line tooling.

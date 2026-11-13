@@ -84,7 +84,7 @@ Projected entries participate in active resolution. On a projected blog post URL
 - `craft.navigation.getActiveNode({ handle: 'mainMenu' })` can return a `ProjectedNode`.
 - `craft.navigation.context('mainMenu').siblings()` includes projected siblings under the same Dynamic parent.
 
-See [Active State & Context](/template-guides/active-state-and-context).
+See [Active State & Context](/template-guides/active-state-context).
 
 ## Step 5 — Opt Out of Projection
 
@@ -101,7 +101,7 @@ Useful when you only want manually curated children for a partial.
 
 ## Performance and Cache
 
-Dynamic nodes add cache tags for their source (section, category group, volume, or product type). Source changes invalidate cached trees automatically. See [Performance & Caching](/frontend/performance-and-caching) and [Navigation with Blitz](/user-guides/frontend-headless/navigation-with-blitz-and-full-page-cache).
+Dynamic nodes add cache tags for their source (section, category group, volume, or product type). Source changes invalidate cached trees automatically. See [Performance & Caching](/frontend/performance-caching) and [Navigation with Blitz](/user-guides/frontend-headless/navigation-with-blitz-and-full-page-cache).
 
 ## Headless Output
 

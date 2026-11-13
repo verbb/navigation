@@ -47,7 +47,7 @@ You can pass the menu handle as a shorthand:
 {% set nodes = craft.navigation.nodes('mainMenu').all() %}
 ```
 
-On front-end menu-scoped reads, parent/child relationships are loaded together automatically — you do not need Craft eager-loading for hierarchy in most cases. Projected children are also included by default. Calling `withProjectedChildren()` without an argument is unnecessary; use `withProjectedChildren(false)` only when you want stored nodes without projections. See [Performance & Caching](/frontend/performance-and-caching).
+On front-end menu-scoped reads, parent/child relationships are loaded together automatically — you do not need Craft eager-loading for hierarchy in most cases. Projected children are also included by default. Calling `withProjectedChildren()` without an argument is unnecessary; use `withProjectedChildren(false)` only when you want stored nodes without projections. See [Performance & Caching](/frontend/performance-caching).
 
 A Dynamic node remains part of the menu as a stored parent. Its matching entries, categories, assets, or products are attached beneath it as projected children rather than replacing it:
 

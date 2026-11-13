@@ -1,6 +1,6 @@
 # Context & Breadcrumbs
 
-These queries return menu context for the URL Craft is handling. First configure [schema access](/graphql/query-nodes#configure-schema-access).
+These queries return menu context for the URL Craft is handling. First configure [schema access](/graphql/queries#configure-schema-access).
 
 A request to a GraphQL endpoint usually has a different URL from the page your visitor is viewing. These helpers do not infer that page from the referring URL, so current-node results and breadcrumbs may be empty. For a separate frontend, query the menu tree and match its links to the browser URL as shown in [Expose a Menu as JSON](/user-guides/frontend-headless/expose-a-menu-as-json-for-a-js-frontend#highlight-the-current-page).
 
@@ -43,4 +43,4 @@ Returns a trail from the menu root to the deepest current node, including projec
 
 ## Twig Reference
 
-See [Context & Breadcrumbs](/template-guides/context-and-breadcrumbs) for URL-segment vs menu-tree semantics and when to use each resolver.
+See [Context & Breadcrumbs](/template-guides/context-breadcrumbs) for URL-segment vs menu-tree semantics and when to use each resolver.

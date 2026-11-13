@@ -64,7 +64,7 @@ Controls whether menu structure changes save immediately on drag-and-drop. When 
 
 **Type:** `string` · **Default:** `NavigationCache::MODE_AUTO`
 
-Controls plugin-managed tree caching for front-end navigation reads. Use `off`, `auto` (default), `static`, or `manual`. See [Performance & Caching](/frontend/performance-and-caching).
+Controls plugin-managed tree caching for front-end navigation reads. Use `off`, `auto` (default), `static`, or `manual`. See [Performance & Caching](/frontend/performance-caching).
 :::
 
 

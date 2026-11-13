@@ -37,6 +37,6 @@ Fetch the menu once when its content is only needed outside the node loop. For c
 {% set menu = nodes[0].menu ?? null %}
 ```
 
-This batches menu loading but bypasses the node tree cache. See [Performance & Caching](/frontend/performance-and-caching) for choosing between those approaches.
+This batches menu loading but bypasses the node tree cache. See [Performance & Caching](/frontend/performance-caching) for choosing between those approaches.
 
 Menu configuration, such as limits and permissions, has a separate PHP object. The [Menu](/reference/menu) and [Menu Settings](/reference/menu-settings) references explain those APIs. For a complete promotional panel, follow [Build a Mega Menu](/user-guides/templating/build-a-mega-menu).

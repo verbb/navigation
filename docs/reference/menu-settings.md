@@ -1,6 +1,6 @@
 # Menu Settings
 
-A MenuSettings object represents **menu configuration** from project config — limits, propagation, permissions, and field layouts — rather than field values saved on the menu. Templates rarely need this object; use the [Menu](/reference/menu) element for custom field values.
+A MenuSettings object holds a menu’s **configuration** from project config, such as its limits, propagation, permissions and field layouts, rather than the field values saved on the menu. Templates rarely need this object. Use the [Menu](/reference/menu) element for custom field values.
 
 ## Access
 
@@ -17,7 +17,7 @@ MenuSettings is a PHP-only API. In Twig, use `craft.navigation.menu('handle').on
 
 **Type:** `int|null`
 
-Menu ID
+The ID of the menu.
 :::
 
 ::: reference
@@ -25,7 +25,7 @@ Menu ID
 
 **Type:** `string|null`
 
-Display name
+The menu’s name, as shown in the control panel.
 :::
 
 ::: reference
@@ -33,7 +33,7 @@ Display name
 
 **Type:** `string|null`
 
-Handle (used in Twig/GraphQL)
+The menu’s handle, such as `mainMenu`. This is the name you use for the menu in Twig, PHP and GraphQL.
 :::
 
 ::: reference
@@ -41,7 +41,7 @@ Handle (used in Twig/GraphQL)
 
 **Type:** `string|null`
 
-CP instructions
+The instructions shown to editors for this menu in the control panel. It’s `null` when the menu has none.
 :::
 
 ::: reference
@@ -49,7 +49,7 @@ CP instructions
 
 **Type:** `int|null`
 
-Maximum nesting depth
+The deepest level editors can nest nodes to, where top-level nodes are at level 1. It’s `null` when nesting isn’t limited, and `1` keeps the menu flat.
 :::
 
 ::: reference
@@ -57,7 +57,7 @@ Maximum nesting depth
 
 **Type:** `int|null`
 
-Maximum total nodes
+The most nodes editors can add to the menu on each site. It’s `null` when there’s no limit.
 :::
 
 ::: reference
@@ -65,7 +65,7 @@ Maximum total nodes
 
 **Type:** `string`
 
-Multisite propagation for nodes
+The way new nodes are copied to the menu’s other sites, which is `none`, `siteGroup`, `language` or `all`.
 :::
 
 ::: reference
@@ -73,7 +73,7 @@ Multisite propagation for nodes
 
 **Type:** `string`
 
-How node titles propagate across sites (`none`, `site`, `siteGroup`, `language`, `custom`)
+The way node titles are translated across sites, which is `none`, `site`, `siteGroup`, `language` or `custom`. With `none`, a title edited on one site changes on every site.
 :::
 
 ::: reference
@@ -81,7 +81,7 @@ How node titles propagate across sites (`none`, `site`, `siteGroup`, `language`,
 
 **Type:** `string|null`
 
-Custom translation key template when `titleTranslationMethod` is `custom`
+The Twig template that builds the translation key for node titles when [titleTranslationMethod](#titletranslationmethod) is `custom`. It’s `null` for the other methods.
 :::
 
 ::: reference
@@ -89,7 +89,7 @@ Custom translation key template when `titleTranslationMethod` is `custom`
 
 **Type:** `bool`
 
-Default **Enabled On Other Sites By Default** value for new nodes when propagation is not `none`
+Whether new nodes are enabled on the menu’s other sites when they’re copied there. Editors see this as the default for **Enabled On Other Sites By Default**, and it only applies when [propagationMethod](#propagationmethod) isn’t `none`.
 :::
 
 ::: reference
@@ -97,7 +97,7 @@ Default **Enabled On Other Sites By Default** value for new nodes when propagati
 
 **Type:** `int|null`
 
-Craft structure ID for the node tree
+The ID of the Craft structure that holds the menu’s node tree.
 :::
 
 ::: reference
@@ -105,7 +105,7 @@ Craft structure ID for the node tree
 
 **Type:** `int|null`
 
-Node custom field layout
+The ID of the field layout used for the menu’s nodes, which sets the custom fields editors fill in on each node.
 :::
 
 

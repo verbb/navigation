@@ -1,8 +1,8 @@
 # Node Queries
 
-You can fetch nodes in your templates or PHP code using **node queries**. The most common pattern is scoping by menu handle, then fetching with `.all()` or `.one()`.
+You can fetch nodes in your templates or PHP code using **node queries**.
 
-:::code
+::: code
 ```twig Twig
 {# Create a new node query #}
 {% set myQuery = craft.navigation.nodes() %}
@@ -16,51 +16,44 @@ $myQuery = \verbb\navigation\elements\Node::find();
 
 Once you’ve created a node query, you can set parameters on it to narrow down the results, and then execute it by calling `.all()`. An array of [Node](/reference/node) objects will be returned.
 
-:::tip
-See [Element Queries](https://craftcms.com/docs/5.x/development/element-queries.html) in the Craft docs for standard parameters. For caching and loading options, see [Performance & Caching](/frontend/performance-and-caching).
+Most node queries are scoped to one menu with [handle](#handle). You can also pass a menu handle straight to `craft.navigation.nodes('mainMenu')` as a shortcut for `craft.navigation.nodes().handle('mainMenu')`.
+
+::: tip
+See [Element Queries](https://craftcms.com/docs/5.x/development/element-queries.html) in the Craft docs to learn about how element queries work. For caching and loading options, see [Performance & Caching](/frontend/performance-caching).
 :::
 
-## Fetch Nodes by Menu Handle
+## Example
+
+We can display the top-level links of a menu by doing the following.
+
+1. Create a node query with `craft.navigation.nodes()`.
+2. Set the [handle](#handle), [level](#level) and [limit](#limit) parameters on it.
+3. Fetch the nodes with `.all()`.
+4. Loop through the nodes using a [for](https://twig.symfony.com/doc/3.x/tags/for.html) tag to output their links.
 
 ```twig
-{% set nodes = craft.navigation.nodes()
-    .handle('mainMenu')
-    .all() %}
-```
-
-```php
-$nodes = \verbb\navigation\elements\Node::find()
-    ->handle('mainMenu')
-    ->all();
-```
-
-## Example by Level
-
-To list a menu’s top-level links, use its handle with `level(1)`. Put the following snippet in the Twig template where those links belong; it prints the titles of up to ten root nodes from `mainMenu`.
-
-```twig
-{# Fetch nodes at level 1 #}
+{# Create a node query with the 'handle', 'level' and 'limit' parameters #}
 {% set nodesQuery = craft.navigation.nodes()
     .handle('mainMenu')
     .level(1)
-    .limit(10)%}
+    .limit(10) %}
 
 {# Fetch the nodes #}
 {% set nodes = nodesQuery.all() %}
 
-{# Display their contents #}
+{# Display their links #}
 {% for node in nodes %}
-    <p>{{ node.title }}</p>
+    {{ node.link }}
 {% endfor %}
 ```
 
+`node.link` renders each node's title inside a link to its URL, with the node's classes, attributes and new-window setting applied. To build the markup yourself, or to render a full nested menu, see [Rendering Nodes](/template-guides/rendering-nodes).
+
 ## Parameters
 
-Node queries support the following parameters:
+Node queries support the following parameters.
 
-
-<!-- BEGIN PARAMS -->
-
+::: reference
 ### `ancestorDist`
 
 Narrows the query results to only nodes that are up to a certain distance away from the node specified by [ancestorOf](#ancestorof).
@@ -82,19 +75,17 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `ancestorOf`
 
 Narrows the query results to only nodes that are ancestors of another node.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `1` | above the node with an ID of 1.
-| a [Node](/reference/node) object | above the node represented by the object.
+| Value | Fetches nodes… |
+| --- | --- |
+| `1` | above the node with an ID of 1. |
+| a [Node](/reference/node) object | above the node represented by the object. |
 
 ::: code
 ```twig Twig
@@ -115,31 +106,9 @@ $nodes = \verbb\navigation\elements\Node::find()
 ::: tip
 This can be combined with [ancestorDist](#ancestordist) if you want to limit how far away the ancestor nodes can be.
 :::
-
-
-
-### `anyStatus`
-
-Clears the [status](#status) filter, including nodes disabled globally or for the queried site.
-
-::: code
-```twig Twig
-{# Fetch all nodes, regardless of status #}
-{% set nodes = craft.navigation.nodes()
-    .anyStatus()
-    .all() %}
-```
-
-```php PHP
-// Fetch all nodes, regardless of status
-$nodes = \verbb\navigation\elements\Node::find()
-    ->anyStatus()
-    ->all();
-```
 :::
 
-
-
+::: reference
 ### `asArray`
 
 Causes the query to return matching nodes as arrays of data, rather than [Node](/reference/node) objects.
@@ -159,20 +128,18 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `dateCreated`
 
 Narrows the query results based on the nodes’ creation dates.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `'>= 2018-04-01'` | that were created on or after 2018-04-01.
-| `'< 2018-05-01'` | that were created before 2018-05-01
-| `['and', '>= 2018-04-01', '< 2018-05-01']` | that were created between 2018-04-01 and 2018-05-01.
+| Value | Fetches nodes… |
+| --- | --- |
+| `'>= 2018-04-01'` | that were created on or after 2018-04-01. |
+| `'< 2018-05-01'` | that were created before 2018-05-01 |
+| `['and', '>= 2018-04-01', '< 2018-05-01']` | that were created between 2018-04-01 and 2018-05-01. |
 
 ::: code
 ```twig Twig
@@ -195,20 +162,18 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `dateUpdated`
 
 Narrows the query results based on the nodes’ last-updated dates.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `'>= 2018-04-01'` | that were updated on or after 2018-04-01.
-| `'< 2018-05-01'` | that were updated before 2018-05-01
-| `['and', '>= 2018-04-01', '< 2018-05-01']` | that were updated between 2018-04-01 and 2018-05-01.
+| Value | Fetches nodes… |
+| --- | --- |
+| `'>= 2018-04-01'` | that were updated on or after 2018-04-01. |
+| `'< 2018-05-01'` | that were updated before 2018-05-01 |
+| `['and', '>= 2018-04-01', '< 2018-05-01']` | that were updated between 2018-04-01 and 2018-05-01. |
 
 ::: code
 ```twig Twig
@@ -229,9 +194,9 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `descendantDist`
 
 Narrows the query results to only nodes that are up to a certain distance away from the node specified by [descendantOf](#descendantof).
@@ -253,19 +218,17 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `descendantOf`
 
 Narrows the query results to only nodes that are descendants of another node.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `1` | below the node with an ID of 1.
-| a [Node](/reference/node) object | below the node represented by the object.
+| Value | Fetches nodes… |
+| --- | --- |
+| `1` | below the node with an ID of 1. |
+| a [Node](/reference/node) object | below the node represented by the object. |
 
 ::: code
 ```twig Twig
@@ -286,9 +249,36 @@ $nodes = \verbb\navigation\elements\Node::find()
 ::: tip
 This can be combined with [descendantDist](#descendantdist) if you want to limit how far away the descendant nodes can be.
 :::
+:::
 
+::: reference
+### `elementId`
 
+Narrows the query results to nodes linked to the element with the given ID, such as every node that links to a particular entry. It's useful for finding where an entry appears in your menus.
 
+| Value | Fetches nodes… |
+| --- | --- |
+| `1` | linked to the element with an ID of 1. |
+| `[1, 2]` | linked to the element with an ID of 1 or 2. |
+
+::: code
+```twig Twig
+{# Fetch the nodes that link to this entry #}
+{% set nodes = craft.navigation.nodes()
+    .elementId(entry.id)
+    .all() %}
+```
+
+```php PHP
+// Fetch the nodes that link to this entry
+$nodes = \verbb\navigation\elements\Node::find()
+    ->elementId($entry->id)
+    ->all();
+```
+:::
+:::
+
+::: reference
 ### `fixedOrder`
 
 Causes the query results to be returned in the order specified by [id](#id).
@@ -310,36 +300,36 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `handle`
 
-Narrows the query results based on the `handle` of the navigation.
+Narrows the query results to nodes in the menu with the given handle. This is the usual way to scope a node query to one menu. `menuHandle()` does the same thing.
 
 ::: code
 ```twig Twig
-{# Fetch nodes for the `mainMenu` navigation #}
+{# Fetch nodes for the main menu #}
 {% set nodes = craft.navigation.nodes()
     .handle('mainMenu')
     .all() %}
 ```
 
 ```php PHP
-// Fetch nodes for the `mainMenu` navigation
+// Fetch nodes for the main menu
 $nodes = \verbb\navigation\elements\Node::find()
     ->handle('mainMenu')
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `hasDescendants`
 
 Narrows the query results based on whether the nodes have any descendants.
 
-(This has the opposite effect of calling [leaves](#leaves).)
+This has the opposite effect of [leaves](#leaves).
 
 ::: code
 ```twig Twig
@@ -356,9 +346,9 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `hasUrl`
 
 Narrows the query results to nodes with a linked element or a non-empty stored URL. Call `hasUrl(false)` to remove this filter. URLs computed by node types, such as Site nodes, are not part of this stored-value filter.
@@ -378,21 +368,19 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `id`
 
 Narrows the query results based on the nodes’ IDs.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `1` | with an ID of 1.
-| `'not 1'` | not with an ID of 1.
-| `[1, 2]` | with an ID of 1 or 2.
-| `['not', 1, 2]` | not with an ID of 1 or 2.
+| Value | Fetches nodes… |
+| --- | --- |
+| `1` | with an ID of 1. |
+| `'not 1'` | not with an ID of 1. |
+| `[1, 2]` | with an ID of 1 or 2. |
+| `['not', 1, 2]` | not with an ID of 1 or 2. |
 
 ::: code
 ```twig Twig
@@ -413,9 +401,33 @@ $node = \verbb\navigation\elements\Node::find()
 ::: tip
 This can be combined with [fixedOrder](#fixedorder) if you want the results to be returned in a specific order.
 :::
+:::
 
+::: reference
+### `includePendingProjections`
 
+Includes Dynamic node items from disabled or pending sources in the projected children, for previews where editors need to see content before it goes live. It bypasses the plugin tree cache, so don't use it for public front-end menus.
 
+::: code
+```twig Twig
+{# Fetch the main menu including pending projected items #}
+{% set nodes = craft.navigation.nodes()
+    .handle('mainMenu')
+    .includePendingProjections()
+    .all() %}
+```
+
+```php PHP
+// Fetch the main menu including pending projected items
+$nodes = \verbb\navigation\elements\Node::find()
+    ->handle('mainMenu')
+    ->includePendingProjections()
+    ->all();
+```
+:::
+:::
+
+::: reference
 ### `inReverse`
 
 Causes the query results to be returned in reverse order.
@@ -435,14 +447,14 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `leaves`
 
 Narrows the query results based on whether the nodes are “leaves” (nodes with no descendants).
 
-(This has the opposite effect of calling [hasDescendants](#hasdescendants).)
+This has the opposite effect of [hasDescendants](#hasdescendants).
 
 ::: code
 ```twig Twig
@@ -459,22 +471,20 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `level`
 
 Narrows the query results based on the nodes’ level within the structure.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `1` | with a level of 1.
-| `'not 1'` | not with a level of 1.
-| `'>= 3'` | with a level greater than or equal to 3.
-| `[1, 2]` | with a level of 1 or 2
-| `['not', 1, 2]` | not with level of 1 or 2.
+| Value | Fetches nodes… |
+| --- | --- |
+| `1` | with a level of 1. |
+| `'not 1'` | not with a level of 1. |
+| `'>= 3'` | with a level greater than or equal to 3. |
+| `[1, 2]` | with a level of 1 or 2. |
+| `['not', 1, 2]` | not with a level of 1 or 2. |
 
 ::: code
 ```twig Twig
@@ -491,16 +501,16 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `limit`
 
 Determines the number of nodes that should be returned.
 
 ::: code
 ```twig Twig
-{# Fetch up to 10 nodes  #}
+{# Fetch up to 10 nodes #}
 {% set nodes = craft.navigation.nodes()
     .limit(10)
     .all() %}
@@ -513,19 +523,96 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
+::: reference
+### `menu`
 
+Narrows the query results to nodes in a menu. Pass a menu handle, a [Menu](/reference/menu) element or a [Menu Settings](/reference/menu-settings) model. Passing an object also scopes the query to that menu's structure.
 
+| Value | Fetches nodes… |
+| --- | --- |
+| `'mainMenu'` | in the menu with a handle of `mainMenu`. |
+| a [Menu](/reference/menu) element | in the menu represented by the element. |
+| a [Menu Settings](/reference/menu-settings) model | in the menu represented by the model. |
+| `null` | in any menu, clearing an earlier `menu`, `menuId` or `handle` value. |
+
+::: code
+```twig Twig
+{# Fetch nodes for a menu element #}
+{% set nodes = craft.navigation.nodes()
+    .menu(menu)
+    .all() %}
+```
+
+```php PHP
+// Fetch nodes for a menu element
+$nodes = \verbb\navigation\elements\Node::find()
+    ->menu($menu)
+    ->all();
+```
+:::
+:::
+
+::: reference
+### `menuHandle`
+
+Narrows the query results to nodes in the menu with the given handle. It's an alias of [handle](#handle).
+
+::: code
+```twig Twig
+{# Fetch nodes for the footer menu #}
+{% set nodes = craft.navigation.nodes()
+    .menuHandle('footerMenu')
+    .all() %}
+```
+
+```php PHP
+// Fetch nodes for the footer menu
+$nodes = \verbb\navigation\elements\Node::find()
+    ->menuHandle('footerMenu')
+    ->all();
+```
+:::
+:::
+
+::: reference
+### `menuId`
+
+Narrows the query results to nodes in the menu with the given ID.
+
+| Value | Fetches nodes… |
+| --- | --- |
+| `1` | in the menu with an ID of 1. |
+| `[1, 2]` | in the menus with an ID of 1 or 2. |
+| `'not 1'` | not in the menu with an ID of 1. |
+
+::: code
+```twig Twig
+{# Fetch nodes for the menu with an ID of 1 #}
+{% set nodes = craft.navigation.nodes()
+    .menuId(1)
+    .all() %}
+```
+
+```php PHP
+// Fetch nodes for the menu with an ID of 1
+$nodes = \verbb\navigation\elements\Node::find()
+    ->menuId(1)
+    ->all();
+```
+:::
+:::
+
+::: reference
 ### `nextSiblingOf`
 
 Narrows the query results to only the node that comes immediately after another node.
 
-Possible values include:
-
-| Value | Fetches the node…
-| - | -
-| `1` | after the node with an ID of 1.
-| a [Node](/reference/node) object | after the node represented by the object.
+| Value | Fetches the node… |
+| --- | --- |
+| `1` | after the node with an ID of 1. |
+| a [Node](/reference/node) object | after the node represented by the object. |
 
 ::: code
 ```twig Twig
@@ -542,9 +629,9 @@ $node = \verbb\navigation\elements\Node::find()
     ->one();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `offset`
 
 Determines how many nodes should be skipped in the results.
@@ -564,9 +651,9 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `orderBy`
 
 Determines the order that the nodes should be returned in.
@@ -586,19 +673,17 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `positionedAfter`
 
 Narrows the query results to only nodes that are positioned after another node.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `1` | after the node with an ID of 1.
-| a [Node](/reference/node) object | after the node represented by the object.
+| Value | Fetches nodes… |
+| --- | --- |
+| `1` | after the node with an ID of 1. |
+| a [Node](/reference/node) object | after the node represented by the object. |
 
 ::: code
 ```twig Twig
@@ -615,19 +700,17 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `positionedBefore`
 
 Narrows the query results to only nodes that are positioned before another node.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `1` | before the node with an ID of 1.
-| a [Node](/reference/node) object | before the node represented by the object.
+| Value | Fetches nodes… |
+| --- | --- |
+| `1` | before the node with an ID of 1. |
+| a [Node](/reference/node) object | before the node represented by the object. |
 
 ::: code
 ```twig Twig
@@ -644,19 +727,17 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `prevSiblingOf`
 
 Narrows the query results to only the node that comes immediately before another node.
 
-Possible values include:
-
-| Value | Fetches the node…
-| - | -
-| `1` | before the node with an ID of 1.
-| a [Node](/reference/node) object | before the node represented by the object.
+| Value | Fetches the node… |
+| --- | --- |
+| `1` | before the node with an ID of 1. |
+| a [Node](/reference/node) object | before the node represented by the object. |
 
 ::: code
 ```twig Twig
@@ -673,19 +754,17 @@ $node = \verbb\navigation\elements\Node::find()
     ->one();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `siblingOf`
 
 Narrows the query results to only nodes that are siblings of another node.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `1` | beside the node with an ID of 1.
-| a [Node](/reference/node) object | beside the node represented by the object.
+| Value | Fetches nodes… |
+| --- | --- |
+| `1` | beside the node with an ID of 1. |
+| a [Node](/reference/node) object | beside the node represented by the object. |
 
 ::: code
 ```twig Twig
@@ -702,21 +781,19 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `site`
 
 Determines which site the nodes should be queried in.
 
 The current site will be used by default.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `'foo'` | from the site with a handle of `foo`.
-| a `\craft\models\Site` object | from the site represented by the object.
+| Value | Fetches nodes… |
+| --- | --- |
+| `'foo'` | from the site with a handle of `foo`. |
+| a `\craft\models\Site` object | from the site represented by the object. |
 
 ::: code
 ```twig Twig
@@ -733,9 +810,9 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `siteId`
 
 Determines which site the nodes should be queried in, per the site’s ID.
@@ -757,59 +834,60 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `status`
 
-Narrows the query results based on the nodes’ statuses.
+Narrows the query results based on the nodes’ statuses. An enabled node is only returned when its menu is also enabled for the queried site.
 
-Possible values include:
-
-| Value | Fetches nodes…
-| - | -
-| `'enabled'` _(default)_ | that are enabled.
-| `'disabled'` | that are disabled.
+| Value | Fetches nodes… |
+| --- | --- |
+| `'enabled'` _(default)_ | that are enabled. |
+| `'disabled'` | that are disabled. |
+| `['enabled', 'disabled']` | that are enabled or disabled. |
+| `null` | regardless of status. |
 
 ::: code
 ```twig Twig
-{# Fetch disabled nodes #}
+{# Fetch all nodes, regardless of status #}
 {% set nodes = craft.navigation.nodes()
-    .status('disabled')
+    .status(null)
     .all() %}
 ```
 
 ```php PHP
-// Fetch disabled nodes
+// Fetch all nodes, regardless of status
 $nodes = \verbb\navigation\elements\Node::find()
-    ->status('disabled')
+    ->status(null)
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `type`
 
-Narrows the query results based on the nodes’ type.
+Narrows the query results based on the nodes’ type, using the node type's class name. In Twig, escape each backslash in the class name.
 
 ::: code
 ```twig Twig
 {# Fetch entry nodes #}
-{% set node = craft.navigation.nodes()
+{% set nodes = craft.navigation.nodes()
     .type('verbb\\navigation\\nodetypes\\Entry')
     .all() %}
 ```
 
 ```php PHP
 // Fetch entry nodes
-$node = \verbb\navigation\elements\Node::find()
+$nodes = \verbb\navigation\elements\Node::find()
     ->type('verbb\\navigation\\nodetypes\\Entry')
     ->all();
 ```
 :::
 
-Available values:
+The built-in node types are listed below. A [custom node type](/developers/custom-node-types) uses its own class name.
+
 - `verbb\navigation\nodetypes\Custom`
 - `verbb\navigation\nodetypes\Passive`
 - `verbb\navigation\nodetypes\Site`
@@ -819,10 +897,9 @@ Available values:
 - `verbb\navigation\nodetypes\Product` (requires Commerce)
 - `verbb\navigation\nodetypes\GroupColumn`
 - `verbb\navigation\nodetypes\Dynamic`
-- A registered custom node type class
+:::
 
-
-
+::: reference
 ### `uid`
 
 Narrows the query results based on the nodes’ UIDs.
@@ -842,14 +919,14 @@ $node = \verbb\navigation\elements\Node::find()
     ->one();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `withLinkedElements`
 
 Batch-loads linked Craft elements before the query returns. Without this flag, the first access to a linked node's `url` or `element` loads the pending linked elements from the query result together. Both approaches preserve Craft URL events and custom node types.
 
-Disables the plugin tree cache for that query.
+The plugin tree cache isn't used for a query with this parameter.
 
 ::: code
 ```twig Twig
@@ -866,14 +943,14 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `withMenu`
 
 Batch-loads the parent Menu element (including menu-level custom fields) for each node.
 
-Disables the plugin tree cache for that query.
+The plugin tree cache isn't used for a query with this parameter.
 
 ::: code
 ```twig Twig
@@ -890,12 +967,12 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `withNavigationCache`
 
-Opt in to the plugin tree cache when **Performance → Cache mode** is set to **Manual**. Ignored in **Auto** and **Static** modes for eligible queries.
+Opts the query in to the plugin tree cache when the [cacheMode](/get-started/configuration#cachemode) setting is `manual`. In `auto` and `static` modes, eligible queries are cached anyway, so the parameter has no effect.
 
 ::: code
 ```twig Twig
@@ -912,18 +989,18 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `withNodeHierarchy`
 
 Wires parent/child relationships in memory after the query executes.
 
 | Value | Behaviour |
 | --- | --- |
-| `null` (default) | Auto on front-end menu-scoped reads; off in the CP and console |
-| `true` | Force hierarchy wiring |
-| `false` | Opt out (children load on demand) |
+| `null` (default) | Wires the hierarchy automatically on front-end queries scoped to a menu, but not in the control panel or console. |
+| `true` | Always wires the hierarchy. |
+| `false` | Never wires the hierarchy, so children load when you access them. |
 
 ::: code
 ```twig Twig
@@ -940,22 +1017,22 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
+:::
 
-
-
+::: reference
 ### `withProjectedChildren`
 
 Controls whether Dynamic nodes append read-time projected children. Projected children are included by default, so calling `withProjectedChildren()` without an argument is unnecessary. Pass `false` when you need only the stored menu nodes.
 
-A Dynamic node remains in the hierarchy and receives the projected items as its children; projections do not replace the Dynamic node. On a normal front-end menu-scoped query, Navigation also wires the hierarchy automatically. Calling `withNodeHierarchy(false)` disables that assembly and is not suitable for recursive rendering that needs projected children.
+A Dynamic node remains in the hierarchy and receives the projected items as its children, so projections don't replace the Dynamic node. On a normal front-end menu-scoped query, Navigation also wires the hierarchy automatically. Calling `withNodeHierarchy(false)` disables that assembly and is not suitable for recursive rendering that needs projected children.
 
 When the hierarchy has been assembled, `node.children` is an `ElementCollection`, not another `NodeQuery`. Apply `withProjectedChildren()` to the original query before calling `all()` rather than calling it on `node.children`.
 
 | Value | Behaviour |
 | --- | --- |
-| `null` (default) | Project children |
-| `true` | Explicitly project children; equivalent to the default |
-| `false` | Skip projection (stored children only) |
+| `null` (default) | Includes projected children. |
+| `true` | Includes projected children, the same as the default. |
+| `false` | Skips projection, so only stored children are returned. |
 
 ::: code
 ```twig Twig
@@ -972,6 +1049,4 @@ $nodes = \verbb\navigation\elements\Node::find()
     ->all();
 ```
 :::
-
-
-<!-- END PARAMS -->
+:::

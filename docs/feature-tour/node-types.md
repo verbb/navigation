@@ -34,4 +34,4 @@ Built-in sources cover Entries, Categories, Assets, and Commerce Products. The c
 
 ## Extend the Available Types
 
-A module or plugin can register types with custom behaviour and additional Dynamic sources. Developers can start with [Node Types](/developers/node-types) and [Dynamic Source Events](/developers/events#the-registerdynamicsources-event). The [Node reference](/reference/node) describes the objects used in templates.
+A module or plugin can register types with custom behaviour and additional Dynamic sources. Developers can start with [Node Types](/developers/custom-node-types) and [Dynamic Source Events](/developers/events#the-registerdynamicsources-event). The [Node reference](/reference/node) describes the objects used in templates.

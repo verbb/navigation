@@ -84,6 +84,10 @@ This example deliberately selects direct siblings. If your design needs all desc
 
 Ordinary truthy checks can remain unchanged.
 
+### Sites That Ran a Beta
+
+A few sites that ran a Navigation 4 beta ended up with menu elements that took over the IDs of other elements. If your site ran a beta, run the [`navigation/menus/fix-menu-element-collisions`](/developers/console-commands#repairs) command after upgrading. It restores the affected elements, moves the colliding menus to their own elements, recreates missing menu elements and restores empty titles on linked entry nodes. Sites that upgrade straight from Navigation 3 don’t need it.
+
 ## Deprecated Changes
 
 These continue to work with deprecation notices. Work through **Utilities → Deprecation Warnings** at your own pace.
@@ -180,4 +184,4 @@ v4 improves read performance without changing typical template output:
 - **`craft.navigation.tree()`** — returns nested arrays; including linked element data in the output is **opt-in** via `{ withLinkedElements: true }`. Use **`nodes()`** when you want node objects with linked elements available on demand.
 - **Passive / group nodes** — use **`node.getTag()`** in custom templates (`span` vs `a`); the default `render()` helper respects this for accessibility.
 
-See [Node Queries](/getting-elements/node-queries) and [Performance & Caching](/frontend/performance-and-caching).
+See [Node Queries](/getting-elements/node-queries) and [Performance & Caching](/frontend/performance-caching).

@@ -1,6 +1,6 @@
 # Menu
 
-A Menu object represents menu-level custom field **values** for a navigation menu — for example mega-menu content, footer copy, or other data attached to the menu rather than individual nodes. In templates, this is the `verbb\navigation\elements\Menu` element.
+A Menu object holds the custom field **values** saved on a navigation menu, such as mega-menu content, footer copy or other data that belongs to the menu rather than to individual nodes. In templates, this is the `verbb\navigation\elements\Menu` element.
 
 ## Query
 
@@ -25,7 +25,7 @@ Menu elements expose standard Craft element properties (`id`, `title`, `siteId`,
 
 **Returns:** `string`
 
-Menu handle string
+Returns the menu’s handle, such as `mainMenu`. It’s an empty string if the menu has no handle.
 :::
 
 
@@ -34,9 +34,9 @@ Menu handle string
 | API | Returns | Use for |
 | --- | --- | --- |
 | `craft.navigation.menu('handle').one()` | **Menu** element | Field values in templates |
-| `craft.navigation.getMenuByHandle('handle')` | **Menu** element | Same as `menu().one()` — a shortcut when you already know the handle |
-| `Navigation::$plugin->getMenus()->getMenuByHandle('handle')` | **MenuSettings** model | CP metadata in PHP — see [Menu Settings](/reference/menu-settings) |
+| `craft.navigation.getMenuByHandle('handle')` | **Menu** element | Same as `menu().one()`, as a shortcut when you already know the handle |
+| `Navigation::$plugin->getMenus()->getMenuByHandle('handle')` | **MenuSettings** model | Menu configuration in PHP. See [Menu Settings](/reference/menu-settings) |
 
 ## GraphQL
 
-Per-menu GraphQL types: `{handle}_Menu`. See [Query Nodes](/graphql/query-nodes).
+Each menu has its own GraphQL type, named after its handle, such as `mainMenu_Menu`. [The `[handle]_Menu` Type](/graphql/interfaces-types#the-handle-menu-type) lists its fields.

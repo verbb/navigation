@@ -18,7 +18,7 @@ Breadcrumbs show a page’s place in a hierarchy. Choose whether that hierarchy 
 
 Pass additional node query criteria as the second argument, for example `craft.navigation.context('mainMenu', { siteId: currentSite.id })`.
 
-For a sidebar example, see [Active State & Context](/template-guides/active-state-and-context). The method list is in the [Context reference](/reference/context).
+For a sidebar example, see [Active State & Context](/template-guides/active-state-context). The method list is in the [Context reference](/reference/context).
 
 ## URL-Segment Breadcrumbs
 
@@ -59,4 +59,4 @@ Dynamic projected pages can appear in the trail when they match the current URL.
 
 ## GraphQL
 
-Headless equivalents: `navigationContext` and `navigationMenuBreadcrumbs`. See [Context & Breadcrumbs](/graphql/context-and-breadcrumbs).
+Headless equivalents: `navigationContext` and `navigationMenuBreadcrumbs`. See [Context & Breadcrumbs](/graphql/context-breadcrumbs).

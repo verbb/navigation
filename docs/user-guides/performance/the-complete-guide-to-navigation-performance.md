@@ -126,7 +126,7 @@ Inspect both parent and child loading in the profiler. For a query used outside 
 
 ## Check Cache Eligibility
 
-Open **Navigation → Settings → Performance**. Auto is the default and caches eligible menu queries. Static uses the configured duration, Manual requires `withNavigationCache()`, and Off disables the plugin cache. See [Performance & Caching](/frontend/performance-and-caching) for the mode comparison.
+Open **Navigation → Settings → Performance**. Auto is the default and caches eligible menu queries. Static uses the configured duration, Manual requires `withNavigationCache()`, and Off disables the plugin cache. See [Performance & Caching](/frontend/performance-caching) for the mode comparison.
 
 Queries with `withLinkedElements()` or `withMenu()` bypass this cache, as do unsupported query shapes such as arbitrary search or ordering. Control-panel, console, and preview reads also bypass the public cache. Test performance through the frontend URL your visitors use.
 

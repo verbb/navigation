@@ -2,7 +2,7 @@
 
 You can serve a menu as JSON and let JavaScript build its links. This guide creates a public endpoint for `mainMenu`, displays the tree in a browser, and highlights links using the page the visitor is actually viewing.
 
-Start with a saved `mainMenu` containing public links and a Craft site that renders Twig templates. You need access to `config/routes.php`, `templates/`, and your frontend’s HTML and JavaScript. If Craft runs with `headlessMode` enabled, use [GraphQL](/graphql/query-nodes) instead of this template route.
+Start with a saved `mainMenu` containing public links and a Craft site that renders Twig templates. You need access to `config/routes.php`, `templates/`, and your frontend’s HTML and JavaScript. If Craft runs with `headlessMode` enabled, use [GraphQL](/graphql/queries) instead of this template route.
 
 ## Create the JSON Endpoint
 
@@ -142,7 +142,7 @@ Only enable linked data when your client needs it, such as entry fields for a pr
 }) %}
 ```
 
-This output option loads linked elements after the underlying node fetch, which can still use Navigation’s tree cache. The response includes linked element arrays, so inspect the fields before exposing them publicly. For a deliberately restricted selection of fields and schema permissions, use [GraphQL](/graphql/query-nodes).
+This output option loads linked elements after the underlying node fetch, which can still use Navigation’s tree cache. The response includes linked element arrays, so inspect the fields before exposing them publicly. For a deliberately restricted selection of fields and schema permissions, use [GraphQL](/graphql/queries).
 
 ## Control the Tree and Cache
 

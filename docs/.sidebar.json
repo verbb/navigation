@@ -24,8 +24,8 @@
         "collapsable": false,
         "children": [
             "template-guides/rendering-nodes",
-            "template-guides/active-state-and-context",
-            "template-guides/context-and-breadcrumbs",
+            "template-guides/active-state-context",
+            "template-guides/context-breadcrumbs",
             "template-guides/navigation-field",
             "template-guides/custom-rendering"
         ]
@@ -34,7 +34,7 @@
         "title": "Frontend",
         "collapsable": false,
         "children": [
-            "frontend/performance-and-caching",
+            "frontend/performance-caching",
             "frontend/headless-trees"
         ]
     },
@@ -42,6 +42,7 @@
         "title": "Getting Elements",
         "collapsable": false,
         "children": [
+            "getting-elements/menu-queries",
             "getting-elements/node-queries"
         ]
     },
@@ -54,20 +55,22 @@
         ]
     },
     {
-        "title": "GraphQL",
-        "collapsable": false,
-        "children": [
-            "graphql/query-nodes",
-            "graphql/context-and-breadcrumbs"
-        ]
-    },
-    {
         "title": "Developers",
         "collapsable": false,
         "children": [
             "developers/events",
-            "developers/node-types",
+            "developers/custom-node-types",
+            "developers/custom-dynamic-sources",
             "developers/console-commands"
+        ]
+    },
+    {
+        "title": "GraphQL",
+        "collapsable": false,
+        "children": [
+            "graphql/queries",
+            "graphql/interfaces-types",
+            "graphql/context-breadcrumbs"
         ]
     },
     {

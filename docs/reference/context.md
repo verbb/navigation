@@ -9,66 +9,66 @@ The current node is the deepest exact URL match and can be a stored Node or a Pr
 ::: reference
 ### `current()`
 
-**Returns:** Deepest exact-match node
+**Returns:** [Node](/reference/node)`|`[Projected Node](/reference/projected-node)`|null`
 
-Deepest exact-match node
+Returns the node for the current page, meaning the deepest node whose URL exactly matches the request URL. It’s `null` when no node matches.
 :::
 
 ::: reference
 ### `currentNodes()`
 
-**Returns:** All exact matches, deepest first
+**Returns:** `array`
 
-All exact matches, deepest first
+Returns every node whose URL exactly matches the request URL, deepest first. A page can appear in a menu more than once, so this can hold several nodes.
 :::
 
 ::: reference
 ### `activeNodes()`
 
-**Returns:** All branch-active nodes
+**Returns:** `array`
 
-All branch-active nodes
+Returns every node that is active for the current page, meaning nodes that match it exactly, contain it in their URL path or have a descendant that matches it.
 :::
 
 ::: reference
 ### `parent()`
 
-**Returns:** Parent of deepest current node
+**Returns:** [Node](/reference/node)`|`[Projected Node](/reference/projected-node)`|null`
 
-Parent of deepest current node
+Returns the parent of the [current()](#current) node. It’s `null` when there’s no current node or the current node is at the top level.
 :::
 
 ::: reference
 ### `ancestors()`
 
-**Returns:** Root → parent of current
+**Returns:** `array`
 
-Root → parent of current
+Returns the ancestors of the [current()](#current) node, from the top level down to its parent. Use it for breadcrumbs.
 :::
 
 ::: reference
 ### `siblings()`
 
-**Returns:** Same-level nodes under shared parent
+**Returns:** `array`
 
-Same-level nodes under shared parent
+Returns the nodes that share the [current()](#current) node’s parent, including the current node itself. For a top-level node, this is every top-level node in the menu.
 :::
 
 ::: reference
 ### `children()`
 
-**Returns:** Direct children of deepest current node
+**Returns:** `array`
 
-Direct children of deepest current node
+Returns the direct children of the [current()](#current) node.
 :::
 
 ::: reference
 ### `branch()`
 
-**Returns:** Ancestors + current + siblings (common sidebar set)
+**Returns:** `array`
 
-Ancestors + current + siblings (common sidebar set)
+Returns the [ancestors()](#ancestors) followed by the [siblings()](#siblings), which is the usual set of links for a section sidebar.
 :::
 
 
-When no node exactly matches the request URL, `current()` and `parent()` return `null`; methods based on that current node return empty arrays. `activeNodes()` can still contain path-active nodes. Supplying criteria does not replace the request URL used for matching.
+When no node exactly matches the request URL, `current()` and `parent()` return `null`, and the methods based on that current node return empty arrays. `activeNodes()` can still contain path-active nodes. Supplying criteria does not replace the request URL used for matching.

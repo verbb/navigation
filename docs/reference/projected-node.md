@@ -35,7 +35,7 @@ For a menu with the handle `mainMenu`, put this example in the Twig template whe
 {% endfor %}
 ```
 
-Each `child` that passes the `isProjected` check is the object described below. The example displays plain text when there is no destination and marks an exact current-page link with `aria-current`. It deliberately shows only projected children one level down; [Rendering Nodes](/template-guides/rendering-nodes) explains rendering a complete menu.
+Each `child` that passes the `isProjected` check is the object described below. The example displays plain text when there is no destination and marks an exact current-page link with `aria-current`. It deliberately shows only projected children one level down. [Rendering Nodes](/template-guides/rendering-nodes) explains rendering a complete menu.
 
 ## Properties
 
@@ -90,7 +90,7 @@ The source element's ID. This identifies the original entry, asset or other elem
 
 **Type:** `int`
 
-The item's depth in the menu. Top-level nodes have level `1`; their immediate projected children have level `2`. This describes menu placement, which can differ from the source element's original structure.
+The item's depth in the menu. Top-level nodes have level `1`, and their immediate projected children have level `2`. This describes menu placement, which can differ from the source element's original structure.
 :::
 
 ::: reference
@@ -106,7 +106,7 @@ The site ID of the source element used for this projection. It provides the site
 
 **Type:** `bool`
 
-Always `true` for a projected node. Use `child.isProjected ?? false` when looping over children that may also contain saved nodes, as the opening example does.
+Whether this is a projected node, which is always `true`. Saved [Node](/reference/node) objects return `false`, so you can check `child.isProjected` when looping over children that mix both, as the opening example does.
 :::
 
 ::: reference
@@ -114,7 +114,7 @@ Always `true` for a projected node. Use `child.isProjected ?? false` when loopin
 
 **Type:** `verbb\navigation\elements\Node|null`
 
-The Dynamic node supplied as the projection's parent. It gives you access to the owning saved node; it is not the source entry's parent in a Craft structure. Guard against `null` before accessing it outside the normal menu output.
+The Dynamic node supplied as the projection's parent. It gives you access to the owning saved node, and it is not the source entry's parent in a Craft structure. Guard against `null` before accessing it outside the normal menu output.
 :::
 
 ::: reference
@@ -130,7 +130,7 @@ Whether the item is an exact match for the current request according to Navigati
 
 **Type:** `bool`
 
-Whether Navigation's active matcher finds a match for this item, including a broader match than an exact current page. Twig's `child.active` reads `getActive()`. Use this for menu highlighting; use `current` when indicating the current page specifically. [Active State & Context](/template-guides/active-state-and-context) explains matching in more detail.
+Whether Navigation's active matcher finds a match for this item, including a broader match than an exact current page. Twig's `child.active` reads `getActive()`. Use this for menu highlighting, and `current` when indicating the current page specifically. [Active State & Context](/template-guides/active-state-context) explains matching in more detail.
 :::
 
 ## Methods
@@ -138,23 +138,25 @@ Whether Navigation's active matcher finds a match for this item, including a bro
 ::: reference
 ### `getUrl()`
 
-**Returns:** `string|null` · **Arguments:** None
+**Returns:** `string|null`
 
 Returns the item's URL when one is available. Otherwise, it tries to build a site URL from its URI and site ID. It returns `null` when neither a URL nor a URI is available. The opening example uses this method before deciding whether to render a link.
 :::
 
 ::: reference
-### `getLink(attributes)`
+### `getLink()`
 
-**Returns:** `Twig\Markup|null` · **Arguments:** Optional attribute array, default `null`
+**Returns:** `Twig\Markup|null`
 
-Renders an escaped title inside a link when there is a destination, or escaped plain text when there is not. The implementation returns markup for both cases; the declared return type also permits `null`. This is useful when you do not need to write the anchor yourself:
+**Arguments:** `attributes` (`array|null`, default `null`), extra HTML attributes to add to the tag
+
+Returns the escaped title inside a link when the item has a destination, or as plain text when it doesn’t. It always returns markup in practice, although the declared return type also allows `null`. Use it when you don’t need to write the anchor yourself.
 
 ```twig
 {{ child.getLink({class: 'menu-link'}) }}
 ```
 
-The returned markup is ready to render; you do not need to add Twig's `raw` filter.
+The returned markup is ready to render, so you do not need to add Twig's `raw` filter.
 :::
 
 ## Opt Out
@@ -163,4 +165,4 @@ To read saved nodes without adding projected children, use `withProjectedChildre
 
 ## GraphQL
 
-Projected items use the `ProjectedNavigationNode` type with an `isProjected` field. See [GraphQL](/graphql/query-nodes) for querying Navigation through a schema.
+Projected items use the `ProjectedNavigationNode` type with an `isProjected` field. See [Interfaces & Types](/graphql/interfaces-types#the-projectednavigationnode-type) for its fields.
