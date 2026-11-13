@@ -15,7 +15,8 @@
         "children": [
             "feature-tour/overview",
             "feature-tour/menu-fields",
-            "feature-tour/node-types"
+            "feature-tour/node-types",
+            "feature-tour/permissions"
         ]
     },
     {

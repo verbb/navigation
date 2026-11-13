@@ -12,7 +12,7 @@ return [
 ];
 ```
 
-All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults.
+All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults. You can also manage many of these settings in the control panel under **Navigation → Settings**.
 
 ## Configuration Options
 
@@ -84,29 +84,3 @@ Controls how much data is stored in the cache. Use `lite`, `standard` (default),
 
 Sets the TTL in seconds when cache mode is `static`.
 :::
-
-
-### Menus (Project Config)
-
-Menu definitions are stored in Craft’s project config unless `bypassProjectConfig` is `true` and `allowAdminChanges` is `false`. This lets your development workflow carry menu settings, permissions, and field layouts between environments. Node trees and the values entered in menu fields are content, stored separately as Craft elements.
-
-Manage these settings in **Navigation → Menus**. You do not need to edit the generated YAML to create a menu. See [Overview](/feature-tour/overview) for the builder workflow.
-
-## Control Panel
-
-You can also manage many configuration settings through the control panel by visiting **Navigation → Settings**.
-
-### Permissions
-
-Navigation registers Craft user permissions under **Settings → Users → {user group} → Navigation**. Assign:
-
-| Permission | Purpose |
-| --- | --- |
-| **Create menus** | Create new menus in the control panel |
-| **Manage “{menu}”** | Open the menu builder and manage nodes |
-| **Edit menu settings** | Edit menu settings for that menu (nested under **Manage**) |
-| **Delete menu** | Delete that menu (nested under **Manage**) |
-
-Per-menu permissions are created automatically when a menu is saved. Restrict which node types appear in the menu builder using each menu’s **Permissions** tab.
-
-Menu-specific limits (max levels, max nodes, propagation, field layouts) are configured per menu in **Navigation → Menus**, not in `navigation.php`.
