@@ -26,10 +26,12 @@ class StructureLimits
 
         try {
             Craft::$app->getDb()->transaction(function() use ($menu, $siteId, $callback, $skipIds, $previous) {
+                $before = !$previous && self::_hasLimits($menu) ? self::_tree($menu, $siteId) : null;
+
                 $callback();
 
-                if (!$previous && ($menu->maxNodes || $menu->maxLevels || $menu->maxNodesSettings)) {
-                    self::_validate($menu, array_diff_key(self::_tree($menu, $siteId), $skipIds));
+                if ($before !== null) {
+                    self::_validate($menu, array_diff_key(self::_tree($menu, $siteId), $skipIds), $before);
                 }
             });
         } finally {
@@ -41,10 +43,20 @@ class StructureLimits
         }
     }
 
-    public static function requireCurrent(MenuSettings $menu, int $siteId): void
+    /** Capture the tree before a change, so `requireCurrent()` can tell what the change added. */
+    public static function snapshot(MenuSettings $menu, int $siteId): ?array
     {
-        if (!isset(self::$_batches[$menu->id . ':' . $siteId]) && ($menu->maxNodes || $menu->maxLevels || $menu->maxNodesSettings)) {
-            self::_validate($menu, self::_tree($menu, $siteId));
+        if (isset(self::$_batches[$menu->id . ':' . $siteId]) || !self::_hasLimits($menu)) {
+            return null;
+        }
+
+        return self::_tree($menu, $siteId);
+    }
+
+    public static function requireCurrent(MenuSettings $menu, int $siteId, array $before): void
+    {
+        if (!isset(self::$_batches[$menu->id . ':' . $siteId]) && self::_hasLimits($menu)) {
+            self::_validate($menu, self::_tree($menu, $siteId), $before);
         }
     }
 
@@ -56,14 +68,15 @@ class StructureLimits
         if (!$node instanceof Node || !$node->getIsCanonical()) {
             return;
         }
+
         $menu = Navigation::$plugin->getMenus()->getMenuById($node->menuId);
 
-        if (!$menu || (!$menu->maxNodes && !$menu->maxLevels && !$menu->maxNodesSettings)
-            || isset(self::$_batches[$menu->id . ':' . $node->siteId])) {
+        if (!$menu || !self::_hasLimits($menu) || isset(self::$_batches[$menu->id . ':' . $node->siteId])) {
             return;
         }
 
-        $tree = self::_tree($menu, (int)$node->siteId);
+        $before = self::_tree($menu, (int)$node->siteId);
+        $tree = $before;
         $target = $event->targetElementId ? ($tree[$event->targetElementId] ?? null) : null;
         $asChild = in_array($event->action, [Structures::ACTION_APPEND, Structures::ACTION_PREPEND], true);
         $parentId = $asChild ? ($target['id'] ?? null) : ($target['parentId'] ?? null);
@@ -78,12 +91,14 @@ class StructureLimits
                     $row['level'] += $delta;
                 }
             }
+
             unset($row);
         }
+
         $tree[$node->id] = ['id' => $node->id, 'parentId' => $parentId, 'level' => $level];
 
         try {
-            self::_validate($menu, $tree);
+            self::_validate($menu, $tree, $before);
         } catch (BadRequestHttpException) {
             // A false event result lets Craft release its structure mutex normally.
             $event->isValid = false;
@@ -103,37 +118,63 @@ class StructureLimits
             while ($stack && end($stack)['rgt'] < $row['lft']) {
                 array_pop($stack);
             }
+
             $row['parentId'] = $stack ? end($stack)['id'] : null;
             $row['level'] = (int)$row['level'];
             $tree[$row['id']] = $row;
             $stack[] = $row;
         }
+
         return $tree;
     }
 
-    private static function _validate(MenuSettings $menu, array $tree): void
+    private static function _hasLimits(MenuSettings $menu): bool
+    {
+        return $menu->maxNodes || $menu->maxLevels || $menu->maxNodesSettings;
+    }
+
+    /**
+     * Limits can be lowered below a menu's current size, so only a breach the change itself adds
+     * fails. Deleting, editing or reordering nodes in a menu that's already over a limit still works.
+     */
+    private static function _validate(MenuSettings $menu, array $tree, array $before): void
     {
         // Native duplication, restoration and imports do not share the builder's temporary-node list.
-        if ($menu->maxNodes && count($tree) > $menu->maxNodes) {
+        if ($menu->maxNodes && count($tree) > $menu->maxNodes && count($tree) > count($before)) {
             throw new BadRequestHttpException(Craft::t('navigation', 'Exceeded maximum allowed nodes ({number}) for this menu.', ['number' => $menu->maxNodes]));
         }
 
-        $counts = [];
+        $counts = self::_levelCounts($tree);
+        $beforeCounts = self::_levelCounts($before);
 
-        foreach ($tree as $row) {
-            if ($menu->maxLevels && $row['level'] > $menu->maxLevels) {
+        foreach ($tree as $id => $row) {
+            if ($menu->maxLevels && $row['level'] > $menu->maxLevels && $row['level'] > ($before[$id]['level'] ?? 0)) {
                 throw new BadRequestHttpException(Craft::t('navigation', 'Maximum menu depth exceeded.'));
             }
-            $key = $row['level'] . ':' . ($row['parentId'] ?? 'root');
-            $counts[$key] = ($counts[$key] ?? 0) + 1;
+        }
+
+        foreach ($counts as $key => $count) {
+            $level = (int)explode(':', $key)[0];
 
             foreach ($menu->maxNodesSettings ?? [] as $limit) {
-                if (isset($limit['level'], $limit['max']) && (int)$limit['level'] === $row['level']
-                    && $counts[$key] > (int)$limit['max']) {
+                if (isset($limit['level'], $limit['max']) && (int)$limit['level'] === $level
+                    && $count > (int)$limit['max'] && $count > ($beforeCounts[$key] ?? 0)) {
                     throw new BadRequestHttpException(Craft::t('navigation', 'Exceeded maximum allowed nodes for this level.'));
                 }
             }
         }
+    }
+
+    private static function _levelCounts(array $tree): array
+    {
+        $counts = [];
+
+        foreach ($tree as $row) {
+            $key = $row['level'] . ':' . ($row['parentId'] ?? 'root');
+            $counts[$key] = ($counts[$key] ?? 0) + 1;
+        }
+
+        return $counts;
     }
 
 

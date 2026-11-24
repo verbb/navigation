@@ -386,6 +386,7 @@ class Node extends Element
     private ?int $_linkedElementSiteId = null;
     private ?Menu $_eagerLoadedMenu = null;
     private bool $_eagerLoadedMenuResolved = false;
+    private ?array $_limitTreeBeforeDelete = null;
     // Read-time Dynamic projections — kept off Craft's ElementCollection so
     // getEagerLoadedElements() never runs setNextPrev across Node ↔ ProjectedNode.
     private array $_projectedChildren = [];
@@ -564,6 +565,7 @@ class Node extends Element
 
             if ($state['sites']) {
                 $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] = $state;
+
                 return;
             }
         }
@@ -1222,15 +1224,19 @@ class Node extends Element
                 switch ($nav->propagationMethod) {
                     case MenuSettings::PROPAGATION_METHOD_NONE:
                         $include = $siteSettings->siteId == $this->siteId;
+
                         break;
                     case MenuSettings::PROPAGATION_METHOD_SITE_GROUP:
                         $include = $allSites[$siteSettings->siteId]->groupId == $allSites[$this->siteId]->groupId;
+
                         break;
                     case MenuSettings::PROPAGATION_METHOD_LANGUAGE:
                         $include = $allSites[$siteSettings->siteId]->language == $allSites[$this->siteId]->language;
+
                         break;
                     default:
                         $include = true;
+
                         break;
                 }
 
@@ -1484,6 +1490,17 @@ class Node extends Element
             return false;
         }
 
+        // Promoting children can fill a level, so `afterDelete()` compares against the tree as it was.
+        $this->_limitTreeBeforeDelete = null;
+
+        if (!$this->deletedWithMenu && $this->getIsCanonical()) {
+            $menu = Navigation::$plugin->getMenus()->getMenuById($this->menuId);
+
+            if ($menu) {
+                $this->_limitTreeBeforeDelete = StructureLimits::snapshot($menu, (int)$this->siteId);
+            }
+        }
+
         // Update the node record
         $data = [
             'deletedWithMenu' => $this->deletedWithMenu,
@@ -1515,12 +1532,14 @@ class Node extends Element
 
         // Craft has promoted children but has not committed the deletion yet.
         // Whole-menu removal intentionally discards the entire constrained tree.
-        if (!$this->deletedWithMenu && $this->getIsCanonical()) {
+        if ($this->_limitTreeBeforeDelete !== null) {
             $menu = Navigation::$plugin->getMenus()->getMenuById($this->menuId);
 
             if ($menu) {
-                StructureLimits::requireCurrent($menu, (int)$this->siteId);
+                StructureLimits::requireCurrent($menu, (int)$this->siteId, $this->_limitTreeBeforeDelete);
             }
+
+            $this->_limitTreeBeforeDelete = null;
         }
     }
 
@@ -1721,6 +1740,12 @@ class Node extends Element
         $rules[] = [
             'level',
             function($attribute, $params, Validator $validator): void {
+                // Limits stop nodes being added. Saving a stored node adds nothing, so it stays editable when a
+                // lowered limit leaves the menu over it. `StructureLimits` checks any move the save makes.
+                if ($this->id || $this->getIsDraft() || $this->getIsRevision()) {
+                    return;
+                }
+
                 $nav = $this->getMenuSettings();
 
                 // Check for max nodes
@@ -1984,12 +2009,14 @@ EOD;
             foreach (['root', 'lft', 'rgt', 'level'] as $attribute) {
                 $this->$attribute = (int)$row[$attribute];
             }
+
             return;
         }
 
         if (isset($ancestors[$this->id])) {
             throw new UserException(Craft::t('navigation', 'Couldn’t restore a circular node hierarchy.'));
         }
+
         $ancestors[$this->id] = true;
 
         $parentId = (new Query())
@@ -2036,6 +2063,7 @@ EOD;
 
             if ($parentId == $canonicalParentId) {
                 $structuresService->remove($this->structureId, $this);
+
                 return;
             }
         }
