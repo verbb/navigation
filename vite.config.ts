@@ -62,6 +62,7 @@ export default defineConfig(({ mode }) => {
         preserveEntrySignatures: 'strict',
         input: {
           builder: path.resolve(webRoot, 'src/main.tsx'),
+          'menus-index': path.resolve(webRoot, 'src/menus-index.ts'),
         },
       },
     },

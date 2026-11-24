@@ -245,7 +245,7 @@ export function NodeTree() {
     return (
       <StatePanel
         variant="empty"
-        heading={t('No nodes yet')}
+        heading={t('Add your first node')}
         className="[--pk-state-panel-min-height:20rem]"
       >
         <span>{t('Use the sidebar to add your first node.')}</span>
@@ -325,7 +325,7 @@ export function NodeTree() {
           variant="empty"
           size="sm"
           hideIcon
-          heading={t('No nodes match the selected status.')}
+          heading={t('No nodes match the selected status')}
           className="[--pk-state-panel-min-height:8rem]"
         />
       )}

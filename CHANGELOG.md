@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added a first-run screen to the Menus page, shown until the first menu exists, with a New menu button for people who can create menus.
+
+### Changed
+- Changed the menu builder’s empty-state headings, so an empty menu reads “Add your first node” and a status filter with no matches reads “No nodes match the selected status”.
+
 ## 4.1.0 - 2026-11-05
 
 ### Added

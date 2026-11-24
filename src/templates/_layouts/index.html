@@ -2,6 +2,11 @@
 
 {% do view.registerAssetBundle('verbb\\navigation\\web\\assets\\cp\\NavigationCpAsset') %}
 
+{# A page that is one empty state sits straight on the page background, without Craft's content pane around it. #}
+{% if bareContent ?? false %}
+    {% set bodyClass = (bodyClass ?? [])|explodeClass|push('navigation-bare-content') %}
+{% endif %}
+
 {% if title is not defined %}
     {% set title = craft.navigation.getPluginName() %}
 {% endif %}
@@ -11,8 +16,10 @@
 
     {% endblock %}
 
+    {# A page that is one empty state leaves Verbb's footer off. #}
+    {% if not (hidePluginFooter ?? false) %}
     <hr>
-    
+
     <div id="plugin-footer">
         <div class="footer-left">
             {% block footerButton %}
@@ -34,4 +41,5 @@
             </a>
         </div>
     </div>
+    {% endif %}
 {% endblock %}

@@ -1,278 +1,300 @@
 {
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/AutocompleteField.js": {
-    "file": "assets/AutocompleteField-CJDBr0TA.js",
-    "name": "AutocompleteField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/AutocompleteField.js",
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-core/dist/utils/markdown.js": {
+    "file": "assets/markdown-f6D2S5dO.js",
+    "name": "markdown",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-core/dist/utils/markdown.js",
     "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_pk-select-CpF5WOhn-y5xrX8iD.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
-      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
-      "_Select-BJpJpCag.js",
-      "_pk-clear-DHxP_2cm-BHgvcQ98.js",
-      "_useEngineField-DV7poIfG.js",
-      "_option-filter-BkKyBg8L-vJdQCq8o.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js": {
-    "file": "assets/CheckboxSelectField-BhMaHIXE.js",
-    "name": "CheckboxSelectField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_pk-checkbox-bfqcQikR-65sfIG8o.js",
-      "_useEngineField-DV7poIfG.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js": {
-    "file": "assets/CodeEditorField-Di-TjJXI.js",
-    "name": "CodeEditorField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
-      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
-      "_useEngineField-DV7poIfG.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ColorField.js": {
-    "file": "assets/ColorField-wbYrc4_c.js",
-    "name": "ColorField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ColorField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
-      "_required-validator-I58oJGZ3-Do2Ml_-w.js",
-      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
-      "_useEngineField-DV7poIfG.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js": {
-    "file": "assets/ComboboxField-DggG9z8O.js",
-    "name": "ComboboxField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_pk-select-CpF5WOhn-y5xrX8iD.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
-      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
-      "_Select-BJpJpCag.js",
-      "_pk-clear-DHxP_2cm-BHgvcQ98.js",
-      "_useEngineField-DV7poIfG.js",
-      "_option-filter-BkKyBg8L-vJdQCq8o.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/DateTimeField.js": {
-    "file": "assets/DateTimeField-BSgjO0MF.js",
-    "name": "DateTimeField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/DateTimeField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_pk-select-CpF5WOhn-y5xrX8iD.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
-      "_required-validator-I58oJGZ3-Do2Ml_-w.js",
-      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
-      "_field-labels-pY-gQDwQ-qJ92s-2-.js",
-      "_pk-clear-DHxP_2cm-BHgvcQ98.js",
-      "_useEngineField-DV7poIfG.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/GroupField.js": {
-    "file": "assets/GroupField-4oSzPaDg.js",
-    "name": "GroupField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/GroupField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js": {
-    "file": "assets/LightswitchField-TgYaAULK.js",
-    "name": "LightswitchField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_Field-BW9S1s7O.js",
-      "_Lightswitch-CyELh9ql.js",
-      "_useEngineField-DV7poIfG.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js": {
-    "file": "assets/NumberField-IIimOTAe.js",
-    "name": "NumberField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_Field-BW9S1s7O.js",
-      "_useEngineField-DV7poIfG.js",
-      "_Input-CfdG1Ow9.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js": {
-    "file": "assets/RadioGroupField-BQqpRzLL.js",
-    "name": "RadioGroupField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_dist-CRYcAgQf.js",
-      "_pk-change-BMLA71i0.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
-      "_required-validator-I58oJGZ3-Do2Ml_-w.js",
-      "_field-labels-pY-gQDwQ-qJ92s-2-.js",
-      "_useEngineField-DV7poIfG.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js": {
-    "file": "assets/SelectField-DCqKwX0p.js",
-    "name": "SelectField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_dist-CRYcAgQf.js",
-      "_SelectInput-_DwMogbS.js",
-      "_useEngineField-DV7poIfG.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js": {
-    "file": "assets/TextField-CPmdX3lc.js",
-    "name": "TextField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_Field-BW9S1s7O.js",
-      "_useEngineField-DV7poIfG.js",
-      "_Input-CfdG1Ow9.js"
-    ]
-  },
-  "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js": {
-    "file": "assets/TextareaField-IUhCiKnf.js",
-    "name": "TextareaField",
-    "src": "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
-      "_required-validator-I58oJGZ3-Do2Ml_-w.js",
-      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
-      "_field-labels-pY-gQDwQ-qJ92s-2-.js",
-      "_useEngineField-DV7poIfG.js",
-      "_if-defined-BQgLTGQn.js"
-    ]
-  },
-  "_Field-BW9S1s7O.js": {
-    "file": "assets/Field-BW9S1s7O.js",
-    "name": "Field",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js"
     ]
   },
-  "_Input-CfdG1Ow9.js": {
-    "file": "assets/Input-CfdG1Ow9.js",
-    "name": "Input",
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/AutocompleteField.js": {
+    "file": "assets/AutocompleteField-fJowWHKc.js",
+    "name": "AutocompleteField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/AutocompleteField.js",
+    "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_button-group-item.styles-D7tuu-sr-CQ2EXAh9.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_pk-state-panel-BjL_ch5N-AWLf37t3.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-select-k-9zcdRA-DqwxplAw.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
+      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
+      "_Select-Dvz9CNbT.js",
+      "_pk-clear-DHxP_2cm-BHgvcQ98.js",
+      "_useEngineField-DQWxc6v3.js",
+      "_option-filter-BkKyBg8L-flHV4kTt.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js": {
+    "file": "assets/CheckboxSelectField-BqPSAFT5.js",
+    "name": "CheckboxSelectField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-checkbox-bfqcQikR-7zbKwb9q.js",
+      "_useEngineField-DQWxc6v3.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/CodeEditorField.js": {
+    "file": "assets/CodeEditorField-6k9hEZWx.js",
+    "name": "CodeEditorField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/CodeEditorField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
+      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
+      "_useEngineField-DQWxc6v3.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ColorField.js": {
+    "file": "assets/ColorField-D5Tweb9-.js",
+    "name": "ColorField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ColorField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
+      "_required-validator-I58oJGZ3-Do2Ml_-w.js",
+      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
+      "_useEngineField-DQWxc6v3.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ComboboxField.js": {
+    "file": "assets/ComboboxField-CWS_IFTV.js",
+    "name": "ComboboxField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ComboboxField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_pk-state-panel-BjL_ch5N-AWLf37t3.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-select-k-9zcdRA-DqwxplAw.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
+      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
+      "_Select-Dvz9CNbT.js",
+      "_pk-clear-DHxP_2cm-BHgvcQ98.js",
+      "_useEngineField-DQWxc6v3.js",
+      "_option-filter-BkKyBg8L-flHV4kTt.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/DateTimeField.js": {
+    "file": "assets/DateTimeField-CmBDKyHS.js",
+    "name": "DateTimeField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/DateTimeField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_pk-state-panel-BjL_ch5N-AWLf37t3.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-select-k-9zcdRA-DqwxplAw.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
       "_required-validator-I58oJGZ3-Do2Ml_-w.js",
       "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
       "_field-labels-pY-gQDwQ-qJ92s-2-.js",
       "_pk-clear-DHxP_2cm-BHgvcQ98.js",
-      "_if-defined-BQgLTGQn.js"
+      "_useEngineField-DQWxc6v3.js"
     ]
   },
-  "_Lightswitch-CyELh9ql.js": {
-    "file": "assets/Lightswitch-CyELh9ql.js",
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/GroupField.js": {
+    "file": "assets/GroupField-C2PszrAK.js",
+    "name": "GroupField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/GroupField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_Field-BP9aDAQp.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/LightswitchField.js": {
+    "file": "assets/LightswitchField-Ex1aPuQh.js",
+    "name": "LightswitchField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/LightswitchField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_Field-BP9aDAQp.js",
+      "_Lightswitch-Br_lfuSF.js",
+      "_useEngineField-DQWxc6v3.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/NumberField.js": {
+    "file": "assets/NumberField-B6jmPIt8.js",
+    "name": "NumberField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/NumberField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_Field-BP9aDAQp.js",
+      "_useEngineField-DQWxc6v3.js",
+      "_Input-BLwE8_dp.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/RadioGroupField.js": {
+    "file": "assets/RadioGroupField-BHJb03of.js",
+    "name": "RadioGroupField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_Field-BP9aDAQp.js",
+      "_dist-CBfNr_GN.js",
+      "_pk-change-BMLA71i0.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
+      "_required-validator-I58oJGZ3-Do2Ml_-w.js",
+      "_field-labels-pY-gQDwQ-qJ92s-2-.js",
+      "_useEngineField-DQWxc6v3.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/SelectField.js": {
+    "file": "assets/SelectField-CD0egRKA.js",
+    "name": "SelectField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/SelectField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_Field-BP9aDAQp.js",
+      "_dist-CBfNr_GN.js",
+      "_SelectInput-B7CNQkls.js",
+      "_useEngineField-DQWxc6v3.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextField.js": {
+    "file": "assets/TextField-CRvDZIaC.js",
+    "name": "TextField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_Field-BP9aDAQp.js",
+      "_useEngineField-DQWxc6v3.js",
+      "_Input-BLwE8_dp.js"
+    ]
+  },
+  "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextareaField.js": {
+    "file": "assets/TextareaField-BuN0FZCA.js",
+    "name": "TextareaField",
+    "src": "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextareaField.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
+      "_required-validator-I58oJGZ3-Do2Ml_-w.js",
+      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
+      "_field-labels-pY-gQDwQ-qJ92s-2-.js",
+      "_useEngineField-DQWxc6v3.js",
+      "_if-defined-DqVVutk0.js"
+    ]
+  },
+  "_Field-BP9aDAQp.js": {
+    "file": "assets/Field-BP9aDAQp.js",
+    "name": "Field",
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_unsafe-html-Bkg8v41K.js"
+    ],
+    "dynamicImports": [
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-core/dist/utils/markdown.js"
+    ]
+  },
+  "_Input-BLwE8_dp.js": {
+    "file": "assets/Input-BLwE8_dp.js",
+    "name": "Input",
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_pk-state-panel-BjL_ch5N-AWLf37t3.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
+      "_required-validator-I58oJGZ3-Do2Ml_-w.js",
+      "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
+      "_field-labels-pY-gQDwQ-qJ92s-2-.js",
+      "_pk-clear-DHxP_2cm-BHgvcQ98.js",
+      "_if-defined-DqVVutk0.js"
+    ]
+  },
+  "_Lightswitch-Br_lfuSF.js": {
+    "file": "assets/Lightswitch-Br_lfuSF.js",
     "name": "Lightswitch",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_Field-BP9aDAQp.js",
       "_pk-change-BMLA71i0.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
       "_required-validator-I58oJGZ3-Do2Ml_-w.js",
       "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
       "_field-labels-pY-gQDwQ-qJ92s-2-.js"
     ]
   },
-  "_Select-BJpJpCag.js": {
-    "file": "assets/Select-BJpJpCag.js",
+  "_Select-Dvz9CNbT.js": {
+    "file": "assets/Select-Dvz9CNbT.js",
     "name": "Select",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_pk-select-CpF5WOhn-y5xrX8iD.js"
+      "_unsafe-html-Bkg8v41K.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-select-k-9zcdRA-DqwxplAw.js"
     ]
   },
-  "_SelectInput-_DwMogbS.js": {
-    "file": "assets/SelectInput-_DwMogbS.js",
+  "_SelectInput-B7CNQkls.js": {
+    "file": "assets/SelectInput-B7CNQkls.js",
     "name": "SelectInput",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_Select-BJpJpCag.js"
+      "_unsafe-html-Bkg8v41K.js",
+      "_Field-BP9aDAQp.js",
+      "_Select-Dvz9CNbT.js"
     ]
   },
-  "_button-group-item.styles-D7tuu-sr-CQ2EXAh9.js": {
-    "file": "assets/button-group-item.styles-D7tuu-sr-CQ2EXAh9.js",
-    "name": "button-group-item.styles-D7tuu-sr",
-    "imports": [
-      "_Field-BW9S1s7O.js"
-    ]
-  },
-  "_dist-CRYcAgQf.js": {
-    "file": "assets/dist-CRYcAgQf.js",
+  "_dist-CBfNr_GN.js": {
+    "file": "assets/dist-CBfNr_GN.js",
     "name": "dist"
   },
   "_field-labels-pY-gQDwQ-qJ92s-2-.js": {
     "file": "assets/field-labels-pY-gQDwQ-qJ92s-2-.js",
     "name": "field-labels-pY-gQDwQ"
   },
-  "_if-defined-BQgLTGQn.js": {
-    "file": "assets/if-defined-BQgLTGQn.js",
+  "_if-defined-DqVVutk0.js": {
+    "file": "assets/if-defined-DqVVutk0.js",
     "name": "if-defined",
     "imports": [
-      "_Field-BW9S1s7O.js"
+      "_unsafe-html-Bkg8v41K.js",
+      "_Field-BP9aDAQp.js"
     ]
   },
   "_mirror-validator-BkZlEv1Z-BuTMKpbu.js": {
     "file": "assets/mirror-validator-BkZlEv1Z-BuTMKpbu.js",
     "name": "mirror-validator-BkZlEv1Z"
   },
-  "_option-filter-BkKyBg8L-vJdQCq8o.js": {
-    "file": "assets/option-filter-BkKyBg8L-vJdQCq8o.js",
+  "_option-filter-BkKyBg8L-flHV4kTt.js": {
+    "file": "assets/option-filter-BkKyBg8L-flHV4kTt.js",
     "name": "option-filter-BkKyBg8L",
     "imports": [
-      "_pk-select-CpF5WOhn-y5xrX8iD.js"
+      "_pk-select-k-9zcdRA-DqwxplAw.js"
     ]
   },
   "_pk-change-BMLA71i0.js": {
     "file": "assets/pk-change-BMLA71i0.js",
     "name": "pk-change"
   },
-  "_pk-checkbox-bfqcQikR-65sfIG8o.js": {
-    "file": "assets/pk-checkbox-bfqcQikR-65sfIG8o.js",
+  "_pk-checkbox-bfqcQikR-7zbKwb9q.js": {
+    "file": "assets/pk-checkbox-bfqcQikR-7zbKwb9q.js",
     "name": "pk-checkbox-bfqcQikR",
     "imports": [
-      "_Field-BW9S1s7O.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
       "_required-validator-I58oJGZ3-Do2Ml_-w.js"
     ]
   },
@@ -280,21 +302,30 @@
     "file": "assets/pk-clear-DHxP_2cm-BHgvcQ98.js",
     "name": "pk-clear-DHxP_2cm"
   },
-  "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js": {
-    "file": "assets/pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
+  "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js": {
+    "file": "assets/pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
     "name": "pk-form-associated-element-Doh2K3pG",
     "imports": [
-      "_Field-BW9S1s7O.js"
+      "_unsafe-html-Bkg8v41K.js"
     ]
   },
-  "_pk-select-CpF5WOhn-y5xrX8iD.js": {
-    "file": "assets/pk-select-CpF5WOhn-y5xrX8iD.js",
-    "name": "pk-select-CpF5WOhn",
+  "_pk-select-k-9zcdRA-DqwxplAw.js": {
+    "file": "assets/pk-select-k-9zcdRA-DqwxplAw.js",
+    "name": "pk-select-k-9zcdRA",
     "imports": [
-      "_Field-BW9S1s7O.js",
-      "_pk-form-associated-element-Doh2K3pG-BG1PdhXn.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_pk-state-panel-BjL_ch5N-AWLf37t3.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-form-associated-element-Doh2K3pG-k2mXYgQu.js",
       "_mirror-validator-BkZlEv1Z-BuTMKpbu.js",
       "_pk-clear-DHxP_2cm-BHgvcQ98.js"
+    ]
+  },
+  "_pk-state-panel-BjL_ch5N-AWLf37t3.js": {
+    "file": "assets/pk-state-panel-BjL_ch5N-AWLf37t3.js",
+    "name": "pk-state-panel-BjL_ch5N",
+    "imports": [
+      "_unsafe-html-Bkg8v41K.js"
     ]
   },
   "_required-validator-I58oJGZ3-Do2Ml_-w.js": {
@@ -305,47 +336,67 @@
     "file": "assets/rolldown-runtime-XKyaHtl9.js",
     "name": "rolldown-runtime"
   },
-  "_useEngineField-DV7poIfG.js": {
-    "file": "assets/useEngineField-DV7poIfG.js",
+  "_unsafe-html-Bkg8v41K.js": {
+    "file": "assets/unsafe-html-Bkg8v41K.js",
+    "name": "unsafe-html",
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js"
+    ]
+  },
+  "_useEngineField-DQWxc6v3.js": {
+    "file": "assets/useEngineField-DQWxc6v3.js",
     "name": "useEngineField",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js"
+      "_Field-BP9aDAQp.js"
     ]
   },
   "src/main.tsx": {
-    "file": "assets/builder-Ce06qXHB.js",
+    "file": "assets/builder-B_98wF1s.js",
     "name": "builder",
     "src": "src/main.tsx",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_Field-BW9S1s7O.js",
-      "_pk-select-CpF5WOhn-y5xrX8iD.js",
-      "_dist-CRYcAgQf.js",
-      "_button-group-item.styles-D7tuu-sr-CQ2EXAh9.js",
+      "_unsafe-html-Bkg8v41K.js",
+      "_pk-state-panel-BjL_ch5N-AWLf37t3.js",
+      "_Field-BP9aDAQp.js",
+      "_pk-select-k-9zcdRA-DqwxplAw.js",
+      "_dist-CBfNr_GN.js",
       "_pk-change-BMLA71i0.js",
-      "_pk-checkbox-bfqcQikR-65sfIG8o.js",
-      "_SelectInput-_DwMogbS.js",
-      "_Lightswitch-CyELh9ql.js"
+      "_pk-checkbox-bfqcQikR-7zbKwb9q.js",
+      "_SelectInput-B7CNQkls.js",
+      "_Lightswitch-Br_lfuSF.js"
     ],
     "dynamicImports": [
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ColorField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/AutocompleteField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/GroupField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/DateTimeField.js",
-      "../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js"
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextareaField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/NumberField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/SelectField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/LightswitchField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ColorField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/AutocompleteField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ComboboxField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/GroupField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/DateTimeField.js",
+      "../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/CodeEditorField.js"
     ],
     "css": [
-      "assets/builder-3HKrauDt.css"
+      "assets/builder-Yh-lqTwb.css"
+    ]
+  },
+  "src/menus-index.ts": {
+    "file": "assets/menus-index-ClQxS7DR.js",
+    "name": "menus-index",
+    "src": "src/menus-index.ts",
+    "isEntry": true,
+    "imports": [
+      "_pk-state-panel-BjL_ch5N-AWLf37t3.js"
+    ],
+    "css": [
+      "assets/menus-index-CbR04ElA.css"
     ]
   }
 }

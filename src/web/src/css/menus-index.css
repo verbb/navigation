@@ -1,0 +1,38 @@
+/* The Menus index before the first menu exists: Plugin Kit's page empty state, straight on the page background. */
+.navigation-bare-content #content.content-pane {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.navigation-bare-content #content > pk-state-panel[layout='page'] {
+    flex: 1 1 auto;
+}
+
+/* Navigation's spot illustration in that state: a duotone in Navigation's brand colour (#5e5378, from icon.svg), a
+   darker line on white with soft tinted fills and the middle link in the brand colour itself. */
+.navigation-spot {
+    --navigation-spot-line: #4a4160;
+    --navigation-spot-tint: #ebe8f1;
+    --navigation-spot-link: #5e5378;
+    overflow: visible;
+}
+
+.navigation-spot :is(.navigation-spot__paper, .navigation-spot__fill) {
+    stroke: var(--navigation-spot-line);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.navigation-spot .navigation-spot__paper {
+    fill: var(--white, #fff);
+}
+
+.navigation-spot .navigation-spot__fill {
+    fill: var(--navigation-spot-tint);
+}
+
+.navigation-spot .navigation-spot__link {
+    fill: var(--navigation-spot-link);
+}

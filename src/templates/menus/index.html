@@ -23,8 +23,18 @@
     }) %}
 {% endif %}
 
+{% set canCreate = editable and currentUser.can('navigation-createMenus') %}
+
+{# No menu exists yet: the page is one empty state on the page background, without the table or the footer. #}
+{% set firstRun = not (hasMenus ?? true) %}
+{% if firstRun %}
+    {% set bareContent = true %}
+    {% set hidePluginFooter = true %}
+{% endif %}
+
 {% block actionButton %}
-    {% if editable and currentUser.can('navigation-createMenus') %}
+    {# The first-run panel carries the New menu button, so the header leaves it off. #}
+    {% if canCreate and not firstRun %}
         <div id="button-container">
             <div class="btngroup submit">
                 <a class="btn submit add icon" href="{{ url('navigation/menus/new') }}">
@@ -36,7 +46,21 @@
 {% endblock %}
 
 {% block blockContent %}
-    <div id="navigations-vue-admin-table"></div>
+    {% if firstRun %}
+        <pk-state-panel layout="page" heading="{{ canCreate ? 'Create your first menu' | t('navigation') : 'No menus yet' | t('navigation') }}" heading-level="2">
+            {% include 'navigation/_includes/spots/menus' %}
+            {% if canCreate %}
+                {{ 'A menu is a set of links for one place on your site, such as the main navigation or the footer.' | t('navigation') }}
+                <a slot="actions" class="btn submit add icon" href="{{ url('navigation/menus/new') }}">{{ 'New menu' | t('navigation') }}</a>
+            {% elseif not editable %}
+                {{ 'Menus are created where admin changes are allowed, then deployed here.' | t('navigation') }}
+            {% else %}
+                {{ 'Menus show here once someone creates one.' | t('navigation') }}
+            {% endif %}
+        </pk-state-panel>
+    {% else %}
+        <div id="navigations-vue-admin-table"></div>
+    {% endif %}
 {% endblock %}
 
 {% set tableData = [] %}
@@ -70,6 +94,7 @@
 {% endfor %}
 
 {% js %}
+    {% if not firstRun %}
     var columns = [
         { name: '__slot:title', title: Craft.t('app', 'Name') },
         { name: '__slot:handle', title: Craft.t('app', 'Handle') },
@@ -98,6 +123,7 @@
         reorderAction: '{{ canReorder ? 'navigation/menus/reorder-menu' : '' }}',
         tableData: {{ tableData | json_encode | raw }},
     });
+    {% endif %}
 
     // When changing the site select, navigate to the navigation index for that site.
     var $siteMenuBtn = $('#header .sitemenubtn:first');

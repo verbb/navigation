@@ -161,10 +161,10 @@ try {
     nodes: [],
     state: { ...window.boundary.fixture, nodes: [] },
   }));
-  await page.getByRole('heading', { name: 'No nodes yet' }).waitFor();
+  await page.getByRole('heading', { name: 'Add your first node' }).waitFor();
   await page.evaluate(() => window.boundary.reset());
   await page.evaluate(() => window.boundary.store.setState({ statusFilter: 'disabled' }));
-  await page.getByRole('heading', { name: 'No nodes match the selected status.' }).waitFor();
+  await page.getByRole('heading', { name: 'No nodes match the selected status' }).waitFor();
 
   await page.goto(`http://127.0.0.1:${server.address().port}?controls=1`);
   await page.locator('[data-node-id="2"] pk-checkbox').click();

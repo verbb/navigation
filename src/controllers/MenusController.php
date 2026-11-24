@@ -58,9 +58,17 @@ class MenusController extends Controller
 
         $navigations = Navigation::$plugin->getMenus()->getEditableMenusForSite($site);
 
+        // The first-run panel shows only while no menu exists anywhere, not when this person can't see the ones that do.
+        $hasMenus = Navigation::$plugin->getMenus()->getAllMenus() !== [];
+
+        if (!$hasMenus) {
+            NavigationPluginHelper::registerAsset('src/menus-index.ts');
+        }
+
         return $this->renderTemplate('navigation/menus/index', [
             'navigations' => $navigations,
             'editable' => MenuAuth::canChangeMenuSettings(),
+            'hasMenus' => $hasMenus,
         ]);
     }
 
