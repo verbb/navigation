@@ -1,4 +1,4 @@
-import{r as e}from"./rolldown-runtime-XKyaHtl9.js";import{G as t,I as n,L as r,R as i,U as a,V as o,z as s}from"./unsafe-html-Bkg8v41K.js";import{c,d as l,u}from"./Field-BP9aDAQp.js";import{n as d,r as f,t as p}from"./Select-Dvz9CNbT.js";var m=e(u(),1),h=t`
+import{r as e}from"./rolldown-runtime-XKyaHtl9.js";import{G as t,I as n,L as r,R as i,U as a,V as o,z as s}from"./unsafe-html-Bkg8v41K.js";import{c,d as l,u}from"./Field-BP9aDAQp.js";import{n as d,r as f,t as p}from"./Select-BNLdE1y3.js";var m=e(u(),1),h=t`
     @layer pk-component {
         :host {
             display: inline-block;
@@ -64,4 +64,4 @@ import{r as e}from"./rolldown-runtime-XKyaHtl9.js";import{G as t,I as n,L as r,R
                 aria-label=${this.ariaLabel??o}
             ></span>
         `}};i([n({reflect:!0})],g.prototype,`status`,void 0),i([n({attribute:`aria-label`})],g.prototype,`ariaLabel`,void 0),g=i([s(`pk-status`)],g);var _=c({tagName:`pk-status`,elementClass:g,react:m.default}),v=l(),y=e=>typeof e==`object`&&!!e&&`group`in e,b=e=>e==null?``:String(e),x=(0,m.forwardRef)(function({options:e,value:t,onChange:n,placeholder:r,disabled:i,isInvalid:a,clearable:o,size:s,width:c,name:l,id:u,onBlur:h,"aria-label":g,"aria-describedby":x,"aria-errormessage":S,"aria-labelledby":C},w){let T=(0,m.useMemo)(()=>e.flatMap(e=>y(e)?e.options:[e]),[e]),E=e=>{if(!n)return;let t=e.detail,r=Array.isArray(t?.value)?t?.value[0]:t?.value,i=T.find(e=>b(e.value)===b(r));n(i?i.value:r??``)},D=e=>(0,v.jsxs)(p,{value:b(e.value),disabled:e.disabled,children:[e.status?(0,v.jsx)(_,{slot:`start`,status:e.status}):null,e.label]},b(e.value));return(0,v.jsx)(f,{ref:w,value:b(t),placeholder:r,disabled:i,invalid:a,clearable:o,size:s,width:c,name:l,id:u,onPkChange:E,onFocusOut:h,"aria-label":g,"aria-describedby":x,"aria-errormessage":S,"aria-labelledby":C,children:e.map(e=>y(e)?(0,v.jsx)(d,{label:e.group,children:e.options.map(D)},e.group):D(e))})});export{_ as n,x as t};
-//# sourceMappingURL=SelectInput-B7CNQkls.js.map
+//# sourceMappingURL=SelectInput-DNyaMqCg.js.map
