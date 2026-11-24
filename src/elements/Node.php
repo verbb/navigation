@@ -1491,6 +1491,7 @@ class Node extends Element
         }
 
         // Promoting children can fill a level, so `afterDelete()` compares against the tree as it was.
+        // Whole-menu removal intentionally discards the entire constrained tree.
         $this->_limitTreeBeforeDelete = null;
 
         if (!$this->deletedWithMenu && $this->getIsCanonical()) {
@@ -1531,7 +1532,6 @@ class Node extends Element
         parent::afterDelete();
 
         // Craft has promoted children but has not committed the deletion yet.
-        // Whole-menu removal intentionally discards the entire constrained tree.
         if ($this->_limitTreeBeforeDelete !== null) {
             $menu = Navigation::$plugin->getMenus()->getMenuById($this->menuId);
 
@@ -1740,8 +1740,9 @@ class Node extends Element
         $rules[] = [
             'level',
             function($attribute, $params, Validator $validator): void {
-                // Limits stop nodes being added. Saving a stored node adds nothing, so it stays editable when a
-                // lowered limit leaves the menu over it. `StructureLimits` checks any move the save makes.
+                // Limits stop nodes being added. Saving a stored node, draft or revision adds nothing to the menu,
+                // so it stays editable when a lowered limit leaves the menu over it. `StructureLimits` checks any
+                // move or structure insert the save makes.
                 if ($this->id || $this->getIsDraft() || $this->getIsRevision()) {
                     return;
                 }

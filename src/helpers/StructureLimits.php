@@ -17,16 +17,19 @@ class StructureLimits
     // Static Methods
     // =========================================================================
 
-    /** Full-tree edits may temporarily exceed limits while exchanging siblings. */
-    public static function batch(MenuSettings $menu, int $siteId, callable $callback, array $skipIds = []): void
+    /**
+     * Full-tree edits may temporarily exceed limits while exchanging siblings. `$addedIds` are staged nodes that
+     * already sit in the structure, so they count as additions when the edit publishes them.
+     */
+    public static function batch(MenuSettings $menu, int $siteId, callable $callback, array $skipIds = [], array $addedIds = []): void
     {
         $key = $menu->id . ':' . $siteId;
         $previous = self::$_batches[$key] ?? 0;
         self::$_batches[$key] = $previous + 1;
 
         try {
-            Craft::$app->getDb()->transaction(function() use ($menu, $siteId, $callback, $skipIds, $previous) {
-                $before = !$previous && self::_hasLimits($menu) ? self::_tree($menu, $siteId) : null;
+            Craft::$app->getDb()->transaction(function() use ($menu, $siteId, $callback, $skipIds, $addedIds, $previous) {
+                $before = !$previous && self::_hasLimits($menu) ? array_diff_key(self::_tree($menu, $siteId), $skipIds, $addedIds) : null;
 
                 $callback();
 

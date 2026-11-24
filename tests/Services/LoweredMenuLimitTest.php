@@ -102,3 +102,46 @@ it('allows deleting and reordering nodes on a level over its limit but not addin
     expect(loweredLimitSavesExtraNode($menu))->toBeFalse();
     expect(Node::find()->menuId($menu->id)->status(null)->ids())->toEqual([$c->id, $b->id]);
 });
+
+it('refuses to publish staged nodes that a lowered Max Nodes has no room for', function() {
+    $menu = F::menu();
+    F::flatCustomNodes($menu, 2);
+    $pending = F::customNode($menu, 'Pending', '/pending');
+    $pending->enabled = false;
+    $pending->setEnabledForSite(false);
+    $pending->setPendingPublish(true);
+    expect(Craft::$app->elements->saveElement($pending))->toBeTrue();
+
+    $sessions = N::$plugin->getBuildSessions();
+    $session = $sessions->getOrCreate($menu->id, $pending->siteId);
+    $sessions->stageAddedNodes($session, [$pending->id]);
+    loweredLimitMenu($menu, ['maxNodes' => 2]);
+
+    expect(fn() => $sessions->publish($session))->toThrow(yii\web\BadRequestHttpException::class);
+    expect(Node::find()->id($pending->id)->status(null)->one()->getIsPendingPublish())->toBeTrue();
+});
+
+it('refuses to move an existing node into a level already over its limit', function() {
+    $menu = F::menu();
+    $a = F::customNode($menu, 'A', '/a');
+    F::customNode($menu, 'B', '/b', $a);
+    F::customNode($menu, 'C', '/c', $a);
+    $x = F::customNode($menu, 'X', '/x');
+    loweredLimitMenu($menu, ['maxNodesSettings' => [['level' => 2, 'max' => 1]]]);
+
+    $x->setParentId($a->id);
+    expect(fn() => Craft::$app->elements->saveElement($x))->toThrow(yii\base\UserException::class);
+    expect(Node::find()->id($x->id)->one()->getParentId())->toBeNull();
+});
+
+it('refuses a delete whose promoted children grow a level already over its limit', function() {
+    $menu = F::menu();
+    $parent = F::customNode($menu, 'Parent', '/parent');
+    F::customNode($menu, 'B', '/b', $parent);
+    F::customNode($menu, 'C', '/c', $parent);
+    F::flatCustomNodes($menu, 2);
+    loweredLimitMenu($menu, ['maxNodesSettings' => [['level' => 1, 'max' => 1]]]);
+
+    expect(fn() => Craft::$app->elements->deleteElement($parent, true))->toThrow(yii\web\BadRequestHttpException::class);
+    expect(Node::find()->id($parent->id)->one())->not->toBeNull();
+});

@@ -422,6 +422,7 @@ class BuildSessions extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
     }
@@ -467,9 +468,11 @@ class BuildSessions extends Component
             } else {
                 $this->saveSession($session);
             }
+
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
     }
@@ -577,7 +580,7 @@ class BuildSessions extends Component
             }
 
             $this->deleteSession($session);
-        });
+        }, [], array_flip($session->addedNodeIds));
 
         if ($applyStructure && $structureMoves !== []) {
             $this->_validateStructureNodes($menuId, $siteId, $structureMoves, $stagedDeleteIds);
@@ -847,6 +850,7 @@ class BuildSessions extends Component
             if ((int)$record->id === (int)$session->id) {
                 continue;
             }
+
             $other = $this->_recordToModel($record);
 
             if (($node->getIsPendingPublish() && in_array((int)$node->id, $other->addedNodeIds, true)) || $this->_findStagedDelete($other, (int)$node->id)) {
