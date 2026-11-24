@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.1.1 - 2026-11-24
 
 ### Added
 - Added a first-run screen to the Menus page, shown until the first menu exists, with a New menu button for people who can create menus.
