@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed the menu builder failing to load, and Products Dynamic nodes failing to open, on Commerce 5.6 and earlier.
+
 ## 4.1.1 - 2026-11-24
 
 ### Added

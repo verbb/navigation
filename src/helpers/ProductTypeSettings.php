@@ -25,7 +25,7 @@ class ProductTypeSettings
             'value' => '',
         ]];
 
-        foreach (Commerce::getInstance()->getProductTypes()->getViewableProductTypes() as $productType) {
+        foreach (self::_getViewableProductTypes(Commerce::getInstance()->getProductTypes()) as $productType) {
             $options[] = [
                 'label' => $productType->name,
                 'value' => (string)$productType->id,
@@ -204,6 +204,20 @@ class ProductTypeSettings
             self::ORDER_DATE_CREATED_ASC,
             self::ORDER_DATE_CREATED_DESC,
         ], true) ? $orderBy : self::ORDER_DEFAULT;
+    }
+
+    /**
+     * Commerce 5.7 added `getViewableProductTypes()` and deprecated `getEditableProductTypes()`, but
+     * Commerce 5.6 and earlier (the only releases available on Craft 5.9) have just the editable
+     * variant. Prefer the new method so Commerce 5.7+ doesn't log a deprecation warning.
+     */
+    private static function _getViewableProductTypes(object $productTypes): array
+    {
+        if (method_exists($productTypes, 'getViewableProductTypes')) {
+            return $productTypes->getViewableProductTypes();
+        }
+
+        return $productTypes->getEditableProductTypes();
     }
 
 
