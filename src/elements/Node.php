@@ -524,16 +524,18 @@ class Node extends Element
             return [
                 'enabled' => (bool)($state['enabled'] ?? true),
                 'enabledForSite' => (bool)($state['enabledForSite'] ?? true),
+                'linkedElementEnabled' => isset($state['linkedElementEnabled']) ? (bool)$state['linkedElementEnabled'] : null,
             ];
         }
 
         return [
             'enabled' => true,
             'enabledForSite' => true,
+            'linkedElementEnabled' => null,
         ];
     }
 
-    public function setLinkedElementDisabledRestoreState(bool $enabled, bool $enabledForSite): void
+    public function setLinkedElementDisabledRestoreState(bool $enabled, bool $enabledForSite, ?bool $linkedElementEnabled = null): void
     {
         // Node data is shared across sites; keep each localized enabled state separately.
         $state = $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] ?? [];
@@ -542,6 +544,13 @@ class Node extends Element
             'enabled' => $enabled,
             'enabledForSite' => $enabledForSite,
         ];
+
+        // The linked element's status on this site when it was removed, so its status when it
+        // returns can be synced as a change from that.
+        if ($linkedElementEnabled !== null) {
+            $sites[$this->siteId]['linkedElementEnabled'] = $linkedElementEnabled;
+        }
+
         $this->data[self::LINKED_ELEMENT_DISABLED_STATE_DATA_KEY] = ['sites' => $sites];
     }
 

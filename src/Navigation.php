@@ -224,6 +224,7 @@ class Navigation extends Plugin
         Event::on(Elements::class, Elements::EVENT_AFTER_SAVE_ELEMENT, [$this->getNodes(), 'onAfterSaveProjectedContent']);
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [$this->getNodes(), 'onAfterDeleteNode']);
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT, [$this->getNodes(), 'onAfterDeleteProjectedContent']);
+        Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_FOR_SITE, [$this->getNodes(), 'onDeleteElementForSite']);
         Event::on(Elements::class, Elements::EVENT_AFTER_RESTORE_ELEMENT, [$this->getNodes(), 'onRestoreElement']);
         Event::on(Entries::class, Entries::EVENT_AFTER_DELETE_SECTION, [$this->getNodes(), 'onDeleteSection']);
         Event::on(Categories::class, Categories::EVENT_AFTER_DELETE_GROUP, [$this->getNodes(), 'onDeleteCategoryGroup']);

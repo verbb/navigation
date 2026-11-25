@@ -198,11 +198,19 @@ class Nodes extends Component
                 continue;
             }
 
+            // A link whose element is gone from its site is restored only when the element is
+            // saved back there. A global status change from another site must leave it alone.
+            if (!$sameSite && $node->getIsDisabledByLinkedElement()) {
+                continue;
+            }
+
             if (!$this->_canSyncLinkedNode($node)) {
                 continue;
             }
 
             $node->data = $dataById[$node->id] ?? $node->data;
+            $returnedToSite = false;
+            $returnedElementEnabled = true;
 
             if ($sameSite) {
                 if ($element->uri) {
@@ -215,9 +223,19 @@ class Nodes extends Component
                 if (!$node->hasOverriddenTitle()) {
                     $node->title = $element->title;
                 }
+
+                // Deleting the element for this site disabled its links here. Saving it back
+                // to the site restores them, as restoring a soft-deleted element does.
+                if ($element->isNewForSite && $node->getIsDisabledByLinkedElement()) {
+                    $returnedElementEnabled = $node->getLinkedElementDisabledRestoreState()['linkedElementEnabled'] ?? true;
+                    $this->_applyLinkedElementRestoreState($node);
+                    $returnedToSite = true;
+                }
             }
 
-            if ($currentElement && !$node->getIsPendingPublish()) {
+            // A returning element has no stored row on this site to compare against. Sync its links
+            // against the status it had when it was removed, as if it had changed status in place.
+            if (($currentElement || $returnedToSite) && !$node->getIsPendingPublish()) {
                 $isMultiSite = Craft::$app->getIsMultiSite() && count($node->getSupportedSites()) > 1;
 
                 // A global source toggle affects every linked locale. Resolve each
@@ -234,7 +252,9 @@ class Nodes extends Component
                 $siteIsEnabled = $element->getEnabledForSite($linkedSiteId) ?? $siteWasEnabled;
                 $nodeEnabled = $isMultiSite ? $node->getEnabledForSite() : $node->enabled;
                 $elementEnabled = $element->enabled && $siteIsEnabled;
-                $currentElementEnabled = $currentElement->enabled && $siteWasEnabled;
+                $currentElementEnabled = $returnedToSite
+                    ? $returnedElementEnabled
+                    : $currentElement->enabled && $siteWasEnabled;
 
                 $preserveDisabled = false;
 
@@ -262,7 +282,12 @@ class Nodes extends Component
 
                 if (!$preserveDisabled && $elementEnabled !== $currentElementEnabled && $elementEnabled !== $nodeEnabled) {
                     if ($isMultiSite) {
-                        $node->enabled = true;
+                        // A returning element only decides this site's status. The node's global
+                        // flag is the author's, restored from before the delete.
+                        if (!$returnedToSite) {
+                            $node->enabled = true;
+                        }
+
                         $node->setEnabledForSite($elementEnabled);
                     } else {
                         $node->enabled = $elementEnabled;
@@ -357,6 +382,53 @@ class Nodes extends Component
         $this->_disableLinkedNodes($nodes);
     }
 
+    public function onDeleteElementForSite(ElementEvent $event): void
+    {
+        $element = $event->element;
+        $typeValues = $this->_linkedNodeTypeValues($element);
+
+        if (!$typeValues) {
+            return;
+        }
+
+        $nodes = NodeElement::find()
+            ->elementId($element->id)
+            ->status(null)
+            ->type($typeValues)
+            ->site('*')
+            ->all();
+
+        $siteId = (int)$element->siteId;
+        $elementEnabled = $element->enabled && $element->getEnabledForSite();
+        $dataById = [];
+
+        foreach ($nodes as $node) {
+            // Only links to the deleted site's element lose their target. Treat them like a
+            // soft delete of the element, so they are restored if it is saved back to that site.
+            if ($node->getElementSiteId() !== $siteId) {
+                continue;
+            }
+
+            $node->data = $dataById[$node->id] ?? $node->data;
+
+            // The site's content is already gone and Craft doesn't roll this back, so one node
+            // that fails to save must not leave the others, or other deleted entries, linked.
+            try {
+                $this->disableNodeForLinkedElement($node, $elementEnabled);
+                $dataById[$node->id] = $node->data;
+            } catch (Throwable $e) {
+                Craft::error([
+                    'message' => 'Failed to disable a linked navigation node after its element was deleted for a site.',
+                    'nodeId' => $node->id,
+                    'menuId' => $node->menuId,
+                    'siteId' => $node->siteId,
+                    'errors' => $node->getErrors(),
+                    'exception' => $e,
+                ], __METHOD__);
+            }
+        }
+    }
+
     public function onRestoreElement(ElementEvent $event): void
     {
         $element = $event->element;
@@ -378,7 +450,9 @@ class Nodes extends Component
         foreach ($nodes as $node) {
             $node->data = $dataById[$node->id] ?? $node->data;
 
-            if ($node->getIsDisabledByLinkedElement()) {
+            // A site the element was deleted from before it was trashed doesn't come back
+            // with it, so that site's links stay disabled until the element is saved there.
+            if ($node->getIsDisabledByLinkedElement() && $node->getElement()) {
                 $this->restoreNodeFromLinkedElement($node);
             }
 
@@ -451,7 +525,7 @@ class Nodes extends Component
         }
     }
 
-    public function disableNodeForLinkedElement(NodeElement $node): void
+    public function disableNodeForLinkedElement(NodeElement $node, ?bool $linkedElementEnabled = null): void
     {
         if (!$this->_canSyncLinkedNode($node) || $node->getIsDisabledByLinkedElement()) {
             return;
@@ -460,7 +534,7 @@ class Nodes extends Component
         $isMultiSite = Craft::$app->getIsMultiSite() && count($node->getSupportedSites()) > 1;
         $enabledForSite = $isMultiSite ? $node->getEnabledForSite() : $node->enabled;
 
-        $node->setLinkedElementDisabledRestoreState($node->enabled, $enabledForSite);
+        $node->setLinkedElementDisabledRestoreState($node->enabled, $enabledForSite, $linkedElementEnabled);
         $node->setDisabledByLinkedElement(true);
 
         if ($isMultiSite) {
@@ -479,20 +553,7 @@ class Nodes extends Component
             return;
         }
 
-        $state = $node->getLinkedElementDisabledRestoreState();
-        $isMultiSite = Craft::$app->getIsMultiSite() && count($node->getSupportedSites()) > 1;
-
-        if ($isMultiSite) {
-            $node->enabled = $state['enabled'];
-            $node->setEnabledForSite($state['enabledForSite']);
-        } else {
-            // A formerly localized disabled state must remain disabled if the
-            // menu now supports only one site and Craft uses the global flag.
-            $node->enabled = $state['enabled'] && $state['enabledForSite'];
-            $node->setEnabledForSite(true);
-        }
-
-        $node->clearLinkedElementDisabledState();
+        $this->_applyLinkedElementRestoreState($node);
         $this->_saveLinkedNode($node);
     }
 
@@ -738,6 +799,24 @@ class Nodes extends Component
         }
     }
 
+    private function _applyLinkedElementRestoreState(NodeElement $node): void
+    {
+        $state = $node->getLinkedElementDisabledRestoreState();
+        $isMultiSite = Craft::$app->getIsMultiSite() && count($node->getSupportedSites()) > 1;
+
+        if ($isMultiSite) {
+            $node->enabled = $state['enabled'];
+            $node->setEnabledForSite($state['enabledForSite']);
+        } else {
+            // A formerly localized disabled state must remain disabled if the
+            // menu now supports only one site and Craft uses the global flag.
+            $node->enabled = $state['enabled'] && $state['enabledForSite'];
+            $node->setEnabledForSite(true);
+        }
+
+        $node->clearLinkedElementDisabledState();
+    }
+
     private function _saveLinkedNode(NodeElement $node): void
     {
         $key = spl_object_id($node);
@@ -835,10 +914,12 @@ class Nodes extends Component
                 if (!$placed) {
                     throw new UserException('Could not place duplicate.');
                 }
+
                 $transaction->commit();
             } catch (Throwable $e) {
                 $transaction->rollBack();
                 $failCount++;
+
                 continue;
             }
 
@@ -934,6 +1015,7 @@ class Nodes extends Component
                 if (!$structuresService->remove($structureId, $duplicate)) {
                     throw new UserException('Could not remove inherited copy position.');
                 }
+
                 $placed = $structureParent
                     ? $structuresService->append($structureId, $duplicate, $structureParent)
                     : $structuresService->appendToRoot($structureId, $duplicate);
@@ -941,12 +1023,14 @@ class Nodes extends Component
                 if (!$placed) {
                     throw new UserException('Could not place copied node.');
                 }
+
                 $transaction->commit();
             } catch (Throwable $e) {
                 $transaction->rollBack();
                 $remappedLinkedElementCount = $previousRemapped;
                 $skippedLinkedElementRemapCount = $previousSkipped;
                 $failCount++;
+
                 continue;
             }
 
