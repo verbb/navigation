@@ -184,8 +184,8 @@ class NodeRead extends Component
     /**
      * Applies hierarchy wiring for a query result, loading the full nav tree when needed.
      *
-     * Level- or ID-scoped queries only return a subset of nodes, but child relationships
-     * are derived from the complete structure-ordered nav list.
+     * Level-, ID-, UID-, limit- or offset-scoped queries and `one()` only return a subset of nodes,
+     * but child relationships are derived from the complete structure-ordered nav list.
      */
     public function assembleNodeHierarchyForQueryResult(NodeQuery $query, array $nodes, bool $includeLinkedElements = true, bool $projectChildren = true): array
     {
@@ -408,6 +408,7 @@ class NodeRead extends Component
             // Match getElementById() when an optional element provider is unavailable.
             if (!class_exists($elementType)) {
                 $node->setElement(null);
+
                 continue;
             }
 
@@ -653,7 +654,9 @@ class NodeRead extends Component
     {
         return $query->level !== null
             || $query->id !== null
+            || $query->uid !== null
             || $query->limit !== null
+            || $query->isFetchingOne()
             || ($query->offset ?? 0) > 0;
     }
 

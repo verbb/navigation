@@ -6,6 +6,7 @@
 - Fixed the menu builder failing to load, and Products Dynamic nodes failing to open, on Commerce 5.6 and earlier.
 - Fixed lowered node or depth limits preventing editors from editing, reordering or deleting existing menu nodes.
 - Fixed deleting a linked entry for one site leaving that site’s menu nodes enabled without a URL.
+- Fixed `one()`, `nth()` and `uid()` node queries, and the `navigationNode` GraphQL query, returning nodes without their children.
 
 ## 4.1.1 - 2026-11-24
 

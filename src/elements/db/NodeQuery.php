@@ -48,6 +48,8 @@ class NodeQuery extends ElementQuery
     public bool $skipPostCacheProcessing = false;
     public bool $useNavigationCache = false;
 
+    private bool $_fetchingOne = false;
+
 
     // Public Methods
     // =========================================================================
@@ -70,9 +72,31 @@ class NodeQuery extends ElementQuery
         return parent::all($db);
     }
 
+    /**
+     * Craft restores `limit` before `populate()` runs for `one()`, so hierarchy wiring would treat the
+     * single fetched row as the whole menu. Flag the read so it wires children like `limit(1)` does.
+     */
+    public function one($db = null): mixed
+    {
+        $fetchingOne = $this->_fetchingOne;
+        $this->_fetchingOne = true;
+
+        try {
+            return parent::one($db);
+        } finally {
+            $this->_fetchingOne = $fetchingOne;
+        }
+    }
+
+    public function isFetchingOne(): bool
+    {
+        return $this->_fetchingOne;
+    }
+
     public function elementId($value): static
     {
         $this->elementId = $value;
+
         return $this;
     }
 
@@ -101,18 +125,21 @@ class NodeQuery extends ElementQuery
     public function type($value): static
     {
         $this->type = $value;
+
         return $this;
     }
 
     public function element($value): static
     {
         $this->element = $value;
+
         return $this;
     }
 
     public function handle($value): static
     {
         $this->handle = $value;
+
         return $this;
     }
 
@@ -124,6 +151,7 @@ class NodeQuery extends ElementQuery
     public function hasUrl(bool $value = true): static
     {
         $this->hasUrl = $value;
+
         return $this;
     }
 
@@ -133,6 +161,7 @@ class NodeQuery extends ElementQuery
     public function withLinkedElements(bool $value = true): static
     {
         $this->withLinkedElements = $value;
+
         return $this;
     }
 
@@ -144,6 +173,7 @@ class NodeQuery extends ElementQuery
     public function withNodeHierarchy(?bool $value = true): static
     {
         $this->withNodeHierarchy = $value;
+
         return $this;
     }
 
@@ -153,6 +183,7 @@ class NodeQuery extends ElementQuery
     public function withNavigationCache(bool $value = true): static
     {
         $this->useNavigationCache = $value;
+
         return $this;
     }
 
@@ -162,6 +193,7 @@ class NodeQuery extends ElementQuery
     public function withMenu(bool $value = true): static
     {
         $this->withMenu = $value;
+
         return $this;
     }
 
@@ -173,6 +205,7 @@ class NodeQuery extends ElementQuery
     public function withProjectedChildren(?bool $value = true): static
     {
         $this->withProjectedChildren = $value;
+
         return $this;
     }
 
@@ -183,6 +216,7 @@ class NodeQuery extends ElementQuery
     public function includePendingProjections(bool $value = true): static
     {
         $this->includePendingProjections = $value;
+
         return $this;
     }
 
@@ -232,6 +266,7 @@ class NodeQuery extends ElementQuery
                     }
                 }
             }
+
             unset($row);
 
             return parent::populate($rows);
@@ -257,6 +292,7 @@ class NodeQuery extends ElementQuery
                 $row['elementUrl'],
             );
         }
+
         unset($row);
 
         // Hierarchy/projection traversal needs an ordered list. Apply caller keys only afterward.
