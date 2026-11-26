@@ -1002,6 +1002,8 @@ Wires parent/child relationships in memory after the query executes.
 | `true` | Always wires the hierarchy. |
 | `false` | Never wires the hierarchy, so children load when you access them. |
 
+With `false`, `hasActiveChild()` only counts descendants the query loaded: other nodes in the same result, and children loaded with `.with(['children'])`. So a root-only query such as `.level(1)` can't tell that a deeper page is current, though a node is still `active` when the page sits under its own URL. Leave the hierarchy wired when those flags matter.
+
 ::: code
 ```twig Twig
 {% set nodes = craft.navigation.nodes()

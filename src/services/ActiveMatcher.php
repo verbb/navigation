@@ -82,6 +82,7 @@ class ActiveMatcher extends Component
 
                     if ($childState && ($childState->isCurrent || $childState->hasActiveChild)) {
                         $state->hasActiveChild = true;
+
                         break;
                     }
                 }
@@ -409,6 +410,13 @@ class ActiveMatcher extends Component
         // A newly duplicated/unplaced node has no stored children. Asking Craft
         // to resolve its child query reloads the same node and re-enters this pass.
         if (!$node->lft) {
+            return;
+        }
+
+        // Projections are only attached while wiring the hierarchy, so a node with no
+        // children in memory has nothing to project. Its child query would cost one
+        // query per node and repeat this pass for every child it returns.
+        if (!$node->hasEagerLoadedElements('children') && $node->getProjectedChildren() === []) {
             return;
         }
 

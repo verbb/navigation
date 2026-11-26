@@ -7,6 +7,7 @@
 - Fixed lowered node or depth limits preventing editors from editing, reordering or deleting existing menu nodes.
 - Fixed deleting a linked entry for one site leaving that site’s menu nodes enabled without a URL.
 - Fixed `one()`, `nth()` and `uid()` node queries, and the `navigationNode` GraphQL query, returning nodes without their children.
+- Fixed node queries using `withNodeHierarchy(false)`, eager-loaded `children` or no menu running an extra database query for each node when resolving active states.
 
 ## 4.1.1 - 2026-11-24
 
